@@ -27,7 +27,7 @@ impl URLBundle {
     /// parse(url: String) parses a URL using the Url library and formats it in a standardized
     /// way. If no protocol is given, HTTP (not HTTPS) is assumed.
     /// # Example:
-    /// ```
+    /// ```rs
     /// let url = parse_url("localhost:3000");
     /// println!("{}", url);  
     /// ```
