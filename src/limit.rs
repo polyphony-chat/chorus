@@ -1,16 +1,17 @@
 use reqwest::{Client, Request};
 use std::collections::VecDeque;
 
-struct Limit {
+pub struct Limit {
     limit: i64,
     remaining: i64,
     reset: i64,
+    bucket: String,
 }
 
 pub struct LimitedRequester {
     http: Client,
     limit: Limit,
-    requests: VecDeque<Request>, // wow, amazing
+    requests: VecDeque<Request>,
 }
 
 impl LimitedRequester {
@@ -21,12 +22,24 @@ impl LimitedRequester {
     pub fn new() -> Self {
         LimitedRequester {
             limit: Limit {
-                limit: 1,
-                remaining: 1,
-                reset: 0,
+                limit: -1,
+                remaining: -1,
+                reset: -1,
+                bucket: String::new(),
             },
             http: Client::new(),
             requests: VecDeque::new(),
         }
+    }
+
+    pub fn check_limits(url: String) -> Limit {
+        let client = Client::new();
+        let url_parsed = crate::URLBundle::parse_url(url);
+        Limit {
+            limit: -1,
+            remaining: -1,
+            reset: -1,
+            bucket: String::new(),
+        } // TODO: Implement
     }
 }
