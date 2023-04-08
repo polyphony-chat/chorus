@@ -33,9 +33,16 @@ impl LimitedRequester {
     pub async fn check_limits(url: String) -> Vec<Limit> {
         let client = Client::new();
         let url_parsed = crate::URLBundle::parse_url(url) + "/api/policies/instance/limits";
-        let result = client.get(url_parsed).send();
+        let result = match client.get(url_parsed).send().await {
+            Ok(response) => match response.text().await {
+                Ok(string) => string,
+                Err(e) => panic!("Error encountered during request body parsing: {}", e),
+            },
+            Err(e) => {
+                panic!("Error encountered during performing the request: {}", e)
+            }
+        };
         /*
-        1. unwrap the result
         2. extract rate and absolute rate limits from response result
         3. put each different rate limit as a new object in the limit vector
         4. yeah
