@@ -1,6 +1,9 @@
 use reqwest::{Client, Request};
 use std::collections::VecDeque;
 
+// Note: There seem to be some overlapping request limiters. We need to make sure that sending a
+// request checks for all the request limiters that apply, and blocks if any of the limiters are 0
+
 pub struct Limit {
     limit: i64,
     remaining: i64,
@@ -19,17 +22,24 @@ impl LimitedRequester {
     /// send them to the server using a `Client`. It keeps track of the remaining requests that can
     /// be send within the `Limit` of an external API Ratelimiter, and looks at the returned request
     /// headers to see if it can find Ratelimit info to update itself.
-    pub fn new(api_url: String) -> Self {
+    pub async fn new(api_url: String) -> Self {
         LimitedRequester {
-            limit: LimitedRequester::check_limits(api_url),
+            limit: LimitedRequester::check_limits(api_url).await,
             http: Client::new(),
             requests: VecDeque::new(),
         }
     }
 
-    pub fn check_limits(url: String) -> Vec<Limit> {
+    pub async fn check_limits(url: String) -> Vec<Limit> {
         let client = Client::new();
         let url_parsed = crate::URLBundle::parse_url(url) + "/api/policies/instance/limits";
+        let result = client.get(url_parsed).send();
+        /*
+        1. unwrap the result
+        2. extract rate and absolute rate limits from response result
+        3. put each different rate limit as a new object in the limit vector
+        4. yeah
+         */
         let mut limit_vector = Vec::new();
         limit_vector.push(Limit {
             limit: -1,
