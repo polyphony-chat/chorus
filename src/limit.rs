@@ -43,9 +43,11 @@ impl LimitedRequester {
         }
     }
 
-    pub async fn check_limits(url: String) -> Vec<Limit> {
+    /// check_limits uses the API to get the current request limits of the instance.
+    /// It returns a `Vec` of `Limit`s, which can be used to check if a request can be sent.
+    pub async fn check_limits(api_url: String) -> Vec<Limit> {
         let client = Client::new();
-        let url_parsed = crate::URLBundle::parse_url(url) + "/api/policies/instance/limits";
+        let url_parsed = crate::URLBundle::parse_url(api_url) + "/policies/instance/limits";
         let result = client
             .get(url_parsed)
             .send()
