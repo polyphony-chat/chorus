@@ -1,4 +1,4 @@
-use crate::api::{limits::Config, policies::instance::limits::*};
+use crate::api::limits::Config;
 
 use reqwest::{Client, Request};
 use serde_json::from_str;
@@ -18,15 +18,15 @@ impl std::fmt::Display for Limit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Limit: {}, Remaining: {}, Reset: {}, Bucket: {}",
-            self.limit, self.remaining, self.reset, self.bucket
+            "Bucket: {}, Limit: {}, Remaining: {}, Reset: {}",
+            self.bucket, self.limit, self.remaining, self.reset
         )
     }
 }
 
 pub struct LimitedRequester {
     http: Client,
-    limit: Vec<Limit>,
+    limits: Vec<Limit>,
     requests: VecDeque<Request>,
 }
 
@@ -37,7 +37,7 @@ impl LimitedRequester {
     /// headers to see if it can find Ratelimit info to update itself.
     pub async fn new(api_url: String) -> Self {
         LimitedRequester {
-            limit: LimitedRequester::check_limits(api_url).await,
+            limits: LimitedRequester::check_limits(api_url).await,
             http: Client::new(),
             requests: VecDeque::new(),
         }
@@ -146,22 +146,5 @@ impl LimitedRequester {
         }
 
         limit_vector
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use serde_json::from_str;
-
-    use crate::api::limits::Config;
-
-    use super::*;
-
-    #[tokio::test]
-    async fn test_parse_url() {
-        let test_vec = LimitedRequester::check_limits(String::from("http://localhost:3001/")).await;
-        for _limit in test_vec.iter() {
-            println!("{}", _limit);
-        }
     }
 }
