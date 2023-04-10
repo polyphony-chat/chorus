@@ -6,7 +6,7 @@ A rust library for interacting with multiple Spacebar-compatible APIs and Gatewa
 
 Core functionality:
 
-- [x] Rate Limiter
+- [-] Rate Limiter
 - [ ] Login
 - [ ] Registration
 - [ ] User profile customisation
