@@ -86,6 +86,7 @@ impl LimitedRequester {
         }
         let response = request.send().await.unwrap();
         self.update_limits(&response);
+        // TODO: This does not use the request queue at all. Implement! >:3
         response
     }
 
