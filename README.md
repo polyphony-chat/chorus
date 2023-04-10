@@ -23,3 +23,15 @@ Core functionality:
 
 [Rust]: https://img.shields.io/badge/Rust-orange?style=plastic&logo=rust
 [Rust-url]: https://www.rust-lang.org/
+[build-shield]: https://img.shields.io/github/actions/workflow/status/polyphony-chat/chorus/rust.yml?style=plastic
+[build-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/rust.yml
+[contributors-shield]: https://img.shields.io/github/contributors/polyphony-chat/chorus.svg?style=plastic
+[contributors-url]: https://github.com/polyphony-chat/chorus/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/polyphony-chat/chorus.svg?style=plastic
+[forks-url]: https://github.com/polyphony-chat/chorus/network/members
+[stars-shield]: https://img.shields.io/github/stars/polyphony-chat/chorus.svg?style=plastic
+[stars-url]: https://github.com/polyphony-chat/chorus/stargazers
+[issues-shield]: https://img.shields.io/github/issues/polyphony-chat/chorus.svg?style=plastic
+[issues-url]: https://github.com/polyphony-chat/chorus/issues
+[license-shield]: https://img.shields.io/github/license/polyphony-chat/chorus.svg?style=plastic
+[license-url]: https://github.com/polyphony-chat/chorus/blob/master/LICENSE
