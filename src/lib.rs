@@ -1,9 +1,10 @@
+mod api;
 mod client;
 mod gateway;
-mod http;
 mod limit;
 mod voice;
 
+use crate::api::policies::instance::limits::*;
 use url::{ParseError, Url};
 #[derive(Clone, Default)]
 
