@@ -1,6 +1,12 @@
 # chorus
 
 [![Rust]][Rust-url]
+[![Build][build-shield]][build-url]
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![GPL3 License][license-shield]][license-url]
 
 A rust library for interacting with multiple Spacebar-compatible APIs and Gateways at the same time.
 
