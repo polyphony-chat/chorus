@@ -1,6 +1,7 @@
 # chorus
 
 [![Rust]][Rust-url]
+
 A rust library for interacting with multiple Spacebar-compatible APIs and Gateways at the same time.
 
 ## Roadmap
