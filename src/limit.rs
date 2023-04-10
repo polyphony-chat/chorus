@@ -46,6 +46,8 @@ impl LimitedRequester {
                     e
                 )
             });
+        println!("{}", result);
+
         /*
         2. extract rate and absolute rate limits from response result
         3. put each different rate limit as a new object in the limit vector
@@ -62,12 +64,14 @@ impl LimitedRequester {
     }
 }
 
-/* #[cfg(test)]  Tests work here as well, neat!
+#[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_parse_url() {
-        assert_eq!(1, 1)
+    #[tokio::test]
+    async fn test_parse_url() {
+        let test_vec = LimitedRequester::check_limits(String::from("http://localhost:3001/")).await;
+        let first_from_vec = test_vec.get(0).unwrap();
+        println!("{}", first_from_vec.bucket);
     }
-} */
+}
