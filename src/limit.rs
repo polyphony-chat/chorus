@@ -1,14 +1,27 @@
+use crate::api::{limits::Config, policies::instance::limits::*};
+
 use reqwest::{Client, Request};
+use serde_json::from_str;
 use std::collections::VecDeque;
 
 // Note: There seem to be some overlapping request limiters. We need to make sure that sending a
 // request checks for all the request limiters that apply, and blocks if any of the limiters are 0
 
 pub struct Limit {
-    limit: i64,
-    remaining: i64,
-    reset: i64,
+    limit: u64,
+    remaining: u64,
+    reset: u64,
     bucket: String,
+}
+
+impl std::fmt::Display for Limit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Limit: {}, Remaining: {}, Reset: {}, Bucket: {}",
+            self.limit, self.remaining, self.reset, self.bucket
+        )
+    }
 }
 
 pub struct LimitedRequester {
@@ -46,32 +59,109 @@ impl LimitedRequester {
                     e
                 )
             });
-        println!("{}", result);
+        let config: Config = from_str(&result).unwrap();
 
-        /*
-        2. extract rate and absolute rate limits from response result
-        3. put each different rate limit as a new object in the limit vector
-        4. yeah
-         */
         let mut limit_vector = Vec::new();
-        limit_vector.push(Limit {
-            limit: -1,
-            remaining: -1,
-            reset: -1,
-            bucket: String::new(),
-        }); // TODO: Implement
+        if !config.rate.enabled {
+            let types = [
+                "rate.ip",
+                "rate.routes.auth.login",
+                "rate.routes.auth.register",
+            ];
+            for type_ in types.iter() {
+                limit_vector.push(Limit {
+                    limit: u64::MAX,
+                    remaining: u64::MAX,
+                    reset: 1,
+                    bucket: String::from(*type_),
+                });
+            }
+        } else {
+            limit_vector.push(Limit {
+                limit: config.rate.ip.count,
+                remaining: config.rate.ip.count,
+                reset: config.rate.ip.window,
+                bucket: String::from("rate.ip"),
+            });
+            limit_vector.push(Limit {
+                limit: config.rate.global.count,
+                remaining: config.rate.global.count,
+                reset: config.rate.global.window,
+                bucket: String::from("rate.global"),
+            });
+            limit_vector.push(Limit {
+                limit: config.rate.error.count,
+                remaining: config.rate.error.count,
+                reset: config.rate.error.window,
+                bucket: String::from("rate.error"),
+            });
+            limit_vector.push(Limit {
+                limit: config.rate.routes.guild.count,
+                remaining: config.rate.routes.guild.count,
+                reset: config.rate.routes.guild.window,
+                bucket: String::from("rate.routes.guild"),
+            });
+            limit_vector.push(Limit {
+                limit: config.rate.routes.webhook.count,
+                remaining: config.rate.routes.webhook.count,
+                reset: config.rate.routes.webhook.window,
+                bucket: String::from("rate.routes.webhook"),
+            });
+            limit_vector.push(Limit {
+                limit: config.rate.routes.channel.count,
+                remaining: config.rate.routes.channel.count,
+                reset: config.rate.routes.channel.window,
+                bucket: String::from("rate.routes.channel"),
+            });
+            limit_vector.push(Limit {
+                limit: config.rate.routes.auth.login.count,
+                remaining: config.rate.routes.auth.login.count,
+                reset: config.rate.routes.auth.login.window,
+                bucket: String::from("rate.routes.auth.login"),
+            });
+
+            limit_vector.push(Limit {
+                limit: config.rate.routes.auth.register.count,
+                remaining: config.rate.routes.auth.register.count,
+                reset: config.rate.routes.auth.register.window,
+                bucket: String::from("rate.routes.auth.register"),
+            });
+        }
+
+        if config.absoluteRate.register.enabled {
+            limit_vector.push(Limit {
+                limit: config.absoluteRate.register.limit,
+                remaining: config.absoluteRate.register.limit,
+                reset: config.absoluteRate.register.window,
+                bucket: String::from("absoluteRate.register"),
+            });
+        }
+        if config.absoluteRate.sendMessage.enabled {
+            limit_vector.push(Limit {
+                limit: config.absoluteRate.sendMessage.limit,
+                remaining: config.absoluteRate.sendMessage.limit,
+                reset: config.absoluteRate.sendMessage.window,
+                bucket: String::from("absoluteRate.sendMessage"),
+            });
+        }
+
         limit_vector
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use serde_json::from_str;
+
+    use crate::api::limits::Config;
+
     use super::*;
 
     #[tokio::test]
     async fn test_parse_url() {
         let test_vec = LimitedRequester::check_limits(String::from("http://localhost:3001/")).await;
-        let first_from_vec = test_vec.get(0).unwrap();
-        println!("{}", first_from_vec.bucket);
+        for _limit in test_vec.iter() {
+            println!("{}", _limit);
+        }
     }
 }

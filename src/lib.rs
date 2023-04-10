@@ -4,7 +4,6 @@ mod gateway;
 mod limit;
 mod voice;
 
-use crate::api::policies::instance::limits::*;
 use url::{ParseError, Url};
 #[derive(Clone, Default)]
 
