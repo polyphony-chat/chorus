@@ -1,6 +1,6 @@
 use crate::api::limits::Config;
 
-use reqwest::{Client, Request};
+use reqwest::{Body, Client, Request, RequestBuilder};
 use serde_json::from_str;
 use std::collections::VecDeque;
 
@@ -28,6 +28,7 @@ pub struct LimitedRequester {
     http: Client,
     limits: Vec<Limit>,
     requests: VecDeque<Request>,
+    last_reset_epoch: i64,
 }
 
 impl LimitedRequester {
@@ -40,7 +41,52 @@ impl LimitedRequester {
             limits: LimitedRequester::check_limits(api_url).await,
             http: Client::new(),
             requests: VecDeque::new(),
+            last_reset_epoch: chrono::Utc::now().timestamp(),
         }
+    }
+
+    /// `can_send_request` checks if a request can be sent. It returns a `bool` that indicates if
+    /// the request can be sent.
+    fn can_send_request(&mut self) -> bool {
+        let mut can_send = true;
+        for limit in self.limits.iter_mut() {
+            if limit.remaining == 0 {
+                can_send = false;
+            }
+        }
+        can_send
+    }
+
+    /// `update_limits` updates the `Limit`s of the `LimitedRequester` based on the response headers
+    /// of the request that was just sent.
+    fn update_limits(&mut self, response: &reqwest::Response) {
+        let headers = response.headers();
+        let mut reset_epoch = 0;
+        for limit in self.limits.iter_mut() {
+            if let Some(value) = headers.get(limit.bucket.clone()) {
+                limit.remaining = value.to_str().unwrap().parse().unwrap();
+            }
+            if let Some(value) = headers.get("X-RateLimit-Reset".to_string()) {
+                reset_epoch = value.to_str().unwrap().parse().unwrap();
+            }
+        }
+        if reset_epoch != 0 {
+            self.last_reset_epoch = reset_epoch;
+        }
+
+        let httpclient = reqwest::Client::new();
+    }
+
+    /// `send_request` sends a request to the server, if `can_send_request()` is true.
+    /// It will then update the `Limit`s by calling `update_limits()`.
+    /// # Example
+    pub async fn send_request(&mut self, request: RequestBuilder) -> reqwest::Response {
+        if !self.can_send_request() {
+            panic!("429: Rate limited");
+        }
+        let response = request.send().await.unwrap();
+        self.update_limits(&response);
+        response
     }
 
     /// check_limits uses the API to get the current request limits of the instance.
