@@ -17,12 +17,12 @@ Core functionality:
 - [ ] Rate Limiter
 - [ ] Login
 - [ ] Registration
-- [ ] User profile customisation
-- [ ] Receiving messages
-- [ ] Deleting messages
 - [ ] Sending messages (Text, Images, Attachments)
-- [ ] Sending and receiving emoji
-- [ ] Sending and receiving stickers
+- [ ] Events (Message, User, Channel, etc.)
+- [ ] User profile customisation
+- [ ] Deleting messages
+- [ ] Emoji
+- [ ] Stickers
 - [ ] Listing users and user profiles
 - [ ] Message threads
 - [ ] Forum channels
