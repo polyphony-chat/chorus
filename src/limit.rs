@@ -26,7 +26,7 @@ impl std::fmt::Display for Limit {
 
 pub struct LimitedRequester {
     http: Client,
-    limits: Vec<Limit>,
+    limits: Vec<Limit>, // TODO: Replace with all Limits
     requests: VecDeque<Request>,
     last_reset_epoch: i64,
 }
