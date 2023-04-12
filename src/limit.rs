@@ -33,18 +33,19 @@ impl LimitedRequester {
         queue.push_back(request);
     }
 
-    fn update_limits(&mut self, response: Response, limit_types: Vec<LimitType>) -> bool {
+    fn update_limits(&mut self, response: Response, limit_types: Vec<LimitType>) {
+        // TODO: Make this work {
         let remaining = match response.headers().get("X-RateLimit-Remaining") {
             Some(remaining) => remaining,
-            None => return false,
+            None => return, //false,
         };
         let limit = match response.headers().get("X-RateLimit-Limit") {
             Some(limit) => limit,
-            None => return false,
+            None => return, //false,
         };
         let reset = match response.headers().get("X-RateLimit-Reset") {
             Some(reset) => reset,
-            None => return false,
+            None => return, //false,
         };
     }
 }
