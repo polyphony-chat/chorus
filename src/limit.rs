@@ -1,12 +1,12 @@
-use crate::api::limits::{Config, Limit, Limits};
+use crate::api::limits::Limits;
 
-use reqwest::{Client, Request, RequestBuilder};
-use serde_json::from_str;
+use reqwest::{Client, Request};
 use std::collections::VecDeque;
 
 // Note: There seem to be some overlapping request limiters. We need to make sure that sending a
 // request checks for all the request limiters that apply, and blocks if any of the limiters are 0
 
+#[allow(dead_code)]
 pub struct LimitedRequester {
     http: Client,
     requests: VecDeque<Request>,
@@ -19,6 +19,7 @@ impl LimitedRequester {
     /// send them to the server using a `Client`. It keeps track of the remaining requests that can
     /// be send within the `Limit` of an external API Ratelimiter, and looks at the returned request
     /// headers to see if it can find Ratelimit info to update itself.
+    #[allow(dead_code)]
     pub async fn new(api_url: String) -> Self {
         LimitedRequester {
             http: Client::new(),
