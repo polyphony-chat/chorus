@@ -1,6 +1,6 @@
-use crate::api::limits::Limits;
+use crate::api::limits::{LimitType, Limits};
 
-use reqwest::{Client, Request};
+use reqwest::{Client, RequestBuilder, Response};
 use std::collections::VecDeque;
 
 // Note: There seem to be some overlapping request limiters. We need to make sure that sending a
@@ -9,7 +9,7 @@ use std::collections::VecDeque;
 #[allow(dead_code)]
 pub struct LimitedRequester {
     http: Client,
-    requests: VecDeque<Request>,
+    requests: VecDeque<RequestBuilder>,
     last_reset_epoch: i64,
     limits_rate: Limits,
 }
@@ -27,5 +27,24 @@ impl LimitedRequester {
             last_reset_epoch: chrono::Utc::now().timestamp(),
             limits_rate: Limits::check_limits(api_url).await,
         }
+    }
+
+    fn add_to_queue(request: RequestBuilder, queue: &mut VecDeque<RequestBuilder>) {
+        queue.push_back(request);
+    }
+
+    fn update_limits(&mut self, response: Response, limit_types: Vec<LimitType>) -> bool {
+        let remaining = match response.headers().get("X-RateLimit-Remaining") {
+            Some(remaining) => remaining,
+            None => return false,
+        };
+        let limit = match response.headers().get("X-RateLimit-Limit") {
+            Some(limit) => limit,
+            None => return false,
+        };
+        let reset = match response.headers().get("X-RateLimit-Reset") {
+            Some(reset) => reset,
+            None => return false,
+        };
     }
 }
