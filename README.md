@@ -19,7 +19,7 @@ Core functionality:
 - [ ] Registration
 - [ ] Sending messages (Text, Images, Attachments)
 - [ ] Events (Message, User, Channel, etc.)
-- [ ] User profile customisation
+- [ ] User profile customization
 - [ ] Deleting messages
 - [ ] Emoji
 - [ ] Stickers
