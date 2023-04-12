@@ -1,7 +1,7 @@
-use crate::api::limits::{LimitType, Limits};
+use crate::api::limits::{Limit, LimitType, Limits};
 
 use reqwest::{Client, RequestBuilder, Response};
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 
 // Note: There seem to be some overlapping request limiters. We need to make sure that sending a
 // request checks for all the request limiters that apply, and blocks if any of the limiters are 0
@@ -11,7 +11,7 @@ pub struct LimitedRequester {
     http: Client,
     requests: VecDeque<RequestBuilder>,
     last_reset_epoch: i64,
-    limits_rate: Limits,
+    limits_rate: HashMap<LimitType, Limit>,
 }
 
 impl LimitedRequester {
@@ -33,19 +33,91 @@ impl LimitedRequester {
         queue.push_back(request);
     }
 
-    fn update_limits(&mut self, response: Response, limit_types: Vec<LimitType>) {
-        // TODO: Make this work {
+    fn update_limits(&mut self, response: Response, limit_type: LimitType) {
+        // TODO: Make this work
         let remaining = match response.headers().get("X-RateLimit-Remaining") {
-            Some(remaining) => remaining,
+            Some(remaining) => remaining.to_str().unwrap().parse::<u64>().unwrap(),
             None => return, //false,
         };
         let limit = match response.headers().get("X-RateLimit-Limit") {
-            Some(limit) => limit,
+            Some(limit) => limit.to_str().unwrap().parse::<u64>().unwrap(),
             None => return, //false,
         };
         let reset = match response.headers().get("X-RateLimit-Reset") {
-            Some(reset) => reset,
+            Some(reset) => reset.to_str().unwrap().parse::<u64>().unwrap(),
             None => return, //false,
         };
+
+        let mut limits_copy = self.limits_rate.clone();
+        let status = response.status();
+        let status_str = status.as_str();
+
+        if status_str.chars().next().unwrap() == '4' {
+            limits_copy.get_mut(&LimitType::Error).unwrap().remaining -= 1;
+        }
+
+        limits_copy.get_mut(&LimitType::Global).unwrap().remaining -= 1;
+        limits_copy.get_mut(&LimitType::Ip).unwrap().remaining -= 1;
+
+        match limit_type {
+            // Error, Global and Ip get handled seperately.
+            LimitType::Error => {}
+            LimitType::Global => {}
+            LimitType::Ip => {}
+            LimitType::AuthLogin => {
+                let entry = limits_copy.get_mut(&LimitType::AuthLogin).unwrap();
+                entry.remaining = remaining;
+                entry.limit = limit;
+                entry.reset = reset;
+            }
+            LimitType::AbsoluteRegister => {
+                let entry = limits_copy.get_mut(&LimitType::AbsoluteRegister).unwrap();
+                entry.remaining = remaining;
+                entry.limit = limit;
+                entry.reset = reset;
+                // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
+                // happens.
+                limits_copy
+                    .get_mut(&LimitType::AuthRegister)
+                    .unwrap()
+                    .remaining -= 1;
+            }
+            LimitType::AuthRegister => {
+                let entry = limits_copy.get_mut(&LimitType::AuthRegister).unwrap();
+                entry.remaining = remaining;
+                entry.limit = limit;
+                entry.reset = reset;
+                // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
+                // happens.
+                limits_copy
+                    .get_mut(&LimitType::AbsoluteRegister)
+                    .unwrap()
+                    .remaining -= 1;
+            }
+            LimitType::AbsoluteMessage => {
+                let entry = limits_copy.get_mut(&LimitType::AbsoluteMessage).unwrap();
+                entry.remaining = remaining;
+                entry.limit = limit;
+                entry.reset = reset;
+            }
+            LimitType::Channel => {
+                let entry = limits_copy.get_mut(&LimitType::Channel).unwrap();
+                entry.remaining = remaining;
+                entry.limit = limit;
+                entry.reset = reset;
+            }
+            LimitType::Guild => {
+                let entry = limits_copy.get_mut(&LimitType::Guild).unwrap();
+                entry.remaining = remaining;
+                entry.limit = limit;
+                entry.reset = reset;
+            }
+            LimitType::Webhook => {
+                let entry = limits_copy.get_mut(&LimitType::Webhook).unwrap();
+                entry.remaining = remaining;
+                entry.limit = limit;
+                entry.reset = reset;
+            }
+        }
     }
 }
