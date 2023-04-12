@@ -100,6 +100,7 @@ pub mod limits {
         pub absoluteRate: AbsoluteRate,
     }
 
+    #[derive(Clone)]
     pub struct Limit {
         pub bucket: String,
         pub limit: u64,
@@ -130,6 +131,21 @@ pub mod limits {
     }
 
     impl Limits {
+        pub fn iter(&self) -> std::vec::IntoIter<Limit> {
+            let mut limits: Vec<Limit> = Vec::new();
+            limits.push(self.limit_absolute_messages.clone());
+            limits.push(self.limit_absolute_register.clone());
+            limits.push(self.limit_auth_login.clone());
+            limits.push(self.limit_auth_register.clone());
+            limits.push(self.limit_ip.clone());
+            limits.push(self.limit_global.clone());
+            limits.push(self.limit_error.clone());
+            limits.push(self.limit_guild.clone());
+            limits.push(self.limit_webhook.clone());
+            limits.push(self.limit_channel.clone());
+            limits.into_iter()
+        }
+
         /// check_limits uses the API to get the current request limits of the instance.
         /// It returns a `Limits` struct containing all the limits.
         pub async fn check_limits(api_url: String) -> Limits {
