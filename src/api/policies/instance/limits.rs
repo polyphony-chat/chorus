@@ -1,5 +1,7 @@
 pub mod limits {
+    use reqwest::Client;
     use serde::{Deserialize, Serialize};
+    use serde_json::from_str;
     #[derive(Debug, Deserialize, Serialize)]
     #[allow(non_snake_case)]
     pub struct User {
@@ -96,5 +98,206 @@ pub mod limits {
         pub channel: Channel,
         pub rate: Rate,
         pub absoluteRate: AbsoluteRate,
+    }
+
+    pub struct Limit {
+        pub bucket: String,
+        pub limit: u64,
+        pub remaining: u64,
+        pub reset: u64,
+    }
+
+    impl std::fmt::Display for Limit {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(
+                f,
+                "Bucket: {}, Limit: {}, Remaining: {}, Reset: {}",
+                self.bucket, self.limit, self.remaining, self.reset
+            )
+        }
+    }
+    pub struct Limits {
+        pub limit_absolute_messages: Limit,
+        pub limit_absolute_register: Limit,
+        pub limit_auth_login: Limit,
+        pub limit_auth_register: Limit,
+        pub limit_ip: Limit,
+        pub limit_global: Limit,
+        pub limit_error: Limit,
+        pub limit_guild: Limit,
+        pub limit_webhook: Limit,
+        pub limit_channel: Limit,
+    }
+
+    impl Limits {
+        /// check_limits uses the API to get the current request limits of the instance.
+        /// It returns a `Limits` struct containing all the limits.
+        pub async fn check_limits(api_url: String) -> Limits {
+            let client = Client::new();
+            let url_parsed = crate::URLBundle::parse_url(api_url) + "/policies/instance/limits";
+            let result = client
+                .get(url_parsed)
+                .send()
+                .await
+                .unwrap_or_else(|e| panic!("An error occured while performing the request: {}", e))
+                .text()
+                .await
+                .unwrap_or_else(|e| {
+                    panic!(
+                        "An error occured while parsing the request body string: {}",
+                        e
+                    )
+                });
+            let config: Config = from_str(&result).unwrap();
+            // If config.rate.enabled is false, then add return a Limits struct with all limits set to u64::MAX
+            let mut limits: Limits;
+            if config.rate.enabled == false {
+                limits = Limits {
+                    limit_absolute_messages: Limit {
+                        bucket: "absolute_messages".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                    limit_absolute_register: Limit {
+                        bucket: "absolute_register".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                    limit_auth_login: Limit {
+                        bucket: "auth_login".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                    limit_auth_register: Limit {
+                        bucket: "auth_register".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                    limit_ip: Limit {
+                        bucket: "ip".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                    limit_global: Limit {
+                        bucket: "global".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                    limit_error: Limit {
+                        bucket: "error".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                    limit_guild: Limit {
+                        bucket: "guild".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                    limit_webhook: Limit {
+                        bucket: "webhook".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                    limit_channel: Limit {
+                        bucket: "channel".to_string(),
+                        limit: u64::MAX,
+                        remaining: u64::MAX,
+                        reset: u64::MAX,
+                    },
+                };
+            } else {
+                limits = Limits {
+                    limit_absolute_messages: Limit {
+                        bucket: "absolute_messages".to_string(),
+                        limit: config.absoluteRate.sendMessage.limit,
+                        remaining: config.absoluteRate.sendMessage.limit,
+                        reset: config.absoluteRate.sendMessage.window,
+                    },
+                    limit_absolute_register: Limit {
+                        bucket: "absolute_register".to_string(),
+                        limit: config.absoluteRate.register.limit,
+                        remaining: config.absoluteRate.register.limit,
+                        reset: config.absoluteRate.register.window,
+                    },
+                    limit_auth_login: Limit {
+                        bucket: "auth_login".to_string(),
+                        limit: config.rate.routes.auth.login.count,
+                        remaining: config.rate.routes.auth.login.count,
+                        reset: config.rate.routes.auth.login.window,
+                    },
+                    limit_auth_register: Limit {
+                        bucket: "auth_login".to_string(),
+                        limit: config.rate.routes.auth.register.count,
+                        remaining: config.rate.routes.auth.register.count,
+                        reset: config.rate.routes.auth.register.window,
+                    },
+                    limit_guild: Limit {
+                        bucket: "auth_login".to_string(),
+                        limit: config.rate.routes.guild.count,
+                        remaining: config.rate.routes.guild.count,
+                        reset: config.rate.routes.guild.window,
+                    },
+                    limit_webhook: Limit {
+                        bucket: "auth_login".to_string(),
+                        limit: config.rate.routes.webhook.count,
+                        remaining: config.rate.routes.webhook.count,
+                        reset: config.rate.routes.webhook.window,
+                    },
+                    limit_channel: Limit {
+                        bucket: "auth_login".to_string(),
+                        limit: config.rate.routes.channel.count,
+                        remaining: config.rate.routes.channel.count,
+                        reset: config.rate.routes.channel.window,
+                    },
+                    limit_ip: Limit {
+                        bucket: "auth_login".to_string(),
+                        limit: config.rate.ip.count,
+                        remaining: config.rate.ip.count,
+                        reset: config.rate.ip.window,
+                    },
+                    limit_global: Limit {
+                        bucket: "auth_login".to_string(),
+                        limit: config.rate.global.count,
+                        remaining: config.rate.global.count,
+                        reset: config.rate.global.window,
+                    },
+                    limit_error: Limit {
+                        bucket: "auth_login".to_string(),
+                        limit: config.rate.error.count,
+                        remaining: config.rate.error.count,
+                        reset: config.rate.error.window,
+                    },
+                }
+            }
+
+            if !config.absoluteRate.register.enabled {
+                limits.limit_absolute_register = Limit {
+                    bucket: "absolute_messages".to_string(),
+                    limit: u64::MAX,
+                    remaining: u64::MAX,
+                    reset: u64::MAX,
+                };
+            }
+
+            if !config.absoluteRate.sendMessage.enabled {
+                limits.limit_absolute_messages = Limit {
+                    bucket: "absolute_register".to_string(),
+                    limit: u64::MAX,
+                    remaining: u64::MAX,
+                    reset: u64::MAX,
+                };
+            }
+
+            return limits;
+        }
     }
 }

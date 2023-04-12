@@ -1,4 +1,4 @@
-use crate::api::limits::Config;
+use crate::api::limits::{Config, Limit, Limits};
 
 use reqwest::{Client, Request, RequestBuilder};
 use serde_json::from_str;
@@ -7,28 +7,11 @@ use std::collections::VecDeque;
 // Note: There seem to be some overlapping request limiters. We need to make sure that sending a
 // request checks for all the request limiters that apply, and blocks if any of the limiters are 0
 
-pub struct Limit {
-    limit: u64,
-    remaining: u64,
-    reset: u64,
-    bucket: String,
-}
-
-impl std::fmt::Display for Limit {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Bucket: {}, Limit: {}, Remaining: {}, Reset: {}",
-            self.bucket, self.limit, self.remaining, self.reset
-        )
-    }
-}
-
 pub struct LimitedRequester {
     http: Client,
-    limits: Vec<Limit>, // TODO: Replace with all Limits
     requests: VecDeque<Request>,
     last_reset_epoch: i64,
+    limits_rate: Limits,
 }
 
 impl LimitedRequester {
@@ -38,124 +21,10 @@ impl LimitedRequester {
     /// headers to see if it can find Ratelimit info to update itself.
     pub async fn new(api_url: String) -> Self {
         LimitedRequester {
-            limits: LimitedRequester::check_limits(api_url).await,
             http: Client::new(),
             requests: VecDeque::new(),
             last_reset_epoch: chrono::Utc::now().timestamp(),
+            limits_rate: Limits::check_limits(api_url).await,
         }
-    }
-
-    /// check_limits uses the API to get the current request limits of the instance.
-    /// It returns a `Vec` of `Limit`s, which can be used to check if a request can be sent.
-    pub async fn check_limits(api_url: String) -> Vec<Limit> {
-        let client = Client::new();
-        let url_parsed = crate::URLBundle::parse_url(api_url) + "/policies/instance/limits";
-        let result = client
-            .get(url_parsed)
-            .send()
-            .await
-            .unwrap_or_else(|e| panic!("An error occured while performing the request: {}", e))
-            .text()
-            .await
-            .unwrap_or_else(|e| {
-                panic!(
-                    "An error occured while parsing the request body string: {}",
-                    e
-                )
-            });
-        let config: Config = from_str(&result).unwrap();
-
-        let mut limit_vector = Vec::new();
-        if !config.rate.enabled {
-            // The different rate limit buckets, except for the absoluteRate ones. These will be
-            // handled seperately.
-            let types = [
-                "ip",
-                "auth.login",
-                "auth.register",
-                "global",
-                "error",
-                "guild",
-                "webhook",
-                "channel",
-            ];
-            for type_ in types.iter() {
-                limit_vector.push(Limit {
-                    limit: u64::MAX,
-                    remaining: u64::MAX,
-                    reset: 1,
-                    bucket: type_.to_string(),
-                });
-            }
-        } else {
-            limit_vector.push(Limit {
-                limit: config.rate.ip.count,
-                remaining: config.rate.ip.count,
-                reset: config.rate.ip.window,
-                bucket: String::from("ip"),
-            });
-            limit_vector.push(Limit {
-                limit: config.rate.global.count,
-                remaining: config.rate.global.count,
-                reset: config.rate.global.window,
-                bucket: String::from("global"),
-            });
-            limit_vector.push(Limit {
-                limit: config.rate.error.count,
-                remaining: config.rate.error.count,
-                reset: config.rate.error.window,
-                bucket: String::from("error"),
-            });
-            limit_vector.push(Limit {
-                limit: config.rate.routes.guild.count,
-                remaining: config.rate.routes.guild.count,
-                reset: config.rate.routes.guild.window,
-                bucket: String::from("guild"),
-            });
-            limit_vector.push(Limit {
-                limit: config.rate.routes.webhook.count,
-                remaining: config.rate.routes.webhook.count,
-                reset: config.rate.routes.webhook.window,
-                bucket: String::from("webhook"),
-            });
-            limit_vector.push(Limit {
-                limit: config.rate.routes.channel.count,
-                remaining: config.rate.routes.channel.count,
-                reset: config.rate.routes.channel.window,
-                bucket: String::from("channel"),
-            });
-            limit_vector.push(Limit {
-                limit: config.rate.routes.auth.login.count,
-                remaining: config.rate.routes.auth.login.count,
-                reset: config.rate.routes.auth.login.window,
-                bucket: String::from("auth.login"),
-            });
-
-            limit_vector.push(Limit {
-                limit: config.rate.routes.auth.register.count,
-                remaining: config.rate.routes.auth.register.count,
-                reset: config.rate.routes.auth.register.window,
-                bucket: String::from("auth.register"),
-            });
-        }
-
-        if config.absoluteRate.register.enabled {
-            limit_vector.push(Limit {
-                limit: config.absoluteRate.register.limit,
-                remaining: config.absoluteRate.register.limit,
-                reset: config.absoluteRate.register.window,
-                bucket: String::from("absoluteRate.register"),
-            });
-        }
-        if config.absoluteRate.sendMessage.enabled {
-            limit_vector.push(Limit {
-                limit: config.absoluteRate.sendMessage.limit,
-                remaining: config.absoluteRate.sendMessage.limit,
-                reset: config.absoluteRate.sendMessage.window,
-                bucket: String::from("absoluteRate.messages"),
-            });
-        }
-
-        limit_vector
     }
 }
