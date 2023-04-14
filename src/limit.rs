@@ -81,19 +81,11 @@ impl LimitedRequester {
             LimitType::Ip => {}
             LimitType::AuthLogin => {
                 let entry = limits_copy.get_mut(&LimitType::AuthLogin).unwrap();
-                if reset != entry.reset {
-                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
-                } else {
-                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
-                }
+                LimitedRequester::update_limit_entry(entry, reset, limit, limit);
             }
             LimitType::AbsoluteRegister => {
                 let entry = limits_copy.get_mut(&LimitType::AbsoluteRegister).unwrap();
-                if reset != entry.reset {
-                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
-                } else {
-                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
-                }
+                LimitedRequester::update_limit_entry(entry, reset, limit, limit);
                 // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
                 // happens.
                 limits_copy
@@ -103,11 +95,7 @@ impl LimitedRequester {
             }
             LimitType::AuthRegister => {
                 let entry = limits_copy.get_mut(&LimitType::AuthRegister).unwrap();
-                if reset != entry.reset {
-                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
-                } else {
-                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
-                }
+                LimitedRequester::update_limit_entry(entry, reset, limit, limit);
                 // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
                 // happens.
                 limits_copy
@@ -117,35 +105,19 @@ impl LimitedRequester {
             }
             LimitType::AbsoluteMessage => {
                 let entry = limits_copy.get_mut(&LimitType::AbsoluteMessage).unwrap();
-                if reset != entry.reset {
-                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
-                } else {
-                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
-                }
+                LimitedRequester::update_limit_entry(entry, reset, limit, limit);
             }
             LimitType::Channel => {
                 let entry = limits_copy.get_mut(&LimitType::Channel).unwrap();
-                if reset != entry.reset {
-                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
-                } else {
-                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
-                }
+                LimitedRequester::update_limit_entry(entry, reset, limit, limit);
             }
             LimitType::Guild => {
                 let entry = limits_copy.get_mut(&LimitType::Guild).unwrap();
-                if reset != entry.reset {
-                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
-                } else {
-                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
-                }
+                LimitedRequester::update_limit_entry(entry, reset, limit, limit);
             }
             LimitType::Webhook => {
                 let entry = limits_copy.get_mut(&LimitType::Webhook).unwrap();
-                if reset != entry.reset {
-                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
-                } else {
-                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
-                }
+                LimitedRequester::update_limit_entry(entry, reset, limit, limit);
             }
         }
     }
