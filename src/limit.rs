@@ -32,7 +32,11 @@ impl LimitedRequester {
         }
     }
 
-    pub async fn send_request(&mut self, request: RequestBuilder, limit_type: LimitType) {
+    pub async fn send_request(
+        &mut self,
+        request: RequestBuilder,
+        limit_type: LimitType,
+    ) -> Option<Response> {
         if self.can_send_request(limit_type) {
             let built_request = request
                 .build()
@@ -42,12 +46,14 @@ impl LimitedRequester {
                 Ok(is_response) => is_response,
                 Err(e) => panic!("An error occured while processing the response: {}", e),
             };
-            self.update_limits(response, limit_type);
+            self.update_limits(&response, limit_type);
+            return Some(response);
         } else {
             self.requests.push_back(TypedRequest {
                 request: request,
                 limit_type: limit_type,
             });
+            return None;
         }
     }
 
@@ -62,7 +68,7 @@ impl LimitedRequester {
         }
     }
 
-    pub fn can_send_request(&mut self, limit_type: LimitType) -> bool {
+    fn can_send_request(&mut self, limit_type: LimitType) -> bool {
         let limits = self.limits_rate.get(&limit_type);
 
         match limits {
@@ -77,7 +83,7 @@ impl LimitedRequester {
         }
     }
 
-    fn update_limits(&mut self, response: Response, limit_type: LimitType) {
+    fn update_limits(&mut self, response: &Response, limit_type: LimitType) {
         // TODO: Make this work
         let remaining = match response.headers().get("X-RateLimit-Remaining") {
             Some(remaining) => remaining.to_str().unwrap().parse::<u64>().unwrap(),
