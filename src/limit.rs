@@ -33,11 +33,22 @@ impl LimitedRequester {
     }
 
     pub async fn send_request(&mut self, request: RequestBuilder, limit_type: LimitType) {
-        self.requests.push_back(TypedRequest {
-            request: request,
-            limit_type: limit_type,
-        });
-        // TODO: Implement
+        if self.can_send_request(limit_type) {
+            let built_request = request
+                .build()
+                .unwrap_or_else(|e| panic!("Error while building the Request for sending: {}", e));
+            let result = self.http.execute(built_request).await;
+            let response = match result {
+                Ok(is_response) => is_response,
+                Err(e) => panic!("An error occured while processing the response: {}", e),
+            };
+            self.update_limits(response, limit_type);
+        } else {
+            self.requests.push_back(TypedRequest {
+                request: request,
+                limit_type: limit_type,
+            });
+        }
     }
 
     fn update_limit_entry(entry: &mut Limit, reset: u64, remaining: u64, limit: u64) {
@@ -51,7 +62,7 @@ impl LimitedRequester {
         }
     }
 
-    pub fn can_send_request(self, limit_type: LimitType) -> bool {
+    pub fn can_send_request(&mut self, limit_type: LimitType) -> bool {
         let limits = self.limits_rate.get(&limit_type);
 
         match limits {
