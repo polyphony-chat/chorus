@@ -134,7 +134,7 @@ pub mod limits {
         pub absoluteRate: AbsoluteRate,
     }
 
-    #[derive(Clone)]
+    #[derive(Clone, Copy)]
     pub struct Limit {
         pub bucket: LimitType,
         pub limit: u64,
