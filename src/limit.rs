@@ -33,6 +33,21 @@ impl LimitedRequester {
         queue.push_back(request);
     }
 
+    fn update_limit_entry(entry: &mut Limit, reset: u64, remaining: u64, limit: u64) {
+        if reset != entry.reset {
+            entry.reset = reset;
+            entry.remaining = limit;
+            entry.limit = limit;
+        } else {
+            entry.remaining = remaining;
+            entry.limit = limit;
+        }
+    }
+
+    fn decrement_limit_entry(entry: &mut Limit) {
+        entry.remaining -= 1;
+    }
+
     fn update_limits(&mut self, response: Response, limit_type: LimitType) {
         // TODO: Make this work
         let remaining = match response.headers().get("X-RateLimit-Remaining") {
@@ -67,23 +82,17 @@ impl LimitedRequester {
             LimitType::AuthLogin => {
                 let entry = limits_copy.get_mut(&LimitType::AuthLogin).unwrap();
                 if reset != entry.reset {
-                    entry.reset = reset;
-                    entry.remaining = limit;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
                 } else {
-                    entry.remaining = remaining;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
                 }
             }
             LimitType::AbsoluteRegister => {
                 let entry = limits_copy.get_mut(&LimitType::AbsoluteRegister).unwrap();
                 if reset != entry.reset {
-                    entry.reset = reset;
-                    entry.remaining = limit;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
                 } else {
-                    entry.remaining = remaining;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
                 }
                 // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
                 // happens.
@@ -95,12 +104,9 @@ impl LimitedRequester {
             LimitType::AuthRegister => {
                 let entry = limits_copy.get_mut(&LimitType::AuthRegister).unwrap();
                 if reset != entry.reset {
-                    entry.reset = reset;
-                    entry.remaining = limit;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
                 } else {
-                    entry.remaining = remaining;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
                 }
                 // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
                 // happens.
@@ -112,45 +118,33 @@ impl LimitedRequester {
             LimitType::AbsoluteMessage => {
                 let entry = limits_copy.get_mut(&LimitType::AbsoluteMessage).unwrap();
                 if reset != entry.reset {
-                    entry.reset = reset;
-                    entry.remaining = limit;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
                 } else {
-                    entry.remaining = remaining;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
                 }
             }
             LimitType::Channel => {
                 let entry = limits_copy.get_mut(&LimitType::Channel).unwrap();
                 if reset != entry.reset {
-                    entry.reset = reset;
-                    entry.remaining = limit;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
                 } else {
-                    entry.remaining = remaining;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
                 }
             }
             LimitType::Guild => {
                 let entry = limits_copy.get_mut(&LimitType::Guild).unwrap();
                 if reset != entry.reset {
-                    entry.reset = reset;
-                    entry.remaining = limit;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
                 } else {
-                    entry.remaining = remaining;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
                 }
             }
             LimitType::Webhook => {
                 let entry = limits_copy.get_mut(&LimitType::Webhook).unwrap();
                 if reset != entry.reset {
-                    entry.reset = reset;
-                    entry.remaining = limit;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, limit, limit);
                 } else {
-                    entry.remaining = remaining;
-                    entry.limit = limit;
+                    LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
                 }
             }
         }
