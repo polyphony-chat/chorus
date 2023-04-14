@@ -5,7 +5,7 @@ pub mod limits {
     use serde::{Deserialize, Serialize};
     use serde_json::from_str;
 
-    #[derive(Clone, Copy, Eq, Hash, PartialEq)]
+    #[derive(Clone, Copy, Eq, Hash, PartialEq, Debug)]
     pub enum LimitType {
         AuthRegister,
         AuthLogin,
@@ -134,7 +134,7 @@ pub mod limits {
         pub absoluteRate: AbsoluteRate,
     }
 
-    #[derive(Clone, Copy)]
+    #[derive(Clone, Copy, Debug)]
     pub struct Limit {
         pub bucket: LimitType,
         pub limit: u64,

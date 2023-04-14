@@ -7,11 +7,13 @@ use std::collections::{HashMap, VecDeque};
 // request checks for all the request limiters that apply, and blocks if any of the limiters are 0
 
 #[allow(dead_code)]
-
+#[derive(Debug)]
 pub struct TypedRequest {
     request: RequestBuilder,
     limit_type: LimitType,
 }
+
+#[derive(Debug)]
 pub struct LimitedRequester {
     http: Client,
     requests: VecDeque<TypedRequest>,
@@ -184,5 +186,23 @@ impl LimitedRequester {
                 LimitedRequester::update_limit_entry(entry, reset, limit, limit);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::URLBundle;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test() {
+        let urls = URLBundle::new(
+            String::from("http://localhost:3001/api/"),
+            String::from("wss://localhost:3001/"),
+            String::from("http://localhost:3001/cdn"),
+        );
+
+        let requester = LimitedRequester::new(urls.api).await;
     }
 }
