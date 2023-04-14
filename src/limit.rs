@@ -7,10 +7,14 @@ use std::collections::{HashMap, VecDeque};
 // request checks for all the request limiters that apply, and blocks if any of the limiters are 0
 
 #[allow(dead_code)]
+
+pub struct TypedRequest {
+    request: RequestBuilder,
+    limit_type: LimitType,
+}
 pub struct LimitedRequester {
     http: Client,
-    requests: VecDeque<RequestBuilder>,
-    last_reset_epoch: i64,
+    requests: VecDeque<TypedRequest>,
     limits_rate: HashMap<LimitType, Limit>,
 }
 
@@ -24,13 +28,16 @@ impl LimitedRequester {
         LimitedRequester {
             http: Client::new(),
             requests: VecDeque::new(),
-            last_reset_epoch: chrono::Utc::now().timestamp(),
             limits_rate: Limits::check_limits(api_url).await,
         }
     }
 
-    fn add_to_queue(request: RequestBuilder, queue: &mut VecDeque<RequestBuilder>) {
-        queue.push_back(request);
+    pub async fn send_request(&mut self, request: RequestBuilder, limit_type: LimitType) {
+        self.requests.push_back(TypedRequest {
+            request: request,
+            limit_type: limit_type,
+        });
+        // TODO: Implement
     }
 
     fn update_limit_entry(entry: &mut Limit, reset: u64, remaining: u64, limit: u64) {
@@ -44,8 +51,19 @@ impl LimitedRequester {
         }
     }
 
-    fn decrement_limit_entry(entry: &mut Limit) {
-        entry.remaining -= 1;
+    pub fn can_send_request(self, limit_type: LimitType) -> bool {
+        let limits = self.limits_rate.get(&limit_type);
+
+        match limits {
+            Some(limit) => {
+                if limit.remaining > 0 {
+                    true
+                } else {
+                    false
+                }
+            }
+            None => false,
+        }
     }
 
     fn update_limits(&mut self, response: Response, limit_type: LimitType) {
