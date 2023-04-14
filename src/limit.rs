@@ -66,15 +66,25 @@ impl LimitedRequester {
             LimitType::Ip => {}
             LimitType::AuthLogin => {
                 let entry = limits_copy.get_mut(&LimitType::AuthLogin).unwrap();
-                entry.remaining = remaining;
-                entry.limit = limit;
-                entry.reset = reset;
+                if reset != entry.reset {
+                    entry.reset = reset;
+                    entry.remaining = limit;
+                    entry.limit = limit;
+                } else {
+                    entry.remaining = remaining;
+                    entry.limit = limit;
+                }
             }
             LimitType::AbsoluteRegister => {
                 let entry = limits_copy.get_mut(&LimitType::AbsoluteRegister).unwrap();
-                entry.remaining = remaining;
-                entry.limit = limit;
-                entry.reset = reset;
+                if reset != entry.reset {
+                    entry.reset = reset;
+                    entry.remaining = limit;
+                    entry.limit = limit;
+                } else {
+                    entry.remaining = remaining;
+                    entry.limit = limit;
+                }
                 // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
                 // happens.
                 limits_copy
@@ -84,9 +94,14 @@ impl LimitedRequester {
             }
             LimitType::AuthRegister => {
                 let entry = limits_copy.get_mut(&LimitType::AuthRegister).unwrap();
-                entry.remaining = remaining;
-                entry.limit = limit;
-                entry.reset = reset;
+                if reset != entry.reset {
+                    entry.reset = reset;
+                    entry.remaining = limit;
+                    entry.limit = limit;
+                } else {
+                    entry.remaining = remaining;
+                    entry.limit = limit;
+                }
                 // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
                 // happens.
                 limits_copy
@@ -96,27 +111,47 @@ impl LimitedRequester {
             }
             LimitType::AbsoluteMessage => {
                 let entry = limits_copy.get_mut(&LimitType::AbsoluteMessage).unwrap();
-                entry.remaining = remaining;
-                entry.limit = limit;
-                entry.reset = reset;
+                if reset != entry.reset {
+                    entry.reset = reset;
+                    entry.remaining = limit;
+                    entry.limit = limit;
+                } else {
+                    entry.remaining = remaining;
+                    entry.limit = limit;
+                }
             }
             LimitType::Channel => {
                 let entry = limits_copy.get_mut(&LimitType::Channel).unwrap();
-                entry.remaining = remaining;
-                entry.limit = limit;
-                entry.reset = reset;
+                if reset != entry.reset {
+                    entry.reset = reset;
+                    entry.remaining = limit;
+                    entry.limit = limit;
+                } else {
+                    entry.remaining = remaining;
+                    entry.limit = limit;
+                }
             }
             LimitType::Guild => {
                 let entry = limits_copy.get_mut(&LimitType::Guild).unwrap();
-                entry.remaining = remaining;
-                entry.limit = limit;
-                entry.reset = reset;
+                if reset != entry.reset {
+                    entry.reset = reset;
+                    entry.remaining = limit;
+                    entry.limit = limit;
+                } else {
+                    entry.remaining = remaining;
+                    entry.limit = limit;
+                }
             }
             LimitType::Webhook => {
                 let entry = limits_copy.get_mut(&LimitType::Webhook).unwrap();
-                entry.remaining = remaining;
-                entry.limit = limit;
-                entry.reset = reset;
+                if reset != entry.reset {
+                    entry.reset = reset;
+                    entry.remaining = limit;
+                    entry.limit = limit;
+                } else {
+                    entry.remaining = remaining;
+                    entry.limit = limit;
+                }
             }
         }
     }
