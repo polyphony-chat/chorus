@@ -32,6 +32,35 @@ impl LimitedRequester {
         }
     }
 
+    /**
+    # send_request
+    Checks, if a request can be sent without hitting API rate limits and sends it, if true.
+    Will automatically update the rate limits of the LimitedRequester the request has been
+    sent with.
+
+    ## Arguments
+    - `request`: A [`RequestBuilder`](reqwest::RequestBuilder) that contains a request ready to be
+    sent. Unfinished or invalid requests will result in the method panicing.
+    - `limit_type`: Because this library does not yet implement a way to check for which rate limit
+    will be used when the request gets send, you will have to specify this manually using a
+    [`LimitType`](crate::api::limits::LimitType) enum.
+
+    ## Returns
+    - `Response`: The [`Response`](`reqwest::Response`) gotten from sending the request to the
+    server. This will be returned if the Request was built and send successfully. Is wrapped in
+    an [`Option`](`core::option::Option`)
+    - `None`: [`None`](`core::option::Option`) will be returned if the rate limit has been hit, and
+    the request could therefore not have been sent.
+
+    ## Errors
+
+    This method will panic, if:
+    - The supplied [`RequestBuilder`](reqwest::RequestBuilder) contains invalid or incomplete
+    information
+    - There has been an error with processing (unwrapping) the [`Response`](`reqwest::Response`)
+    - The call to [`update_limits`](`crate::limits::update_limits`) yielded errors. Read the
+    methods' Errors section for more information.
+    */
     pub async fn send_request(
         &mut self,
         request: RequestBuilder,
