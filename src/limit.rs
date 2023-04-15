@@ -201,5 +201,14 @@ mod rate_limit {
             String::from("http://localhost:3001/cdn"),
         );
         let requester = LimitedRequester::new(urls.api).await;
+        assert_eq!(
+            requester.limits_rate.get(&LimitType::Ip).unwrap(),
+            &Limit {
+                bucket: LimitType::Ip,
+                limit: 500,
+                remaining: 500,
+                reset: 5
+            }
+        );
     }
 }
