@@ -26,16 +26,17 @@ jobs:
         sudo apt-get install -y git python3 build-essential
     - name: Clone spacebar server
       run: git clone https://github.com/spacebarchat/server.git
-    - name: Navigate to project root
-      run: cd server
     - name: Install Node packages
       run: npm install
+      working-directory: ./server
     - name: Build and generate schema
       run: npm run setup
+      working-directory: ./server
     - name: Start the server
       run: |
         npm run start &
         echo $! > server_pid.txt
+      working-directory: ./server
     - name: Wait for server to start
       run: sleep 10
     - name: Build
