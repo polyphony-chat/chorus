@@ -16,7 +16,33 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Set up Node.js
+      run: |
+        curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git python3 build-essential
+    - name: Clone spacebar server
+      run: git clone https://github.com/spacebarchat/server.git
+    - name: Navigate to project root
+      run: cd server
+    - name: Install Node packages
+      run: npm i
+    - name: Build and generate schema
+      run: npm run setup
+    - name: Start the server
+      run: |
+        npm run start &
+        echo $! > server_pid.txt
+    - name: Wait for server to start
+      run: sleep 10
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Terminate the server
+      run: |
+        kill $(cat server_pid.txt)
+        rm server_pid.txt
