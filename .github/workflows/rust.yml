@@ -24,21 +24,14 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y git python3 build-essential
-    - name: Clone spacebarchat-server
-      run: git clone https://github.com/polyphony-chat/spacebarchat-server.git
-    - name: Install Node packages
-      run: npm install
-      working-directory: ./server
-    - name: Build and generate schema
-      run: npm run setup
-      working-directory: ./server
-    - name: Start the server
+        git clone https://github.com/polyphony-chat/spacebarchat-server.git   
+    - name: Prepare and start spacebarchat-server
       run: |
+        npm install
+        npm run setup
         npm run start &
         echo $! > server_pid.txt
       working-directory: ./server
-    - name: Wait for server to start
-      run: sleep 10
     - name: Build
       run: cargo build --verbose
     - name: Run tests
