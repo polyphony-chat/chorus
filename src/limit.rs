@@ -115,7 +115,6 @@ impl LimitedRequester {
     }
 
     fn update_limits(&mut self, response: &Response, limit_type: LimitType) {
-        // TODO: Make this work
         let remaining = match response.headers().get("X-RateLimit-Remaining") {
             Some(remaining) => remaining.to_str().unwrap().parse::<u64>().unwrap(),
             None => self.limits_rate.get(&limit_type).unwrap().remaining - 1,
@@ -129,16 +128,28 @@ impl LimitedRequester {
             None => self.limits_rate.get(&limit_type).unwrap().reset,
         };
 
-        let mut limits_copy = self.limits_rate.clone();
+        let limits_clone = &self.limits_rate.clone();
         let status = response.status();
         let status_str = status.as_str();
 
         if status_str.chars().next().unwrap() == '4' {
-            limits_copy.get_mut(&LimitType::Error).unwrap().remaining -= 1;
+            self.limits_rate
+                .get_mut(&LimitType::Error)
+                .unwrap()
+                .add_remaining(-1);
         }
 
-        limits_copy.get_mut(&LimitType::Global).unwrap().remaining -= 1;
-        limits_copy.get_mut(&LimitType::Ip).unwrap().remaining -= 1;
+        self.limits_rate
+            .get_mut(&LimitType::Global)
+            .unwrap()
+            .add_remaining(-1);
+
+        self.limits_rate
+            .get_mut(&LimitType::Ip)
+            .unwrap()
+            .add_remaining(-1);
+
+        let mut_limits_rate = &mut self.limits_rate;
 
         match limit_type {
             // Error, Global and Ip get handled seperately.
@@ -146,43 +157,47 @@ impl LimitedRequester {
             LimitType::Global => {}
             LimitType::Ip => {}
             LimitType::AuthLogin => {
-                let entry = limits_copy.get_mut(&LimitType::AuthLogin).unwrap();
+                let entry = mut_limits_rate.get_mut(&LimitType::AuthLogin).unwrap();
                 LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
             }
             LimitType::AbsoluteRegister => {
-                let entry = limits_copy.get_mut(&LimitType::AbsoluteRegister).unwrap();
+                let entry = mut_limits_rate
+                    .get_mut(&LimitType::AbsoluteRegister)
+                    .unwrap();
                 LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
                 // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
                 // happens.
-                limits_copy
+                mut_limits_rate
                     .get_mut(&LimitType::AuthRegister)
                     .unwrap()
                     .remaining -= 1;
             }
             LimitType::AuthRegister => {
-                let entry = limits_copy.get_mut(&LimitType::AuthRegister).unwrap();
+                let entry = mut_limits_rate.get_mut(&LimitType::AuthRegister).unwrap();
                 LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
                 // AbsoluteRegister and AuthRegister both need to be updated, if a Register event
                 // happens.
-                limits_copy
+                mut_limits_rate
                     .get_mut(&LimitType::AbsoluteRegister)
                     .unwrap()
                     .remaining -= 1;
             }
             LimitType::AbsoluteMessage => {
-                let entry = limits_copy.get_mut(&LimitType::AbsoluteMessage).unwrap();
+                let entry = mut_limits_rate
+                    .get_mut(&LimitType::AbsoluteMessage)
+                    .unwrap();
                 LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
             }
             LimitType::Channel => {
-                let entry = limits_copy.get_mut(&LimitType::Channel).unwrap();
+                let entry = mut_limits_rate.get_mut(&LimitType::Channel).unwrap();
                 LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
             }
             LimitType::Guild => {
-                let entry = limits_copy.get_mut(&LimitType::Guild).unwrap();
+                let entry = mut_limits_rate.get_mut(&LimitType::Guild).unwrap();
                 LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
             }
             LimitType::Webhook => {
-                let entry = limits_copy.get_mut(&LimitType::Webhook).unwrap();
+                let entry = mut_limits_rate.get_mut(&LimitType::Webhook).unwrap();
                 LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
             }
         }
@@ -194,6 +209,7 @@ mod rate_limit {
     use super::*;
     use crate::URLBundle;
     #[tokio::test]
+
     async fn create_limited_requester() {
         let urls = URLBundle::new(
             String::from("http://localhost:3001/api/"),
@@ -210,5 +226,30 @@ mod rate_limit {
                 reset: 5
             }
         );
+    }
+
+    #[tokio::test]
+    async fn run_into_limit() {
+        let urls = URLBundle::new(
+            String::from("http://localhost:3001/api/"),
+            String::from("wss://localhost:3001/"),
+            String::from("http://localhost:3001/cdn"),
+        );
+        let mut requester = LimitedRequester::new(urls.api.clone()).await;
+        let mut request: Option<Response>;
+        request = None;
+
+        for _ in 0..50 {
+            let request_path = urls.api.clone() + "/some/random/nonexisting/path";
+
+            let request_builder = requester.http.get(request_path);
+            request = requester
+                .send_request(request_builder, LimitType::Channel)
+                .await;
+        }
+        match request {
+            Some(_) => assert!(false),
+            None => assert!(true),
+        }
     }
 }
