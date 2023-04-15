@@ -190,19 +190,16 @@ impl LimitedRequester {
 }
 
 #[cfg(test)]
-mod tests {
-    use crate::URLBundle;
-
+mod rate_limit {
     use super::*;
-
+    use crate::URLBundle;
     #[tokio::test]
-    async fn test() {
+    async fn create_limited_requester() {
         let urls = URLBundle::new(
             String::from("http://localhost:3001/api/"),
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
         );
-
         let requester = LimitedRequester::new(urls.api).await;
     }
 }
