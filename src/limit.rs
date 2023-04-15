@@ -151,10 +151,18 @@ impl LimitedRequester {
         let mut_limits_rate = &mut self.limits_rate;
 
         match limit_type {
-            // Error, Global and Ip get handled seperately.
-            LimitType::Error => {}
-            LimitType::Global => {}
-            LimitType::Ip => {}
+            LimitType::Error => {
+                let entry = mut_limits_rate.get_mut(&LimitType::Error).unwrap();
+                LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
+            }
+            LimitType::Global => {
+                let entry = mut_limits_rate.get_mut(&LimitType::Global).unwrap();
+                LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
+            }
+            LimitType::Ip => {
+                let entry = mut_limits_rate.get_mut(&LimitType::Ip).unwrap();
+                LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
+            }
             LimitType::AuthLogin => {
                 let entry = mut_limits_rate.get_mut(&LimitType::AuthLogin).unwrap();
                 LimitedRequester::update_limit_entry(entry, reset, remaining, limit);
