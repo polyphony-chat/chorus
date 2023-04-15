@@ -5,7 +5,7 @@ mod limit;
 mod voice;
 
 use url::{ParseError, Url};
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 
 /// A URLBundle is a struct which bundles together the API-, Gateway- and CDN-URLs of a Spacebar
 /// instance.
@@ -36,13 +36,13 @@ impl URLBundle {
         let url = match Url::parse(&url) {
             Ok(url) => {
                 if url.scheme() == "localhost" {
-                    return format!("http://{}", url);
+                    return URLBundle::parse_url(format!("http://{}", url));
                 }
                 url
             }
             Err(ParseError::RelativeUrlWithoutBase) => {
-                let url = format!("http://{}", url);
-                Url::parse(&url).unwrap()
+                let url_fmt = format!("http://{}", url);
+                return URLBundle::parse_url(url_fmt);
             }
             Err(_) => panic!("Invalid URL"),
         };
@@ -68,14 +68,18 @@ impl URLBundle {
 }
 
 #[cfg(test)]
-mod tests {
+mod lib {
     use super::*;
 
     #[test]
     fn test_parse_url() {
-        let mut result = URLBundle::parse_url(String::from("localhost:3000"));
+        let mut result = URLBundle::parse_url(String::from("localhost:3000/"));
         assert_eq!(result, String::from("http://localhost:3000"));
-        result = URLBundle::parse_url(String::from("some.url.com/"));
-        assert_eq!(result, String::from("http://some.url.com"))
+        result = URLBundle::parse_url(String::from("https://some.url.com/"));
+        assert_eq!(result, String::from("https://some.url.com"));
+        result = URLBundle::parse_url(String::from("https://some.url.com/"));
+        assert_eq!(result, String::from("https://some.url.com"));
+        result = URLBundle::parse_url(String::from("https://some.url.com"));
+        assert_eq!(result, String::from("https://some.url.com"));
     }
 }
