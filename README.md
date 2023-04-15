@@ -1,4 +1,4 @@
-# chorus
+<div align="center">
 
 [![Rust]][Rust-url]
 [![Build][build-shield]][build-url]
@@ -8,7 +8,27 @@
 [![Issues][issues-shield]][issues-url]
 [![GPL3 License][license-shield]][license-url]
 
-A rust library for interacting with (multiple) Spacebar-compatible APIs and Gateways (at the same time).
+</br>
+<div align="center">
+  <a href="https://github.com/polyphony-chat/chorus">
+    <img src="images/polyphony-chorus-round.png" alt="Logo" width="128" height="128">
+  </a>
+
+<h3 align="center">Chorus</h3>
+
+  <p align="center">
+    A rust library for interacting with (multiple) Spacebar-compatible APIs and Gateways (at the same time).
+    <br />
+    <a href="https://github.com/polyphony-chat/chorus"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/polyphony-chat/chorus/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/polyphony-chat/chorus/issues">Request Feature</a>
+  </p>
+</div>
+
+</div>
 
 ## Roadmap
 
