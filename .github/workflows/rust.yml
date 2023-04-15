@@ -29,7 +29,7 @@ jobs:
     - name: Navigate to project root
       run: cd server
     - name: Install Node packages
-      run: npm i
+      run: npm ci
     - name: Build and generate schema
       run: npm run setup
     - name: Start the server
