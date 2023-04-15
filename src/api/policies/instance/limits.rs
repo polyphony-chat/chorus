@@ -151,6 +151,21 @@ pub mod limits {
             )
         }
     }
+
+    impl Limit {
+        pub fn add_remaining(&mut self, remaining: i64) {
+            if remaining < 0 {
+                if ((self.remaining as i64 + remaining) as i64) <= 0 {
+                    self.remaining = 0;
+                    return;
+                }
+                self.remaining -= remaining.abs() as u64;
+                return;
+            }
+            self.remaining += remaining.abs() as u64;
+        }
+    }
+
     pub struct Limits {
         pub limit_absolute_messages: Limit,
         pub limit_absolute_register: Limit,
@@ -411,5 +426,24 @@ pub mod limits {
 
             return limits;
         }
+    }
+}
+
+#[cfg(test)]
+mod instance_limits {
+    use crate::api::limits::{Limit, LimitType};
+
+    #[test]
+    fn limit_below_zero() {
+        let mut limit = Limit {
+            bucket: LimitType::AbsoluteMessage,
+            limit: 0,
+            remaining: 1,
+            reset: 0,
+        };
+        limit.add_remaining(-2);
+        assert_eq!(0 as u64, limit.remaining);
+        limit.add_remaining(-2123123);
+        assert_eq!(0 as u64, limit.remaining);
     }
 }
