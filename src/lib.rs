@@ -46,7 +46,12 @@ impl URLBundle {
             }
             Err(_) => panic!("Invalid URL"),
         };
-        url.to_string()[0..url.to_string().len() - 1].to_string() // Remove '/' at the end of the URL
+        // if the last character of the string is a slash, remove it.
+        let mut url_string = url.to_string();
+        if url_string.chars().last().unwrap() == '/' {
+            url_string.pop();
+        }
+        return url_string;
     }
 
     pub fn get_api(&self) -> &str {
