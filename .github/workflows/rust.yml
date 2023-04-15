@@ -15,23 +15,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Node.js
-      run: |
-        curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-        sudo apt-get install -y nodejs
+    - uses: actions/checkout@v3    
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y git python3 build-essential
-        git clone https://github.com/polyphony-chat/spacebarchat-server.git   
+        curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        git clone https://github.com/polyphony-chat/spacebarchat-server.git
     - name: Prepare and start spacebarchat-server
       run: |
         npm install
         npm run setup
         npm run start &
         echo $! > server_pid.txt
-      working-directory: ./server
+      working-directory: ./spacebarchat-server
     - name: Build
       run: cargo build --verbose
     - name: Run tests
