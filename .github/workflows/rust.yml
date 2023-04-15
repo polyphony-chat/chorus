@@ -24,8 +24,8 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y git python3 build-essential
-    - name: Clone spacebar server
-      run: git clone https://github.com/spacebarchat/server.git
+    - name: Clone spacebarchat-server
+      run: git clone https://github.com/polyphony-chat/spacebarchat-server.git
     - name: Install Node packages
       run: npm install
       working-directory: ./server
