@@ -28,13 +28,8 @@ jobs:
         npm install
         npm run setup
         npm run start &
-        echo $! > server_pid.txt
       working-directory: ./spacebarchat-server
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: Terminate the server
-      run: |
-        kill $(cat server_pid.txt)
-        rm server_pid.txt
