@@ -213,8 +213,10 @@ impl LimitedRequester {
 
 #[cfg(test)]
 mod rate_limit {
+    use serde_json::from_str;
+
     use super::*;
-    use crate::URLBundle;
+    use crate::{api::limits::Config, URLBundle};
     #[tokio::test]
 
     async fn create_limited_requester() {
@@ -258,5 +260,26 @@ mod rate_limit {
             Some(_) => assert!(false),
             None => assert!(true),
         }
+    }
+
+    #[tokio::test]
+    async fn test_send_request() {
+        let urls = URLBundle::new(
+            String::from("http://localhost:3001/api/"),
+            String::from("wss://localhost:3001/"),
+            String::from("http://localhost:3001/cdn"),
+        );
+        let mut requester = LimitedRequester::new(urls.api.clone()).await;
+        let request_path = urls.api.clone() + "/policies/instance/limits";
+        let request_builder = requester.http.get(request_path);
+        let request = requester
+            .send_request(request_builder, LimitType::Channel)
+            .await;
+        let result = match request {
+            Some(result) => result,
+            None => panic!("Request failed"),
+        };
+        let config: Config = from_str(result.text().await.unwrap().as_str()).unwrap();
+        println!("{:?}", config);
     }
 }
