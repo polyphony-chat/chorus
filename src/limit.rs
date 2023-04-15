@@ -128,7 +128,6 @@ impl LimitedRequester {
             None => self.limits_rate.get(&limit_type).unwrap().reset,
         };
 
-        let limits_clone = &self.limits_rate.clone();
         let status = response.status();
         let status_str = status.as_str();
 
