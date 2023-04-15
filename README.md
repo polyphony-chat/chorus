@@ -14,7 +14,7 @@ A rust library for interacting with (multiple) Spacebar-compatible APIs and Gate
 
 Core functionality:
 
-- [ ] Rate Limiter
+- [x] Rate Limiter (hint: couldn't be fully tested due to [an Issue with the Spacebar Server](https://github.com/spacebarchat/server/issues/1022))
 - [ ] Login
 - [ ] Registration
 - [ ] Sending messages (Text, Images, Attachments)
