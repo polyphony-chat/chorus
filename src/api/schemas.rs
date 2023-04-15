@@ -4,9 +4,9 @@ pub mod schemas {
     #[derive(Debug, Serialize, Deserialize)]
     #[serde(rename_all = "snake_case")]
     pub struct RegisterSchema {
-        username: Option<String>,
+        username: String,
         password: Option<String>,
-        consent: Option<bool>,
+        consent: bool,
         email: Option<String>,
         fingerprint: Option<String>,
         invite: Option<String>,
@@ -14,5 +14,16 @@ pub mod schemas {
         gift_code_sku_id: Option<String>,
         captcha_key: Option<String>,
         promotional_email_opt_in: Option<bool>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    pub struct LoginSchema {
+        login: String,
+        password: String,
+        undelete: Option<bool>,
+        captcha_key: Option<String>,
+        login_source: Option<String>,
+        gift_code_sku_id: Option<String>,
     }
 }
