@@ -131,9 +131,9 @@ pub mod schemas {
         front_page: Option<String>,
         tos_page: Option<String>,
         correspondence_email: Option<String>,
-        correspondence_user_ID: Option<String>,
+        correspondence_user_id: Option<String>,
         image: Option<String>,
-        instance_ID: Option<String>,
+        instance_id: Option<String>,
     }
 }
 
