@@ -4,7 +4,7 @@ pub mod schemas {
 
     use serde::{Deserialize, Serialize};
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     #[serde(rename_all = "snake_case")]
     pub struct RegisterSchema {
         username: String,
@@ -19,9 +19,9 @@ pub mod schemas {
         promotional_email_opt_in: Option<bool>,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq, Eq)]
     pub struct RegisterSchemaError {
-        message: String,
+        pub message: String,
     }
 
     impl RegisterSchemaError {
@@ -108,5 +108,56 @@ pub mod schemas {
         ticket: String,
         gift_code_sku_id: Option<String>,
         login_source: Option<String>,
+    }
+}
+
+#[cfg(test)]
+mod schemas_tests {
+    use super::schemas::*;
+
+    #[test]
+    fn password_too_short() {
+        assert_eq!(
+            RegisterSchema::new(
+                "Test".to_string(),
+                Some("".to_string()),
+                true,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            Err(RegisterSchemaError {
+                message: "Password must be between 1 and 72 characters.".to_string()
+            })
+        );
+    }
+
+    #[test]
+    fn password_too_long() {
+        let mut long_pw = String::new();
+        for _ in 0..73 {
+            long_pw = long_pw + "a";
+        }
+        assert_eq!(
+            RegisterSchema::new(
+                "Test".to_string(),
+                Some(long_pw),
+                true,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            Err(RegisterSchemaError {
+                message: "Password must be between 1 and 72 characters.".to_string()
+            })
+        );
     }
 }
