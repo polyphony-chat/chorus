@@ -2,6 +2,7 @@ pub mod schemas {
     use std::error::Error;
     use std::fmt;
 
+    use regex::Regex;
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -80,6 +81,15 @@ pub mod schemas {
                     message: "Consent must be 'true' to register.".to_string(),
                 });
             }
+
+            let regex =
+                regex::Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
+            if email.clone().is_some() && !regex.is_match(email.clone().unwrap().as_str()) {
+                return Err(RegisterSchemaError {
+                    message: "The provided email address is in an invalid format.".to_string(),
+                });
+            }
+
             return Ok(RegisterSchema {
                 username,
                 password,
@@ -240,6 +250,49 @@ mod schemas_tests {
             ),
             Err(RegisterSchemaError {
                 message: "Consent must be 'true' to register.".to_string()
+            })
+        );
+    }
+
+    #[test]
+    fn invalid_email() {
+        assert_eq!(
+            RegisterSchema::new(
+                "Test".to_string(),
+                None,
+                true,
+                Some("p@p.p".to_string()),
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            Err(RegisterSchemaError {
+                message: "The provided email address is in an invalid format.".to_string()
+            })
+        )
+    }
+
+    #[test]
+    fn valid_email() {
+        let reg = RegisterSchema::new(
+            "Test".to_string(),
+            None,
+            true,
+            Some("me@mail.xy".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        );
+        assert_ne!(
+            reg,
+            Err(RegisterSchemaError {
+                message: "The provided email address is in an invalid format.".to_string()
             })
         );
     }
