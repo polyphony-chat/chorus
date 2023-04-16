@@ -116,6 +116,8 @@ pub mod schemas {
     }
 }
 
+// I know that some of these tests are... really really basic and unneccessary, but sometimes, I
+// just feel like writing tests, so there you go :) -@bitfl0wer
 #[cfg(test)]
 mod schemas_tests {
     use super::schemas::*;
@@ -221,5 +223,4 @@ mod schemas_tests {
             })
         );
     }
-
 }
