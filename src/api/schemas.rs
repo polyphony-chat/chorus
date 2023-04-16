@@ -160,4 +160,39 @@ mod schemas_tests {
             })
         );
     }
+
+    #[test]
+    fn username_too_short() {
+        assert_eq!(
+            RegisterSchema::new(
+                "T".to_string(),
+                None,
+                true,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            Err(RegisterSchemaError {
+                message: "Username must be between 2 and 32 characters".to_string()
+            })
+        );
+    }
+
+    #[test]
+    fn username_too_long() {
+        let mut long_un = String::new();
+        for _ in 0..33 {
+            long_un = long_un + "a";
+        }
+        assert_eq!(
+            RegisterSchema::new(long_un, None, true, None, None, None, None, None, None, None,),
+            Err(RegisterSchemaError {
+                message: "Username must be between 2 and 32 characters".to_string()
+            })
+        );
+    }
 }
