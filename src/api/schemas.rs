@@ -114,26 +114,6 @@ pub mod schemas {
         gift_code_sku_id: Option<String>,
     }
 
-    impl LoginSchema {
-        pub fn new(
-            login: String,
-            password: String,
-            undelete: Option<bool>,
-            captcha_key: Option<String>,
-            login_source: Option<String>,
-            gift_code_sku_id: Option<String>,
-        ) -> LoginSchema {
-            LoginSchema {
-                login,
-                password,
-                undelete,
-                captcha_key,
-                login_source,
-                gift_code_sku_id,
-            }
-        }
-    }
-
     #[derive(Debug, Serialize, Deserialize)]
     #[serde(rename_all = "snake_case")]
     pub struct TotpSchema {
@@ -141,6 +121,19 @@ pub mod schemas {
         ticket: String,
         gift_code_sku_id: Option<String>,
         login_source: Option<String>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+    #[serde(rename_all = "camelCase")]
+    pub struct InstancePoliciesSchema {
+        instance_name: String,
+        instance_description: Option<String>,
+        front_page: Option<String>,
+        tos_page: Option<String>,
+        correspondence_email: Option<String>,
+        correspondence_user_id: Option<String>,
+        image: Option<String>,
+        instance_id: Option<String>,
     }
 }
 
