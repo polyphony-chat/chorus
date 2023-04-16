@@ -1,5 +1,4 @@
 pub mod schemas {
-    use std::error::Error;
     use std::fmt;
 
     use regex::Regex;
@@ -82,8 +81,7 @@ pub mod schemas {
                 });
             }
 
-            let regex =
-                regex::Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
+            let regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
             if email.clone().is_some() && !regex.is_match(email.clone().unwrap().as_str()) {
                 return Err(RegisterSchemaError {
                     message: "The provided email address is in an invalid format.".to_string(),
