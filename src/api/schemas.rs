@@ -95,7 +95,7 @@ pub mod schemas {
         }
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     #[serde(rename_all = "snake_case")]
     pub struct LoginSchema {
         login: String,
@@ -104,6 +104,26 @@ pub mod schemas {
         captcha_key: Option<String>,
         login_source: Option<String>,
         gift_code_sku_id: Option<String>,
+    }
+
+    impl LoginSchema {
+        pub fn new(
+            login: String,
+            password: String,
+            undelete: Option<bool>,
+            captcha_key: Option<String>,
+            login_source: Option<String>,
+            gift_code_sku_id: Option<String>,
+        ) -> LoginSchema {
+            LoginSchema {
+                login,
+                password,
+                undelete,
+                captcha_key,
+                login_source,
+                gift_code_sku_id,
+            }
+        }
     }
 
     #[derive(Debug, Serialize, Deserialize)]
