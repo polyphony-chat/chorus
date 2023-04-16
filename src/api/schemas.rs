@@ -75,6 +75,11 @@ pub mod schemas {
                     message: "Password must be between 1 and 72 characters.".to_string(),
                 });
             }
+            if !consent {
+                return Err(RegisterSchemaError {
+                    message: "Consent must be 'true' to register.".to_string(),
+                });
+            }
             return Ok(RegisterSchema {
                 username,
                 password,
@@ -195,4 +200,26 @@ mod schemas_tests {
             })
         );
     }
+
+    #[test]
+    fn consent_false() {
+        assert_eq!(
+            RegisterSchema::new(
+                "Test".to_string(),
+                None,
+                false,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            Err(RegisterSchemaError {
+                message: "Consent must be 'true' to register.".to_string()
+            })
+        );
+    }
+
 }
