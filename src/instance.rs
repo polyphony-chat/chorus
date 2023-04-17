@@ -1,5 +1,3 @@
-use regex::Regex;
-
 use crate::api::schemas::schemas::InstancePoliciesSchema;
 use crate::gateway::Gateway;
 use crate::limit::LimitedRequester;
@@ -13,12 +11,11 @@ use std::fmt;
 The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
  */
 pub struct Instance {
-    main_url: String,
     urls: URLBundle,
     instance_info: InstancePoliciesSchema,
     requester: LimitedRequester,
     gateway: Gateway,
-    users: HashMap<Token, String>,
+    users: HashMap<Token, Username>,
 }
 
 impl Instance {
@@ -30,34 +27,37 @@ pub struct Token {
     pub token: String,
 }
 
-impl Token {
-    pub fn new(token: String) -> Result<Token, TokenFormatError> {
-        let token_regex = Regex::new(r"/[\w-]{24}\.[\w-]{6}\.[\w-]{27}/").unwrap();
-        let mfa_token_regex = Regex::new(r"/mfa\.[\w-]{84}/").unwrap();
-        if !token_regex.is_match(&token.as_str()) && !mfa_token_regex.is_match(&token.as_str()) {
-            return Err(TokenFormatError {
-                message: "This does not seem to be a valid token.".to_string(),
-            });
+#[derive(Debug, PartialEq, Eq)]
+pub struct Username {
+    pub username: String,
+}
+
+impl Username {
+    pub fn new(username: String) -> Result<Username, UsernameFormatError> {
+        if username.len() < 2 || username.len() > 32 {
+            return Err(UsernameFormatError::new(
+                "Username must be between 2 and 32 characters".to_string(),
+            ));
         }
-        Ok(Token { token })
+        return Ok(Username { username });
     }
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct TokenFormatError {
+pub struct UsernameFormatError {
     pub message: String,
 }
 
-impl TokenFormatError {
+impl UsernameFormatError {
     fn new(message: String) -> Self {
-        TokenFormatError { message }
+        UsernameFormatError { message }
     }
 }
 
-impl fmt::Display for TokenFormatError {
+impl fmt::Display for UsernameFormatError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.message)
     }
 }
 
-impl std::error::Error for TokenFormatError {}
+impl std::error::Error for UsernameFormatError {}
