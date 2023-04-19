@@ -18,7 +18,7 @@ pub struct Instance {
     pub instance_info: InstancePoliciesSchema,
     pub requester: LimitedRequester,
     //pub gateway: Gateway,
-    //pub users: HashMap<Token, Username>,
+    pub users: HashMap<Token, Username>,
 }
 
 impl Instance {
@@ -32,6 +32,7 @@ impl Instance {
         urls: URLBundle,
         requester: LimitedRequester,
     ) -> Result<Instance, InstanceError> {
+        let users: HashMap<Token, Username> = HashMap::new();
         let mut instance = Instance {
             urls,
             instance_info: InstancePoliciesSchema::new(
@@ -46,8 +47,7 @@ impl Instance {
                 None,
             ),
             requester,
-            //gateway: (),
-            //users: (),
+            users,
         };
         instance.instance_info = match instance.instance_policies_schema().await {
             Ok(schema) => schema,
