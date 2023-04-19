@@ -73,7 +73,9 @@ mod instance_policies_schema_test {
             "http://localhost:3001".to_string(),
         );
         let limited_requester = LimitedRequester::new(urls.get_api().to_string()).await;
-        let test_instance = Instance::new(urls.clone(), limited_requester).unwrap();
+        let test_instance = Instance::new(urls.clone(), limited_requester)
+            .await
+            .unwrap();
 
         let schema = test_instance.instance_policies_schema().await.unwrap();
         println!("{}", schema);
