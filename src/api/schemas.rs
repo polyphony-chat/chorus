@@ -135,6 +135,47 @@ pub mod schemas {
         image: Option<String>,
         instance_id: Option<String>,
     }
+
+    impl InstancePoliciesSchema {
+        pub fn new(
+            instance_name: String,
+            instance_description: Option<String>,
+            front_page: Option<String>,
+            tos_page: Option<String>,
+            correspondence_email: Option<String>,
+            correspondence_user_id: Option<String>,
+            image: Option<String>,
+            instance_id: Option<String>,
+        ) -> Self {
+            InstancePoliciesSchema {
+                instance_name,
+                instance_description,
+                front_page,
+                tos_page,
+                correspondence_email,
+                correspondence_user_id,
+                image,
+                instance_id,
+            }
+        }
+    }
+
+    impl fmt::Display for InstancePoliciesSchema {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(
+                f,
+                "InstancePoliciesSchema {{ instance_name: {}, instance_description: {}, front_page: {}, tos_page: {}, correspondence_email: {}, correspondence_user_id: {}, image: {}, instance_id: {} }}",
+                self.instance_name,
+                self.instance_description.clone().unwrap_or("None".to_string()),
+                self.front_page.clone().unwrap_or("None".to_string()),
+                self.tos_page.clone().unwrap_or("None".to_string()),
+                self.correspondence_email.clone().unwrap_or("None".to_string()),
+                self.correspondence_user_id.clone().unwrap_or("None".to_string()),
+                self.image.clone().unwrap_or("None".to_string()),
+                self.instance_id.clone().unwrap_or("None".to_string()),
+            )
+        }
+    }
 }
 
 // I know that some of these tests are... really really basic and unneccessary, but sometimes, I
