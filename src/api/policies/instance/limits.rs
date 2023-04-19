@@ -197,6 +197,10 @@ pub mod limits {
 
         /// check_limits uses the API to get the current request limits of the instance.
         /// It returns a `Limits` struct containing all the limits.
+        /// If the rate limit is disabled, then the limit is set to `u64::MAX`.
+        /// # Errors
+        /// This function will panic if the request fails or if the response body cannot be parsed.
+        /// TODO: Change this to return a Result and handle the errors properly.
         pub async fn check_limits(api_url: String) -> HashMap<LimitType, Limit> {
             let client = Client::new();
             let url_parsed = crate::URLBundle::parse_url(api_url) + "/policies/instance/limits";

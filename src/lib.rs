@@ -1,11 +1,11 @@
 mod api;
-mod client;
 mod gateway;
+mod instance;
 mod limit;
 mod voice;
 
 use url::{ParseError, Url};
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Default, Debug, PartialEq, Eq)]
 
 /// A URLBundle is a struct which bundles together the API-, Gateway- and CDN-URLs of a Spacebar
 /// instance.

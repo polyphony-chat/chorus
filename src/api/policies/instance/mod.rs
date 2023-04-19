@@ -1,5 +1,5 @@
-// src/api/policies/instance/mod.rs
-
+pub mod instance;
 pub mod limits;
 
+pub use instance::*;
 pub use limits::*;
