@@ -100,7 +100,7 @@ impl LimitedRequester {
     }
 
     fn can_send_request(&mut self, limit_type: LimitType) -> bool {
-        let limits = &self.limits_rate;
+        let limits = &self.limits_rate.clone();
         // Check if all of the limits in this vec have at least one remaining request
         let constant_limits: Vec<&LimitType> = [
             &LimitType::Error,
@@ -113,6 +113,17 @@ impl LimitedRequester {
             match limits.get(&limit) {
                 Some(limit) => {
                     if limit.remaining == 0 {
+                        return false;
+                    }
+                    // AbsoluteRegister and AuthRegister can cancel each other out.
+                    if limit.bucket == LimitType::AbsoluteRegister
+                        && limits.get(&LimitType::AuthRegister).unwrap().remaining == 0
+                    {
+                        return false;
+                    }
+                    if limit.bucket == LimitType::AuthRegister
+                        && limits.get(&LimitType::AbsoluteRegister).unwrap().remaining == 0
+                    {
                         return false;
                     }
                 }
