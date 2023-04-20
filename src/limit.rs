@@ -100,18 +100,26 @@ impl LimitedRequester {
     }
 
     fn can_send_request(&mut self, limit_type: LimitType) -> bool {
-        let limits = self.limits_rate.get(&limit_type);
-
-        match limits {
-            Some(limit) => {
-                if limit.remaining > 0 {
-                    true
-                } else {
-                    false
+        let limits = &self.limits_rate;
+        // Check if all of the limits in this vec have at least one remaining request
+        let constant_limits: Vec<&LimitType> = [
+            &LimitType::Error,
+            &LimitType::Global,
+            &LimitType::Ip,
+            &limit_type,
+        ]
+        .to_vec();
+        for limit in constant_limits.iter() {
+            match limits.get(&limit) {
+                Some(limit) => {
+                    if limit.remaining == 0 {
+                        return false;
+                    }
                 }
+                None => return false,
             }
-            None => false,
         }
+        return true;
     }
 
     fn update_limits(&mut self, response: &Response, limit_type: LimitType) {
