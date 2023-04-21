@@ -15,3 +15,9 @@ custom_error! {
     ConsentError = "Consent must be 'true' to register.",
     EmailError = "The provided email address is in an invalid format."
 }
+
+custom_error! {
+    #[derive(PartialEq, Eq)]
+    pub InstanceServerError
+    NoResponse = "Did not receive a response from the Server."
+}
