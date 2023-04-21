@@ -25,9 +25,11 @@ pub mod instance {
 
     impl std::error::Error for InstancePoliciesError {}
     impl Instance {
-        /// Gets the instance policies schema.
-        /// # Errors
-        /// * [`InstancePoliciesError`] - If the request fails.
+        /**
+        Gets the instance policies schema.
+        # Errors
+        [`InstancePoliciesError`] - If the request fails.
+        */
         pub async fn instance_policies_schema(
             &self,
         ) -> Result<InstancePoliciesSchema, InstancePoliciesError> {
