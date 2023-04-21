@@ -1,6 +1,5 @@
 pub mod register {
-    use std::fmt;
-
+    use custom_error::custom_error;
     use reqwest::Client;
     use serde_json::json;
 
@@ -16,23 +15,4 @@ pub mod register {
             // TODO
         }
     }
-
-    #[derive(Debug, PartialEq, Eq)]
-    pub struct RegisterError {
-        pub message: String,
-    }
-
-    impl RegisterError {
-        fn new(message: String) -> Self {
-            RegisterError { message }
-        }
-    }
-
-    impl fmt::Display for RegisterError {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "{}", self.message)
-        }
-    }
-
-    impl std::error::Error for RegisterError {}
 }

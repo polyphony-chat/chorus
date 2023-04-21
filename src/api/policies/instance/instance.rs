@@ -1,29 +1,17 @@
 pub mod instance {
-    use std::fmt;
-
+    use custom_error::custom_error;
     use reqwest::Client;
     use serde_json::from_str;
 
     use crate::{api::schemas::schemas::InstancePoliciesSchema, instance::Instance};
 
-    #[derive(Debug, PartialEq, Eq)]
-    pub struct InstancePoliciesError {
-        pub message: String,
+    custom_error! {
+        #[derive(PartialEq, Eq)]
+        pub InstancePoliciesError
+            RequestErrorError{url:String, error:String} = "An error occured while trying to GET from {url}: {error}",
+            ReceivedErrorCodeError{error_code:String} = "Received the following error code while requesting from the route: {error_code}"
     }
 
-    impl InstancePoliciesError {
-        fn new(message: String) -> Self {
-            InstancePoliciesError { message }
-        }
-    }
-
-    impl fmt::Display for InstancePoliciesError {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "{}", self.message)
-        }
-    }
-
-    impl std::error::Error for InstancePoliciesError {}
     impl Instance {
         /**
         Gets the instance policies schema.
@@ -38,21 +26,16 @@ pub mod instance {
             let request = match client.get(&endpoint_url).send().await {
                 Ok(result) => result,
                 Err(e) => {
-                    return Err(InstancePoliciesError {
-                        message: format!(
-                            "An error occured while trying to GET from {}: {}",
-                            endpoint_url, e
-                        ),
+                    return Err(InstancePoliciesError::RequestErrorError {
+                        url: endpoint_url,
+                        error: e.to_string(),
                     });
                 }
             };
 
             if request.status().as_str().chars().next().unwrap() != '2' {
-                return Err(InstancePoliciesError {
-                    message: format!(
-                        "Received the following error code while requesting from the route: {}",
-                        request.status().as_str()
-                    ),
+                return Err(InstancePoliciesError::ReceivedErrorCodeError {
+                    error_code: request.status().to_string(),
                 });
             }
 
