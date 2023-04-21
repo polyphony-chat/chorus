@@ -13,6 +13,7 @@ pub mod register {
             let client = Client::new();
             let endpoint_url = self.urls.get_api().to_string() + "/auth/register";
             let request_builder = client.post(endpoint_url).body(json_schema.to_string());
+            // TODO
         }
     }
 
