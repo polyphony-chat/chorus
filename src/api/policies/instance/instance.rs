@@ -2,24 +2,24 @@ pub mod instance {
     use reqwest::Client;
     use serde_json::from_str;
 
-    use crate::errors::InstancePoliciesError;
+    use crate::errors::InstanceServerError;
     use crate::{api::schemas::schemas::InstancePoliciesSchema, instance::Instance};
 
     impl Instance {
         /**
         Gets the instance policies schema.
         # Errors
-        [`InstancePoliciesError`] - If the request fails.
+        [`InstanceServerError`] - If the request fails.
         */
         pub async fn instance_policies_schema(
             &self,
-        ) -> Result<InstancePoliciesSchema, InstancePoliciesError> {
+        ) -> Result<InstancePoliciesSchema, InstanceServerError> {
             let client = Client::new();
             let endpoint_url = self.urls.get_api().to_string() + "/policies/instance/";
             let request = match client.get(&endpoint_url).send().await {
                 Ok(result) => result,
                 Err(e) => {
-                    return Err(InstancePoliciesError::RequestErrorError {
+                    return Err(InstanceServerError::RequestErrorError {
                         url: endpoint_url,
                         error: e.to_string(),
                     });
@@ -27,7 +27,7 @@ pub mod instance {
             };
 
             if request.status().as_str().chars().next().unwrap() != '2' {
-                return Err(InstancePoliciesError::ReceivedErrorCodeError {
+                return Err(InstanceServerError::ReceivedErrorCodeError {
                     error_code: request.status().to_string(),
                 });
             }

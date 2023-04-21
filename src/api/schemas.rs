@@ -1,11 +1,9 @@
 pub mod schemas {
-    use std::fmt;
-
-    use custom_error::custom_error;
     use regex::Regex;
     use serde::{Deserialize, Serialize};
+    use std::fmt;
 
-    use crate::errors::RegisterSchemaError;
+    use crate::errors::FieldFormatError;
 
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     #[serde(rename_all = "snake_case")]
@@ -24,12 +22,12 @@ pub mod schemas {
 
     impl RegisterSchema {
         /**
-        Returns a new [`Result<RegisterSchema, RegisterSchemaError>`].
+        Returns a new [`Result<RegisterSchema, FieldFormatError>`].
         ## Arguments
         All but "String::username" and "bool::consent" are optional.
 
         ## Errors
-        You will receive a [`RegisterSchemaError`], if:
+        You will receive a [`FieldFormatError`], if:
         - The username is less than 2 or more than 32 characters in length
         - You supply a `password` which is less than 1 or more than 72 characters in length.
 
@@ -46,22 +44,22 @@ pub mod schemas {
             gift_code_sku_id: Option<String>,
             captcha_key: Option<String>,
             promotional_email_opt_in: Option<bool>,
-        ) -> Result<RegisterSchema, RegisterSchemaError> {
+        ) -> Result<RegisterSchema, FieldFormatError> {
             if username.len() < 2 || username.len() > 32 {
-                return Err(RegisterSchemaError::UsernameError);
+                return Err(FieldFormatError::UsernameError);
             }
             if password.is_some()
                 && (password.as_ref().unwrap().len() < 1 || password.as_ref().unwrap().len() > 72)
             {
-                return Err(RegisterSchemaError::PasswordError);
+                return Err(FieldFormatError::PasswordError);
             }
             if !consent {
-                return Err(RegisterSchemaError::ConsentError);
+                return Err(FieldFormatError::ConsentError);
             }
 
             let regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
             if email.clone().is_some() && !regex.is_match(email.clone().unwrap().as_str()) {
-                return Err(RegisterSchemaError::EmailError);
+                return Err(FieldFormatError::EmailError);
             }
 
             return Ok(RegisterSchema {
@@ -159,7 +157,7 @@ pub mod schemas {
 #[cfg(test)]
 mod schemas_tests {
     use super::schemas::*;
-    use crate::errors::RegisterSchemaError;
+    use crate::errors::FieldFormatError;
 
     #[test]
     fn password_too_short() {
@@ -176,7 +174,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError::PasswordError)
+            Err(FieldFormatError::PasswordError)
         );
     }
 
@@ -199,7 +197,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError::PasswordError)
+            Err(FieldFormatError::PasswordError)
         );
     }
 
@@ -218,7 +216,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError::UsernameError)
+            Err(FieldFormatError::UsernameError)
         );
     }
 
@@ -230,7 +228,7 @@ mod schemas_tests {
         }
         assert_eq!(
             RegisterSchema::new(long_un, None, true, None, None, None, None, None, None, None,),
-            Err(RegisterSchemaError::UsernameError)
+            Err(FieldFormatError::UsernameError)
         );
     }
 
@@ -249,7 +247,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError::ConsentError)
+            Err(FieldFormatError::ConsentError)
         );
     }
 
@@ -268,7 +266,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError::EmailError)
+            Err(FieldFormatError::EmailError)
         )
     }
 
@@ -286,6 +284,6 @@ mod schemas_tests {
             None,
             None,
         );
-        assert_ne!(reg, Err(RegisterSchemaError::EmailError));
+        assert_ne!(reg, Err(FieldFormatError::EmailError));
     }
 }
