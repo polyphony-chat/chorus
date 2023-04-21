@@ -1,6 +1,7 @@
 pub mod schemas {
     use std::fmt;
 
+    use custom_error::custom_error;
     use regex::Regex;
     use serde::{Deserialize, Serialize};
 
@@ -19,24 +20,14 @@ pub mod schemas {
         promotional_email_opt_in: Option<bool>,
     }
 
-    #[derive(Debug, PartialEq, Eq)]
-    pub struct RegisterSchemaError {
-        pub message: String,
+    custom_error! {
+        #[derive(PartialEq, Eq)]
+        pub RegisterSchemaError
+        PasswordError = "Password must be between 1 and 72 characters.",
+        UsernameError = "Username must be between 2 and 32 characters.",
+        ConsentError = "Consent must be 'true' to register.",
+        EmailError = "The provided email address is in an invalid format."
     }
-
-    impl RegisterSchemaError {
-        fn new(message: String) -> Self {
-            RegisterSchemaError { message }
-        }
-    }
-
-    impl fmt::Display for RegisterSchemaError {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "{}", self.message)
-        }
-    }
-
-    impl std::error::Error for RegisterSchemaError {}
 
     impl RegisterSchema {
         /**
@@ -64,28 +55,20 @@ pub mod schemas {
             promotional_email_opt_in: Option<bool>,
         ) -> Result<RegisterSchema, RegisterSchemaError> {
             if username.len() < 2 || username.len() > 32 {
-                return Err(RegisterSchemaError::new(
-                    "Username must be between 2 and 32 characters".to_string(),
-                ));
+                return Err(RegisterSchemaError::UsernameError);
             }
             if password.is_some()
                 && (password.as_ref().unwrap().len() < 1 || password.as_ref().unwrap().len() > 72)
             {
-                return Err(RegisterSchemaError {
-                    message: "Password must be between 1 and 72 characters.".to_string(),
-                });
+                return Err(RegisterSchemaError::PasswordError);
             }
             if !consent {
-                return Err(RegisterSchemaError {
-                    message: "Consent must be 'true' to register.".to_string(),
-                });
+                return Err(RegisterSchemaError::ConsentError);
             }
 
             let regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
             if email.clone().is_some() && !regex.is_match(email.clone().unwrap().as_str()) {
-                return Err(RegisterSchemaError {
-                    message: "The provided email address is in an invalid format.".to_string(),
-                });
+                return Err(RegisterSchemaError::EmailError);
             }
 
             return Ok(RegisterSchema {
@@ -199,9 +182,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError {
-                message: "Password must be between 1 and 72 characters.".to_string()
-            })
+            Err(RegisterSchemaError::PasswordError)
         );
     }
 
@@ -224,9 +205,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError {
-                message: "Password must be between 1 and 72 characters.".to_string()
-            })
+            Err(RegisterSchemaError::PasswordError)
         );
     }
 
@@ -245,9 +224,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError {
-                message: "Username must be between 2 and 32 characters".to_string()
-            })
+            Err(RegisterSchemaError::UsernameError)
         );
     }
 
@@ -259,9 +236,7 @@ mod schemas_tests {
         }
         assert_eq!(
             RegisterSchema::new(long_un, None, true, None, None, None, None, None, None, None,),
-            Err(RegisterSchemaError {
-                message: "Username must be between 2 and 32 characters".to_string()
-            })
+            Err(RegisterSchemaError::UsernameError)
         );
     }
 
@@ -280,9 +255,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError {
-                message: "Consent must be 'true' to register.".to_string()
-            })
+            Err(RegisterSchemaError::ConsentError)
         );
     }
 
@@ -301,9 +274,7 @@ mod schemas_tests {
                 None,
                 None,
             ),
-            Err(RegisterSchemaError {
-                message: "The provided email address is in an invalid format.".to_string()
-            })
+            Err(RegisterSchemaError::EmailError)
         )
     }
 
@@ -321,11 +292,6 @@ mod schemas_tests {
             None,
             None,
         );
-        assert_ne!(
-            reg,
-            Err(RegisterSchemaError {
-                message: "The provided email address is in an invalid format.".to_string()
-            })
-        );
+        assert_ne!(reg, Err(RegisterSchemaError::EmailError));
     }
 }
