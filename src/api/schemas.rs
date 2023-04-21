@@ -5,6 +5,8 @@ pub mod schemas {
     use regex::Regex;
     use serde::{Deserialize, Serialize};
 
+    use crate::errors::RegisterSchemaError;
+
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     #[serde(rename_all = "snake_case")]
     pub struct RegisterSchema {
@@ -18,15 +20,6 @@ pub mod schemas {
         gift_code_sku_id: Option<String>,
         captcha_key: Option<String>,
         promotional_email_opt_in: Option<bool>,
-    }
-
-    custom_error! {
-        #[derive(PartialEq, Eq)]
-        pub RegisterSchemaError
-        PasswordError = "Password must be between 1 and 72 characters.",
-        UsernameError = "Username must be between 2 and 32 characters.",
-        ConsentError = "Consent must be 'true' to register.",
-        EmailError = "The provided email address is in an invalid format."
     }
 
     impl RegisterSchema {
@@ -166,6 +159,7 @@ pub mod schemas {
 #[cfg(test)]
 mod schemas_tests {
     use super::schemas::*;
+    use crate::errors::RegisterSchemaError;
 
     #[test]
     fn password_too_short() {

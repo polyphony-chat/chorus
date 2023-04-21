@@ -1,4 +1,5 @@
 mod api;
+mod errors;
 mod gateway;
 mod instance;
 mod limit;

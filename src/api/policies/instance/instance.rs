@@ -1,16 +1,9 @@
 pub mod instance {
-    use custom_error::custom_error;
     use reqwest::Client;
     use serde_json::from_str;
 
+    use crate::errors::InstancePoliciesError;
     use crate::{api::schemas::schemas::InstancePoliciesSchema, instance::Instance};
-
-    custom_error! {
-        #[derive(PartialEq, Eq)]
-        pub InstancePoliciesError
-            RequestErrorError{url:String, error:String} = "An error occured while trying to GET from {url}: {error}",
-            ReceivedErrorCodeError{error_code:String} = "Received the following error code while requesting from the route: {error_code}"
-    }
 
     impl Instance {
         /**
