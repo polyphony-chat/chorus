@@ -1,9 +1,12 @@
 pub mod register {
     use reqwest::Client;
-    use serde_json::json;
+    use serde_json::{from_str, json};
 
     use crate::{
-        api::{limits::LimitType, schemas::schemas::RegisterSchema},
+        api::{
+            limits::LimitType,
+            schemas::schemas::{ErrorBody, RegisterSchema},
+        },
         errors::InstanceServerError,
         instance::{Instance, Token},
     };
@@ -30,16 +33,24 @@ pub mod register {
                 .await;
             if response.is_none() {
                 return Err(InstanceServerError::NoResponse);
-            } else {
-                // temp
-                return Err(InstanceServerError::NoResponse);
-            } // end temp
+            }
+
+            let response_unwrap = response.unwrap();
+            let status = response_unwrap.status();
+            let response_text_string = response_unwrap.text().await.unwrap();
+            if status.is_client_error() {
+                let error: ErrorBody = from_str(&response_text_string).unwrap();
+                return Err(InstanceServerError::InvalidFormBodyError {
+                    error: error.errors.errors.iter().next().unwrap().code.clone(),
+                });
+            }
+            return Ok(Token {
+                token: response_text_string,
+            });
 
             /*
             Things to do:
-            1. Check the response for Errors. If the Response says the request is missing a field,
-            return an Err() that says that.
-
+            Check out the serde error. Maybe make a seperate project to find out how flatten works
              */
         }
     }

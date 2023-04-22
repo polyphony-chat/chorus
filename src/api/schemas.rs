@@ -150,6 +150,24 @@ pub mod schemas {
             )
         }
     }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct ErrorBody {
+        code: i32,
+        pub message: String,
+        pub errors: ErrorObject,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct ErrorObject {
+        #[serde(flatten)]
+        pub errors: Vec<Error>,
+    }
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct Error {
+        pub message: String,
+        pub code: String,
+    }
 }
 
 // I know that some of these tests are... really really basic and unneccessary, but sometimes, I
