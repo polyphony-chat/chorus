@@ -151,19 +151,26 @@ pub mod schemas {
         }
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct ErrorBody {
-        code: i32,
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct ErrorResponse {
+        pub code: i32,
         pub message: String,
-        pub errors: ErrorObject,
+        pub errors: IntermittentError,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct ErrorObject {
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct IntermittentError {
         #[serde(flatten)]
-        pub errors: Vec<Error>,
+        pub errors: std::collections::HashMap<String, ErrorField>,
     }
-    #[derive(Debug, Serialize, Deserialize)]
+
+    #[derive(Serialize, Deserialize, Debug, Default)]
+    pub struct ErrorField {
+        #[serde(default)]
+        pub _errors: Vec<Error>,
+    }
+
+    #[derive(Serialize, Deserialize, Debug)]
     pub struct Error {
         pub message: String,
         pub code: String,
