@@ -36,7 +36,7 @@ Core functionality:
 
 - [x] Rate Limiter (hint: couldn't be fully tested due to [an Issue with the Spacebar Server](https://github.com/spacebarchat/server/issues/1022))
 - [ ] Login
-- [ ] Registration
+- [x] Registration
 - [ ] Sending messages (Text, Images, Attachments)
 - [ ] Events (Message, User, Channel, etc.)
 - [ ] User profile customization
