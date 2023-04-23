@@ -1,6 +1,6 @@
 pub mod register {
     use reqwest::Client;
-    use serde_json::{from_str, json, Value};
+    use serde_json::json;
 
     use crate::{
         api::{
@@ -19,7 +19,7 @@ pub mod register {
         # Errors
         * [`InstanceServerError`] - If the server does not respond.
          */
-        pub async fn register(
+        pub async fn register_account(
             &mut self,
             register_schema: &RegisterSchema,
         ) -> Result<Token, InstanceServerError> {
@@ -31,7 +31,7 @@ pub mod register {
             let response = limited_requester
                 .send_request(request_builder, LimitType::AuthRegister)
                 .await;
-            if response.is_none() {
+            if !response.is_ok() {
                 return Err(InstanceServerError::NoResponse);
             }
 
@@ -58,7 +58,7 @@ pub mod register {
 
 #[cfg(test)]
 mod test {
-    use crate::api::schemas::schemas::RegisterSchema;
+    use crate::api::schemas::schemas::{AuthEmail, AuthPassword, AuthUsername, RegisterSchema};
     use crate::errors::InstanceServerError;
     use crate::instance::Instance;
     use crate::limit::LimitedRequester;
@@ -75,10 +75,10 @@ mod test {
             .await
             .unwrap();
         let reg = RegisterSchema::new(
-            "aaa".to_string(),
+            AuthUsername::new("hiiii".to_string()).unwrap(),
             None,
             true,
-            Some("me@mail.xy".to_string()),
+            Some(AuthEmail::new("me@mail.xy".to_string()).unwrap()),
             None,
             None,
             None,
@@ -92,7 +92,7 @@ mod test {
                 error_type: "date_of_birth".to_string(),
                 error: "This field is required (BASE_TYPE_REQUIRED)".to_string()
             },
-            test_instance.register(&reg).await.err().unwrap()
+            test_instance.register_account(&reg).await.err().unwrap()
         );
     }
 
@@ -108,10 +108,10 @@ mod test {
             .await
             .unwrap();
         let reg = RegisterSchema::new(
-            "Hiiii".to_string(),
-            Some("mysupersecurepass123!".to_string()),
+            AuthUsername::new("Hiiii".to_string()).unwrap(),
+            Some(AuthPassword::new("mysupersecurepass123!".to_string()).unwrap()),
             true,
-            Some("flori@mail.xyz".to_string()),
+            Some(AuthEmail::new("flori@aaaa.xyz".to_string()).unwrap()),
             None,
             None,
             Some("2000-01-01".to_string()),
@@ -120,7 +120,7 @@ mod test {
             None,
         )
         .unwrap();
-        let token = test_instance.register(&reg).await.unwrap().token;
+        let token = test_instance.register_account(&reg).await.unwrap().token;
         println!("{}", token);
     }
 }

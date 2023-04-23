@@ -1,4 +1,7 @@
-use crate::api::limits::{Limit, LimitType, Limits};
+use crate::{
+    api::limits::{Limit, LimitType, Limits},
+    errors::InstanceServerError,
+};
 
 use reqwest::{Client, RequestBuilder, Response};
 use std::collections::{HashMap, VecDeque};
@@ -67,7 +70,7 @@ impl LimitedRequester {
         &mut self,
         request: RequestBuilder,
         limit_type: LimitType,
-    ) -> Option<Response> {
+    ) -> Result<Response, InstanceServerError> {
         if self.can_send_request(limit_type) {
             let built_request = request
                 .build()
@@ -78,13 +81,13 @@ impl LimitedRequester {
                 Err(e) => panic!("An error occured while processing the response: {}", e),
             };
             self.update_limits(&response, limit_type);
-            return Some(response);
+            return Ok(response);
         } else {
             self.requests.push_back(TypedRequest {
                 request: request,
                 limit_type: limit_type,
             });
-            return None;
+            return Err(InstanceServerError::RateLimited);
         }
     }
 
@@ -264,20 +267,25 @@ mod rate_limit {
             String::from("http://localhost:3001/cdn"),
         );
         let mut requester = LimitedRequester::new(urls.api.clone()).await;
-        let mut request: Option<Response>;
-        request = None;
+        let mut request: Option<Result<Response, InstanceServerError>> = None;
 
-        for _ in 0..50 {
+        for _ in 0..=50 {
             let request_path = urls.api.clone() + "/some/random/nonexisting/path";
 
             let request_builder = requester.http.get(request_path);
-            request = requester
-                .send_request(request_builder, LimitType::Channel)
-                .await;
+            request = Some(
+                requester
+                    .send_request(request_builder, LimitType::Channel)
+                    .await,
+            );
         }
-        match request {
-            Some(_) => assert!(false),
-            None => assert!(true),
+        if request.is_some() {
+            match request.unwrap() {
+                Ok(_) => assert!(false),
+                Err(_) => assert!(true),
+            }
+        } else {
+            assert!(false)
         }
     }
 
@@ -295,8 +303,8 @@ mod rate_limit {
             .send_request(request_builder, LimitType::Channel)
             .await;
         let result = match request {
-            Some(result) => result,
-            None => panic!("Request failed"),
+            Ok(result) => result,
+            Err(_) => panic!("Request failed"),
         };
         let config: Config = from_str(result.text().await.unwrap().as_str()).unwrap();
         println!("{:?}", config);
