@@ -273,7 +273,7 @@ pub mod schemas {
         stream_notifications_enabled: bool,
         theme: String,
         timezone_offset: i32,
-        view_nsfw_guilds: Option<bool>,
+        view_nsfw_guilds: bool,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
