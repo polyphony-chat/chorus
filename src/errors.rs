@@ -17,4 +17,5 @@ custom_error! {
     ReceivedErrorCodeError{error_code:String} = "Received the following error code while requesting from the route: {error_code}",
     CantGetInfoError{error:String} = "Something seems to be wrong with the instance. Cannot get information about the instance: {error}",
     InvalidFormBodyError{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
+    RateLimited = "Ratelimited.",
 }

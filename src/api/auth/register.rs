@@ -31,7 +31,7 @@ pub mod register {
             let response = limited_requester
                 .send_request(request_builder, LimitType::AuthRegister)
                 .await;
-            if response.is_none() {
+            if !response.is_ok() {
                 return Err(InstanceServerError::NoResponse);
             }
 
