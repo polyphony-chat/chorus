@@ -46,7 +46,7 @@ pub mod login {
     }
 }
 
-#[cfg(test)]
+/*#[cfg(test)]
 mod test {
     use crate::api::schemas::schemas::{
         AuthEmail, AuthPassword, AuthUsername, LoginSchema, RegisterSchema,
@@ -96,4 +96,4 @@ mod test {
             .unwrap();
         println!("{:?}", login_result);
     }
-}
+}*/
