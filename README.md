@@ -40,6 +40,7 @@ Core functionality:
 - [x] Registration (encountered another [Issue with the Spacebar Server](https://github.com/spacebarchat/server/issues/1040) which makes some error messages an empty string)
 - [ ] Sending messages (Text, Images, Attachments)
 - [ ] Events (Message, User, Channel, etc.)
+- [ ] Adding, deleting and editing channels
 - [ ] User profile customization
 - [ ] Deleting messages
 - [ ] Emoji
@@ -47,6 +48,7 @@ Core functionality:
 - [ ] Listing users and user profiles
 - [ ] Message threads
 - [ ] Forum channels
+
 
 [Rust]: https://img.shields.io/badge/Rust-orange?style=plastic&logo=rust
 [Rust-url]: https://www.rust-lang.org/
