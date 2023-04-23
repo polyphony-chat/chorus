@@ -32,12 +32,28 @@ pub mod schemas {
         }
     }
 
+    /**
+    A struct that represents a well-formed username.
+    ## Arguments
+    Please use new() to create a new instance of this struct.
+    ## Errors
+    You will receive a [`FieldFormatError`], if:
+    - The username is not between 2 and 32 characters.
+     */
     #[derive(Clone)]
     pub struct AuthUsername {
         pub username: String,
     }
 
     impl AuthUsername {
+        /**
+        Returns a new [`Result<AuthUsername, FieldFormatError>`].
+        ## Arguments
+        The username you want to validate.
+        ## Errors
+        You will receive a [`FieldFormatError`], if:
+        - The username is not between 2 and 32 characters.
+         */
         pub fn new(username: String) -> Result<AuthUsername, FieldFormatError> {
             if username.len() < 2 || username.len() > 32 {
                 return Err(FieldFormatError::UsernameError);
@@ -47,12 +63,28 @@ pub mod schemas {
         }
     }
 
+    /**
+    A struct that represents a well-formed password.
+    ## Arguments
+    Please use new() to create a new instance of this struct.
+    ## Errors
+    You will receive a [`FieldFormatError`], if:
+    - The password is not between 1 and 72 characters.
+     */
     #[derive(Clone)]
     pub struct AuthPassword {
         pub password: String,
     }
 
     impl AuthPassword {
+        /**
+        Returns a new [`Result<AuthPassword, FieldFormatError>`].
+        ## Arguments
+        The password you want to validate.
+        ## Errors
+        You will receive a [`FieldFormatError`], if:
+        - The password is not between 1 and 72 characters.
+         */
         pub fn new(password: String) -> Result<AuthPassword, FieldFormatError> {
             if password.len() < 1 || password.len() > 72 {
                 return Err(FieldFormatError::PasswordError);
@@ -61,6 +93,16 @@ pub mod schemas {
             }
         }
     }
+
+    /**
+    A struct that represents a well-formed register request.
+    ## Arguments
+    Please use new() to create a new instance of this struct.
+    ## Errors
+    You will receive a [`FieldFormatError`], if:
+    - The username is not between 2 and 32 characters.
+    - The password is not between 1 and 72 characters.
+     */
 
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     #[serde(rename_all = "snake_case")]
@@ -137,6 +179,15 @@ pub mod schemas {
         }
     }
 
+    /**
+    A struct that represents a well-formed login request.
+    ## Arguments
+    Please use new() to create a new instance of this struct.
+    ## Errors
+    You will receive a [`FieldFormatError`], if:
+    - The username is not between 2 and 32 characters.
+    - The password is not between 1 and 72 characters.
+     */
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     #[serde(rename_all = "snake_case")]
     pub struct LoginSchema {
@@ -148,6 +199,40 @@ pub mod schemas {
         gift_code_sku_id: Option<String>,
     }
 
+    impl LoginSchema {
+        /**
+        Returns a new [`Result<LoginSchema, FieldFormatError>`].
+        ## Arguments
+        login: The username you want to login with.
+        password: The password you want to login with.
+        undelete: Honestly no idea what this is for.
+        captcha_key: The captcha key you want to login with.
+        login_source: The login source.
+        gift_code_sku_id: The gift code sku id.
+        ## Errors
+        You will receive a [`FieldFormatError`], if:
+        - The username is less than 2 or more than 32 characters in length
+        */
+        pub fn new(
+            login: AuthUsername,
+            password: String,
+            undelete: Option<bool>,
+            captcha_key: Option<String>,
+            login_source: Option<String>,
+            gift_code_sku_id: Option<String>,
+        ) -> Result<LoginSchema, FieldFormatError> {
+            let login = login.username;
+            return Ok(LoginSchema {
+                login,
+                password,
+                undelete,
+                captcha_key,
+                login_source,
+                gift_code_sku_id,
+            });
+        }
+    }
+
     #[derive(Debug, Serialize, Deserialize)]
     #[serde(rename_all = "snake_case")]
     pub struct TotpSchema {
@@ -157,6 +242,9 @@ pub mod schemas {
         login_source: Option<String>,
     }
 
+    /**
+    Represents the result you get from GET: /api/instance/policies/.
+    */
     #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
     #[serde(rename_all = "camelCase")]
     pub struct InstancePoliciesSchema {
