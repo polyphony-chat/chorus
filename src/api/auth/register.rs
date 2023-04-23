@@ -1,6 +1,6 @@
 pub mod register {
     use reqwest::Client;
-    use serde_json::{from_str, json, Value};
+    use serde_json::json;
 
     use crate::{
         api::{
@@ -19,7 +19,7 @@ pub mod register {
         # Errors
         * [`InstanceServerError`] - If the server does not respond.
          */
-        pub async fn register(
+        pub async fn register_account(
             &mut self,
             register_schema: &RegisterSchema,
         ) -> Result<Token, InstanceServerError> {
@@ -92,7 +92,7 @@ mod test {
                 error_type: "date_of_birth".to_string(),
                 error: "This field is required (BASE_TYPE_REQUIRED)".to_string()
             },
-            test_instance.register(&reg).await.err().unwrap()
+            test_instance.register_account(&reg).await.err().unwrap()
         );
     }
 
@@ -120,7 +120,7 @@ mod test {
             None,
         )
         .unwrap();
-        let token = test_instance.register(&reg).await.unwrap().token;
+        let token = test_instance.register_account(&reg).await.unwrap().token;
         println!("{}", token);
     }
 }

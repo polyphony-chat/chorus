@@ -5,6 +5,63 @@ pub mod schemas {
 
     use crate::errors::FieldFormatError;
 
+    /**
+    A struct that represents a well-formed email address.
+     */
+    #[derive(Clone)]
+    pub struct AuthEmail {
+        pub email: String,
+    }
+
+    impl AuthEmail {
+        /**
+        Returns a new [`Result<AuthEmail, FieldFormatError>`].
+        ## Arguments
+        The email address you want to validate.
+        ## Errors
+        You will receive a [`FieldFormatError`], if:
+        - The email address is not in a valid format.
+
+         */
+        pub fn new(email: String) -> Result<AuthEmail, FieldFormatError> {
+            let regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
+            if !regex.is_match(email.clone().as_str()) {
+                return Err(FieldFormatError::EmailError);
+            }
+            return Ok(AuthEmail { email });
+        }
+    }
+
+    #[derive(Clone)]
+    pub struct AuthUsername {
+        pub username: String,
+    }
+
+    impl AuthUsername {
+        pub fn new(username: String) -> Result<AuthUsername, FieldFormatError> {
+            if username.len() < 2 || username.len() > 32 {
+                return Err(FieldFormatError::UsernameError);
+            } else {
+                return Ok(AuthUsername { username });
+            }
+        }
+    }
+
+    #[derive(Clone)]
+    pub struct AuthPassword {
+        pub password: String,
+    }
+
+    impl AuthPassword {
+        pub fn new(password: String) -> Result<AuthPassword, FieldFormatError> {
+            if password.len() < 1 || password.len() > 72 {
+                return Err(FieldFormatError::PasswordError);
+            } else {
+                return Ok(AuthPassword { password });
+            }
+        }
+    }
+
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     #[serde(rename_all = "snake_case")]
     pub struct RegisterSchema {
@@ -34,10 +91,10 @@ pub mod schemas {
         These constraints have been defined [in the Spacebar-API](https://docs.spacebar.chat/routes/)
         */
         pub fn new(
-            username: String,
-            password: Option<String>,
+            username: AuthUsername,
+            password: Option<AuthPassword>,
             consent: bool,
-            email: Option<String>,
+            email: Option<AuthEmail>,
             fingerprint: Option<String>,
             invite: Option<String>,
             date_of_birth: Option<String>,
@@ -45,28 +102,31 @@ pub mod schemas {
             captcha_key: Option<String>,
             promotional_email_opt_in: Option<bool>,
         ) -> Result<RegisterSchema, FieldFormatError> {
-            if username.len() < 2 || username.len() > 32 {
-                return Err(FieldFormatError::UsernameError);
+            let username = username.username;
+
+            let email_addr;
+            if email.is_some() {
+                email_addr = Some(email.unwrap().email);
+            } else {
+                email_addr = None;
             }
-            if password.is_some()
-                && (password.as_ref().unwrap().len() < 1 || password.as_ref().unwrap().len() > 72)
-            {
-                return Err(FieldFormatError::PasswordError);
+
+            let has_password;
+            if password.is_some() {
+                has_password = Some(password.unwrap().password);
+            } else {
+                has_password = None;
             }
+
             if !consent {
                 return Err(FieldFormatError::ConsentError);
             }
 
-            let regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
-            if email.clone().is_some() && !regex.is_match(email.clone().unwrap().as_str()) {
-                return Err(FieldFormatError::EmailError);
-            }
-
             return Ok(RegisterSchema {
                 username,
-                password,
+                password: has_password,
                 consent,
-                email,
+                email: email_addr,
                 fingerprint,
                 invite,
                 date_of_birth,
