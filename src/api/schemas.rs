@@ -3,7 +3,7 @@ pub mod schemas {
     use serde::{Deserialize, Serialize};
     use std::{collections::HashMap, fmt};
 
-    use crate::errors::FieldFormatError;
+    use crate::{errors::FieldFormatError, URLBundle};
 
     /**
     A struct that represents a well-formed email address.
@@ -379,6 +379,76 @@ pub mod schemas {
     pub struct Error {
         pub message: String,
         pub code: String,
+    }
+
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct UserObject {
+        id: String,
+        username: String,
+        discriminator: String,
+        avatar: Option<String>,
+        bot: Option<bool>,
+        system: Option<bool>,
+        mfa_enabled: Option<bool>,
+        banner: Option<bool>,
+        accent_color: Option<String>,
+        locale: String,
+        verified: Option<bool>,
+        email: Option<String>,
+        flags: i8,
+        premium_type: Option<i8>,
+        public_flags: Option<i8>,
+    }
+
+    #[derive(Debug)]
+    pub struct User {
+        logged_in: bool,
+        belongs_to: URLBundle,
+        token: String,
+        pub settings: UserSettings,
+        pub object: UserObject,
+    }
+
+    impl User {
+        pub fn is_logged_in(&self) -> bool {
+            if self.logged_in == true {
+                true
+            } else {
+                false
+            }
+        }
+
+        pub fn belongs_to(&self) -> URLBundle {
+            return self.belongs_to.clone();
+        }
+
+        pub fn token(&self) -> String {
+            return self.token.clone();
+        }
+
+        pub fn set_logged_in(&mut self, bool: bool) {
+            self.logged_in = bool;
+        }
+
+        pub fn set_token(&mut self, token: String) {
+            self.token = token;
+        }
+
+        pub fn new(
+            logged_in: bool,
+            belongs_to: URLBundle,
+            token: String,
+            settings: UserSettings,
+            object: UserObject,
+        ) -> User {
+            User {
+                logged_in,
+                belongs_to,
+                token,
+                settings,
+                object,
+            }
+        }
     }
 }
 
