@@ -166,6 +166,69 @@ pub mod limits {
         }
     }
 
+    pub struct LimitsMutRef<'a> {
+        pub limit_absolute_messages: &'a mut Limit,
+        pub limit_absolute_register: &'a mut Limit,
+        pub limit_auth_login: &'a mut Limit,
+        pub limit_auth_register: &'a mut Limit,
+        pub limit_ip: &'a mut Limit,
+        pub limit_global: &'a mut Limit,
+        pub limit_error: &'a mut Limit,
+        pub limit_guild: &'a mut Limit,
+        pub limit_webhook: &'a mut Limit,
+        pub limit_channel: &'a mut Limit,
+    }
+
+    impl LimitsMutRef<'_> {
+        pub fn combine_mut_ref<'a>(
+            instance_rate_limits: &'a mut Limits,
+            user_rate_limits: &'a mut Limits,
+        ) -> LimitsMutRef<'a> {
+            return LimitsMutRef {
+                limit_absolute_messages: &mut instance_rate_limits.limit_absolute_messages,
+                limit_absolute_register: &mut instance_rate_limits.limit_absolute_register,
+                limit_auth_login: &mut instance_rate_limits.limit_auth_login,
+                limit_auth_register: &mut instance_rate_limits.limit_auth_register,
+                limit_channel: &mut user_rate_limits.limit_channel,
+                limit_error: &mut user_rate_limits.limit_error,
+                limit_global: &mut instance_rate_limits.limit_global,
+                limit_guild: &mut user_rate_limits.limit_guild,
+                limit_ip: &mut instance_rate_limits.limit_ip,
+                limit_webhook: &mut user_rate_limits.limit_webhook,
+            };
+        }
+
+        pub fn get_limit_ref(&self, limit_type: &LimitType) -> &Limit {
+            match limit_type {
+                &LimitType::AbsoluteMessage => &self.limit_absolute_messages,
+                &LimitType::AbsoluteRegister => &self.limit_absolute_register,
+                &LimitType::AuthLogin => &self.limit_auth_login,
+                &LimitType::AuthRegister => &self.limit_auth_register,
+                &LimitType::Channel => &self.limit_channel,
+                &LimitType::Error => &self.limit_error,
+                &LimitType::Global => &self.limit_global,
+                &LimitType::Guild => &self.limit_guild,
+                &LimitType::Ip => &self.limit_ip,
+                &LimitType::Webhook => &self.limit_webhook,
+            }
+        }
+
+        pub fn get_limit_mut_ref(&mut self, limit_type: &LimitType) -> &mut Limit {
+            match limit_type {
+                &LimitType::AbsoluteMessage => &mut self.limit_absolute_messages,
+                &LimitType::AbsoluteRegister => &mut self.limit_absolute_register,
+                &LimitType::AuthLogin => &mut self.limit_auth_login,
+                &LimitType::AuthRegister => &mut self.limit_auth_register,
+                &LimitType::Channel => &mut self.limit_channel,
+                &LimitType::Error => &mut self.limit_error,
+                &LimitType::Global => &mut self.limit_global,
+                &LimitType::Guild => &mut self.limit_guild,
+                &LimitType::Ip => &mut self.limit_ip,
+                &LimitType::Webhook => &mut self.limit_webhook,
+            }
+        }
+    }
+
     #[derive(Debug, Clone)]
     pub struct Limits {
         pub limit_absolute_messages: Limit,
@@ -181,6 +244,21 @@ pub mod limits {
     }
 
     impl Limits {
+        pub fn combine(instance_rate_limits: &Limits, user_rate_limits: &Limits) -> Limits {
+            return Limits {
+                limit_absolute_messages: instance_rate_limits.limit_absolute_messages,
+                limit_absolute_register: instance_rate_limits.limit_absolute_register,
+                limit_auth_login: instance_rate_limits.limit_auth_login,
+                limit_auth_register: instance_rate_limits.limit_auth_register,
+                limit_channel: user_rate_limits.limit_channel,
+                limit_error: user_rate_limits.limit_error,
+                limit_global: instance_rate_limits.limit_global,
+                limit_guild: user_rate_limits.limit_guild,
+                limit_ip: instance_rate_limits.limit_ip,
+                limit_webhook: user_rate_limits.limit_webhook,
+            };
+        }
+
         pub fn get_limit_ref(&self, limit_type: &LimitType) -> &Limit {
             match limit_type {
                 &LimitType::AbsoluteMessage => &self.limit_absolute_messages,

@@ -1,5 +1,5 @@
 use crate::{
-    api::limits::{Limit, LimitType, Limits},
+    api::limits::{Limit, LimitType, Limits, LimitsMutRef},
     errors::InstanceServerError,
 };
 
@@ -68,9 +68,10 @@ impl LimitedRequester {
         &mut self,
         request: RequestBuilder,
         limit_type: LimitType,
-        rate_limits: &mut Limits,
+        instance_rate_limits: &mut Limits,
+        user_rate_limits: &mut Limits,
     ) -> Result<Response, InstanceServerError> {
-        if self.can_send_request(limit_type, rate_limits) {
+        if self.can_send_request(limit_type, instance_rate_limits, user_rate_limits) {
             let built_request = request
                 .build()
                 .unwrap_or_else(|e| panic!("Error while building the Request for sending: {}", e));
@@ -79,7 +80,12 @@ impl LimitedRequester {
                 Ok(is_response) => is_response,
                 Err(e) => panic!("An error occured while processing the response: {}", e),
             };
-            self.update_limits(&response, limit_type, rate_limits);
+            self.update_limits(
+                &response,
+                limit_type,
+                instance_rate_limits,
+                user_rate_limits,
+            );
             return Ok(response);
         } else {
             self.requests.push_back(TypedRequest {
@@ -101,8 +107,16 @@ impl LimitedRequester {
         }
     }
 
-    fn can_send_request(&mut self, limit_type: LimitType, rate_limits: &Limits) -> bool {
+    fn can_send_request(
+        &mut self,
+        limit_type: LimitType,
+        instance_rate_limits: &Limits,
+        user_rate_limits: &Limits,
+    ) -> bool {
         // Check if all of the limits in this vec have at least one remaining request
+
+        let rate_limits = Limits::combine(instance_rate_limits, user_rate_limits);
+
         let constant_limits: Vec<&LimitType> = [
             &LimitType::Error,
             &LimitType::Global,
@@ -148,8 +162,11 @@ impl LimitedRequester {
         &mut self,
         response: &Response,
         limit_type: LimitType,
-        rate_limits: &mut Limits,
+        instance_rate_limits: &mut Limits,
+        user_rate_limits: &mut Limits,
     ) {
+        let mut rate_limits = LimitsMutRef::combine_mut_ref(instance_rate_limits, user_rate_limits);
+
         let remaining = match response.headers().get("X-RateLimit-Remaining") {
             Some(remaining) => remaining.to_str().unwrap().parse::<u64>().unwrap(),
             None => rate_limits.get_limit_mut_ref(&limit_type).remaining - 1,
@@ -261,14 +278,20 @@ mod rate_limit {
         );
         let mut requester = LimitedRequester::new(urls.api.clone()).await;
         let mut request: Option<Result<Response, InstanceServerError>> = None;
-        let mut limits = Limits::check_limits(urls.api.clone()).await;
+        let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
+        let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
 
         for _ in 0..=50 {
             let request_path = urls.api.clone() + "/some/random/nonexisting/path";
             let request_builder = requester.http.get(request_path);
             request = Some(
                 requester
-                    .send_request(request_builder, LimitType::Channel, &mut limits)
+                    .send_request(
+                        request_builder,
+                        LimitType::Channel,
+                        &mut instance_rate_limits,
+                        &mut user_rate_limits,
+                    )
                     .await,
             );
         }
@@ -289,12 +312,18 @@ mod rate_limit {
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
         );
-        let mut limits = Limits::check_limits(urls.api.clone()).await;
+        let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
+        let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
         let mut requester = LimitedRequester::new(urls.api.clone()).await;
         let request_path = urls.api.clone() + "/policies/instance/limits";
         let request_builder = requester.http.get(request_path);
         let request = requester
-            .send_request(request_builder, LimitType::Channel, &mut limits)
+            .send_request(
+                request_builder,
+                LimitType::Channel,
+                &mut instance_rate_limits,
+                &mut user_rate_limits,
+            )
             .await;
         let result = match request {
             Ok(result) => result,

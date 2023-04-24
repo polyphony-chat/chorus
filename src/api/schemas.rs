@@ -439,6 +439,7 @@ pub mod schemas {
             logged_in: bool,
             belongs_to: URLBundle,
             token: String,
+            rate_limits: Limits,
             settings: UserSettings,
             object: UserObject,
         ) -> User {
@@ -446,6 +447,7 @@ pub mod schemas {
                 logged_in,
                 belongs_to,
                 token,
+                rate_limits,
                 settings,
                 object,
             }
