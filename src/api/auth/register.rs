@@ -29,7 +29,7 @@ pub mod register {
             let endpoint_url = self.urls.get_api().to_string() + "/auth/register";
             let request_builder = client.post(endpoint_url).body(json_schema.to_string());
             let response = limited_requester
-                .send_request(request_builder, LimitType::AuthRegister)
+                .send_request(request_builder, LimitType::AuthRegister, &mut self.limits)
                 .await;
             if !response.is_ok() {
                 return Err(InstanceServerError::NoResponse);
