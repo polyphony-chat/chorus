@@ -1,5 +1,5 @@
 use crate::api::limits::{Limit, LimitType, Limits};
-use crate::api::schemas::schemas::InstancePoliciesSchema;
+use crate::api::schemas::schemas::{InstancePoliciesSchema, User};
 use crate::errors::{FieldFormatError, InstanceServerError};
 use crate::limit::LimitedRequester;
 use crate::URLBundle;
@@ -17,7 +17,7 @@ pub struct Instance {
     pub requester: LimitedRequester,
     pub limits: Limits,
     //pub gateway: Gateway,
-    pub users: HashMap<Token, Username>,
+    pub users: HashMap<Token, User>,
 }
 
 impl Instance {
@@ -31,7 +31,7 @@ impl Instance {
         urls: URLBundle,
         requester: LimitedRequester,
     ) -> Result<Instance, InstanceServerError> {
-        let users: HashMap<Token, Username> = HashMap::new();
+        let users: HashMap<Token, User> = HashMap::new();
         let mut instance = Instance {
             urls: urls.clone(),
             instance_info: InstancePoliciesSchema::new(
