@@ -3,7 +3,7 @@ pub mod schemas {
     use serde::{Deserialize, Serialize};
     use std::{collections::HashMap, fmt};
 
-    use crate::{errors::FieldFormatError, URLBundle};
+    use crate::{api::limits::Limits, errors::FieldFormatError, URLBundle};
 
     /**
     A struct that represents a well-formed email address.
@@ -405,6 +405,7 @@ pub mod schemas {
         logged_in: bool,
         belongs_to: URLBundle,
         token: String,
+        rate_limits: Limits,
         pub settings: UserSettings,
         pub object: UserObject,
     }
@@ -438,6 +439,7 @@ pub mod schemas {
             logged_in: bool,
             belongs_to: URLBundle,
             token: String,
+            rate_limits: Limits,
             settings: UserSettings,
             object: UserObject,
         ) -> User {
@@ -445,6 +447,7 @@ pub mod schemas {
                 logged_in,
                 belongs_to,
                 token,
+                rate_limits,
                 settings,
                 object,
             }

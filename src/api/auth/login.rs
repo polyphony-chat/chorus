@@ -17,8 +17,17 @@ pub mod login {
             let client = Client::new();
             let endpoint_url = self.urls.get_api().to_string() + "/auth/login";
             let request_builder = client.post(endpoint_url).body(json_schema.to_string());
+            // We do not have a user yet, and the UserRateLimits will not be affected by a login
+            // request (since login is an instance wide limit), which is why we are just cloning the
+            // instances' limits to pass them on as user_rate_limits later.
+            let mut cloned_limits = self.limits.clone();
             let response = requester
-                .send_request(request_builder, LimitType::AuthRegister)
+                .send_request(
+                    request_builder,
+                    LimitType::AuthRegister,
+                    &mut self.limits,
+                    &mut cloned_limits,
+                )
                 .await;
             if !response.is_ok() {
                 return Err(InstanceServerError::NoResponse);

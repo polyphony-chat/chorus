@@ -1,3 +1,4 @@
+use crate::api::limits::{Limit, LimitType, Limits};
 use crate::api::schemas::schemas::{InstancePoliciesSchema, User};
 use crate::errors::{FieldFormatError, InstanceServerError};
 use crate::limit::LimitedRequester;
@@ -14,6 +15,7 @@ pub struct Instance {
     pub urls: URLBundle,
     pub instance_info: InstancePoliciesSchema,
     pub requester: LimitedRequester,
+    pub limits: Limits,
     //pub gateway: Gateway,
     pub users: HashMap<Token, User>,
 }
@@ -31,7 +33,7 @@ impl Instance {
     ) -> Result<Instance, InstanceServerError> {
         let users: HashMap<Token, User> = HashMap::new();
         let mut instance = Instance {
-            urls,
+            urls: urls.clone(),
             instance_info: InstancePoliciesSchema::new(
                 // This is okay, because the instance_info will be overwritten by the instance_policies_schema() function.
                 "".to_string(),
@@ -43,6 +45,7 @@ impl Instance {
                 None,
                 None,
             ),
+            limits: Limits::check_limits(urls.api).await,
             requester,
             users,
         };

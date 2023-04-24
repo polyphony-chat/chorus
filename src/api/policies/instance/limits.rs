@@ -166,6 +166,70 @@ pub mod limits {
         }
     }
 
+    pub struct LimitsMutRef<'a> {
+        pub limit_absolute_messages: &'a mut Limit,
+        pub limit_absolute_register: &'a mut Limit,
+        pub limit_auth_login: &'a mut Limit,
+        pub limit_auth_register: &'a mut Limit,
+        pub limit_ip: &'a mut Limit,
+        pub limit_global: &'a mut Limit,
+        pub limit_error: &'a mut Limit,
+        pub limit_guild: &'a mut Limit,
+        pub limit_webhook: &'a mut Limit,
+        pub limit_channel: &'a mut Limit,
+    }
+
+    impl LimitsMutRef<'_> {
+        pub fn combine_mut_ref<'a>(
+            instance_rate_limits: &'a mut Limits,
+            user_rate_limits: &'a mut Limits,
+        ) -> LimitsMutRef<'a> {
+            return LimitsMutRef {
+                limit_absolute_messages: &mut instance_rate_limits.limit_absolute_messages,
+                limit_absolute_register: &mut instance_rate_limits.limit_absolute_register,
+                limit_auth_login: &mut instance_rate_limits.limit_auth_login,
+                limit_auth_register: &mut instance_rate_limits.limit_auth_register,
+                limit_channel: &mut user_rate_limits.limit_channel,
+                limit_error: &mut user_rate_limits.limit_error,
+                limit_global: &mut instance_rate_limits.limit_global,
+                limit_guild: &mut user_rate_limits.limit_guild,
+                limit_ip: &mut instance_rate_limits.limit_ip,
+                limit_webhook: &mut user_rate_limits.limit_webhook,
+            };
+        }
+
+        pub fn get_limit_ref(&self, limit_type: &LimitType) -> &Limit {
+            match limit_type {
+                &LimitType::AbsoluteMessage => &self.limit_absolute_messages,
+                &LimitType::AbsoluteRegister => &self.limit_absolute_register,
+                &LimitType::AuthLogin => &self.limit_auth_login,
+                &LimitType::AuthRegister => &self.limit_auth_register,
+                &LimitType::Channel => &self.limit_channel,
+                &LimitType::Error => &self.limit_error,
+                &LimitType::Global => &self.limit_global,
+                &LimitType::Guild => &self.limit_guild,
+                &LimitType::Ip => &self.limit_ip,
+                &LimitType::Webhook => &self.limit_webhook,
+            }
+        }
+
+        pub fn get_limit_mut_ref(&mut self, limit_type: &LimitType) -> &mut Limit {
+            match limit_type {
+                &LimitType::AbsoluteMessage => &mut self.limit_absolute_messages,
+                &LimitType::AbsoluteRegister => &mut self.limit_absolute_register,
+                &LimitType::AuthLogin => &mut self.limit_auth_login,
+                &LimitType::AuthRegister => &mut self.limit_auth_register,
+                &LimitType::Channel => &mut self.limit_channel,
+                &LimitType::Error => &mut self.limit_error,
+                &LimitType::Global => &mut self.limit_global,
+                &LimitType::Guild => &mut self.limit_guild,
+                &LimitType::Ip => &mut self.limit_ip,
+                &LimitType::Webhook => &mut self.limit_webhook,
+            }
+        }
+    }
+
+    #[derive(Debug, Clone)]
     pub struct Limits {
         pub limit_absolute_messages: Limit,
         pub limit_absolute_register: Limit,
@@ -180,19 +244,64 @@ pub mod limits {
     }
 
     impl Limits {
-        pub fn iter(&self) -> std::vec::IntoIter<Limit> {
-            let mut limits: Vec<Limit> = Vec::new();
-            limits.push(self.limit_absolute_messages.clone());
-            limits.push(self.limit_absolute_register.clone());
-            limits.push(self.limit_auth_login.clone());
-            limits.push(self.limit_auth_register.clone());
-            limits.push(self.limit_ip.clone());
-            limits.push(self.limit_global.clone());
-            limits.push(self.limit_error.clone());
-            limits.push(self.limit_guild.clone());
-            limits.push(self.limit_webhook.clone());
-            limits.push(self.limit_channel.clone());
-            limits.into_iter()
+        pub fn combine(instance_rate_limits: &Limits, user_rate_limits: &Limits) -> Limits {
+            return Limits {
+                limit_absolute_messages: instance_rate_limits.limit_absolute_messages,
+                limit_absolute_register: instance_rate_limits.limit_absolute_register,
+                limit_auth_login: instance_rate_limits.limit_auth_login,
+                limit_auth_register: instance_rate_limits.limit_auth_register,
+                limit_channel: user_rate_limits.limit_channel,
+                limit_error: user_rate_limits.limit_error,
+                limit_global: instance_rate_limits.limit_global,
+                limit_guild: user_rate_limits.limit_guild,
+                limit_ip: instance_rate_limits.limit_ip,
+                limit_webhook: user_rate_limits.limit_webhook,
+            };
+        }
+
+        pub fn get_limit_ref(&self, limit_type: &LimitType) -> &Limit {
+            match limit_type {
+                &LimitType::AbsoluteMessage => &self.limit_absolute_messages,
+                &LimitType::AbsoluteRegister => &self.limit_absolute_register,
+                &LimitType::AuthLogin => &self.limit_auth_login,
+                &LimitType::AuthRegister => &self.limit_auth_register,
+                &LimitType::Channel => &self.limit_channel,
+                &LimitType::Error => &self.limit_error,
+                &LimitType::Global => &self.limit_global,
+                &LimitType::Guild => &self.limit_guild,
+                &LimitType::Ip => &self.limit_ip,
+                &LimitType::Webhook => &self.limit_webhook,
+            }
+        }
+
+        pub fn get_limit_mut_ref(&mut self, limit_type: &LimitType) -> &mut Limit {
+            match limit_type {
+                &LimitType::AbsoluteMessage => &mut self.limit_absolute_messages,
+                &LimitType::AbsoluteRegister => &mut self.limit_absolute_register,
+                &LimitType::AuthLogin => &mut self.limit_auth_login,
+                &LimitType::AuthRegister => &mut self.limit_auth_register,
+                &LimitType::Channel => &mut self.limit_channel,
+                &LimitType::Error => &mut self.limit_error,
+                &LimitType::Global => &mut self.limit_global,
+                &LimitType::Guild => &mut self.limit_guild,
+                &LimitType::Ip => &mut self.limit_ip,
+                &LimitType::Webhook => &mut self.limit_webhook,
+            }
+        }
+
+        pub fn to_hash_map(&self) -> HashMap<LimitType, Limit> {
+            let mut map: HashMap<LimitType, Limit> = HashMap::new();
+            map.insert(LimitType::AbsoluteMessage, self.limit_absolute_messages);
+            map.insert(LimitType::AbsoluteRegister, self.limit_absolute_register);
+            map.insert(LimitType::AuthLogin, self.limit_auth_login);
+            map.insert(LimitType::AuthRegister, self.limit_auth_register);
+            map.insert(LimitType::Ip, self.limit_ip);
+            map.insert(LimitType::Global, self.limit_global);
+            map.insert(LimitType::Error, self.limit_error);
+            map.insert(LimitType::Guild, self.limit_guild);
+            map.insert(LimitType::Webhook, self.limit_webhook);
+            map.insert(LimitType::Channel, self.limit_channel);
+            map
         }
 
         /// check_limits uses the API to get the current request limits of the instance.
@@ -201,7 +310,7 @@ pub mod limits {
         /// # Errors
         /// This function will panic if the request fails or if the response body cannot be parsed.
         /// TODO: Change this to return a Result and handle the errors properly.
-        pub async fn check_limits(api_url: String) -> HashMap<LimitType, Limit> {
+        pub async fn check_limits(api_url: String) -> Limits {
             let client = Client::new();
             let url_parsed = crate::URLBundle::parse_url(api_url) + "/policies/instance/limits";
             let result = client
@@ -219,213 +328,151 @@ pub mod limits {
                 });
             let config: Config = from_str(&result).unwrap();
             // If config.rate.enabled is false, then add return a Limits struct with all limits set to u64::MAX
-            let mut limits: HashMap<LimitType, Limit> = HashMap::new();
+            let mut limits: Limits;
             if config.rate.enabled == false {
-                limits.insert(
-                    LimitType::AbsoluteMessage,
-                    Limit {
+                limits = Limits {
+                    limit_absolute_messages: Limit {
                         bucket: LimitType::AbsoluteMessage,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
-                limits.insert(
-                    LimitType::AbsoluteRegister,
-                    Limit {
+                    limit_absolute_register: Limit {
                         bucket: LimitType::AbsoluteRegister,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
-                limits.insert(
-                    LimitType::AuthLogin,
-                    Limit {
+                    limit_auth_login: Limit {
                         bucket: LimitType::AuthLogin,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
-                limits.insert(
-                    LimitType::AuthRegister,
-                    Limit {
+                    limit_auth_register: Limit {
                         bucket: LimitType::AuthRegister,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
-                limits.insert(
-                    LimitType::Ip,
-                    Limit {
+                    limit_ip: Limit {
                         bucket: LimitType::Ip,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
-                limits.insert(
-                    LimitType::Global,
-                    Limit {
+                    limit_global: Limit {
                         bucket: LimitType::Global,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
-                limits.insert(
-                    LimitType::Error,
-                    Limit {
+                    limit_error: Limit {
                         bucket: LimitType::Error,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
-                limits.insert(
-                    LimitType::Guild,
-                    Limit {
+                    limit_guild: Limit {
                         bucket: LimitType::Guild,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
-                limits.insert(
-                    LimitType::Webhook,
-                    Limit {
+                    limit_webhook: Limit {
                         bucket: LimitType::Webhook,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
-                limits.insert(
-                    LimitType::Channel,
-                    Limit {
+                    limit_channel: Limit {
                         bucket: LimitType::Channel,
                         limit: u64::MAX,
                         remaining: u64::MAX,
                         reset: u64::MAX,
                     },
-                );
+                };
             } else {
-                limits.insert(
-                    LimitType::AbsoluteMessage,
-                    Limit {
+                limits = Limits {
+                    limit_absolute_messages: Limit {
                         bucket: LimitType::AbsoluteMessage,
                         limit: config.absoluteRate.sendMessage.limit,
                         remaining: config.absoluteRate.sendMessage.limit,
                         reset: config.absoluteRate.sendMessage.window,
                     },
-                );
-                limits.insert(
-                    LimitType::AbsoluteRegister,
-                    Limit {
+                    limit_absolute_register: Limit {
                         bucket: LimitType::AbsoluteRegister,
                         limit: config.absoluteRate.register.limit,
                         remaining: config.absoluteRate.register.limit,
                         reset: config.absoluteRate.register.window,
                     },
-                );
-                limits.insert(
-                    LimitType::AuthLogin,
-                    Limit {
+                    limit_auth_login: Limit {
                         bucket: LimitType::AuthLogin,
                         limit: config.rate.routes.auth.login.count,
                         remaining: config.rate.routes.auth.login.count,
                         reset: config.rate.routes.auth.login.window,
                     },
-                );
-                limits.insert(
-                    LimitType::AuthRegister,
-                    Limit {
+                    limit_auth_register: Limit {
                         bucket: LimitType::AuthRegister,
                         limit: config.rate.routes.auth.register.count,
                         remaining: config.rate.routes.auth.register.count,
                         reset: config.rate.routes.auth.register.window,
                     },
-                );
-                limits.insert(
-                    LimitType::Guild,
-                    Limit {
-                        bucket: LimitType::Guild,
-                        limit: config.rate.routes.guild.count,
-                        remaining: config.rate.routes.guild.count,
-                        reset: config.rate.routes.guild.window,
-                    },
-                );
-                limits.insert(
-                    LimitType::Webhook,
-                    Limit {
-                        bucket: LimitType::Webhook,
-                        limit: config.rate.routes.webhook.count,
-                        remaining: config.rate.routes.webhook.count,
-                        reset: config.rate.routes.webhook.window,
-                    },
-                );
-                limits.insert(
-                    LimitType::Channel,
-                    Limit {
-                        bucket: LimitType::Channel,
-                        limit: config.rate.routes.channel.count,
-                        remaining: config.rate.routes.channel.count,
-                        reset: config.rate.routes.channel.window,
-                    },
-                );
-                limits.insert(
-                    LimitType::Ip,
-                    Limit {
+                    limit_ip: Limit {
                         bucket: LimitType::Ip,
                         limit: config.rate.ip.count,
                         remaining: config.rate.ip.count,
                         reset: config.rate.ip.window,
                     },
-                );
-                limits.insert(
-                    LimitType::Global,
-                    Limit {
+                    limit_global: Limit {
                         bucket: LimitType::Global,
                         limit: config.rate.global.count,
                         remaining: config.rate.global.count,
                         reset: config.rate.global.window,
                     },
-                );
-                limits.insert(
-                    LimitType::Error,
-                    Limit {
+                    limit_error: Limit {
                         bucket: LimitType::Error,
                         limit: config.rate.error.count,
                         remaining: config.rate.error.count,
                         reset: config.rate.error.window,
                     },
-                );
+                    limit_guild: Limit {
+                        bucket: LimitType::Guild,
+                        limit: config.rate.routes.guild.count,
+                        remaining: config.rate.routes.guild.count,
+                        reset: config.rate.routes.guild.window,
+                    },
+                    limit_webhook: Limit {
+                        bucket: LimitType::Webhook,
+                        limit: config.rate.routes.webhook.count,
+                        remaining: config.rate.routes.webhook.count,
+                        reset: config.rate.routes.webhook.window,
+                    },
+                    limit_channel: Limit {
+                        bucket: LimitType::Channel,
+                        limit: config.rate.routes.channel.count,
+                        remaining: config.rate.routes.channel.count,
+                        reset: config.rate.routes.channel.window,
+                    },
+                };
             }
 
             if !config.absoluteRate.register.enabled {
-                limits.insert(
-                    LimitType::AbsoluteRegister,
-                    Limit {
-                        bucket: LimitType::AbsoluteRegister,
-                        limit: u64::MAX,
-                        remaining: u64::MAX,
-                        reset: u64::MAX,
-                    },
-                );
+                limits.limit_absolute_register = Limit {
+                    bucket: LimitType::AbsoluteRegister,
+                    limit: u64::MAX,
+                    remaining: u64::MAX,
+                    reset: u64::MAX,
+                };
             }
 
             if !config.absoluteRate.sendMessage.enabled {
-                limits.insert(
-                    LimitType::AbsoluteMessage,
-                    Limit {
-                        bucket: LimitType::AbsoluteMessage,
-                        limit: u64::MAX,
-                        remaining: u64::MAX,
-                        reset: u64::MAX,
-                    },
-                );
+                limits.limit_absolute_messages = Limit {
+                    bucket: LimitType::AbsoluteMessage,
+                    limit: u64::MAX,
+                    remaining: u64::MAX,
+                    reset: u64::MAX,
+                };
             }
 
             return limits;
