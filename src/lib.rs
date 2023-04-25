@@ -49,10 +49,10 @@ impl URLBundle {
         };
         // if the last character of the string is a slash, remove it.
         let mut url_string = url.to_string();
-        if url_string.chars().last().unwrap() == '/' {
+        if url_string.ends_with('/') {
             url_string.pop();
         }
-        return url_string;
+        url_string
     }
 
     pub fn get_api(&self) -> &str {

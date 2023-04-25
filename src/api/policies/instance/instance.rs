@@ -3,7 +3,7 @@ pub mod instance {
     use serde_json::from_str;
 
     use crate::errors::InstanceServerError;
-    use crate::{api::schemas::schemas::InstancePoliciesSchema, instance::Instance};
+    use crate::{api::types::InstancePolicies, instance::Instance};
 
     impl Instance {
         /**
@@ -13,7 +13,7 @@ pub mod instance {
         */
         pub async fn instance_policies_schema(
             &self,
-        ) -> Result<InstancePoliciesSchema, InstanceServerError> {
+        ) -> Result<InstancePolicies, InstanceServerError> {
             let client = Client::new();
             let endpoint_url = self.urls.get_api().to_string() + "/policies/instance/";
             let request = match client.get(&endpoint_url).send().await {
@@ -26,14 +26,14 @@ pub mod instance {
                 }
             };
 
-            if request.status().as_str().chars().next().unwrap() != '2' {
+            if !request.status().as_str().starts_with('2') {
                 return Err(InstanceServerError::ReceivedErrorCodeError {
                     error_code: request.status().to_string(),
                 });
             }
 
             let body = request.text().await.unwrap();
-            let instance_policies_schema: InstancePoliciesSchema = from_str(&body).unwrap();
+            let instance_policies_schema: InstancePolicies = from_str(&body).unwrap();
             Ok(instance_policies_schema)
         }
     }
@@ -50,7 +50,7 @@ mod instance_policies_schema_test {
             "http://localhost:3001".to_string(),
             "http://localhost:3001".to_string(),
         );
-        let limited_requester = LimitedRequester::new(urls.get_api().to_string()).await;
+        let limited_requester = LimitedRequester::new().await;
         let test_instance = Instance::new(urls.clone(), limited_requester)
             .await
             .unwrap();

@@ -3,10 +3,7 @@ pub mod register {
     use serde_json::json;
 
     use crate::{
-        api::{
-            limits::LimitType,
-            schemas::schemas::{ErrorResponse, RegisterSchema},
-        },
+        api::{limits::LimitType, schemas::RegisterSchema, types::ErrorResponse},
         errors::InstanceServerError,
         instance::{Instance, Token},
     };
@@ -40,7 +37,7 @@ pub mod register {
                     &mut cloned_limits,
                 )
                 .await;
-            if !response.is_ok() {
+            if response.is_err() {
                 return Err(InstanceServerError::NoResponse);
             }
 
@@ -58,16 +55,16 @@ pub mod register {
                 }
                 return Err(InstanceServerError::InvalidFormBodyError { error_type, error });
             }
-            return Ok(Token {
+            Ok(Token {
                 token: response_text_string,
-            });
+            })
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::api::schemas::schemas::{AuthEmail, AuthPassword, AuthUsername, RegisterSchema};
+    use crate::api::schemas::{AuthEmail, AuthPassword, AuthUsername, RegisterSchema};
     use crate::errors::InstanceServerError;
     use crate::instance::Instance;
     use crate::limit::LimitedRequester;
@@ -79,7 +76,7 @@ mod test {
             "http://localhost:3001".to_string(),
             "http://localhost:3001".to_string(),
         );
-        let limited_requester = LimitedRequester::new(urls.get_api().to_string()).await;
+        let limited_requester = LimitedRequester::new().await;
         let mut test_instance = Instance::new(urls.clone(), limited_requester)
             .await
             .unwrap();
@@ -112,7 +109,7 @@ mod test {
             "http://localhost:3001".to_string(),
             "http://localhost:3001".to_string(),
         );
-        let limited_requester = LimitedRequester::new(urls.get_api().to_string()).await;
+        let limited_requester = LimitedRequester::new().await;
         let mut test_instance = Instance::new(urls.clone(), limited_requester)
             .await
             .unwrap();

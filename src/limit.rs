@@ -28,7 +28,7 @@ impl LimitedRequester {
     /// be send within the `Limit` of an external API Ratelimiter, and looks at the returned request
     /// headers to see if it can find Ratelimit info to update itself.
     #[allow(dead_code)]
-    pub async fn new(api_url: String) -> Self {
+    pub async fn new() -> Self {
         LimitedRequester {
             http: Client::new(),
             requests: VecDeque::new(),
@@ -86,13 +86,13 @@ impl LimitedRequester {
                 instance_rate_limits,
                 user_rate_limits,
             );
-            return Ok(response);
+            Ok(response)
         } else {
             self.requests.push_back(TypedRequest {
-                request: request,
-                limit_type: limit_type,
+                request,
+                limit_type,
             });
-            return Err(InstanceServerError::RateLimited);
+            Err(InstanceServerError::RateLimited)
         }
     }
 
@@ -125,7 +125,7 @@ impl LimitedRequester {
         ]
         .to_vec();
         for limit in constant_limits.iter() {
-            match rate_limits.to_hash_map().get(&limit) {
+            match rate_limits.to_hash_map().get(limit) {
                 Some(limit) => {
                     if limit.remaining == 0 {
                         return false;
@@ -155,7 +155,7 @@ impl LimitedRequester {
                 None => return false,
             }
         }
-        return true;
+        true
     }
 
     fn update_limits(
@@ -183,7 +183,7 @@ impl LimitedRequester {
         let status = response.status();
         let status_str = status.as_str();
 
-        if status_str.chars().next().unwrap() == '4' {
+        if status_str.starts_with('4') {
             rate_limits
                 .get_limit_mut_ref(&LimitType::Error)
                 .add_remaining(-1);
@@ -266,7 +266,7 @@ mod rate_limit {
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
         );
-        let requester = LimitedRequester::new(urls.api).await;
+        let _requester = LimitedRequester::new().await;
     }
 
     #[tokio::test]
@@ -276,7 +276,7 @@ mod rate_limit {
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
         );
-        let mut requester = LimitedRequester::new(urls.api.clone()).await;
+        let mut requester = LimitedRequester::new().await;
         let mut request: Option<Result<Response, InstanceServerError>> = None;
         let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
@@ -314,7 +314,7 @@ mod rate_limit {
         );
         let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
-        let mut requester = LimitedRequester::new(urls.api.clone()).await;
+        let mut requester = LimitedRequester::new().await;
         let request_path = urls.api.clone() + "/policies/instance/limits";
         let request_builder = requester.http.get(request_path);
         let request = requester
