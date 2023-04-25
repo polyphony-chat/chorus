@@ -768,3 +768,10 @@ struct ActivityButton {
     label: String,
     url: String,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+struct GatewayResume {
+    token: String,
+    session_id: String,
+    seq: String,
+}
