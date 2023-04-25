@@ -3,10 +3,7 @@ pub mod register {
     use serde_json::json;
 
     use crate::{
-        api::{
-            limits::LimitType,
-            schemas::schemas::{ErrorResponse, RegisterSchema},
-        },
+        api::{limits::LimitType, schemas::RegisterSchema, types::ErrorResponse},
         errors::InstanceServerError,
         instance::{Instance, Token},
     };
@@ -67,7 +64,7 @@ pub mod register {
 
 #[cfg(test)]
 mod test {
-    use crate::api::schemas::schemas::{AuthEmail, AuthPassword, AuthUsername, RegisterSchema};
+    use crate::api::schemas::{AuthEmail, AuthPassword, AuthUsername, RegisterSchema};
     use crate::errors::InstanceServerError;
     use crate::instance::Instance;
     use crate::limit::LimitedRequester;

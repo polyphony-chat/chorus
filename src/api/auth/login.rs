@@ -3,7 +3,8 @@ pub mod login {
     use serde_json::{from_str, json};
 
     use crate::api::limits::LimitType;
-    use crate::api::schemas::schemas::{ErrorResponse, LoginResult, LoginSchema};
+    use crate::api::schemas::LoginSchema;
+    use crate::api::types::{ErrorResponse, LoginResult};
     use crate::errors::InstanceServerError;
     use crate::instance::Instance;
 
