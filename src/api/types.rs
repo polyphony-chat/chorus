@@ -679,3 +679,12 @@ struct RoleSubscriptionData {
     total_months_subscribed: u32,
     is_renewal: bool,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+struct TypingStartEvent {
+    channel_id: String,
+    guild_id: Option<String>,
+    user_id: String,
+    timestamp: i64,
+    member: Option<GuildMember>,
+}
