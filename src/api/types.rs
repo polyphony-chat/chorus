@@ -238,6 +238,110 @@ struct Message {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+struct MessageCreate {
+    #[serde(flatten)]
+    message: Message,
+    guild_id: Option<String>,
+    member: Option<GuildMember>,
+    mentions: Vec<(UserObject, GuildMember)>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct PartialMessage {
+    id: Option<String>,
+    channel_id: Option<String>,
+    author: Option<UserObject>,
+    content: Option<String>,
+    timestamp: Option<String>,
+    edited_timestamp: Option<String>,
+    tts: Option<bool>,
+    mention_everyone: Option<bool>,
+    mentions: Option<Vec<UserObject>>,
+    mention_roles: Option<Vec<String>>,
+    mention_channels: Option<Vec<ChannelMention>>,
+    attachments: Option<Vec<Attachment>>,
+    embeds: Option<Vec<Embed>>,
+    reactions: Option<Vec<Reaction>>,
+    nonce: Option<serde_json::Value>,
+    pinned: Option<bool>,
+    webhook_id: Option<String>,
+    #[serde(rename = "type")]
+    message_type: Option<i32>,
+    activity: Option<MessageActivity>,
+    application: Option<Application>,
+    application_id: Option<String>,
+    message_reference: Option<MessageReference>,
+    flags: Option<i32>,
+    referenced_message: Option<Box<Message>>,
+    interaction: Option<MessageInteraction>,
+    thread: Option<Channel>,
+    components: Option<Vec<Component>>,
+    sticker_items: Option<Vec<StickerItem>>,
+    stickers: Option<Vec<Sticker>>,
+    position: Option<i32>,
+    role_subscription_data: Option<RoleSubscriptionData>,
+    guild_id: Option<String>,
+    member: Option<GuildMember>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MessageUpdate {
+    #[serde(flatten)]
+    message: PartialMessage,
+    guild_id: Option<String>,
+    member: Option<GuildMember>,
+    mentions: Vec<(UserObject, GuildMember)>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MessageDelete {
+    id: String,
+    channel_id: String,
+    guild_id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MessageDeleteBulk {
+    ids: Vec<String>,
+    channel_id: String,
+    guild_id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MessageReactionAdd {
+    user_id: String,
+    channel_id: String,
+    message_id: String,
+    guild_id: Option<String>,
+    member: Option<GuildMember>,
+    emoji: Emoji,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MessageReactionRemove {
+    user_id: String,
+    channel_id: String,
+    message_id: String,
+    guild_id: Option<String>,
+    emoji: Emoji,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MessageReactionRemoveAll {
+    channel_id: String,
+    message_id: String,
+    guild_id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MessageReactionRemoveEmoji {
+    channel_id: String,
+    message_id: String,
+    guild_id: Option<String>,
+    emoji: Emoji,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 struct ChannelMention {
     id: String,
     guild_id: String,
