@@ -3,7 +3,8 @@ pub mod login {
     use serde_json::{from_str, json};
 
     use crate::api::limits::LimitType;
-    use crate::api::schemas::schemas::{ErrorResponse, LoginResult, LoginSchema};
+    use crate::api::schemas::LoginSchema;
+    use crate::api::types::{ErrorResponse, LoginResult};
     use crate::errors::InstanceServerError;
     use crate::instance::Instance;
 
@@ -17,10 +18,19 @@ pub mod login {
             let client = Client::new();
             let endpoint_url = self.urls.get_api().to_string() + "/auth/login";
             let request_builder = client.post(endpoint_url).body(json_schema.to_string());
+            // We do not have a user yet, and the UserRateLimits will not be affected by a login
+            // request (since login is an instance wide limit), which is why we are just cloning the
+            // instances' limits to pass them on as user_rate_limits later.
+            let mut cloned_limits = self.limits.clone();
             let response = requester
-                .send_request(request_builder, LimitType::AuthRegister)
+                .send_request(
+                    request_builder,
+                    LimitType::AuthRegister,
+                    &mut self.limits,
+                    &mut cloned_limits,
+                )
                 .await;
-            if !response.is_ok() {
+            if response.is_err() {
                 return Err(InstanceServerError::NoResponse);
             }
 
@@ -41,7 +51,7 @@ pub mod login {
 
             let login_result: LoginResult = from_str(&response_text_string).unwrap();
 
-            return Ok(login_result);
+            Ok(login_result)
         }
     }
 }

@@ -1,4 +1,5 @@
-use crate::api::schemas::schemas::InstancePoliciesSchema;
+use crate::api::limits::Limits;
+use crate::api::types::{InstancePolicies, User};
 use crate::errors::{FieldFormatError, InstanceServerError};
 use crate::limit::LimitedRequester;
 use crate::URLBundle;
@@ -12,10 +13,11 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
  */
 pub struct Instance {
     pub urls: URLBundle,
-    pub instance_info: InstancePoliciesSchema,
+    pub instance_info: InstancePolicies,
     pub requester: LimitedRequester,
+    pub limits: Limits,
     //pub gateway: Gateway,
-    pub users: HashMap<Token, Username>,
+    pub users: HashMap<Token, User>,
 }
 
 impl Instance {
@@ -29,10 +31,10 @@ impl Instance {
         urls: URLBundle,
         requester: LimitedRequester,
     ) -> Result<Instance, InstanceServerError> {
-        let users: HashMap<Token, Username> = HashMap::new();
+        let users: HashMap<Token, User> = HashMap::new();
         let mut instance = Instance {
-            urls,
-            instance_info: InstancePoliciesSchema::new(
+            urls: urls.clone(),
+            instance_info: InstancePolicies::new(
                 // This is okay, because the instance_info will be overwritten by the instance_policies_schema() function.
                 "".to_string(),
                 None,
@@ -43,6 +45,7 @@ impl Instance {
                 None,
                 None,
             ),
+            limits: Limits::check_limits(urls.api).await,
             requester,
             users,
         };
@@ -84,6 +87,6 @@ impl Username {
         if username.len() < 2 || username.len() > 32 {
             return Err(FieldFormatError::UsernameError);
         }
-        return Ok(Username { username });
+        Ok(Username { username })
     }
 }

@@ -3,10 +3,7 @@ pub mod register {
     use serde_json::json;
 
     use crate::{
-        api::{
-            limits::LimitType,
-            schemas::schemas::{ErrorResponse, RegisterSchema},
-        },
+        api::{limits::LimitType, schemas::RegisterSchema, types::ErrorResponse},
         errors::InstanceServerError,
         instance::{Instance, Token},
     };
@@ -28,10 +25,19 @@ pub mod register {
             let client = Client::new();
             let endpoint_url = self.urls.get_api().to_string() + "/auth/register";
             let request_builder = client.post(endpoint_url).body(json_schema.to_string());
+            // We do not have a user yet, and the UserRateLimits will not be affected by a login
+            // request (since register is an instance wide limit), which is why we are just cloning
+            // the instances' limits to pass them on as user_rate_limits later.
+            let mut cloned_limits = self.limits.clone();
             let response = limited_requester
-                .send_request(request_builder, LimitType::AuthRegister)
+                .send_request(
+                    request_builder,
+                    LimitType::AuthRegister,
+                    &mut self.limits,
+                    &mut cloned_limits,
+                )
                 .await;
-            if !response.is_ok() {
+            if response.is_err() {
                 return Err(InstanceServerError::NoResponse);
             }
 
@@ -49,16 +55,16 @@ pub mod register {
                 }
                 return Err(InstanceServerError::InvalidFormBodyError { error_type, error });
             }
-            return Ok(Token {
+            Ok(Token {
                 token: response_text_string,
-            });
+            })
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::api::schemas::schemas::{AuthEmail, AuthPassword, AuthUsername, RegisterSchema};
+    use crate::api::schemas::{AuthEmail, AuthPassword, AuthUsername, RegisterSchema};
     use crate::errors::InstanceServerError;
     use crate::instance::Instance;
     use crate::limit::LimitedRequester;
@@ -70,7 +76,7 @@ mod test {
             "http://localhost:3001".to_string(),
             "http://localhost:3001".to_string(),
         );
-        let limited_requester = LimitedRequester::new(urls.get_api().to_string()).await;
+        let limited_requester = LimitedRequester::new().await;
         let mut test_instance = Instance::new(urls.clone(), limited_requester)
             .await
             .unwrap();
@@ -103,7 +109,7 @@ mod test {
             "http://localhost:3001".to_string(),
             "http://localhost:3001".to_string(),
         );
-        let limited_requester = LimitedRequester::new(urls.get_api().to_string()).await;
+        let limited_requester = LimitedRequester::new().await;
         let mut test_instance = Instance::new(urls.clone(), limited_requester)
             .await
             .unwrap();
@@ -111,7 +117,7 @@ mod test {
             AuthUsername::new("Hiiii".to_string()).unwrap(),
             Some(AuthPassword::new("mysupersecurepass123!".to_string()).unwrap()),
             true,
-            Some(AuthEmail::new("flori@aaaa.xyz".to_string()).unwrap()),
+            Some(AuthEmail::new("random978234@aaaa.xyz".to_string()).unwrap()),
             None,
             None,
             Some("2000-01-01".to_string()),
