@@ -1,2 +1,4 @@
 #[derive(Debug)]
-pub struct Gateway {}
+pub struct Gateway {
+    url: String,
+}
