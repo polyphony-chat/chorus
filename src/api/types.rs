@@ -174,19 +174,15 @@ pub struct User {
 
 impl User {
     pub fn is_logged_in(&self) -> bool {
-        if self.logged_in == true {
-            true
-        } else {
-            false
-        }
+        self.logged_in
     }
 
     pub fn belongs_to(&self) -> URLBundle {
-        return self.belongs_to.clone();
+        self.belongs_to.clone()
     }
 
     pub fn token(&self) -> String {
-        return self.token.clone();
+        self.token.clone()
     }
 
     pub fn set_logged_in(&mut self, bool: bool) {

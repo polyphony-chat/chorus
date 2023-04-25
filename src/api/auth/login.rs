@@ -30,7 +30,7 @@ pub mod login {
                     &mut cloned_limits,
                 )
                 .await;
-            if !response.is_ok() {
+            if response.is_err() {
                 return Err(InstanceServerError::NoResponse);
             }
 
@@ -51,7 +51,7 @@ pub mod login {
 
             let login_result: LoginResult = from_str(&response_text_string).unwrap();
 
-            return Ok(login_result);
+            Ok(login_result)
         }
     }
 }
