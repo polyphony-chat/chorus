@@ -26,7 +26,7 @@ pub mod instance {
                 }
             };
 
-            if request.status().as_str().chars().next().unwrap() != '2' {
+            if !request.status().as_str().starts_with('2') {
                 return Err(InstanceServerError::ReceivedErrorCodeError {
                     error_code: request.status().to_string(),
                 });
@@ -50,7 +50,7 @@ mod instance_policies_schema_test {
             "http://localhost:3001".to_string(),
             "http://localhost:3001".to_string(),
         );
-        let limited_requester = LimitedRequester::new(urls.get_api().to_string()).await;
+        let limited_requester = LimitedRequester::new().await;
         let test_instance = Instance::new(urls.clone(), limited_requester)
             .await
             .unwrap();

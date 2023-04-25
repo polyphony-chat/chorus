@@ -87,6 +87,6 @@ impl Username {
         if username.len() < 2 || username.len() > 32 {
             return Err(FieldFormatError::UsernameError);
         }
-        return Ok(Username { username });
+        Ok(Username { username })
     }
 }

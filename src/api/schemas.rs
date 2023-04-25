@@ -23,10 +23,10 @@ impl AuthEmail {
      */
     pub fn new(email: String) -> Result<AuthEmail, FieldFormatError> {
         let regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
-        if !regex.is_match(email.clone().as_str()) {
+        if !regex.is_match(email.as_str()) {
             return Err(FieldFormatError::EmailError);
         }
-        return Ok(AuthEmail { email });
+        Ok(AuthEmail { email })
     }
 }
 
@@ -54,9 +54,9 @@ impl AuthUsername {
      */
     pub fn new(username: String) -> Result<AuthUsername, FieldFormatError> {
         if username.len() < 2 || username.len() > 32 {
-            return Err(FieldFormatError::UsernameError);
+            Err(FieldFormatError::UsernameError)
         } else {
-            return Ok(AuthUsername { username });
+            Ok(AuthUsername { username })
         }
     }
 }
@@ -84,10 +84,10 @@ impl AuthPassword {
     - The password is not between 1 and 72 characters.
      */
     pub fn new(password: String) -> Result<AuthPassword, FieldFormatError> {
-        if password.len() < 1 || password.len() > 72 {
-            return Err(FieldFormatError::PasswordError);
+        if password.is_empty() || password.len() > 72 {
+            Err(FieldFormatError::PasswordError)
         } else {
-            return Ok(AuthPassword { password });
+            Ok(AuthPassword { password })
         }
     }
 }
@@ -162,7 +162,7 @@ impl RegisterSchema {
             return Err(FieldFormatError::ConsentError);
         }
 
-        return Ok(RegisterSchema {
+        Ok(RegisterSchema {
             username,
             password: has_password,
             consent,
@@ -173,7 +173,7 @@ impl RegisterSchema {
             gift_code_sku_id,
             captcha_key,
             promotional_email_opt_in,
-        });
+        })
     }
 }
 
@@ -220,14 +220,14 @@ impl LoginSchema {
         gift_code_sku_id: Option<String>,
     ) -> Result<LoginSchema, FieldFormatError> {
         let login = login.username;
-        return Ok(LoginSchema {
+        Ok(LoginSchema {
             login,
             password,
             undelete,
             captcha_key,
             login_source,
             gift_code_sku_id,
-        });
+        })
     }
 }
 
@@ -259,7 +259,7 @@ mod schemas_tests {
     fn password_too_long() {
         let mut long_pw = String::new();
         for _ in 0..73 {
-            long_pw = long_pw + "a";
+            long_pw += "a";
         }
         assert_eq!(
             AuthPassword::new(long_pw),
@@ -279,7 +279,7 @@ mod schemas_tests {
     fn username_too_long() {
         let mut long_un = String::new();
         for _ in 0..33 {
-            long_un = long_un + "a";
+            long_un += "a";
         }
         assert_eq!(
             AuthUsername::new(long_un),

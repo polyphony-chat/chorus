@@ -76,7 +76,7 @@ mod test {
             "http://localhost:3001".to_string(),
             "http://localhost:3001".to_string(),
         );
-        let limited_requester = LimitedRequester::new(urls.get_api().to_string()).await;
+        let limited_requester = LimitedRequester::new().await;
         let mut test_instance = Instance::new(urls.clone(), limited_requester)
             .await
             .unwrap();
@@ -109,7 +109,7 @@ mod test {
             "http://localhost:3001".to_string(),
             "http://localhost:3001".to_string(),
         );
-        let limited_requester = LimitedRequester::new(urls.get_api().to_string()).await;
+        let limited_requester = LimitedRequester::new().await;
         let mut test_instance = Instance::new(urls.clone(), limited_requester)
             .await
             .unwrap();
