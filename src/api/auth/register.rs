@@ -37,7 +37,7 @@ pub mod register {
                     &mut cloned_limits,
                 )
                 .await;
-            if !response.is_ok() {
+            if response.is_err() {
                 return Err(InstanceServerError::NoResponse);
             }
 
@@ -55,9 +55,9 @@ pub mod register {
                 }
                 return Err(InstanceServerError::InvalidFormBodyError { error_type, error });
             }
-            return Ok(Token {
+            Ok(Token {
                 token: response_text_string,
-            });
+            })
         }
     }
 }
