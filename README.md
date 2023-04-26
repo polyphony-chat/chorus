@@ -25,6 +25,8 @@
     <a href="https://github.com/polyphony-chat/chorus/issues">Report Bug</a>
     ·
     <a href="https://github.com/polyphony-chat/chorus/issues">Request Feature</a>
+    ·
+    <a href="https://discord.gg/8tKSC8wzDq">Join Discord</a>
   </p>
 </div>
 
