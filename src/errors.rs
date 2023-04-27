@@ -19,3 +19,9 @@ custom_error! {
     InvalidFormBodyError{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
     RateLimited = "Ratelimited.",
 }
+
+custom_error! {
+    #[derive(PartialEq, Eq)]
+    pub ObserverError
+    AlreadySubscribedError = "Each event can only be subscribed to once."
+}
