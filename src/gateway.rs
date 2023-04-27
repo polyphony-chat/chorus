@@ -1,3 +1,5 @@
+use crate::errors::ObserverError;
+
 #[derive(Debug)]
 pub struct Gateway {}
 
@@ -24,12 +26,13 @@ impl<'a> GatewayEvent<'a> {
         self.is_observed
     }
 
-    pub fn subscribe(&mut self, observable: &'a dyn Observer) {
+    pub fn subscribe(&mut self, observable: &'a dyn Observer) -> Option<ObserverError> {
         if self.is_observed {
-            return;
+            return Some(ObserverError::AlreadySubscribedError);
         }
         self.is_observed = true;
-        self.observers.push(observable)
+        self.observers.push(observable);
+        None
     }
 
     pub fn unsubscribe(&mut self, observable: &'a dyn Observer) {
