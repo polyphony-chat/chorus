@@ -2,13 +2,15 @@
 To learn more about the types implemented here, please visit
 https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
- */
+*/
 
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
 use crate::{api::limits::Limits, URLBundle};
+
+pub trait WebSocketEvent {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginResult {
@@ -246,6 +248,8 @@ struct MessageCreate {
     mentions: Vec<(UserObject, GuildMember)>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
 }
 
+impl WebSocketEvent for MessageCreate {}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct PartialMessage {
     id: Option<String>,
@@ -293,6 +297,8 @@ struct MessageUpdate {
     mentions: Vec<(UserObject, GuildMember)>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
 }
 
+impl WebSocketEvent for MessageUpdate {}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct MessageDelete {
     id: String,
@@ -300,12 +306,16 @@ struct MessageDelete {
     guild_id: Option<String>,
 }
 
+impl WebSocketEvent for MessageDelete {}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct MessageDeleteBulk {
     ids: Vec<String>,
     channel_id: String,
     guild_id: Option<String>,
 }
+
+impl WebSocketEvent for MessageDeleteBulk {}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct MessageReactionAdd {
@@ -317,6 +327,8 @@ struct MessageReactionAdd {
     emoji: Emoji,
 }
 
+impl WebSocketEvent for MessageReactionAdd {}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct MessageReactionRemove {
     user_id: String,
@@ -326,12 +338,16 @@ struct MessageReactionRemove {
     emoji: Emoji,
 }
 
+impl WebSocketEvent for MessageReactionRemove {}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct MessageReactionRemoveAll {
     channel_id: String,
     message_id: String,
     guild_id: Option<String>,
 }
+
+impl WebSocketEvent for MessageReactionRemoveAll {}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct MessageReactionRemoveEmoji {
@@ -340,6 +356,8 @@ struct MessageReactionRemoveEmoji {
     guild_id: Option<String>,
     emoji: Emoji,
 }
+
+impl WebSocketEvent for MessageReactionRemoveEmoji {}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ChannelMention {
@@ -689,6 +707,8 @@ struct TypingStartEvent {
     member: Option<GuildMember>,
 }
 
+impl WebSocketEvent for TypingStartEvent {}
+
 #[derive(Debug, Deserialize, Serialize)]
 struct GatewayIdentifyPayload {
     token: String,
@@ -699,6 +719,8 @@ struct GatewayIdentifyPayload {
     presence: Option<PresenceUpdate>,
     intents: i32,
 }
+
+impl WebSocketEvent for GatewayIdentifyPayload {}
 
 #[derive(Debug, Deserialize, Serialize)]
 struct GatewayIdentifyConnectionProps {
@@ -714,6 +736,8 @@ struct PresenceUpdate {
     status: String,
     afk: bool,
 }
+
+impl WebSocketEvent for PresenceUpdate {}
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Activity {
@@ -770,8 +794,10 @@ struct ActivityButton {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct GatewayResume {
-    token: String,
-    session_id: String,
-    seq: String,
+pub(crate) struct GatewayResume {
+    pub(crate) token: String,
+    pub(crate) session_id: String,
+    pub(crate) seq: String,
 }
+
+impl WebSocketEvent for GatewayResume {}
