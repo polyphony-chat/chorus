@@ -134,7 +134,7 @@ pub struct Error {
     pub code: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct UserObject {
     id: String,
     username: String,
@@ -203,8 +203,8 @@ impl User {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Message {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Message {
     id: String,
     channel_id: String,
     author: UserObject,
@@ -239,8 +239,8 @@ struct Message {
     role_subscription_data: Option<RoleSubscriptionData>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MessageCreate {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct MessageCreate {
     #[serde(flatten)]
     message: Message,
     guild_id: Option<String>,
@@ -250,7 +250,7 @@ struct MessageCreate {
 
 impl WebSocketEvent for MessageCreate {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 struct PartialMessage {
     id: Option<String>,
     channel_id: Option<String>,
@@ -288,8 +288,8 @@ struct PartialMessage {
     member: Option<GuildMember>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MessageUpdate {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct MessageUpdate {
     #[serde(flatten)]
     message: PartialMessage,
     guild_id: Option<String>,
@@ -299,8 +299,8 @@ struct MessageUpdate {
 
 impl WebSocketEvent for MessageUpdate {}
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MessageDelete {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct MessageDelete {
     id: String,
     channel_id: String,
     guild_id: Option<String>,
@@ -308,8 +308,8 @@ struct MessageDelete {
 
 impl WebSocketEvent for MessageDelete {}
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MessageDeleteBulk {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct MessageDeleteBulk {
     ids: Vec<String>,
     channel_id: String,
     guild_id: Option<String>,
@@ -317,8 +317,8 @@ struct MessageDeleteBulk {
 
 impl WebSocketEvent for MessageDeleteBulk {}
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MessageReactionAdd {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct MessageReactionAdd {
     user_id: String,
     channel_id: String,
     message_id: String,
@@ -329,8 +329,8 @@ struct MessageReactionAdd {
 
 impl WebSocketEvent for MessageReactionAdd {}
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MessageReactionRemove {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct MessageReactionRemove {
     user_id: String,
     channel_id: String,
     message_id: String,
@@ -340,8 +340,8 @@ struct MessageReactionRemove {
 
 impl WebSocketEvent for MessageReactionRemove {}
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MessageReactionRemoveAll {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct MessageReactionRemoveAll {
     channel_id: String,
     message_id: String,
     guild_id: Option<String>,
@@ -349,8 +349,8 @@ struct MessageReactionRemoveAll {
 
 impl WebSocketEvent for MessageReactionRemoveAll {}
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MessageReactionRemoveEmoji {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct MessageReactionRemoveEmoji {
     channel_id: String,
     message_id: String,
     guild_id: Option<String>,
@@ -463,7 +463,7 @@ struct Reaction {
     emoji: Emoji,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 struct Emoji {
     id: Option<u64>,
     name: Option<String>,
@@ -698,8 +698,8 @@ struct RoleSubscriptionData {
     is_renewal: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct TypingStartEvent {
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct TypingStartEvent {
     channel_id: String,
     guild_id: Option<String>,
     user_id: String,
@@ -709,8 +709,8 @@ struct TypingStartEvent {
 
 impl WebSocketEvent for TypingStartEvent {}
 
-#[derive(Debug, Deserialize, Serialize)]
-struct GatewayIdentifyPayload {
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct GatewayIdentifyPayload {
     token: String,
     properties: GatewayIdentifyConnectionProps,
     compress: Option<bool>,
@@ -722,15 +722,15 @@ struct GatewayIdentifyPayload {
 
 impl WebSocketEvent for GatewayIdentifyPayload {}
 
-#[derive(Debug, Deserialize, Serialize)]
-struct GatewayIdentifyConnectionProps {
-    os: String,
-    browser: String,
-    device: String,
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct GatewayIdentifyConnectionProps {
+    pub os: String,
+    pub browser: String,
+    pub device: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct PresenceUpdate {
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct PresenceUpdate {
     since: Option<i64>,
     activities: Vec<Activity>,
     status: String,
@@ -793,11 +793,11 @@ struct ActivityButton {
     url: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub(crate) struct GatewayResume {
-    pub(crate) token: String,
-    pub(crate) session_id: String,
-    pub(crate) seq: String,
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct GatewayResume {
+    pub token: String,
+    pub session_id: String,
+    pub seq: String,
 }
 
 impl WebSocketEvent for GatewayResume {}

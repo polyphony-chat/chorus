@@ -1,23 +1,50 @@
-use crate::{api::WebSocketEvent, errors::ObserverError};
+use crate::api::types::*;
+use crate::api::WebSocketEvent;
+use crate::errors::ObserverError;
+use crate::gateway::events::Events;
+use crate::URLBundle;
+use reqwest::{Client, Url};
+use tokio::net::TcpStream;
+use tokio_tungstenite::tungstenite::error::UrlError;
+use tokio_tungstenite::tungstenite::Error;
+use tokio_tungstenite::MaybeTlsStream;
+use tokio_tungstenite::WebSocketStream;
+use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
-#[derive(Debug)]
 /**
-Represents a Gateway connection.
- */
-pub struct Gateway {}
+Represents a Gateway connection. A Gateway connection will create observable
+[`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
+implemented [Types] with the trait [`WebSocketEvent`]
+*/
+pub struct Gateway<'a> {
+    pub url: String,
+    pub events: Events<'a>,
+    stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+}
+
+impl<'a> Gateway<'a> {
+    pub async fn new(websocket_url: String) {
+        let parsed_url = Url::parse(&URLBundle::parse_url(websocket_url.clone())).unwrap();
+        if parsed_url.scheme() != "ws" && parsed_url.scheme() != "wss" {
+            return Err(Error::Url(UrlError::UnsupportedUrlScheme));
+        }
+    }
+}
 
 /**
 Trait which defines the behaviour of an Observer. An Observer is an object which is subscribed to
 an Observable. The Observer is notified when the Observable's data changes.
-In this case, the Observable is a GatewayEvent, which is a wrapper around a WebSocketEvent.
+In this case, the Observable is a [`GatewayEvent`], which is a wrapper around a WebSocketEvent.
  */
 pub trait Observer<T: WebSocketEvent> {
     fn update(&self, data: &T);
 }
 
 /** GatewayEvent is a wrapper around a WebSocketEvent. It is used to notify the observers of a
- * change in the WebSocketEvent.
- */
+change in the WebSocketEvent. GatewayEvents are observable.
+*/
+
+#[derive(Default)]
 pub struct GatewayEvent<'a, T: WebSocketEvent> {
     observers: Vec<&'a dyn Observer<T>>,
     pub event_data: T,
@@ -35,7 +62,7 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
 
     /**
     Returns true if the GatewayEvent is observed by at least one Observer.
-     */
+    */
     pub fn is_observed(&self) -> bool {
         self.is_observed
     }
@@ -46,7 +73,7 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
     # Errors
     Returns an error if the GatewayEvent is already observed.
     Error type: [`ObserverError::AlreadySubscribedError`]
-     */
+    */
     pub fn subscribe(&mut self, observable: &'a dyn Observer<T>) -> Option<ObserverError> {
         if self.is_observed {
             return Some(ObserverError::AlreadySubscribedError);
@@ -58,7 +85,7 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
 
     /**
     Unsubscribes an Observer from the GatewayEvent.
-     */
+    */
     pub fn unsubscribe(&mut self, observable: &'a dyn Observer<T>) {
         // .retain()'s closure retains only those elements of the vector, which have a different
         // pointer value than observable.
@@ -69,7 +96,7 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
 
     /**
     Updates the GatewayEvent's data and notifies the observers.
-     */
+    */
     fn update_data(&mut self, new_event_data: T) {
         self.event_data = new_event_data;
         self.notify();
@@ -77,11 +104,40 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
 
     /**
     Notifies the observers of the GatewayEvent.
-     */
+    */
     fn notify(&self) {
         for observer in &self.observers {
             observer.update(&self.event_data);
         }
+    }
+}
+
+mod events {
+    use super::*;
+    #[derive(Default)]
+    pub struct Events<'a> {
+        pub message: Message<'a>,
+        pub user: User<'a>,
+        pub gateway_identify_payload: GatewayEvent<'a, GatewayIdentifyPayload>,
+        pub gateway_resume: GatewayEvent<'a, GatewayResume>,
+    }
+
+    #[derive(Default)]
+    pub struct Message<'a> {
+        pub create: GatewayEvent<'a, MessageCreate>,
+        pub update: GatewayEvent<'a, MessageUpdate>,
+        pub delete: GatewayEvent<'a, MessageDelete>,
+        pub delete_bulk: GatewayEvent<'a, MessageDeleteBulk>,
+        pub reaction_add: GatewayEvent<'a, MessageReactionAdd>,
+        pub reaction_remove: GatewayEvent<'a, MessageReactionRemove>,
+        pub reaction_remove_all: GatewayEvent<'a, MessageReactionRemoveAll>,
+        pub reaction_remove_emoji: GatewayEvent<'a, MessageReactionRemoveEmoji>,
+    }
+
+    #[derive(Default)]
+    pub struct User<'a> {
+        pub presence_update: GatewayEvent<'a, PresenceUpdate>,
+        pub typing_start_event: GatewayEvent<'a, TypingStartEvent>,
     }
 }
 
