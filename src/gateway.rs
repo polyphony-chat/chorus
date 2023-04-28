@@ -56,7 +56,7 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
 }
 
 #[cfg(test)]
-mod test {
+mod example {
     use super::*;
     use crate::api::types::GatewayResume;
 
@@ -92,7 +92,7 @@ mod test {
         let second_consumer = Consumer;
 
         match event.subscribe(&second_consumer) {
-            None => return,
+            None => assert!(false),
             Some(err) => println!("You cannot subscribe twice: {}", err),
         }
     }
