@@ -15,3 +15,4 @@ regex = "1.7.3"
 custom_error = "1.9.2"
 native-tls = "0.2.11"
 tokio-tungstenite = {version = "0.18.0", features = ["native-tls"]}
+futures-util = "0.3.28"
