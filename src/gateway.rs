@@ -1,15 +1,18 @@
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::thread::JoinHandle;
+
 use crate::api::types::*;
 use crate::api::WebSocketEvent;
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 use crate::URLBundle;
-use reqwest::{Client, Url};
+use reqwest::Url;
+use serde_json::to_string;
 use tokio::net::TcpStream;
-use tokio_tungstenite::tungstenite::error::UrlError;
 use tokio_tungstenite::tungstenite::Error;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::WebSocketStream;
-use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
 /**
 Represents a Gateway connection. A Gateway connection will create observable
@@ -19,15 +22,30 @@ implemented [Types] with the trait [`WebSocketEvent`]
 pub struct Gateway<'a> {
     pub url: String,
     pub events: Events<'a>,
-    stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+    socket: Arc<Mutex<Option<WebSocketStream<MaybeTlsStream<TcpStream>>>>>,
+    thread_handle: Option<JoinHandle<()>>,
 }
 
 impl<'a> Gateway<'a> {
-    pub async fn new(websocket_url: String) {
+    pub async fn new(websocket_url: String, token: String) {
         let parsed_url = Url::parse(&URLBundle::parse_url(websocket_url.clone())).unwrap();
         if parsed_url.scheme() != "ws" && parsed_url.scheme() != "wss" {
-            return Err(Error::Url(UrlError::UnsupportedUrlScheme));
+            //return Err(Error::Url(UrlError::UnsupportedUrlScheme));
         }
+        let payload = GatewayIdentifyPayload {
+            token: token,
+            properties: GatewayIdentifyConnectionProps {
+                os: "any".to_string(),
+                browser: "chorus-polyphony".to_string(),
+                device: "chorus-lib".to_string(),
+            },
+            compress: Some(true),
+            large_threshold: None,
+            shard: None,
+            presence: None,
+            intents: 3276799,
+        };
+        let payload_string = to_string(&payload).unwrap();
     }
 }
 
