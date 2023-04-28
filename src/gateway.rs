@@ -1,12 +1,23 @@
 use crate::{api::WebSocketEvent, errors::ObserverError};
 
 #[derive(Debug)]
+/**
+Represents a Gateway connection.
+ */
 pub struct Gateway {}
 
+/**
+Trait which defines the behaviour of an Observer. An Observer is an object which is subscribed to
+an Observable. The Observer is notified when the Observable's data changes.
+In this case, the Observable is a GatewayEvent, which is a wrapper around a WebSocketEvent.
+ */
 pub trait Observer<T: WebSocketEvent> {
     fn update(&self, data: &T);
 }
 
+/** GatewayEvent is a wrapper around a WebSocketEvent. It is used to notify the observers of a
+ * change in the WebSocketEvent.
+ */
 pub struct GatewayEvent<'a, T: WebSocketEvent> {
     observers: Vec<&'a dyn Observer<T>>,
     pub event_data: T,
@@ -22,10 +33,20 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
         }
     }
 
+    /**
+    Returns true if the GatewayEvent is observed by at least one Observer.
+     */
     pub fn is_observed(&self) -> bool {
         self.is_observed
     }
 
+    /**
+    Subscribes an Observer to the GatewayEvent. Returns an error if the GatewayEvent is already
+    observed.
+    # Errors
+    Returns an error if the GatewayEvent is already observed.
+    Error type: [`ObserverError::AlreadySubscribedError`]
+     */
     pub fn subscribe(&mut self, observable: &'a dyn Observer<T>) -> Option<ObserverError> {
         if self.is_observed {
             return Some(ObserverError::AlreadySubscribedError);
@@ -35,6 +56,9 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
         None
     }
 
+    /**
+    Unsubscribes an Observer from the GatewayEvent.
+     */
     pub fn unsubscribe(&mut self, observable: &'a dyn Observer<T>) {
         // .retain()'s closure retains only those elements of the vector, which have a different
         // pointer value than observable.
@@ -43,11 +67,17 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
         return;
     }
 
+    /**
+    Updates the GatewayEvent's data and notifies the observers.
+     */
     fn update_data(&mut self, new_event_data: T) {
         self.event_data = new_event_data;
         self.notify();
     }
 
+    /**
+    Notifies the observers of the GatewayEvent.
+     */
     fn notify(&self) {
         for observer in &self.observers {
             observer.update(&self.event_data);
