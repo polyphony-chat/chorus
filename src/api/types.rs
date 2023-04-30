@@ -829,3 +829,15 @@ impl WebSocketEvent for GatewayHeartbeat {}
 pub struct GatewayHeartbeatAck {
     pub op: i32,
 }
+
+impl WebSocketEvent for GatewayHeartbeatAck {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct GatewayPayload {
+    pub op: i32,
+    pub d: Option<String>,
+    pub s: Option<i64>,
+    pub t: Option<String>,
+}
+
+impl WebSocketEvent for GatewayPayload {}
