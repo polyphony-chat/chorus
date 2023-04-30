@@ -1,26 +1,25 @@
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::thread::JoinHandle;
-use std::time::Duration;
+use std::sync::{mpsc, Arc};
+use std::thread;
 
 use crate::api::types::*;
 use crate::api::WebSocketEvent;
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 use crate::URLBundle;
-use futures_util::SinkExt;
+
+use futures_util::stream::{FilterMap, SplitSink, SplitStream};
 use futures_util::StreamExt;
+use native_tls::TlsConnector;
 use reqwest::Url;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::from_str;
-use serde_json::to_string;
 use tokio::io;
 use tokio::net::TcpStream;
-use tokio_tungstenite::connect_async;
+use tokio::sync::Mutex;
 use tokio_tungstenite::tungstenite::error::UrlError;
-use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::WebSocketStream;
+use tokio_tungstenite::{connect_async, connect_async_tls_with_config};
+use tokio_tungstenite::{Connector, MaybeTlsStream};
 
 /**
 Represents a Gateway connection. A Gateway connection will create observable
@@ -31,13 +30,6 @@ pub struct Gateway<'a> {
     pub url: String,
     pub token: String,
     pub events: Events<'a>,
-    socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-enum GatewayIntervalEvent {
-    Heartbeat(Option<u64>),
-    Hello(u64),
 }
 
 impl<'a> Gateway<'a> {
@@ -51,7 +43,15 @@ impl<'a> Gateway<'a> {
                 UrlError::UnsupportedUrlScheme,
             ));
         }
-        let (ws_stream, _) = match connect_async(websocket_url.clone()).await {
+        let (ws_stream, _) = match connect_async_tls_with_config(
+            websocket_url.clone(),
+            None,
+            Some(Connector::NativeTls(
+                TlsConnector::builder().build().unwrap(),
+            )),
+        )
+        .await
+        {
             Ok(ws_stream) => ws_stream,
             Err(_) => {
                 return Err(tokio_tungstenite::tungstenite::Error::Io(
@@ -60,11 +60,12 @@ impl<'a> Gateway<'a> {
             }
         };
 
+        let (mut write, read) = ws_stream.split();
+
         return Ok(Gateway {
             url: websocket_url,
             token,
             events: Events::default(),
-            socket: ws_stream,
         });
     }
 }
