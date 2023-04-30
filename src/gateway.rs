@@ -13,6 +13,7 @@ use native_tls::TlsConnector;
 use reqwest::Url;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::from_str;
 use tokio::io;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
@@ -43,7 +44,7 @@ impl<'a> Gateway<'a> {
                 UrlError::UnsupportedUrlScheme,
             ));
         }
-        let (ws_stream, _) = match connect_async_tls_with_config(
+        let (mut ws_stream, _) = match connect_async_tls_with_config(
             websocket_url.clone(),
             None,
             Some(Connector::NativeTls(
@@ -59,6 +60,12 @@ impl<'a> Gateway<'a> {
                 ))
             }
         };
+        let hello_message: GatewayHello = match ws_stream.next().await.unwrap() {
+            Ok(message) => from_str(message.into_text().unwrap().as_str()).unwrap(),
+            Err(_) => panic!("AAAAAAA"),
+        };
+
+        println!("{}", hello_message.d.heartbeat_interval);
 
         let (mut write, read) = ws_stream.split();
 
