@@ -42,7 +42,7 @@ Core functionality:
 - [x] Registration (encountered another [Issue with the Spacebar Server](https://github.com/spacebarchat/server/issues/1040) which makes some error messages an empty string)
 - [ ] Gateway Events, multithreaded
 - [ ] Sending messages (Text, Images, Attachments)
-- [ ] Events (Message, User, Channel, etc.)
+- [x] Events (Message, User, Channel, etc.)
 - [ ] Adding, deleting and editing channels
 - [ ] User profile customization
 - [ ] Deleting messages
