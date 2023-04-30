@@ -801,3 +801,31 @@ pub struct GatewayResume {
 }
 
 impl WebSocketEvent for GatewayResume {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct GatewayHello {
+    pub op: i32,
+    pub d: HelloData,
+}
+
+impl WebSocketEvent for GatewayHello {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct HelloData {
+    pub heartbeat_interval: i32,
+}
+
+impl WebSocketEvent for HelloData {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct GatewayHeartbeat {
+    pub op: u8,
+    pub d: u64,
+}
+
+impl WebSocketEvent for GatewayHeartbeat {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct GatewayHeartbeatAck {
+    pub op: i32,
+}
