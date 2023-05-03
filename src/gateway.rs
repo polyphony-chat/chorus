@@ -2,23 +2,23 @@ use crate::api::types::*;
 use crate::api::WebSocketEvent;
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
-use crate::URLBundle;
 
-use futures_util::StreamExt;
-use native_tls::TlsConnector;
-use reqwest::Url;
-use serde::Deserialize;
-use serde::Serialize;
 
-use tokio::io;
-use tokio::net::TcpStream;
-use tokio::sync::mpsc::{channel, Receiver, Sender};
-use tokio::sync::Mutex;
-use tokio::task;
-use tokio_tungstenite::tungstenite::error::UrlError;
-use tokio_tungstenite::WebSocketStream;
-use tokio_tungstenite::{connect_async, connect_async_tls_with_config};
-use tokio_tungstenite::{Connector, MaybeTlsStream};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
 Represents a Gateway connection. A Gateway connection will create observable
