@@ -1,20 +1,20 @@
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::thread::JoinHandle;
-use std::time::Duration;
+
+
+
+
 
 use crate::api::types::*;
 use crate::api::WebSocketEvent;
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 use crate::URLBundle;
-use futures_util::SinkExt;
+
 use futures_util::StreamExt;
 use reqwest::Url;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::from_str;
-use serde_json::to_string;
+
+
 use tokio::io;
 use tokio::net::TcpStream;
 use tokio_tungstenite::connect_async;
@@ -60,12 +60,12 @@ impl<'a> Gateway<'a> {
             }
         };
 
-        return Ok(Gateway {
+        Ok(Gateway {
             url: websocket_url,
             token,
             events: Events::default(),
             socket: ws_stream,
-        });
+        })
     }
 }
 
@@ -129,7 +129,6 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
         // pointer value than observable.
         self.observers.retain(|obs| !std::ptr::eq(*obs, observable));
         self.is_observed = !self.observers.is_empty();
-        return;
     }
 
     /**
@@ -223,7 +222,7 @@ mod example {
 
     #[tokio::test]
     async fn test_gateway() {
-        let gateway = Gateway::new("ws://localhost:3001/".to_string(), "none".to_string())
+        let _gateway = Gateway::new("ws://localhost:3001/".to_string(), "none".to_string())
             .await
             .unwrap();
     }

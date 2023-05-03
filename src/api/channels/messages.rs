@@ -6,7 +6,7 @@ pub mod messages {
     use crate::api::types::Message;
     use crate::api::User;
     use crate::errors::InstanceServerError;
-    use crate::instance::Instance;
+    
     use crate::limit::LimitedRequester;
 
     impl Message {
@@ -43,9 +43,9 @@ pub mod messages {
                 )
                 .await
             {
-                Ok(result) => return Ok(result),
-                Err(e) => return Err(e),
-            };
+                Ok(result) => Ok(result),
+                Err(e) => Err(e),
+            }
         }
     }
 
