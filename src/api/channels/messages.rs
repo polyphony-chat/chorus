@@ -6,7 +6,6 @@ pub mod messages {
     use crate::api::types::Message;
     use crate::api::User;
     use crate::errors::InstanceServerError;
-    
     use crate::limit::LimitedRequester;
 
     impl Message {
