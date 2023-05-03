@@ -3,8 +3,7 @@ pub mod messages {
     use serde_json::to_string;
 
     use crate::api::limits::Limits;
-    use crate::api::types::Message;
-    use crate::api::User;
+    use crate::api::types::{File, Message, User};
     use crate::errors::InstanceServerError;
     use crate::limit::LimitedRequester;
 
@@ -22,17 +21,20 @@ pub mod messages {
          */
         pub async fn send(
             url_api: &String,
+            token: &String,
             message: &Message,
+            files: Option<Vec<File>>,
             limits_user: &mut Limits,
             limits_instance: &mut Limits,
             requester: &mut LimitedRequester,
         ) -> Result<Response, InstanceServerError> {
-            let request = Client::new()
+            let mut request = Client::new()
                 .post(format!(
                     "{}/channels/{}/messages",
                     url_api, message.channel_id
                 ))
                 .body(to_string(message).unwrap());
+            if files.is_some() {}
             match requester
                 .send_request(
                     request,
@@ -52,10 +54,13 @@ pub mod messages {
         pub async fn send_message(
             &mut self,
             message: &Message,
+            files: Option<Vec<File>>,
         ) -> Result<Response, InstanceServerError> {
             Message::send(
                 &self.belongs_to().urls.get_api().to_string(),
+                &self.token(),
                 message,
+                files,
                 self.rate_limits.get_as_mut(),
                 &mut self.belongs_to.limits.get_as_mut(),
                 &mut LimitedRequester::new().await,
