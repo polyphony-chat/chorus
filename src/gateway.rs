@@ -1,5 +1,7 @@
-use std::sync::Arc;
-use std::thread;
+
+
+
+
 
 use crate::api::types::*;
 use crate::api::WebSocketEvent;
@@ -7,14 +9,13 @@ use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 use crate::URLBundle;
 
-use futures_util::stream::{FilterMap, SplitSink, SplitStream};
-use futures_util::SinkExt;
 use futures_util::StreamExt;
 use native_tls::TlsConnector;
 use reqwest::Url;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::from_str;
+
+
 use tokio::io;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
@@ -94,21 +95,14 @@ impl<'a> WebSocketConnection {
             while let Some(msg) = shared_channel_read.lock().await.recv().await {
                 write_tx.send(msg).await.unwrap();
             }
+        };
 
-            let event = while let Some(msg) = write_rx.next().await {
-                shared_channel_write
-                    .lock()
-                    .await
-                    .send(msg.unwrap())
-                    .await
-                    .unwrap();
-            };
-        });
-
-        WebSocketConnection {
-            tx: clone_shared_channel_write,
-            rx: clone_shared_channel_read,
-        }
+        Ok(Gateway {
+            url: websocket_url,
+            token,
+            events: Events::default(),
+            socket: ws_stream,
+        })
     }
 }
 
@@ -172,7 +166,6 @@ impl<'a, T: WebSocketEvent> GatewayEvent<'a, T> {
         // pointer value than observable.
         self.observers.retain(|obs| !std::ptr::eq(*obs, observable));
         self.is_observed = !self.observers.is_empty();
-        return;
     }
 
     /**
@@ -266,7 +259,7 @@ mod example {
 
     #[tokio::test]
     async fn test_gateway() {
-        let gateway = Gateway::new("ws://localhost:3001/".to_string(), "none".to_string())
+        let _gateway = Gateway::new("ws://localhost:3001/".to_string(), "none".to_string())
             .await
             .unwrap();
     }

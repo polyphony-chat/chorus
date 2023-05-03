@@ -11,16 +11,16 @@ use std::fmt;
 /**
 The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
  */
-pub struct Instance {
+pub struct Instance<'a> {
     pub urls: URLBundle,
     pub instance_info: InstancePolicies,
     pub requester: LimitedRequester,
     pub limits: Limits,
     //pub gateway: Gateway,
-    pub users: HashMap<Token, User>,
+    pub users: HashMap<Token, User<'a>>,
 }
 
-impl Instance {
+impl<'a> Instance<'a> {
     /// Creates a new [`Instance`].
     /// # Arguments
     /// * `urls` - The [`URLBundle`] that contains all the URLs that are needed to connect to the Spacebar server.
@@ -30,7 +30,7 @@ impl Instance {
     pub async fn new(
         urls: URLBundle,
         requester: LimitedRequester,
-    ) -> Result<Instance, InstanceServerError> {
+    ) -> Result<Instance<'a>, InstanceServerError> {
         let users: HashMap<Token, User> = HashMap::new();
         let mut instance = Instance {
             urls: urls.clone(),

@@ -4,11 +4,9 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
-use std::fmt;
-
 use serde::{Deserialize, Serialize};
 
-use crate::{api::limits::Limits, URLBundle};
+use crate::{api::limits::Limits, instance::Instance};
 
 pub trait WebSocketEvent {}
 
@@ -154,22 +152,22 @@ pub struct UserObject {
 }
 
 #[derive(Debug)]
-pub struct User {
-    logged_in: bool,
-    belongs_to: URLBundle,
+pub struct User<'a> {
+    pub logged_in: bool,
+    pub belongs_to: &'a mut Instance<'a>,
     token: String,
-    rate_limits: Limits,
+    pub rate_limits: Limits,
     pub settings: UserSettings,
     pub object: UserObject,
 }
 
-impl User {
+impl<'a> User<'a> {
     pub fn is_logged_in(&self) -> bool {
         self.logged_in
     }
 
-    pub fn belongs_to(&self) -> URLBundle {
-        self.belongs_to.clone()
+    pub fn belongs_to(&mut self) -> &mut Instance<'a> {
+        self.belongs_to
     }
 
     pub fn token(&self) -> String {
@@ -186,12 +184,12 @@ impl User {
 
     pub fn new(
         logged_in: bool,
-        belongs_to: URLBundle,
+        belongs_to: &'a mut Instance<'a>,
         token: String,
         rate_limits: Limits,
         settings: UserSettings,
         object: UserObject,
-    ) -> User {
+    ) -> User<'a> {
         User {
             logged_in,
             belongs_to,
@@ -206,7 +204,7 @@ impl User {
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Message {
     id: String,
-    channel_id: String,
+    pub channel_id: String,
     author: UserObject,
     content: String,
     timestamp: String,

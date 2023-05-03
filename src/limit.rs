@@ -261,7 +261,7 @@ mod rate_limit {
     #[tokio::test]
 
     async fn create_limited_requester() {
-        let urls = URLBundle::new(
+        let _urls = URLBundle::new(
             String::from("http://localhost:3001/api/"),
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),

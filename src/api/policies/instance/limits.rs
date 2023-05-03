@@ -304,6 +304,10 @@ pub mod limits {
             map
         }
 
+        pub fn get_as_mut(&mut self) -> &mut Limits {
+            self
+        }
+
         /// check_limits uses the API to get the current request limits of the instance.
         /// It returns a `Limits` struct containing all the limits.
         /// If the rate limit is disabled, then the limit is set to `u64::MAX`.
