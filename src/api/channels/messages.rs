@@ -33,7 +33,8 @@ pub mod messages {
                     "{}/channels/{}/messages",
                     url_api, message.channel_id
                 ))
-                .body(to_string(message).unwrap());
+                .body(to_string(message).unwrap())
+                .bearer_auth(token);
             if files.is_some() {}
             match requester
                 .send_request(
