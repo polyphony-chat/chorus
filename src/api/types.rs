@@ -154,7 +154,7 @@ pub struct UserObject {
 #[derive(Debug)]
 pub struct User<'a> {
     pub logged_in: bool,
-    pub belongs_to: &'a Instance<'a>,
+    pub belongs_to: &'a mut Instance<'a>,
     token: String,
     pub rate_limits: Limits,
     pub settings: UserSettings,
@@ -166,7 +166,7 @@ impl<'a> User<'a> {
         self.logged_in
     }
 
-    pub fn belongs_to(&self) -> &Instance {
+    pub fn belongs_to(&mut self) -> &mut Instance<'a> {
         self.belongs_to
     }
 
@@ -184,7 +184,7 @@ impl<'a> User<'a> {
 
     pub fn new(
         logged_in: bool,
-        belongs_to: &'a Instance<'a>,
+        belongs_to: &'a mut Instance<'a>,
         token: String,
         rate_limits: Limits,
         settings: UserSettings,
