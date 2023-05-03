@@ -48,5 +48,19 @@ pub mod messages {
         }
     }
 
-    impl<'a> User<'a> {}
+    impl<'a> User<'a> {
+        pub async fn send_message(
+            &mut self,
+            message: &Message,
+        ) -> Result<Response, InstanceServerError> {
+            Message::send(
+                &self.belongs_to().urls.get_api().to_string(),
+                message,
+                self.rate_limits.get_as_mut(),
+                &mut self.belongs_to.limits.get_as_mut(),
+                &mut LimitedRequester::new().await,
+            )
+            .await
+        }
+    }
 }
