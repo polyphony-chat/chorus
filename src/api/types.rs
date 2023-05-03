@@ -839,3 +839,8 @@ pub struct GatewayPayload {
 }
 
 impl WebSocketEvent for GatewayPayload {}
+
+pub struct File {
+    pub name: String,
+    pub path: String,
+}
