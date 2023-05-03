@@ -1,8 +1,3 @@
-
-
-
-
-
 use crate::api::types::*;
 use crate::api::WebSocketEvent;
 use crate::errors::ObserverError;
@@ -14,7 +9,6 @@ use native_tls::TlsConnector;
 use reqwest::Url;
 use serde::Deserialize;
 use serde::Serialize;
-
 
 use tokio::io;
 use tokio::net::TcpStream;
@@ -50,7 +44,7 @@ impl<'a> Gateway<'a> {
     }
 }
 
-struct WebSocketConnection {
+/*struct WebSocketConnection {
     rx: Arc<Mutex<Receiver<tokio_tungstenite::tungstenite::Message>>>,
     tx: Arc<Mutex<Sender<tokio_tungstenite::tungstenite::Message>>>,
 }
@@ -58,11 +52,11 @@ struct WebSocketConnection {
 impl<'a> WebSocketConnection {
     async fn new(websocket_url: String) -> WebSocketConnection {
         let parsed_url = Url::parse(&URLBundle::parse_url(websocket_url.clone())).unwrap();
-        /*if parsed_url.scheme() != "ws" && parsed_url.scheme() != "wss" {
+        if parsed_url.scheme() != "ws" && parsed_url.scheme() != "wss" {
             return Err(tokio_tungstenite::tungstenite::Error::Url(
                 UrlError::UnsupportedUrlScheme,
             ));
-        }*/
+        }
 
         let (mut channel_write, mut channel_read): (
             Sender<tokio_tungstenite::tungstenite::Message>,
@@ -104,7 +98,7 @@ impl<'a> WebSocketConnection {
             socket: ws_stream,
         })
     }
-}
+}*/
 
 /**
 Trait which defines the behaviour of an Observer. An Observer is an object which is subscribed to
