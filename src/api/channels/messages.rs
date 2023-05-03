@@ -49,5 +49,5 @@ pub mod messages {
         }
     }
 
-    impl User {}
+    impl<'a> User<'a> {}
 }
