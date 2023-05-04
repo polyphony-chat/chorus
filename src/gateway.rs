@@ -49,6 +49,106 @@ impl<'a> Gateway<'a> {
             websocket: WebSocketConnection::new(websocket_url).await,
         });
     }
+
+    /// This function reads all messages from the gateway's websocket and updates its events along with the events' observers
+    pub async fn update_events(&mut self) {
+        while let Some(msg) = self.websocket.rx.lock().await.recv().await {
+            let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
+
+            // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
+            match gateway_payload.op {
+                // Dispatch
+                // An event was dispatched, we need to look at the gateway event name t
+                0 => {
+                    let gateway_payload_t = gateway_payload.t.unwrap();
+
+                    // See https://discord.com/developers/docs/topics/gateway-events#receive-events
+                    match gateway_payload_t.as_str() {
+                        "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
+                        "AUTO_MODERATION_RULE_CREATE" => {}
+                        "AUTO_MODERATION_RULE_UPDATE" => {}
+                        "AUTO_MODERATION_RULE_DELETE" => {}
+                        "AUTO_MODERATION_ACTION_EXECUTION" => {}
+                        "CHANNEL_CREATE" => {}
+                        "CHANNEL_UPDATE" => {}
+                        "CHANNEL_DELETE" => {}
+                        "CHANNEL_PINS_UPDATE" => {}
+                        "THREAD_CREATE" => {}
+                        "THREAD_UPDATE" => {}
+                        "THREAD_DELETE" => {}
+                        "THREAD_LIST_SYNC" => {}
+                        "THREAD_MEMBER_UPDATE" => {}
+                        "THREAD_MEMBERS_UPDATE" => {}
+                        "GUILD_CREATE" => {}
+                        "GUILD_UPDATE" => {}
+                        "GUILD_DELETE" => {}
+                        "GUILD_AUDIT_LOG_ENTRY_CREATE" => {}
+                        "GUILD_BAN_ADD" => {}
+                        "GUILD_BAN_REMOVE" => {}
+                        "GUILD_EMOJIS_UPDATE" => {}
+                        "GUILD_STICKERS_UPDATE" => {}
+                        "GUILD_INTEGRATIONS_UPDATE" => {}
+                        "GUILD_MEMBER_ADD" => {}
+                        "GUILD_MEMBER_REMOVE" => {}
+                        "GUILD_MEMBER_UPDATE" => {}
+                        "GUILD_MEMBERS_CHUNK" => {}
+                        "GUILD_ROLE_CREATE" => {}
+                        "GUILD_ROLE_UPDATE" => {}
+                        "GUILD_ROLE_DELETE" => {}
+                        "GUILD_SCHEDULED_EVENT_CREATE" => {}
+                        "GUILD_SCHEDULED_EVENT_UPDATE" => {}
+                        "GUILD_SCHEDULED_EVENT_DELETE" => {}
+                        "GUILD_SCHEDULED_EVENT_USER_ADD" => {}
+                        "GUILD_SCHEDULED_EVENT_USER_REMOVE" => {}
+                        "INTEGRATION_CREATE" => {}
+                        "INTEGRATION_UPDATE" => {}
+                        "INTEGRATION_DELETE" => {}
+                        "INTERACTION_CREATE" => {}
+                        "INVITE_CREATE" => {}
+                        "INVITE_DELETE" => {}
+                        "MESSAGE_CREATE" => {}
+                        "MESSAGE_UPDATE" => {}
+                        "MESSAGE_DELETE" => {}
+                        "MESSAGE_DELETE_BULK" => {}
+                        "MESSAGE_REACTION_ADD" => {}
+                        "MESSAGE_REACTION_REMOVE" => {}
+                        "MESSAGE_REACTION_REMOVE_ALL" => {}
+                        "MESSAGE_REACTION_REMOVE_EMOJI" => {}
+                        "PRESENCE_UPDATE" => {}
+                        "STAGE_INSTANCE_CREATE" => {}
+                        "STAGE_INSTANCE_UPDATE" => {}
+                        "STAGE_INSTANCE_DELETE" => {}
+                        "TYPING_START" => {}
+                        "USER_UPDATE" => {}
+                        "VOICE_STATE_UPDATE" => {}
+                        "VOICE_SERVER_UPDATE" => {}
+                        "WEBHOOKS_UPDATE" => {}
+                        _ => {panic!("Invalid gateway event ({})", &gateway_payload_t)}
+                    }
+                }
+                // Heartbeat
+                // We received a heartbeat from the server
+                1 => {
+                    let gateway_heartbeat: GatewayHeartbeat = serde_json::from_str(gateway_payload.d.unwrap().as_ref()).unwrap();
+                }
+                // Reconnect
+                7 => {todo!()}
+                // Invalid Session
+                9 => {todo!()}
+                // Hello
+                // Should start our heartbeat
+                10 => {
+                    let gateway_hello: GatewayHello = serde_json::from_str(gateway_payload.d.unwrap().as_ref()).unwrap();
+                }
+                // Heartbeat ACK
+                11 => {
+                    let gateway_hb_ack: GatewayHeartbeatAck = serde_json::from_str(gateway_payload.d.unwrap().as_ref()).unwrap();
+                }
+                2 | 3 | 4 | 6 | 8 => {panic!("Received Gateway op code that's meant to be sent, not received ({})", gateway_payload.op)}
+                _ => {panic!("Received Invalid Gateway op code ({})", gateway_payload.op)}
+            }
+        }
+    }
 }
 
 struct WebSocketConnection {
