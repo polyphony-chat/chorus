@@ -34,6 +34,7 @@ pub struct Gateway<'a> {
     pub url: String,
     pub token: String,
     pub events: Events<'a>,
+    websocket: WebSocketConnection,
 }
 
 impl<'a> Gateway<'a> {
@@ -42,9 +43,10 @@ impl<'a> Gateway<'a> {
         token: String,
     ) -> Result<Gateway<'a>, tokio_tungstenite::tungstenite::Error> {
         return Ok(Gateway {
-            url: websocket_url,
+            url: websocket_url.clone(),
             token,
             events: Events::default(),
+            websocket: WebSocketConnection::new(websocket_url).await,
         });
     }
 }
