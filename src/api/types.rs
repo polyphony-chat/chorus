@@ -4,6 +4,8 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
+use std::fs::File;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{api::limits::Limits, instance::Instance};
@@ -840,7 +842,27 @@ pub struct GatewayPayload {
 
 impl WebSocketEvent for GatewayPayload {}
 
-pub struct File {
+pub struct DiscordFileAttachment {
     pub name: String,
-    pub path: String,
+    pub filename: String,
+    pub file: File,
+}
+
+impl DiscordFileAttachment {
+    pub fn new(filenames: &Vec<String>, files: Vec<File>) {
+        //-> Vec<DiscordFileAttachment> {
+        if filenames.len() != files.len() {
+            panic!("Your 'filenames' Vector has either more or less elements than your 'files' Vector.")
+        }
+        let mut return_vec: Vec<DiscordFileAttachment> = Vec::new();
+        let mut counter = 0;
+        /*for _ in 0..files.len() {
+            return_vec.push(DiscordFileAttachment {
+                name: format!("files[{}]", counter.to_string()),
+                filename: filenames.iter().next().unwrap().to_string(),
+                file: files.get(0).unwrap(),
+            });
+        }
+        return_vec*/
+    }
 }

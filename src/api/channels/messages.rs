@@ -1,9 +1,10 @@
 pub mod messages {
     use reqwest::{Client, Response};
     use serde_json::to_string;
+    use std::io::Read;
 
     use crate::api::limits::Limits;
-    use crate::api::types::{File, Message, User};
+    use crate::api::types::{DiscordFileAttachment, Message, User};
     use crate::errors::InstanceServerError;
     use crate::limit::LimitedRequester;
 
@@ -23,7 +24,7 @@ pub mod messages {
             url_api: &String,
             token: &String,
             message: &Message,
-            files: Option<Vec<File>>,
+            files: Option<Vec<DiscordFileAttachment>>,
             limits_user: &mut Limits,
             limits_instance: &mut Limits,
             requester: &mut LimitedRequester,
@@ -55,7 +56,7 @@ pub mod messages {
         pub async fn send_message(
             &mut self,
             message: &Message,
-            files: Option<Vec<File>>,
+            files: Option<Vec<DiscordFileAttachment>>,
         ) -> Result<Response, InstanceServerError> {
             Message::send(
                 &self.belongs_to().urls.get_api().to_string(),
