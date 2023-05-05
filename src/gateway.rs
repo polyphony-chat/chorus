@@ -68,7 +68,7 @@ impl<'a> Gateway<'a> {
                     // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                     match gateway_payload_t.as_str() {
                         "READY" => {
-                            let data: GatewayReady = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         }
                         "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
                         "AUTO_MODERATION_RULE_CREATE" => {}
@@ -113,46 +113,46 @@ impl<'a> Gateway<'a> {
                         "INVITE_CREATE" => {}
                         "INVITE_DELETE" => {}
                         "MESSAGE_CREATE" => {
-                            let new_data: MessageCreate = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: MessageCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.message.create.update_data(new_data);
                         }
                         "MESSAGE_UPDATE" => {
-                            let new_data: MessageUpdate = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: MessageUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.message.update.update_data(new_data);
                         }
                         "MESSAGE_DELETE" => {
-                            let new_data: MessageDelete = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: MessageDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.message.delete.update_data(new_data);
                         }
                         "MESSAGE_DELETE_BULK" => {
-                            let new_data: MessageDeleteBulk = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: MessageDeleteBulk = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.message.delete_bulk.update_data(new_data);
                         }
                         "MESSAGE_REACTION_ADD" => {
-                            let new_data: MessageReactionAdd = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: MessageReactionAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.message.reaction_add.update_data(new_data);
                         }
                         "MESSAGE_REACTION_REMOVE" => {
-                            let new_data: MessageReactionRemove = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: MessageReactionRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.message.reaction_remove.update_data(new_data);
                         }
                         "MESSAGE_REACTION_REMOVE_ALL" => {
-                            let new_data: MessageReactionRemoveAll = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: MessageReactionRemoveAll = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.message.reaction_remove_all.update_data(new_data);
                         }
                         "MESSAGE_REACTION_REMOVE_EMOJI" => {
-                            let new_data: MessageReactionRemoveEmoji= serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: MessageReactionRemoveEmoji= serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.message.reaction_remove_emoji.update_data(new_data);
                         }
                         "PRESENCE_UPDATE" => {
-                            let new_data: PresenceUpdate = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: PresenceUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.user.presence_update.update_data(new_data);
                         }
                         "STAGE_INSTANCE_CREATE" => {}
                         "STAGE_INSTANCE_UPDATE" => {}
                         "STAGE_INSTANCE_DELETE" => {}
                         "TYPING_START" => {
-                            let new_data: TypingStartEvent = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            let new_data: TypingStartEvent = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                             self.events.user.typing_start_event.update_data(new_data);
                         }
                         "USER_UPDATE" => {}
@@ -172,7 +172,7 @@ impl<'a> Gateway<'a> {
                 // Hello
                 // Starts our heartbeat
                 10 => {
-                    let gateway_hello: HelloData = serde_json::from_str(gateway_payload.d.unwrap().as_ref()).unwrap();
+                    let gateway_hello: HelloData = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     self.heartbeat_handler = Some(HeartbeatHandler::new(gateway_hello.heartbeat_interval, self.websocket.tx.clone()));
                 }
                 // Heartbeat ACK
@@ -194,9 +194,9 @@ impl<'a> Gateway<'a> {
     }
 
     /// Sends json to the gateway with an opcode
-    async fn send_json_event(&self, op: u8, to_send: String) {
+    async fn send_json_event(&self, op: u8, to_send: serde_json::Value) {
 
-        let gateway_payload: GatewayPayload = GatewayPayload { op, d: Some(to_send), s: None, t: None };
+        let gateway_payload = GatewayPayload { op, d: Some(to_send), s: None, t: None };
 
         let payload_json = serde_json::to_string(&gateway_payload).unwrap();
 
@@ -210,25 +210,25 @@ impl<'a> Gateway<'a> {
     /// Sends an identify event to the gateway
     pub async fn send_identify(&self, to_send: GatewayIdentifyPayload) {
 
-        let to_send_json = serde_json::to_string(&to_send).unwrap();
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        self.send_json_event(2, to_send_json).await;
+        self.send_json_event(2, to_send_value).await;
     }
 
     /// Sends a resume event to the gateway
     pub async fn send_resume(&self, to_send: GatewayResume) {
 
-        let to_send_json = serde_json::to_string(&to_send).unwrap();
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        self.send_json_event(6, to_send_json).await;
+        self.send_json_event(6, to_send_value).await;
     }
 
     /// Sends an update presence event to the gateway
     pub async fn send_update_presence(&self, to_send: PresenceUpdate) {
 
-        let to_send_json = serde_json::to_string(&to_send).unwrap();
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        self.send_json_event(3, to_send_json).await;
+        self.send_json_event(3, to_send_value).await;
     }
 }
 

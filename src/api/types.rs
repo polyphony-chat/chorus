@@ -853,7 +853,7 @@ impl WebSocketEvent for GatewayHeartbeatAck {}
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {
     pub op: u8,
-    pub d: Option<String>,
+    pub d: Option<serde_json::Value>,
     pub s: Option<u64>,
     pub t: Option<String>,
 }
