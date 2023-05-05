@@ -1,11 +1,6 @@
 pub mod messages {
-    use reqwest::{Client, Response};
-    use serde_json::to_string;
-    use std::io::Read;
-
     use crate::api::limits::Limits;
-    use crate::api::types::{DiscordFileAttachment, Message, User};
-    use crate::errors::InstanceServerError;
+    use crate::api::types::{Message, PartialDiscordFileAttachment, User};
     use crate::limit::LimitedRequester;
 
     impl Message {
@@ -20,54 +15,21 @@ pub mod messages {
         # Errors
         * [`InstanceServerError`] - If the message cannot be sent.
          */
-        pub async fn send(
+
+        pub async fn send<'a>(
             url_api: &String,
-            token: &String,
-            message: &Message,
-            files: Option<Vec<DiscordFileAttachment>>,
-            limits_user: &mut Limits,
+            message: &mut Message,
+            files: Option<Vec<PartialDiscordFileAttachment>>,
+            user: &mut User<'a>,
             limits_instance: &mut Limits,
             requester: &mut LimitedRequester,
-        ) -> Result<Response, InstanceServerError> {
-            let mut request = Client::new()
-                .post(format!(
-                    "{}/channels/{}/messages",
-                    url_api, message.channel_id
-                ))
-                .body(to_string(message).unwrap())
-                .bearer_auth(token);
-            if files.is_some() {}
-            match requester
-                .send_request(
-                    request,
-                    crate::api::limits::LimitType::Channel,
-                    limits_instance,
-                    limits_user,
-                )
-                .await
-            {
-                Ok(result) => Ok(result),
-                Err(e) => Err(e),
-            }
+        ) {
+            let token = user.token();
+            let mut limits = &mut user.rate_limits;
         }
     }
 
     impl<'a> User<'a> {
-        pub async fn send_message(
-            &mut self,
-            message: &Message,
-            files: Option<Vec<DiscordFileAttachment>>,
-        ) -> Result<Response, InstanceServerError> {
-            Message::send(
-                &self.belongs_to().urls.get_api().to_string(),
-                &self.token(),
-                message,
-                files,
-                self.rate_limits.get_as_mut(),
-                &mut self.belongs_to.limits.get_as_mut(),
-                &mut LimitedRequester::new().await,
-            )
-            .await
-        }
+        pub async fn send_message() {}
     }
 }

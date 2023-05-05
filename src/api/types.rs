@@ -4,7 +4,7 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
-use std::fs::File;
+use std::{collections::HashMap, fs::File};
 
 use serde::{Deserialize, Serialize};
 
@@ -216,7 +216,7 @@ pub struct Message {
     mentions: Vec<UserObject>,
     mention_roles: Vec<String>,
     mention_channels: Option<Vec<ChannelMention>>,
-    attachments: Vec<Attachment>,
+    pub attachments: Vec<DiscordFileAttachment>,
     embeds: Vec<Embed>,
     reactions: Option<Vec<Reaction>>,
     nonce: Option<serde_json::Value>,
@@ -263,7 +263,7 @@ struct PartialMessage {
     mentions: Option<Vec<UserObject>>,
     mention_roles: Option<Vec<String>>,
     mention_channels: Option<Vec<ChannelMention>>,
-    attachments: Option<Vec<Attachment>>,
+    attachments: Option<Vec<DiscordFileAttachment>>,
     embeds: Option<Vec<Embed>>,
     reactions: Option<Vec<Reaction>>,
     nonce: Option<serde_json::Value>,
@@ -369,24 +369,10 @@ struct ChannelMention {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Attachment {
-    id: String,
-    filename: String,
-    description: Option<String>,
-    content_type: Option<String>,
-    size: i64,
-    url: String,
-    proxy_url: String,
-    height: Option<String>,
-    width: Option<String>,
-    ephemeral: Option<bool>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 /**
 Represents an Embed. [See the Discord Documentation](https://discord.com/developers/docs/resources/channel#embed-object).
  */
-struct Embed {
+pub struct Embed {
     title: Option<String>,
     #[serde(rename = "type")]
     embed_type: Option<String>,
@@ -539,9 +525,9 @@ struct InstallParams {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct MessageReference {
-    message_id: Option<String>,
-    channel_id: Option<String>,
+pub struct MessageReference {
+    message_id: String,
+    channel_id: String,
     guild_id: Option<String>,
     fail_if_not_exists: Option<bool>,
 }
@@ -655,7 +641,7 @@ struct DefaultReaction {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-enum Component {
+pub enum Component {
     ActionRow = 1,
     Button = 2,
     StringSelect = 3,
@@ -842,27 +828,51 @@ pub struct GatewayPayload {
 
 impl WebSocketEvent for GatewayPayload {}
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DiscordFileAttachment {
-    pub name: String,
+    pub id: i16,
     pub filename: String,
-    pub file: File,
+    description: Option<String>,
+    content_type: Option<String>,
+    size: i64,
+    url: String,
+    proxy_url: String,
+    height: Option<i32>,
+    width: Option<i32>,
+    ephemeral: Option<bool>,
+    duration_secs: Option<f32>,
+    waveform: Option<String>,
 }
 
-impl DiscordFileAttachment {
-    pub fn new(filenames: &Vec<String>, files: Vec<File>) {
-        //-> Vec<DiscordFileAttachment> {
-        if filenames.len() != files.len() {
-            panic!("Your 'filenames' Vector has either more or less elements than your 'files' Vector.")
-        }
-        let mut return_vec: Vec<DiscordFileAttachment> = Vec::new();
-        let mut counter = 0;
-        /*for _ in 0..files.len() {
-            return_vec.push(DiscordFileAttachment {
-                name: format!("files[{}]", counter.to_string()),
-                filename: filenames.iter().next().unwrap().to_string(),
-                file: files.get(0).unwrap(),
-            });
-        }
-        return_vec*/
-    }
+#[derive(Debug, Serialize, Deserialize)]
+
+pub struct PartialDiscordFileAttachment {
+    pub id: Option<i16>,
+    pub filename: Option<String>,
+    description: Option<String>,
+    content_type: Option<String>,
+    size: Option<i64>,
+    url: Option<String>,
+    proxy_url: Option<String>,
+    height: Option<i32>,
+    width: Option<i32>,
+    ephemeral: Option<bool>,
+    duration_secs: Option<f32>,
+    waveform: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AllowedMention {
+    parse: Vec<AllowedMentionType>,
+    roles: Vec<String>,
+    users: Vec<String>,
+    replied_user: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AllowedMentionType {
+    Roles,
+    Users,
+    Everyone,
 }
