@@ -843,7 +843,7 @@ pub struct GatewayPayload {
 impl WebSocketEvent for GatewayPayload {}
 
 pub struct DiscordFileAttachment {
-    pub name: String,
+    pub name: i16,
     pub filename: String,
     pub file: File,
 }
@@ -862,7 +862,7 @@ impl DiscordFileAttachment {
         let mut counter = 0;
         for (filename, file) in filename_file_vec {
             return_vec.push(DiscordFileAttachment {
-                name: format!("files[{}]", counter.to_string()),
+                name: counter,
                 filename,
                 file,
             });
