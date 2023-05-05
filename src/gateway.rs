@@ -523,18 +523,8 @@ mod example {
 
     #[tokio::test]
     async fn test_gateway() {
-        let mut gateway = Gateway::new("wss://localhost:3001/".to_string())
+        let mut gateway = Gateway::new("ws://localhost:3001/".to_string())
             .await
             .unwrap();
-
-        let mut test_indetify = GatewayIdentifyPayload::default();
-        test_indetify.intents = 1000;
-        test_indetify.token = "haaaaeeuuuggghh".to_string();
-        test_indetify.properties = GatewayIdentifyConnectionProps { os: "Linux".to_string(), browser: "Very Poggers Discord Client".to_string(), device: "Some device idfk".to_string()};
-        gateway.send_identify(test_indetify).await;
-
-        loop {
-            gateway.update_events().await;
-        }
     }
 }
