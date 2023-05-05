@@ -35,7 +35,6 @@ implemented [Types] with the trait [`WebSocketEvent`]
 */
 pub struct Gateway<'a> {
     pub url: String,
-    pub token: String,
     pub events: Events<'a>,
     websocket: WebSocketConnection,
     heartbeat_handler: Option<HeartbeatHandler>
@@ -44,11 +43,9 @@ pub struct Gateway<'a> {
 impl<'a> Gateway<'a> {
     pub async fn new(
         websocket_url: String,
-        token: String,
     ) -> Result<Gateway<'a>, tokio_tungstenite::tungstenite::Error> {
         return Ok(Gateway {
             url: websocket_url.clone(),
-            token,
             events: Events::default(),
             websocket: WebSocketConnection::new(websocket_url).await,
             heartbeat_handler: None,
@@ -58,6 +55,7 @@ impl<'a> Gateway<'a> {
     /// This function reads all messages from the gateway's websocket and updates its events along with the events' observers
     pub async fn update_events(&mut self) {
         while let Some(msg) = self.websocket.rx.lock().await.recv().await {
+            println!("Debug GW: Received WSE: {}", msg.to_string());
             let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
             // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
@@ -201,6 +199,8 @@ impl<'a> Gateway<'a> {
         let gateway_payload: GatewayPayload = GatewayPayload { op, d: Some(to_send), s: None, t: None };
 
         let payload_json = serde_json::to_string(&gateway_payload).unwrap();
+
+        println!("Debug GW: Sending WSE: {}", payload_json.clone());
 
         let message = tokio_tungstenite::tungstenite::Message::text(payload_json);
 
@@ -513,7 +513,7 @@ mod example {
 
     #[tokio::test]
     async fn test_gateway() {
-        let gateway = Gateway::new("ws://localhost:3001/".to_string(), "none".to_string())
+        let gateway = Gateway::new("ws://localhost:3001/".to_string())
             .await
             .unwrap();
     }
