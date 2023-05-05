@@ -4,7 +4,7 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
-use std::fs::File;
+use std::{collections::HashMap, fs::File};
 
 use serde::{Deserialize, Serialize};
 
@@ -849,20 +849,24 @@ pub struct DiscordFileAttachment {
 }
 
 impl DiscordFileAttachment {
-    pub fn new(filenames: &Vec<String>, files: Vec<File>) {
-        //-> Vec<DiscordFileAttachment> {
-        if filenames.len() != files.len() {
-            panic!("Your 'filenames' Vector has either more or less elements than your 'files' Vector.")
-        }
+    /**
+    Returns a [`Vec<DiscordFileAttachment>`], where [`DiscordFileAttachment`] represents a file
+    attachment according to Discord API spec (Unique name, filename and File).
+    # Arguments
+    * filename_file_map: A [`HashMap<String, File>`], where
+        * key ([`String`]): Filename of the file
+        * value ([`File`]): A [`File`] object.
+     */
+    pub fn new(filename_file_map: HashMap<String, File>) -> Vec<DiscordFileAttachment> {
         let mut return_vec: Vec<DiscordFileAttachment> = Vec::new();
         let mut counter = 0;
-        /*for _ in 0..files.len() {
+        for (filename, file) in filename_file_map {
             return_vec.push(DiscordFileAttachment {
                 name: format!("files[{}]", counter.to_string()),
-                filename: filenames.iter().next().unwrap().to_string(),
-                file: files.get(0).unwrap(),
+                filename,
+                file,
             });
         }
-        return_vec*/
+        return_vec
     }
 }
