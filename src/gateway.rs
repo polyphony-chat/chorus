@@ -64,6 +64,9 @@ impl<'a> Gateway<'a> {
 
                     // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                     match gateway_payload_t.as_str() {
+                        "READY" => {
+                            let data: GatewayReady = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                        }
                         "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
                         "AUTO_MODERATION_RULE_CREATE" => {}
                         "AUTO_MODERATION_RULE_UPDATE" => {}

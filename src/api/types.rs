@@ -135,6 +135,12 @@ pub struct Error {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
+pub struct UnavailableGuild {
+    id: String,
+    unavailable: bool
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct UserObject {
     id: String,
     username: String,
@@ -801,6 +807,18 @@ pub struct GatewayResume {
 }
 
 impl WebSocketEvent for GatewayResume {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct GatewayReady {
+    pub v: u8,
+    pub user: UserObject,
+    pub guilds: Vec<UnavailableGuild>,
+    pub session_id: String,
+    pub resume_gateway_url: String,
+    pub shard: Option<(u64, u64)>,
+}
+
+impl WebSocketEvent for GatewayReady {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayHello {
