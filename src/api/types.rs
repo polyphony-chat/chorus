@@ -853,14 +853,14 @@ impl DiscordFileAttachment {
     Returns a [`Vec<DiscordFileAttachment>`], where [`DiscordFileAttachment`] represents a file
     attachment according to Discord API spec (Unique name, filename and File).
     # Arguments
-    * filename_file_map: A [`HashMap<String, File>`], where
-        * key ([`String`]): Filename of the file
-        * value ([`File`]): A [`File`] object.
+    * filename_file_map: A [`Vec<String, File>`], where
+        * [`String`]: Filename of the file
+        * [`File`]: A [`File`] object.
      */
-    pub fn new(filename_file_map: HashMap<String, File>) -> Vec<DiscordFileAttachment> {
+    pub fn new(filename_file_vec: Vec<(String, File)>) -> Vec<DiscordFileAttachment> {
         let mut return_vec: Vec<DiscordFileAttachment> = Vec::new();
         let mut counter = 0;
-        for (filename, file) in filename_file_map {
+        for (filename, file) in filename_file_vec {
             return_vec.push(DiscordFileAttachment {
                 name: format!("files[{}]", counter.to_string()),
                 filename,
