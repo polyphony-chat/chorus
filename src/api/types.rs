@@ -216,7 +216,7 @@ pub struct Message {
     mentions: Vec<UserObject>,
     mention_roles: Vec<String>,
     mention_channels: Option<Vec<ChannelMention>>,
-    pub attachments: Vec<Attachment>,
+    pub attachments: Vec<DiscordFileAttachment>,
     embeds: Vec<Embed>,
     reactions: Option<Vec<Reaction>>,
     nonce: Option<serde_json::Value>,
@@ -263,7 +263,7 @@ struct PartialMessage {
     mentions: Option<Vec<UserObject>>,
     mention_roles: Option<Vec<String>>,
     mention_channels: Option<Vec<ChannelMention>>,
-    attachments: Option<Vec<Attachment>>,
+    attachments: Option<Vec<DiscordFileAttachment>>,
     embeds: Option<Vec<Embed>>,
     reactions: Option<Vec<Reaction>>,
     nonce: Option<serde_json::Value>,
@@ -366,20 +366,6 @@ struct ChannelMention {
     #[serde(rename = "type")]
     channel_type: i32,
     name: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Attachment {
-    id: String,
-    filename: String,
-    description: Option<String>,
-    content_type: Option<String>,
-    size: i64,
-    url: String,
-    proxy_url: String,
-    height: Option<String>,
-    width: Option<String>,
-    ephemeral: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
