@@ -216,7 +216,7 @@ pub struct Message {
     mentions: Vec<UserObject>,
     mention_roles: Vec<String>,
     mention_channels: Option<Vec<ChannelMention>>,
-    attachments: Vec<Attachment>,
+    pub attachments: Vec<Attachment>,
     embeds: Vec<Embed>,
     reactions: Option<Vec<Reaction>>,
     nonce: Option<serde_json::Value>,
@@ -386,7 +386,7 @@ struct Attachment {
 /**
 Represents an Embed. [See the Discord Documentation](https://discord.com/developers/docs/resources/channel#embed-object).
  */
-struct Embed {
+pub struct Embed {
     title: Option<String>,
     #[serde(rename = "type")]
     embed_type: Option<String>,
@@ -539,9 +539,9 @@ struct InstallParams {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct MessageReference {
-    message_id: Option<String>,
-    channel_id: Option<String>,
+pub struct MessageReference {
+    message_id: String,
+    channel_id: String,
     guild_id: Option<String>,
     fail_if_not_exists: Option<bool>,
 }
@@ -655,7 +655,7 @@ struct DefaultReaction {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-enum Component {
+pub enum Component {
     ActionRow = 1,
     Button = 2,
     StringSelect = 3,
@@ -842,32 +842,51 @@ pub struct GatewayPayload {
 
 impl WebSocketEvent for GatewayPayload {}
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DiscordFileAttachment {
-    pub name: i16,
+    pub id: i16,
     pub filename: String,
-    pub file: File,
+    description: Option<String>,
+    content_type: Option<String>,
+    size: i64,
+    url: String,
+    proxy_url: String,
+    height: Option<i32>,
+    width: Option<i32>,
+    ephemeral: Option<bool>,
+    duration_secs: Option<f32>,
+    waveform: Option<String>,
 }
 
-impl DiscordFileAttachment {
-    /**
-    Returns a [`Vec<DiscordFileAttachment>`], where [`DiscordFileAttachment`] represents a file
-    attachment according to Discord API spec (Unique name, filename and File).
-    # Arguments
-    * filename_file_map: A [`Vec<String, File>`], where
-        * [`String`]: Filename of the file
-        * [`File`]: A [`File`] object.
-     */
-    pub fn new(filename_file_vec: Vec<(String, File)>) -> Vec<DiscordFileAttachment> {
-        let mut return_vec: Vec<DiscordFileAttachment> = Vec::new();
-        let mut counter = 0;
-        for (filename, file) in filename_file_vec {
-            return_vec.push(DiscordFileAttachment {
-                name: counter,
-                filename,
-                file,
-            });
-            counter += 1;
-        }
-        return_vec
-    }
+#[derive(Debug, Serialize, Deserialize)]
+
+pub struct PartialDiscordFileAttachment {
+    pub id: Option<i16>,
+    pub filename: Option<String>,
+    description: Option<String>,
+    content_type: Option<String>,
+    size: Option<i64>,
+    url: Option<String>,
+    proxy_url: Option<String>,
+    height: Option<i32>,
+    width: Option<i32>,
+    ephemeral: Option<bool>,
+    duration_secs: Option<f32>,
+    waveform: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AllowedMention {
+    parse: Vec<AllowedMentionType>,
+    roles: Vec<String>,
+    users: Vec<String>,
+    replied_user: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AllowedMentionType {
+    Roles,
+    Users,
+    Everyone,
 }
