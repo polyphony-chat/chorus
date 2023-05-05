@@ -830,7 +830,7 @@ impl WebSocketEvent for GatewayHello {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct HelloData {
-    pub heartbeat_interval: i32,
+    pub heartbeat_interval: u128,
 }
 
 impl WebSocketEvent for HelloData {}
@@ -838,7 +838,7 @@ impl WebSocketEvent for HelloData {}
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayHeartbeat {
     pub op: u8,
-    pub d: u64,
+    pub d: Option<u64>,
 }
 
 impl WebSocketEvent for GatewayHeartbeat {}
@@ -852,9 +852,9 @@ impl WebSocketEvent for GatewayHeartbeatAck {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {
-    pub op: i32,
+    pub op: u8,
     pub d: Option<String>,
-    pub s: Option<i64>,
+    pub s: Option<u64>,
     pub t: Option<String>,
 }
 
