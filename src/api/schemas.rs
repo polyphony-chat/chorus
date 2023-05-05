@@ -1,7 +1,11 @@
+use std::{collections::HashMap, io::Bytes};
+
 use regex::Regex;
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeMap, Deserialize, Serialize, Serializer};
 
 use crate::errors::FieldFormatError;
+
+use super::{DiscordFileAttachment, Embed};
 
 /**
 A struct that represents a well-formed email address.
@@ -238,6 +242,24 @@ pub struct TotpSchema {
     ticket: String,
     gift_code_sku_id: Option<String>,
     login_source: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct MessageSendSchema {
+    #[serde(rename = "type")]
+    message_type: i32,
+    content: Option<String>,
+    nonce: Option<String>,
+    tts: Option<bool>,
+    embeds: Option<Vec<super::Embed>>,
+    allowed_mentions: Option<super::AllowedMention>,
+    message_reference: Option<super::MessageReference>,
+    components: Option<Vec<super::Component>>,
+    sticker_ids: Option<Vec<String>>,
+    #[serde(flatten)]
+    files: Option<HashMap<String, Vec<u8>>>,
+    attachments: Option<Vec<super::PartialDiscordFileAttachment>>,
 }
 
 // I know that some of these tests are... really really basic and unneccessary, but sometimes, I
