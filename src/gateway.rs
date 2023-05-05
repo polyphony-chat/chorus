@@ -194,6 +194,42 @@ impl<'a> Gateway<'a> {
             }
         }
     }
+
+    /// Sends json to the gateway with an opcode
+    async fn send_json_event(&self, op: u8, to_send: String) {
+
+        let gateway_payload: GatewayPayload = GatewayPayload { op, d: Some(to_send), s: None, t: None };
+
+        let payload_json = serde_json::to_string(&gateway_payload).unwrap();
+
+        let message = tokio_tungstenite::tungstenite::Message::text(payload_json);
+
+        self.websocket.tx.lock().await.send(message).await.unwrap();
+    }
+
+    /// Sends an identify event to the gateway
+    pub async fn send_identify(&self, to_send: GatewayIdentifyPayload) {
+
+        let to_send_json = serde_json::to_string(&to_send).unwrap();
+
+        self.send_json_event(2, to_send_json).await;
+    }
+
+    /// Sends a resume event to the gateway
+    pub async fn send_resume(&self, to_send: GatewayResume) {
+
+        let to_send_json = serde_json::to_string(&to_send).unwrap();
+
+        self.send_json_event(6, to_send_json).await;
+    }
+
+    /// Sends an update presence event to the gateway
+    pub async fn send_update_presence(&self, to_send: PresenceUpdate) {
+
+        let to_send_json = serde_json::to_string(&to_send).unwrap();
+
+        self.send_json_event(3, to_send_json).await;
+    }
 }
 
 /**
