@@ -106,19 +106,49 @@ impl<'a> Gateway<'a> {
                         "INTERACTION_CREATE" => {}
                         "INVITE_CREATE" => {}
                         "INVITE_DELETE" => {}
-                        "MESSAGE_CREATE" => {}
-                        "MESSAGE_UPDATE" => {}
-                        "MESSAGE_DELETE" => {}
-                        "MESSAGE_DELETE_BULK" => {}
-                        "MESSAGE_REACTION_ADD" => {}
-                        "MESSAGE_REACTION_REMOVE" => {}
-                        "MESSAGE_REACTION_REMOVE_ALL" => {}
-                        "MESSAGE_REACTION_REMOVE_EMOJI" => {}
-                        "PRESENCE_UPDATE" => {}
+                        "MESSAGE_CREATE" => {
+                            let new_data: MessageCreate = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.message.create.update_data(new_data);
+                        }
+                        "MESSAGE_UPDATE" => {
+                            let new_data: MessageUpdate = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.message.update.update_data(new_data);
+                        }
+                        "MESSAGE_DELETE" => {
+                            let new_data: MessageDelete = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.message.delete.update_data(new_data);
+                        }
+                        "MESSAGE_DELETE_BULK" => {
+                            let new_data: MessageDeleteBulk = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.message.delete_bulk.update_data(new_data);
+                        }
+                        "MESSAGE_REACTION_ADD" => {
+                            let new_data: MessageReactionAdd = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.message.reaction_add.update_data(new_data);
+                        }
+                        "MESSAGE_REACTION_REMOVE" => {
+                            let new_data: MessageReactionRemove = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.message.reaction_remove.update_data(new_data);
+                        }
+                        "MESSAGE_REACTION_REMOVE_ALL" => {
+                            let new_data: MessageReactionRemoveAll = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.message.reaction_remove_all.update_data(new_data);
+                        }
+                        "MESSAGE_REACTION_REMOVE_EMOJI" => {
+                            let new_data: MessageReactionRemoveEmoji= serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.message.reaction_remove_emoji.update_data(new_data);
+                        }
+                        "PRESENCE_UPDATE" => {
+                            let new_data: PresenceUpdate = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.user.presence_update.update_data(new_data);
+                        }
                         "STAGE_INSTANCE_CREATE" => {}
                         "STAGE_INSTANCE_UPDATE" => {}
                         "STAGE_INSTANCE_DELETE" => {}
-                        "TYPING_START" => {}
+                        "TYPING_START" => {
+                            let new_data: TypingStartEvent = serde_json::from_str(gateway_payload.d.unwrap().as_str()).unwrap();
+                            self.events.user.typing_start_event.update_data(new_data);
+                        }
                         "USER_UPDATE" => {}
                         "VOICE_STATE_UPDATE" => {}
                         "VOICE_SERVER_UPDATE" => {}
