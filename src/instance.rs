@@ -1,26 +1,26 @@
 use crate::api::limits::Limits;
 use crate::api::types::{InstancePolicies, User};
 use crate::errors::{FieldFormatError, InstanceServerError};
+use crate::gateway::Gateway;
 use crate::limit::LimitedRequester;
 use crate::URLBundle;
 
 use std::collections::HashMap;
 use std::fmt;
 
-#[derive(Debug)]
 /**
 The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
  */
-pub struct Instance {
+pub struct Instance<'a> {
     pub urls: URLBundle,
     pub instance_info: InstancePolicies,
     pub requester: LimitedRequester,
     pub limits: Limits,
-    //pub gateway: Gateway,
+    pub gateway: Gateway<'a>,
     pub users: HashMap<Token, User>,
 }
 
-impl Instance {
+impl Instance<'_> {
     /// Creates a new [`Instance`].
     /// # Arguments
     /// * `urls` - The [`URLBundle`] that contains all the URLs that are needed to connect to the Spacebar server.
@@ -30,7 +30,7 @@ impl Instance {
     pub async fn new(
         urls: URLBundle,
         requester: LimitedRequester,
-    ) -> Result<Instance, InstanceServerError> {
+    ) -> Result<Instance<'static>, InstanceServerError> {
         let users: HashMap<Token, User> = HashMap::new();
         let mut instance = Instance {
             urls: urls.clone(),
@@ -48,6 +48,7 @@ impl Instance {
             limits: Limits::check_limits(urls.api).await,
             requester,
             users,
+            gateway: Gateway::new(urls.wss.clone()).await.unwrap(),
         };
         instance.instance_info = match instance.instance_policies_schema().await {
             Ok(schema) => schema,

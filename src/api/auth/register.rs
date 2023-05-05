@@ -8,7 +8,7 @@ pub mod register {
         instance::{Instance, Token},
     };
 
-    impl Instance {
+    impl Instance<'_> {
         /**
         Registers a new user on the Spacebar server.
         # Arguments

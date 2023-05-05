@@ -5,7 +5,7 @@ pub mod instance {
     use crate::errors::InstanceServerError;
     use crate::{api::types::InstancePolicies, instance::Instance};
 
-    impl Instance {
+    impl Instance<'_> {
         /**
         Gets the instance policies schema.
         # Errors
