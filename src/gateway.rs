@@ -310,15 +310,25 @@ impl<'a> WebSocketConnection {
             ));
         }*/
 
-        let (mut channel_write, mut channel_read): (
+        let (mut send_channel_write, mut send_channel_read): (
             Sender<tokio_tungstenite::tungstenite::Message>,
             Receiver<tokio_tungstenite::tungstenite::Message>,
         ) = channel(32);
 
-        let shared_channel_write = Arc::new(Mutex::new(channel_write));
-        let clone_shared_channel_write = shared_channel_write.clone();
-        let shared_channel_read = Arc::new(Mutex::new(channel_read));
-        let clone_shared_channel_read = shared_channel_read.clone();
+        let (mut receive_channel_write, mut receive_channel_read): (
+            Sender<tokio_tungstenite::tungstenite::Message>,
+            Receiver<tokio_tungstenite::tungstenite::Message>,
+        ) = channel(32);
+
+        let shared_send_channel_write = Arc::new(Mutex::new(send_channel_write));
+        let shared_send_channel_read = Arc::new(Mutex::new(send_channel_read));
+
+        let clone_shared_send_channel_write = shared_send_channel_write.clone();
+
+        let shared_receive_channel_read = Arc::new(Mutex::new(receive_channel_read));
+        let shared_receive_channel_write = Arc::new(Mutex::new(receive_channel_write));
+
+        let clone_shared_receive_channel_read = shared_receive_channel_read.clone();
 
         task::spawn(async move {
             let (mut ws_stream, _) = match connect_async_tls_with_config(
@@ -336,14 +346,14 @@ impl<'a> WebSocketConnection {
                                   ))*/
             };
 
-            let (mut write_tx, mut write_rx) = ws_stream.split();
+            let (mut ws_tx, mut ws_rx) = ws_stream.split();
 
-            while let Some(msg) = shared_channel_read.lock().await.recv().await {
-                write_tx.send(msg).await.unwrap();
+            while let Some(msg) = shared_send_channel_read.lock().await.recv().await {
+                ws_tx.send(msg).await.unwrap();
             }
 
-            let event = while let Some(msg) = write_rx.next().await {
-                shared_channel_write
+            let event = while let Some(msg) = ws_rx.next().await {
+                shared_receive_channel_write
                     .lock()
                     .await
                     .send(msg.unwrap())
@@ -353,8 +363,8 @@ impl<'a> WebSocketConnection {
         });
 
         WebSocketConnection {
-            tx: clone_shared_channel_write,
-            rx: clone_shared_channel_read,
+            tx: clone_shared_send_channel_write,
+            rx: clone_shared_receive_channel_read,
         }
     }
 }
@@ -513,8 +523,18 @@ mod example {
 
     #[tokio::test]
     async fn test_gateway() {
-        let gateway = Gateway::new("ws://localhost:3001/".to_string())
+        let mut gateway = Gateway::new("wss://localhost:3001/".to_string())
             .await
             .unwrap();
+
+        let mut test_indetify = GatewayIdentifyPayload::default();
+        test_indetify.intents = 1000;
+        test_indetify.token = "haaaaeeuuuggghh".to_string();
+        test_indetify.properties = GatewayIdentifyConnectionProps { os: "Linux".to_string(), browser: "Very Poggers Discord Client".to_string(), device: "Some device idfk".to_string()};
+        gateway.send_identify(test_indetify).await;
+
+        loop {
+            gateway.update_events().await;
+        }
     }
 }
