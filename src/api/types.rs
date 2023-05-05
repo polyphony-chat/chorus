@@ -866,6 +866,7 @@ impl DiscordFileAttachment {
                 filename,
                 file,
             });
+            counter += 1;
         }
         return_vec
     }
