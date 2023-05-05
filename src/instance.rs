@@ -20,7 +20,7 @@ pub struct Instance<'a> {
     pub users: HashMap<Token, User>,
 }
 
-impl Instance<'_> {
+impl<'a> Instance<'a> {
     /// Creates a new [`Instance`].
     /// # Arguments
     /// * `urls` - The [`URLBundle`] that contains all the URLs that are needed to connect to the Spacebar server.
@@ -30,7 +30,7 @@ impl Instance<'_> {
     pub async fn new(
         urls: URLBundle,
         requester: LimitedRequester,
-    ) -> Result<Instance<'static>, InstanceServerError> {
+    ) -> Result<Instance<'a>, InstanceServerError> {
         let users: HashMap<Token, User> = HashMap::new();
         let mut instance = Instance {
             urls: urls.clone(),
