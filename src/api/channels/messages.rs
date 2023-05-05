@@ -29,14 +29,24 @@ pub mod messages {
             limits_instance: &mut Limits,
             requester: &mut LimitedRequester,
         ) -> Result<Response, InstanceServerError> {
-            let mut request = Client::new()
+            if files.is_some() {
+                return Self::send_with_attachments(
+                    url_api,
+                    token,
+                    message,
+                    files,
+                    limits_user,
+                    limits_instance,
+                    requester,
+                );
+            }
+            let request = Client::new()
                 .post(format!(
                     "{}/channels/{}/messages",
                     url_api, message.channel_id
                 ))
                 .body(to_string(message).unwrap())
                 .bearer_auth(token);
-            if files.is_some() {}
             match requester
                 .send_request(
                     request,
@@ -49,6 +59,18 @@ pub mod messages {
                 Ok(result) => Ok(result),
                 Err(e) => Err(e),
             }
+        }
+
+        fn send_with_attachments(
+            url_api: &String,
+            token: &String,
+            message: &Message,
+            files: Option<Vec<DiscordFileAttachment>>,
+            limits_user: &mut Limits,
+            limits_instance: &mut Limits,
+            requester: &mut LimitedRequester,
+        ) -> Result<Response, InstanceServerError> {
+            let form = reqwest::multipart::Form::new();
         }
     }
 
