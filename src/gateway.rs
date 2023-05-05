@@ -128,9 +128,7 @@ impl<'a> Gateway<'a> {
                 }
                 // Heartbeat
                 // We received a heartbeat from the server
-                1 => {
-                    let gateway_heartbeat: GatewayHeartbeat = serde_json::from_str(gateway_payload.d.unwrap().as_ref()).unwrap();
-                }
+                1 => {}
                 // Reconnect
                 7 => {todo!()}
                 // Invalid Session
@@ -138,12 +136,10 @@ impl<'a> Gateway<'a> {
                 // Hello
                 // Should start our heartbeat
                 10 => {
-                    let gateway_hello: GatewayHello = serde_json::from_str(gateway_payload.d.unwrap().as_ref()).unwrap();
+                    let gateway_hello: HelloData = serde_json::from_str(gateway_payload.d.unwrap().as_ref()).unwrap();
                 }
                 // Heartbeat ACK
-                11 => {
-                    let gateway_hb_ack: GatewayHeartbeatAck = serde_json::from_str(gateway_payload.d.unwrap().as_ref()).unwrap();
-                }
+                11 => {}
                 2 | 3 | 4 | 6 | 8 => {panic!("Received Gateway op code that's meant to be sent, not received ({})", gateway_payload.op)}
                 _ => {panic!("Received Invalid Gateway op code ({})", gateway_payload.op)}
             }
