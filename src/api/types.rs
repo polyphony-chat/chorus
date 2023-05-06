@@ -150,6 +150,7 @@ pub struct UserObject {
     email: Option<String>,
     flags: i8,
     premium_type: Option<i8>,
+    pronouns: Option<String>,
     public_flags: Option<i8>,
 }
 
