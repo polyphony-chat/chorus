@@ -3,6 +3,7 @@ pub mod channels;
 pub mod policies;
 pub mod schemas;
 pub mod types;
+pub mod users;
 
 pub use channels::messages::*;
 pub use policies::instance::instance::*;

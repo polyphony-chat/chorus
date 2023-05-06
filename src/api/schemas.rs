@@ -244,11 +244,11 @@ pub struct TotpSchema {
     login_source: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub struct MessageSendSchema {
     #[serde(rename = "type")]
-    message_type: i32,
+    message_type: Option<i32>,
     content: Option<String>,
     nonce: Option<String>,
     tts: Option<bool>,
@@ -260,6 +260,37 @@ pub struct MessageSendSchema {
     #[serde(flatten)]
     files: Option<HashMap<String, Vec<u8>>>,
     attachments: Option<Vec<super::PartialDiscordFileAttachment>>,
+}
+
+// make a new() method for MessageSendSchema
+impl MessageSendSchema {
+    pub fn new(
+        message_type: Option<i32>,
+        content: Option<String>,
+        nonce: Option<String>,
+        tts: Option<bool>,
+        embeds: Option<Vec<Embed>>,
+        allowed_mentions: Option<super::AllowedMention>,
+        message_reference: Option<super::MessageReference>,
+        components: Option<Vec<super::Component>>,
+        sticker_ids: Option<Vec<String>>,
+        files: Option<HashMap<String, Vec<u8>>>,
+        attachments: Option<Vec<super::PartialDiscordFileAttachment>>,
+    ) -> MessageSendSchema {
+        MessageSendSchema {
+            message_type,
+            content,
+            nonce,
+            tts,
+            embeds,
+            allowed_mentions,
+            message_reference,
+            components,
+            sticker_ids,
+            files,
+            attachments,
+        }
+    }
 }
 
 // I know that some of these tests are... really really basic and unneccessary, but sometimes, I

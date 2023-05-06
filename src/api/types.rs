@@ -14,8 +14,8 @@ pub trait WebSocketEvent {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginResult {
-    token: String,
-    settings: UserSettings,
+    pub token: String,
+    pub settings: UserSettings,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -150,6 +150,7 @@ pub struct UserObject {
     email: Option<String>,
     flags: i8,
     premium_type: Option<i8>,
+    pronouns: Option<String>,
     public_flags: Option<i8>,
 }
 
@@ -158,9 +159,9 @@ pub struct User<'a> {
     pub logged_in: bool,
     pub belongs_to: &'a mut Instance<'a>,
     token: String,
-    pub rate_limits: Limits,
+    pub limits: Limits,
     pub settings: UserSettings,
-    pub object: UserObject,
+    pub object: Option<UserObject>,
 }
 
 impl<'a> User<'a> {
@@ -188,15 +189,15 @@ impl<'a> User<'a> {
         logged_in: bool,
         belongs_to: &'a mut Instance<'a>,
         token: String,
-        rate_limits: Limits,
+        limits: Limits,
         settings: UserSettings,
-        object: UserObject,
+        object: Option<UserObject>,
     ) -> User<'a> {
         User {
             logged_in,
             belongs_to,
             token,
-            rate_limits,
+            limits,
             settings,
             object,
         }
