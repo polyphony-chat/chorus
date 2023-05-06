@@ -259,6 +259,8 @@ impl HeartbeatHandler {
 
                 if last_heartbeat.elapsed().as_millis() > heartbeat_interval {
 
+                    println!("Debug GW: Sending Heartbeat");
+
                     let heartbeat = GatewayHeartbeat {
                         op: 1,
                         d: last_seq_number
