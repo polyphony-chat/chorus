@@ -20,21 +20,31 @@ pub mod messages {
             url_api: &String,
             message: &mut crate::api::schemas::MessageSendSchema,
             files: Option<Vec<PartialDiscordFileAttachment>>,
+            token: &String,
             user: &mut User<'a>,
-            limits_instance: &mut Limits,
             requester: &mut LimitedRequester,
         ) {
-            let token = user.token();
-            let mut limits = &mut user.rate_limits;
+            let user_limits = &mut user.limits;
+            let instance_limits = &mut user.belongs_to.limits;
         }
     }
 
     impl<'a> User<'a> {
         pub async fn send_message(
             &mut self,
-            message: crate::api::schemas::MessageSendSchema,
+            mut message: &mut crate::api::schemas::MessageSendSchema,
             files: Option<Vec<PartialDiscordFileAttachment>>,
         ) {
+            let token = self.token().clone();
+            Message::send(
+                &self.belongs_to.urls.get_api().to_string(),
+                &mut message,
+                files,
+                &token,
+                self,
+                &mut LimitedRequester::new().await,
+            )
+            .await;
         }
     }
 }
