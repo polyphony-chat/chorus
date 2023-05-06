@@ -158,7 +158,7 @@ pub struct User<'a> {
     pub logged_in: bool,
     pub belongs_to: &'a mut Instance<'a>,
     token: String,
-    pub rate_limits: Limits,
+    pub limits: Limits,
     pub settings: UserSettings,
     pub object: UserObject,
 }
@@ -188,7 +188,7 @@ impl<'a> User<'a> {
         logged_in: bool,
         belongs_to: &'a mut Instance<'a>,
         token: String,
-        rate_limits: Limits,
+        limits: Limits,
         settings: UserSettings,
         object: UserObject,
     ) -> User<'a> {
@@ -196,7 +196,7 @@ impl<'a> User<'a> {
             logged_in,
             belongs_to,
             token,
-            rate_limits,
+            limits,
             settings,
             object,
         }
