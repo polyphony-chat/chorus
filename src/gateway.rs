@@ -341,18 +341,25 @@ impl<'a> WebSocketConnection {
 
             let (mut ws_tx, mut ws_rx) = ws_stream.split();
 
-            // Send messages from the send channel
-            while let Some(msg) = send_channel_read.recv().await {
-                ws_tx.send(msg).await.unwrap();
-            }
+            loop {
 
-            // Write received messages to the receive channel
-            while let Some(msg) = ws_rx.next().await {
-                receive_channel_write
-                    .send(msg.unwrap())
-                    .await
-                    .unwrap();
-            };
+                // Write received messages to the receive channel
+                let msg = ws_rx.next().await;
+                if msg.as_ref().is_some() {
+                    let msg_unwrapped = msg.unwrap().unwrap();
+                    receive_channel_write
+                        .send(msg_unwrapped)
+                        .await
+                        .unwrap();
+                };
+                
+                // Send messages from the send channel
+                let msg = send_channel_read.recv().await;
+                if msg.as_ref().is_some() {
+                    let msg_unwrapped = msg.unwrap();
+                    ws_tx.send(msg_unwrapped).await.unwrap();
+                }
+            }
         });
 
         WebSocketConnection {
