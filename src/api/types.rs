@@ -151,10 +151,10 @@ pub struct UserObject {
     mfa_enabled: Option<bool>,
     banner: Option<bool>,
     accent_color: Option<String>,
-    locale: String,
+    locale: Option<String>,
     verified: Option<bool>,
     email: Option<String>,
-    flags: i8,
+    flags: String, // Not sure why flags is a string, but real responses from the gateway give this is an integer in string format
     premium_type: Option<i8>,
     public_flags: Option<i8>,
 }
@@ -814,7 +814,7 @@ pub struct GatewayReady {
     pub user: UserObject,
     pub guilds: Vec<UnavailableGuild>,
     pub session_id: String,
-    pub resume_gateway_url: String,
+    pub resume_gateway_url: Option<String>,
     pub shard: Option<(u64, u64)>,
 }
 
