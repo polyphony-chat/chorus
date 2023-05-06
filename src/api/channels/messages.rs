@@ -18,7 +18,7 @@ pub mod messages {
 
         pub async fn send<'a>(
             url_api: &String,
-            message: &mut Message,
+            message: &mut crate::api::schemas::MessageSendSchema,
             files: Option<Vec<PartialDiscordFileAttachment>>,
             user: &mut User<'a>,
             limits_instance: &mut Limits,
@@ -30,6 +30,11 @@ pub mod messages {
     }
 
     impl<'a> User<'a> {
-        pub async fn send_message() {}
+        pub async fn send_message(
+            &mut self,
+            message: crate::api::schemas::MessageSendSchema,
+            files: Option<Vec<PartialDiscordFileAttachment>>,
+        ) {
+        }
     }
 }
