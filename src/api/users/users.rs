@@ -75,7 +75,7 @@ impl Instance {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    
 
     #[tokio::test]
     async fn get_user() {}

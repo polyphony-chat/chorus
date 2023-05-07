@@ -45,10 +45,10 @@ pub mod messages {
                     )
                     .await
             } else {
-                return Err(crate::errors::InstanceServerError::InvalidFormBodyError {
+                Err(crate::errors::InstanceServerError::InvalidFormBodyError {
                     error_type: "Not implemented".to_string(),
                     error: "Not implemented".to_string(),
-                });
+                })
             }
         }
     }
@@ -56,7 +56,7 @@ pub mod messages {
     impl<'a> User<'a> {
         pub async fn send_message(
             &mut self,
-            mut message: &mut crate::api::schemas::MessageSendSchema,
+            message: &mut crate::api::schemas::MessageSendSchema,
             channel_id: &String,
             files: Option<Vec<PartialDiscordFileAttachment>>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
@@ -64,7 +64,7 @@ pub mod messages {
             Message::send(
                 &self.belongs_to.urls.get_api().to_string(),
                 channel_id,
-                &mut message,
+                message,
                 files,
                 &token,
                 self,
@@ -77,12 +77,12 @@ pub mod messages {
 #[cfg(test)]
 mod test {
     use crate::{
-        api::{AuthUsername, LoginSchema, MessageSendSchema, UserObject},
+        api::{AuthUsername, LoginSchema},
         instance::Instance,
         limit::LimitedRequester,
     };
 
-    use super::*;
+    
 
     #[tokio::test]
     async fn send_message() {

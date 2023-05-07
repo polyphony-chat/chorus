@@ -36,11 +36,11 @@ impl<'a> Gateway<'a> {
         websocket_url: String,
         token: String,
     ) -> Result<Gateway<'a>, tokio_tungstenite::tungstenite::Error> {
-        return Ok(Gateway {
+        Ok(Gateway {
             url: websocket_url,
             token,
             events: Events::default(),
-        });
+        })
     }
 }
 
