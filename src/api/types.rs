@@ -740,7 +740,7 @@ pub struct PresenceUpdate {
     since: Option<i64>,
     activities: Vec<Activity>,
     status: String,
-    afk: bool,
+    afk: Option<bool>,
 }
 
 impl WebSocketEvent for PresenceUpdate {}
