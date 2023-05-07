@@ -4,7 +4,7 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
-use std::{collections::HashMap, fs::File};
+
 
 use serde::{Deserialize, Serialize};
 

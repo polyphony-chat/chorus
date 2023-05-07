@@ -1,5 +1,5 @@
 pub mod limits {
-    use std::{collections::HashMap, default};
+    use std::{collections::HashMap};
 
     use reqwest::Client;
     use serde::{Deserialize, Serialize};

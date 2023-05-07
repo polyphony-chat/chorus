@@ -2,7 +2,7 @@ pub mod messages {
     use reqwest::Client;
     use serde_json::to_string;
 
-    use crate::api::limits::Limits;
+    
     use crate::api::types::{Message, PartialDiscordFileAttachment, User};
     use crate::limit::LimitedRequester;
 
