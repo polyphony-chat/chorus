@@ -2,7 +2,6 @@ pub mod messages {
     use reqwest::Client;
     use serde_json::to_string;
 
-    
     use crate::api::types::{Message, PartialDiscordFileAttachment, User};
     use crate::limit::LimitedRequester;
 
@@ -82,8 +81,6 @@ mod test {
         limit::LimitedRequester,
     };
 
-    
-
     #[tokio::test]
     async fn send_message() {
         let channel_id = "1104413094102290492".to_string();
@@ -123,8 +120,7 @@ mod test {
         let token = login_result.token;
         let settings = login_result.settings;
         let limits = instance.limits.clone();
-        let mut user =
-            crate::api::types::User::new(true, &mut instance, token, limits, settings, None);
+        let mut user = crate::api::types::User::new(&mut instance, token, limits, settings, None);
         let response = user
             .send_message(&mut message, &channel_id, None)
             .await

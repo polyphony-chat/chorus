@@ -4,8 +4,6 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
-
-
 use serde::{Deserialize, Serialize};
 
 use crate::{api::limits::Limits, instance::Instance};
@@ -156,7 +154,6 @@ pub struct UserObject {
 
 #[derive(Debug)]
 pub struct User<'a> {
-    pub logged_in: bool,
     pub belongs_to: &'a mut Instance,
     token: String,
     pub limits: Limits,
@@ -165,10 +162,6 @@ pub struct User<'a> {
 }
 
 impl<'a> User<'a> {
-    pub fn is_logged_in(&self) -> bool {
-        self.logged_in
-    }
-
     pub fn belongs_to(&mut self) -> &mut Instance {
         self.belongs_to
     }
@@ -177,16 +170,11 @@ impl<'a> User<'a> {
         self.token.clone()
     }
 
-    pub fn set_logged_in(&mut self, bool: bool) {
-        self.logged_in = bool;
-    }
-
     pub fn set_token(&mut self, token: String) {
         self.token = token;
     }
 
     pub fn new(
-        logged_in: bool,
         belongs_to: &'a mut Instance,
         token: String,
         limits: Limits,
@@ -194,7 +182,6 @@ impl<'a> User<'a> {
         object: Option<UserObject>,
     ) -> User<'a> {
         User {
-            logged_in,
             belongs_to,
             token,
             limits,
