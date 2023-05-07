@@ -53,7 +53,6 @@ impl<'a> Gateway<'a> {
                 continue;
             }
 
-            println!("Debug GW: Received WSE: {}", msg.to_string());
             let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
             // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
@@ -62,6 +61,8 @@ impl<'a> Gateway<'a> {
                 // An event was dispatched, we need to look at the gateway event name t
                 0 => {
                     let gateway_payload_t = gateway_payload.t.unwrap();
+
+                    println!("GW: Received {}..", gateway_payload_t);
 
                     // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                     match gateway_payload_t.as_str() {
@@ -172,11 +173,14 @@ impl<'a> Gateway<'a> {
                 // Hello
                 // Starts our heartbeat
                 10 => {
+                    println!("GW: Received Hello");
                     let gateway_hello: HelloData = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     self.heartbeat_handler = Some(HeartbeatHandler::new(gateway_hello.heartbeat_interval, self.websocket.tx.clone()));
                 }
                 // Heartbeat ACK
-                11 => {}
+                11 => {
+                    println!("GW: Received Heartbeat ACK");
+                }
                 2 | 3 | 4 | 6 | 8 => {panic!("Received Gateway op code that's meant to be sent, not received ({})", gateway_payload.op)}
                 _ => {panic!("Received Invalid Gateway op code ({})", gateway_payload.op)}
             }
@@ -200,8 +204,6 @@ impl<'a> Gateway<'a> {
 
         let payload_json = serde_json::to_string(&gateway_payload).unwrap();
 
-        println!("Debug GW: Sending WSE: {}", payload_json.clone());
-
         let message = tokio_tungstenite::tungstenite::Message::text(payload_json);
 
         self.websocket.tx.lock().await.send(message).await.unwrap();
@@ -212,6 +214,8 @@ impl<'a> Gateway<'a> {
 
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
+        println!("GW: Sending Identify..");
+
         self.send_json_event(2, to_send_value).await;
     }
 
@@ -219,6 +223,8 @@ impl<'a> Gateway<'a> {
     pub async fn send_resume(&self, to_send: GatewayResume) {
 
         let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        println!("GW: Sending Resume..");
 
         self.send_json_event(6, to_send_value).await;
     }
@@ -259,7 +265,7 @@ impl HeartbeatHandler {
 
                 if last_heartbeat.elapsed().as_millis() > heartbeat_interval {
 
-                    println!("Debug GW: Sending Heartbeat");
+                    println!("GW: Sending Heartbeat..");
 
                     let heartbeat = GatewayHeartbeat {
                         op: 1,
