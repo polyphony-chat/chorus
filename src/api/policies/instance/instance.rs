@@ -1,11 +1,10 @@
-
 use reqwest::Client;
 use serde_json::from_str;
 
 use crate::errors::InstanceServerError;
 use crate::{api::types::InstancePolicies, instance::Instance};
 
-impl<'a> Instance<'a> {
+impl Instance {
     /**
     Gets the instance policies schema.
     # Errors

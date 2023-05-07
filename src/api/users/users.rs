@@ -47,7 +47,7 @@ impl<'a> User<'a> {
     }
 }
 
-impl<'a> Instance<'a> {
+impl Instance {
     /**
     Get a user object by id, or get the current user.
     # Arguments
@@ -71,4 +71,12 @@ impl<'a> Instance<'a> {
         )
         .await
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[tokio::test]
+    async fn get_user() {}
 }
