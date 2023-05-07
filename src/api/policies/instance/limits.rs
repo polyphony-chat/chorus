@@ -1,39 +1,23 @@
 pub mod limits {
-    use std::collections::HashMap;
+    use std::{collections::HashMap, default};
 
     use reqwest::Client;
     use serde::{Deserialize, Serialize};
     use serde_json::from_str;
 
-    #[derive(Clone, Copy, Eq, Hash, PartialEq, Debug)]
+    #[derive(Clone, Copy, Eq, Hash, PartialEq, Debug, Default)]
     pub enum LimitType {
         AuthRegister,
         AuthLogin,
         AbsoluteMessage,
         AbsoluteRegister,
+        #[default]
         Global,
         Ip,
         Channel,
         Error,
         Guild,
         Webhook,
-    }
-
-    impl std::fmt::Display for LimitType {
-        fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-            match self {
-                LimitType::AuthRegister => write!(f, "auth_register"),
-                LimitType::AuthLogin => write!(f, "auth_login"),
-                LimitType::AbsoluteMessage => write!(f, "absolute_message"),
-                LimitType::AbsoluteRegister => write!(f, "absolute_register"),
-                LimitType::Global => write!(f, "global"),
-                LimitType::Ip => write!(f, "ip"),
-                LimitType::Channel => write!(f, "channel"),
-                LimitType::Error => write!(f, "error"),
-                LimitType::Guild => write!(f, "guild"),
-                LimitType::Webhook => write!(f, "webhook"),
-            }
-        }
     }
 
     #[derive(Debug, Deserialize, Serialize)]
@@ -134,7 +118,7 @@ pub mod limits {
         pub absoluteRate: AbsoluteRate,
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
     pub struct Limit {
         pub bucket: LimitType,
         pub limit: u64,
@@ -146,7 +130,7 @@ pub mod limits {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(
                 f,
-                "Bucket: {}, Limit: {}, Remaining: {}, Reset: {}",
+                "Bucket: {:?}, Limit: {}, Remaining: {}, Reset: {}",
                 self.bucket, self.limit, self.remaining, self.reset
             )
         }
@@ -229,7 +213,7 @@ pub mod limits {
         }
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, Default)]
     pub struct Limits {
         pub limit_absolute_messages: Limit,
         pub limit_absolute_register: Limit,
