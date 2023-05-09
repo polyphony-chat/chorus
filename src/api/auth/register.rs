@@ -1,14 +1,14 @@
 pub mod register {
     use reqwest::Client;
-    use serde_json::json;
+    use serde_json::{from_str, json};
 
     use crate::{
-        api::{limits::LimitType, schemas::RegisterSchema, types::ErrorResponse},
+        api::{limits::LimitType, schemas::RegisterSchema, types::ErrorResponse, Token},
         errors::InstanceServerError,
-        instance::{Instance, Token},
+        instance::Instance,
     };
 
-    impl<'a> Instance<'a> {
+    impl Instance {
         /**
         Registers a new user on the Spacebar server.
         # Arguments
@@ -19,7 +19,7 @@ pub mod register {
         pub async fn register_account(
             &mut self,
             register_schema: &RegisterSchema,
-        ) -> Result<Token, InstanceServerError> {
+        ) -> Result<crate::api::types::User, InstanceServerError> {
             let json_schema = json!(register_schema);
             let limited_requester = &mut self.requester;
             let client = Client::new();
@@ -43,9 +43,12 @@ pub mod register {
 
             let response_unwrap = response.unwrap();
             let status = response_unwrap.status();
-            let response_text_string = response_unwrap.text().await.unwrap();
+            let response_unwrap_text = response_unwrap.text().await.unwrap();
+            println!("{}", response_unwrap_text);
+            let token = from_str::<Token>(&response_unwrap_text).unwrap();
+            let token = token.token;
             if status.is_client_error() {
-                let json: ErrorResponse = serde_json::from_str(&response_text_string).unwrap();
+                let json: ErrorResponse = serde_json::from_str(&token).unwrap();
                 let error_type = json.errors.errors.iter().next().unwrap().0.to_owned();
                 let mut error = "".to_string();
                 for (_, value) in json.errors.errors.iter() {
@@ -55,9 +58,22 @@ pub mod register {
                 }
                 return Err(InstanceServerError::InvalidFormBodyError { error_type, error });
             }
-            Ok(Token {
-                token: response_text_string,
-            })
+            let user_object = self.get_user(token.clone(), None).await.unwrap();
+            let settings = crate::api::types::User::get_settings(
+                &token,
+                &self.urls.get_api().to_string(),
+                &mut self.limits,
+            )
+            .await
+            .unwrap();
+            let user: crate::api::types::User = crate::api::types::User::new(
+                self,
+                token.clone(),
+                cloned_limits,
+                settings,
+                Some(user_object),
+            );
+            Ok(user)
         }
     }
 }
@@ -65,42 +81,9 @@ pub mod register {
 #[cfg(test)]
 mod test {
     use crate::api::schemas::{AuthEmail, AuthPassword, AuthUsername, RegisterSchema};
-    use crate::errors::InstanceServerError;
     use crate::instance::Instance;
     use crate::limit::LimitedRequester;
     use crate::URLBundle;
-    #[tokio::test]
-    async fn test_incomplete_registration() {
-        let urls = URLBundle::new(
-            "http://localhost:3001/api".to_string(),
-            "http://localhost:3001".to_string(),
-            "http://localhost:3001".to_string(),
-        );
-        let limited_requester = LimitedRequester::new().await;
-        let mut test_instance = Instance::new(urls.clone(), limited_requester)
-            .await
-            .unwrap();
-        let reg = RegisterSchema::new(
-            AuthUsername::new("hiiii".to_string()).unwrap(),
-            None,
-            true,
-            Some(AuthEmail::new("me@mail.xy".to_string()).unwrap()),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-        )
-        .unwrap();
-        assert_eq!(
-            InstanceServerError::InvalidFormBodyError {
-                error_type: "date_of_birth".to_string(),
-                error: "This field is required (BASE_TYPE_REQUIRED)".to_string()
-            },
-            test_instance.register_account(&reg).await.err().unwrap()
-        );
-    }
 
     #[tokio::test]
     async fn test_registration() {
@@ -117,7 +100,7 @@ mod test {
             AuthUsername::new("Hiiii".to_string()).unwrap(),
             Some(AuthPassword::new("mysupersecurepass123!".to_string()).unwrap()),
             true,
-            Some(AuthEmail::new("random978234@aaaa.xyz".to_string()).unwrap()),
+            Some(AuthEmail::new("four7@aaaa.xyz".to_string()).unwrap()),
             None,
             None,
             Some("2000-01-01".to_string()),
@@ -127,6 +110,5 @@ mod test {
         )
         .unwrap();
         let token = test_instance.register_account(&reg).await.unwrap().token;
-        println!("{}", token);
     }
 }

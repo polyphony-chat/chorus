@@ -1,11 +1,11 @@
-use std::{collections::HashMap, io::Bytes};
+use std::{collections::HashMap};
 
 use regex::Regex;
-use serde::{ser::SerializeMap, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 use crate::errors::FieldFormatError;
 
-use super::{DiscordFileAttachment, Embed};
+use super::{Embed};
 
 /**
 A struct that represents a well-formed email address.

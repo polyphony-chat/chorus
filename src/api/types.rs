@@ -4,8 +4,6 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
-use std::{collections::HashMap, fs::File};
-
 use serde::{Deserialize, Serialize};
 
 use crate::{api::limits::Limits, instance::Instance};
@@ -136,40 +134,44 @@ pub struct Error {
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct UserObject {
-    id: String,
+    pub id: String,
     username: String,
     discriminator: String,
     avatar: Option<String>,
-    bot: Option<bool>,
+    bot: bool,
     system: Option<bool>,
     mfa_enabled: Option<bool>,
-    banner: Option<bool>,
     accent_color: Option<String>,
-    locale: String,
+    locale: Option<String>,
     verified: Option<bool>,
     email: Option<String>,
-    flags: i8,
-    premium_type: Option<i8>,
+    flags: String,
+    premium_since: Option<String>,
+    premium_type: i8,
     pronouns: Option<String>,
     public_flags: Option<i8>,
+    banner: Option<String>,
+    bio: String,
+    theme_colors: Option<Vec<i32>>,
+    phone: Option<String>,
+    nsfw_allowed: bool,
+    premium: bool,
+    purchased_flags: i32,
+    premium_usage_flags: i32,
+    disabled: bool,
 }
 
 #[derive(Debug)]
 pub struct User<'a> {
-    pub logged_in: bool,
-    pub belongs_to: &'a mut Instance<'a>,
-    token: String,
+    pub belongs_to: &'a mut Instance,
+    pub token: String,
     pub limits: Limits,
     pub settings: UserSettings,
     pub object: Option<UserObject>,
 }
 
 impl<'a> User<'a> {
-    pub fn is_logged_in(&self) -> bool {
-        self.logged_in
-    }
-
-    pub fn belongs_to(&mut self) -> &mut Instance<'a> {
+    pub fn belongs_to(&mut self) -> &mut Instance {
         self.belongs_to
     }
 
@@ -177,24 +179,18 @@ impl<'a> User<'a> {
         self.token.clone()
     }
 
-    pub fn set_logged_in(&mut self, bool: bool) {
-        self.logged_in = bool;
-    }
-
     pub fn set_token(&mut self, token: String) {
         self.token = token;
     }
 
     pub fn new(
-        logged_in: bool,
-        belongs_to: &'a mut Instance<'a>,
+        belongs_to: &'a mut Instance,
         token: String,
         limits: Limits,
         settings: UserSettings,
         object: Option<UserObject>,
     ) -> User<'a> {
         User {
-            logged_in,
             belongs_to,
             token,
             limits,
@@ -876,4 +872,9 @@ pub enum AllowedMentionType {
     Roles,
     Users,
     Everyone,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Token {
+    pub token: String,
 }
