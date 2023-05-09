@@ -125,6 +125,5 @@ mod test {
             .send_message(&mut message, &channel_id, None)
             .await
             .unwrap();
-        println!("{:?}", response);
     }
 }

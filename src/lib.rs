@@ -30,7 +30,6 @@ impl URLBundle {
     /// # Example:
     /// ```rs
     /// let url = parse_url("localhost:3000");
-    /// println!("{}", url);  
     /// ```
     /// `-> Outputs "http://localhost:3000".`
     pub fn parse_url(url: String) -> String {

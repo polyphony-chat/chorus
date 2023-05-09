@@ -116,6 +116,5 @@ mod test {
             .login_account(&login_schema.unwrap())
             .await
             .unwrap();
-        println!("{:?}", login_result);
     }
 }*/
