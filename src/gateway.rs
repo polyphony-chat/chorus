@@ -3,23 +3,6 @@ use crate::api::WebSocketEvent;
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
 Represents a Gateway connection. A Gateway connection will create observable
 [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
