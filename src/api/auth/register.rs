@@ -5,7 +5,7 @@ pub mod register {
     use crate::{
         api::{limits::LimitType, schemas::RegisterSchema, types::ErrorResponse},
         errors::InstanceServerError,
-        instance::{Instance, Token},
+        instance::Instance,
     };
 
     impl Instance {
@@ -19,7 +19,7 @@ pub mod register {
         pub async fn register_account(
             &mut self,
             register_schema: &RegisterSchema,
-        ) -> Result<Token, InstanceServerError> {
+        ) -> Result<crate::api::types::User, InstanceServerError> {
             let json_schema = json!(register_schema);
             let limited_requester = &mut self.requester;
             let client = Client::new();
@@ -55,9 +55,25 @@ pub mod register {
                 }
                 return Err(InstanceServerError::InvalidFormBodyError { error_type, error });
             }
-            Ok(Token {
-                token: response_text_string,
-            })
+            let user_object = self
+                .get_user(response_text_string.clone(), None)
+                .await
+                .unwrap();
+            let settings = crate::api::types::User::get_settings(
+                &response_text_string,
+                &self.urls.get_api().to_string(),
+                &mut self.limits,
+            )
+            .await
+            .unwrap();
+            let user: crate::api::types::User = crate::api::types::User::new(
+                self,
+                response_text_string.clone(),
+                cloned_limits,
+                settings,
+                Some(user_object),
+            );
+            Ok(user)
         }
     }
 }
@@ -117,7 +133,7 @@ mod test {
             AuthUsername::new("Hiiii".to_string()).unwrap(),
             Some(AuthPassword::new("mysupersecurepass123!".to_string()).unwrap()),
             true,
-            Some(AuthEmail::new("random978234@aaaa.xyz".to_string()).unwrap()),
+            Some(AuthEmail::new("three12@aaaa.xyz".to_string()).unwrap()),
             None,
             None,
             Some("2000-01-01".to_string()),

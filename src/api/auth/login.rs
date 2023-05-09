@@ -12,7 +12,7 @@ pub mod login {
         pub async fn login_account(
             &mut self,
             login_schema: &LoginSchema,
-        ) -> Result<LoginResult, InstanceServerError> {
+        ) -> Result<crate::api::types::User, InstanceServerError> {
             let requester = &mut self.requester;
             let json_schema = json!(login_schema);
             let client = Client::new();
@@ -49,9 +49,21 @@ pub mod login {
                 return Err(InstanceServerError::InvalidFormBodyError { error_type, error });
             }
 
+            let cloned_limits = self.limits.clone();
             let login_result: LoginResult = from_str(&response_text_string).unwrap();
+            let object = self
+                .get_user(login_result.token.clone(), None)
+                .await
+                .unwrap();
+            let user = crate::api::types::User::new(
+                self,
+                login_result.token,
+                cloned_limits,
+                login_result.settings,
+                Some(object),
+            );
 
-            Ok(login_result)
+            Ok(user)
         }
     }
 }
