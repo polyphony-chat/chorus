@@ -100,7 +100,7 @@ mod test {
             AuthUsername::new("Hiiii".to_string()).unwrap(),
             Some(AuthPassword::new("mysupersecurepass123!".to_string()).unwrap()),
             true,
-            Some(AuthEmail::new("four5@aaaa.xyz".to_string()).unwrap()),
+            Some(AuthEmail::new("four7@aaaa.xyz".to_string()).unwrap()),
             None,
             None,
             Some("2000-01-01".to_string()),
