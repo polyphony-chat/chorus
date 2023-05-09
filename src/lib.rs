@@ -1,9 +1,9 @@
-mod api;
-mod errors;
-mod gateway;
-mod instance;
-mod limit;
-mod voice;
+pub mod api;
+pub mod errors;
+pub mod gateway;
+pub mod instance;
+pub mod limit;
+pub mod voice;
 
 use url::{ParseError, Url};
 #[derive(Clone, Default, Debug, PartialEq, Eq)]
