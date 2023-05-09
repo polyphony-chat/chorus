@@ -35,16 +35,20 @@ impl<'a> User<'a> {
         }
         let request = reqwest::Client::new().get(url).bearer_auth(token);
         let mut requester = crate::limit::LimitedRequester::new().await;
+        let mut cloned_limits = instance_limits.clone();
         match requester
             .send_request(
                 request,
                 crate::api::limits::LimitType::Ip,
                 instance_limits,
-                &mut Limits::default(),
+                &mut cloned_limits,
             )
             .await
         {
-            Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
+            Ok(result) => {
+                let result_text = result.text().await.unwrap();
+                Ok(serde_json::from_str::<UserObject>(&result_text).unwrap())
+            }
             Err(e) => Err(e),
         }
     }
@@ -57,13 +61,14 @@ impl<'a> User<'a> {
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings/", url_api))
             .bearer_auth(token);
+        let mut cloned_limits = instance_limits.clone();
         let mut requester = crate::limit::LimitedRequester::new().await;
         match requester
             .send_request(
                 request,
                 crate::api::limits::LimitType::Ip,
                 instance_limits,
-                &mut Limits::default(),
+                &mut cloned_limits,
             )
             .await
         {
