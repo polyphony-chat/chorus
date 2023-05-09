@@ -155,7 +155,7 @@ pub struct UserObject {
 #[derive(Debug)]
 pub struct User<'a> {
     pub belongs_to: &'a mut Instance,
-    token: String,
+    pub token: String,
     pub limits: Limits,
     pub settings: UserSettings,
     pub object: Option<UserObject>,
