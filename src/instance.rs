@@ -1,13 +1,13 @@
 use crate::api::limits::Limits;
 use crate::api::types::{InstancePolicies};
 use crate::errors::{FieldFormatError, InstanceServerError};
+use crate::gateway::Gateway;
 use crate::limit::LimitedRequester;
 use crate::URLBundle;
 
 
 use std::fmt;
 
-#[derive(Debug)]
 /**
 The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
  */
@@ -16,7 +16,7 @@ pub struct Instance {
     pub instance_info: InstancePolicies,
     pub requester: LimitedRequester,
     pub limits: Limits,
-    //pub gateway: Gateway,
+    pub gateway: Gateway,
 }
 
 impl Instance {
@@ -45,6 +45,7 @@ impl Instance {
             ),
             limits: Limits::check_limits(urls.api).await,
             requester,
+            gateway: Gateway::new(urls.wss.clone()).await.unwrap(),
         };
         instance.instance_info = match instance.instance_policies_schema().await {
             Ok(schema) => schema,

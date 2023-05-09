@@ -133,6 +133,12 @@ pub struct Error {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
+pub struct UnavailableGuild {
+    id: String,
+    unavailable: bool
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct UserObject {
     pub id: String,
     username: String,
@@ -717,7 +723,7 @@ pub struct PresenceUpdate {
     since: Option<i64>,
     activities: Vec<Activity>,
     status: String,
-    afk: bool,
+    afk: Option<bool>,
 }
 
 impl WebSocketEvent for PresenceUpdate {}
@@ -785,6 +791,18 @@ pub struct GatewayResume {
 
 impl WebSocketEvent for GatewayResume {}
 
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct GatewayReady {
+    pub v: u8,
+    pub user: UserObject,
+    pub guilds: Vec<UnavailableGuild>,
+    pub session_id: String,
+    pub resume_gateway_url: Option<String>,
+    pub shard: Option<(u64, u64)>,
+}
+
+impl WebSocketEvent for GatewayReady {}
+
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayHello {
     pub op: i32,
@@ -795,7 +813,7 @@ impl WebSocketEvent for GatewayHello {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct HelloData {
-    pub heartbeat_interval: i32,
+    pub heartbeat_interval: u128,
 }
 
 impl WebSocketEvent for HelloData {}
@@ -803,7 +821,7 @@ impl WebSocketEvent for HelloData {}
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayHeartbeat {
     pub op: u8,
-    pub d: u64,
+    pub d: Option<u64>,
 }
 
 impl WebSocketEvent for GatewayHeartbeat {}
@@ -817,9 +835,9 @@ impl WebSocketEvent for GatewayHeartbeatAck {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {
-    pub op: i32,
-    pub d: Option<String>,
-    pub s: Option<i64>,
+    pub op: u8,
+    pub d: Option<serde_json::Value>,
+    pub s: Option<u64>,
     pub t: Option<String>,
 }
 
