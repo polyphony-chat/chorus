@@ -1,7 +1,10 @@
+use reqwest::Client;
+
 use crate::{
     api::{
         limits::Limits,
         types::{User, UserObject},
+        UserSettings,
     },
     errors::InstanceServerError,
     instance::Instance,
@@ -31,6 +34,29 @@ impl<'a> User<'a> {
             url = format!("{}/users/{}", url_api, id.unwrap());
         }
         let request = reqwest::Client::new().get(url).bearer_auth(token);
+        let mut requester = crate::limit::LimitedRequester::new().await;
+        match requester
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Ip,
+                instance_limits,
+                &mut Limits::default(),
+            )
+            .await
+        {
+            Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn get_settings(
+        token: &String,
+        url_api: &String,
+        instance_limits: &mut Limits,
+    ) -> Result<UserSettings, InstanceServerError> {
+        let request: reqwest::RequestBuilder = Client::new()
+            .get(format!("{}/users/@me/settings/", url_api))
+            .bearer_auth(token);
         let mut requester = crate::limit::LimitedRequester::new().await;
         match requester
             .send_request(
@@ -75,7 +101,6 @@ impl Instance {
 
 #[cfg(test)]
 mod test {
-    
 
     #[tokio::test]
     async fn get_user() {}
