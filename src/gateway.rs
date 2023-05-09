@@ -3,23 +3,6 @@ use crate::api::WebSocketEvent;
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
 Represents a Gateway connection. A Gateway connection will create observable
 [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
@@ -36,11 +19,11 @@ impl<'a> Gateway<'a> {
         websocket_url: String,
         token: String,
     ) -> Result<Gateway<'a>, tokio_tungstenite::tungstenite::Error> {
-        return Ok(Gateway {
+        Ok(Gateway {
             url: websocket_url,
             token,
             events: Events::default(),
-        });
+        })
     }
 }
 

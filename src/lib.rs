@@ -1,9 +1,9 @@
-mod api;
-mod errors;
-mod gateway;
-mod instance;
-mod limit;
-mod voice;
+pub mod api;
+pub mod errors;
+pub mod gateway;
+pub mod instance;
+pub mod limit;
+pub mod voice;
 
 use url::{ParseError, Url};
 #[derive(Clone, Default, Debug, PartialEq, Eq)]
@@ -30,7 +30,6 @@ impl URLBundle {
     /// # Example:
     /// ```rs
     /// let url = parse_url("localhost:3000");
-    /// println!("{}", url);  
     /// ```
     /// `-> Outputs "http://localhost:3000".`
     pub fn parse_url(url: String) -> String {
