@@ -134,22 +134,31 @@ pub struct Error {
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct UserObject {
-    id: String,
+    pub id: String,
     username: String,
     discriminator: String,
     avatar: Option<String>,
-    bot: Option<bool>,
+    bot: bool,
     system: Option<bool>,
     mfa_enabled: Option<bool>,
-    banner: Option<bool>,
     accent_color: Option<String>,
-    locale: String,
+    locale: Option<String>,
     verified: Option<bool>,
     email: Option<String>,
-    flags: i8,
-    premium_type: Option<i8>,
+    flags: String,
+    premium_since: Option<String>,
+    premium_type: i8,
     pronouns: Option<String>,
     public_flags: Option<i8>,
+    banner: Option<String>,
+    bio: String,
+    theme_colors: Option<Vec<i32>>,
+    phone: Option<String>,
+    nsfw_allowed: bool,
+    premium: bool,
+    purchased_flags: i32,
+    premium_usage_flags: i32,
+    disabled: bool,
 }
 
 #[derive(Debug)]
@@ -863,4 +872,9 @@ pub enum AllowedMentionType {
     Roles,
     Users,
     Everyone,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Token {
+    pub token: String,
 }
