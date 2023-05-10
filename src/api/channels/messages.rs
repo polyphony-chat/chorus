@@ -1,8 +1,11 @@
 pub mod messages {
-    use reqwest::Client;
+    use http::header::CONTENT_DISPOSITION;
+    use http::{header, HeaderMap};
+    use reqwest::{multipart, Client};
     use serde_json::to_string;
 
     use crate::api::types::{Message, PartialDiscordFileAttachment, User};
+    use crate::errors::InstanceServerError;
     use crate::limit::LimitedRequester;
 
     impl Message {
@@ -17,7 +20,6 @@ pub mod messages {
         # Errors
         * [`InstanceServerError`] - If the message cannot be sent.
          */
-
         pub async fn send<'a>(
             url_api: &String,
             channel_id: &String,
@@ -26,6 +28,7 @@ pub mod messages {
             token: &String,
             user: &mut User<'a>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+            let file_attachments_static: &'static [PartialDiscordFileAttachment];
             let mut requester = LimitedRequester::new().await;
             let user_rate_limits = &mut user.limits;
             let instance_rate_limits = &mut user.belongs_to.limits;
@@ -44,10 +47,65 @@ pub mod messages {
                     )
                     .await
             } else {
-                Err(crate::errors::InstanceServerError::InvalidFormBodyError {
-                    error_type: "Not implemented".to_string(),
-                    error: "Not implemented".to_string(),
-                })
+                let mut form = reqwest::multipart::Form::new();
+                let payload_json = to_string(message).unwrap();
+                let mut payload_field =
+                    reqwest::multipart::Part::text(payload_json).file_name("payload_json");
+                payload_field = match payload_field.mime_str("application/json") {
+                    Ok(part) => part,
+                    Err(e) => {
+                        return Err(InstanceServerError::MultipartCreationError {
+                            error: e.to_string(),
+                        })
+                    }
+                };
+
+                form = form.part("payload_json", payload_field);
+
+                if let Some(file_attachments) = files {
+                    let boxed_attachments = file_attachments.into_boxed_slice();
+                    file_attachments_static = Box::leak(boxed_attachments);
+                    for (index, attachment) in file_attachments_static.iter().enumerate() {
+                        let part_name = format!("files[{}]", index);
+                        let content_disposition = format!(
+                            "form-data; name=\"{}\"'; filename=\"{}\"",
+                            part_name,
+                            attachment.filename.as_deref().unwrap_or("file")
+                        );
+                        let mut header_map = HeaderMap::new();
+                        header_map
+                            .insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap())
+                            .unwrap();
+
+                        let mut part = multipart::Part::bytes(Vec::new())
+                            .file_name(attachment.filename.as_deref().unwrap_or("file"))
+                            .headers(header_map);
+
+                        part = match part.mime_str("application/octet-stream") {
+                            Ok(part) => part,
+                            Err(e) => {
+                                return Err(InstanceServerError::MultipartCreationError {
+                                    error: e.to_string(),
+                                })
+                            }
+                        };
+
+                        form = form.part(part_name, part);
+                    }
+                }
+                let message_request = Client::new()
+                    .post(format!("{}/channels/{}/messages/", url_api, channel_id))
+                    .bearer_auth(token)
+                    .multipart(form);
+
+                requester
+                    .send_request(
+                        message_request,
+                        crate::api::limits::LimitType::Channel,
+                        instance_rate_limits,
+                        user_rate_limits,
+                    )
+                    .await
             }
         }
     }
