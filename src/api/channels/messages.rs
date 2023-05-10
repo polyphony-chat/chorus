@@ -106,6 +106,7 @@ pub mod messages {
                         user_rate_limits,
                     )
                     .await
+                // TODO: Deallocate the darn memory leak!
             }
         }
     }
