@@ -143,6 +143,8 @@ pub mod messages {
 
 #[cfg(test)]
 mod test {
+    use std::borrow::Cow;
+
     use crate::{
         api::{AuthUsername, LoginSchema},
         instance::Instance,
@@ -155,7 +157,6 @@ mod test {
         let mut message = crate::api::schemas::MessageSendSchema::new(
             None,
             Some("ashjkdhjksdfgjsdfzjkhsdvhjksdf".to_string()),
-            None,
             None,
             None,
             None,
@@ -191,6 +192,70 @@ mod test {
         let mut user = crate::api::types::User::new(&mut instance, token, limits, settings, None);
         let response = user
             .send_message(&mut message, &channel_id, None)
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn send_message_two() {
+        let channel_id = "1104413094102290492".to_string();
+
+        let attachment = crate::api::types::PartialDiscordFileAttachment {
+            id: None,
+            filename: Some("test".to_string()),
+            description: None,
+            content_type: None,
+            size: None,
+            url: None,
+            proxy_url: None,
+            width: None,
+            height: None,
+            ephemeral: Some(false),
+            duration_secs: None,
+            waveform: None,
+            content: vec![8],
+        };
+
+        let mut message = crate::api::schemas::MessageSendSchema::new(
+            None,
+            Some("ashjkdhjksdfgjsdfzjkhsdvhjksdf".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some(vec![attachment.clone()]),
+        );
+        let mut instance = Instance::new(
+            crate::URLBundle {
+                api: "http://localhost:3001/api".to_string(),
+                wss: "ws://localhost:3001/".to_string(),
+                cdn: "http://localhost:3001".to_string(),
+            },
+            LimitedRequester::new().await,
+        )
+        .await
+        .unwrap();
+        let login_schema: LoginSchema = LoginSchema::new(
+            AuthUsername::new("user1@gmail.com".to_string()).unwrap(),
+            "user".to_string(),
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        let login_result = instance.login_account(&login_schema).await.unwrap();
+        let token = login_result.token;
+        let settings = login_result.settings;
+        let limits = instance.limits.clone();
+        let mut user = crate::api::types::User::new(&mut instance, token, limits, settings, None);
+        let vec_attach = vec![attachment.clone()];
+        let arg = Some(&vec_attach);
+        let response = user
+            .send_message(&mut message, &channel_id, arg)
             .await
             .unwrap();
     }
