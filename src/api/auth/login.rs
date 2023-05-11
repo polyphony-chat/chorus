@@ -8,7 +8,7 @@ pub mod login {
     use crate::errors::InstanceServerError;
     use crate::instance::Instance;
 
-    impl<'a> Instance<'a> {
+    impl Instance {
         pub async fn login_account(
             &mut self,
             login_schema: &LoginSchema,
