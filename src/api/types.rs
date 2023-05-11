@@ -839,6 +839,8 @@ pub struct DiscordFileAttachment {
     ephemeral: Option<bool>,
     duration_secs: Option<f32>,
     waveform: Option<String>,
+    #[serde(skip_serializing)]
+    content: Vec<u8>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -856,6 +858,8 @@ pub struct PartialDiscordFileAttachment {
     ephemeral: Option<bool>,
     duration_secs: Option<f32>,
     waveform: Option<String>,
+    #[serde(skip_serializing)]
+    pub content: Vec<u8>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

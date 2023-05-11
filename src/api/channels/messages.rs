@@ -24,11 +24,10 @@ pub mod messages {
             url_api: &String,
             channel_id: &String,
             message: &mut crate::api::schemas::MessageSendSchema,
-            files: Option<Vec<PartialDiscordFileAttachment>>,
+            files: Option<&'static Vec<PartialDiscordFileAttachment>>,
             token: &String,
             user: &mut User<'a>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
-            let file_attachments_static: &'static [PartialDiscordFileAttachment];
             let mut requester = LimitedRequester::new().await;
             let user_rate_limits = &mut user.limits;
             let instance_rate_limits = &mut user.belongs_to.limits;
@@ -62,37 +61,47 @@ pub mod messages {
 
                 form = form.part("payload_json", payload_field);
 
-                if let Some(file_attachments) = files {
-                    let boxed_attachments = file_attachments.into_boxed_slice();
-                    file_attachments_static = Box::leak(boxed_attachments);
-                    for (index, attachment) in file_attachments_static.iter().enumerate() {
-                        let part_name = format!("files[{}]", index);
-                        let content_disposition = format!(
-                            "form-data; name=\"{}\"'; filename=\"{}\"",
-                            part_name,
-                            attachment.filename.as_deref().unwrap_or("file")
-                        );
-                        let mut header_map = HeaderMap::new();
-                        header_map
-                            .insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap())
-                            .unwrap();
+                for (index, attachment) in files.iter().enumerate() {
+                    let part_name = format!("files[{}]", index);
+                    let content_disposition = format!(
+                        "form-data; name=\"{}\"'; filename=\"{}\"",
+                        part_name,
+                        attachment
+                            .get(index)
+                            .unwrap()
+                            .filename
+                            .as_deref()
+                            .unwrap_or("file")
+                    );
+                    let mut header_map = HeaderMap::new();
+                    header_map
+                        .insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap())
+                        .unwrap();
 
-                        let mut part = multipart::Part::bytes(Vec::new())
-                            .file_name(attachment.filename.as_deref().unwrap_or("file"))
+                    let mut part =
+                        multipart::Part::bytes(attachment.get(index).unwrap().content.as_slice())
+                            .file_name(
+                                attachment
+                                    .get(index)
+                                    .unwrap()
+                                    .filename
+                                    .as_deref()
+                                    .unwrap_or("file"),
+                            )
                             .headers(header_map);
 
-                        part = match part.mime_str("application/octet-stream") {
-                            Ok(part) => part,
-                            Err(e) => {
-                                return Err(InstanceServerError::MultipartCreationError {
-                                    error: e.to_string(),
-                                })
-                            }
-                        };
+                    part = match part.mime_str("application/octet-stream") {
+                        Ok(part) => part,
+                        Err(e) => {
+                            return Err(InstanceServerError::MultipartCreationError {
+                                error: e.to_string(),
+                            })
+                        }
+                    };
 
-                        form = form.part(part_name, part);
-                    }
+                    form = form.part(part_name, part);
                 }
+
                 let message_request = Client::new()
                     .post(format!("{}/channels/{}/messages/", url_api, channel_id))
                     .bearer_auth(token)
@@ -116,7 +125,7 @@ pub mod messages {
             &mut self,
             message: &mut crate::api::schemas::MessageSendSchema,
             channel_id: &String,
-            files: Option<Vec<PartialDiscordFileAttachment>>,
+            files: Option<&'static Vec<PartialDiscordFileAttachment>>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
             let token = self.token().clone();
             Message::send(
