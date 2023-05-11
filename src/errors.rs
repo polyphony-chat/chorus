@@ -18,6 +18,7 @@ custom_error! {
     CantGetInfoError{error:String} = "Something seems to be wrong with the instance. Cannot get information about the instance: {error}",
     InvalidFormBodyError{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
     RateLimited = "Ratelimited.",
+    MultipartCreationError{error: String} = "Got an error whilst creating the form: {}",
 }
 
 custom_error! {

@@ -1,11 +1,11 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::FieldFormatError;
 
-use super::{Embed};
+use super::Embed;
 
 /**
 A struct that represents a well-formed email address.
@@ -257,8 +257,6 @@ pub struct MessageSendSchema {
     message_reference: Option<super::MessageReference>,
     components: Option<Vec<super::Component>>,
     sticker_ids: Option<Vec<String>>,
-    #[serde(flatten)]
-    files: Option<HashMap<String, Vec<u8>>>,
     attachments: Option<Vec<super::PartialDiscordFileAttachment>>,
 }
 
@@ -274,7 +272,6 @@ impl MessageSendSchema {
         message_reference: Option<super::MessageReference>,
         components: Option<Vec<super::Component>>,
         sticker_ids: Option<Vec<String>>,
-        files: Option<HashMap<String, Vec<u8>>>,
         attachments: Option<Vec<super::PartialDiscordFileAttachment>>,
     ) -> MessageSendSchema {
         MessageSendSchema {
@@ -287,7 +284,6 @@ impl MessageSendSchema {
             message_reference,
             components,
             sticker_ids,
-            files,
             attachments,
         }
     }

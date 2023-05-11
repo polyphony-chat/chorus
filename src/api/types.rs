@@ -839,23 +839,27 @@ pub struct DiscordFileAttachment {
     ephemeral: Option<bool>,
     duration_secs: Option<f32>,
     waveform: Option<String>,
+    #[serde(skip_serializing)]
+    content: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 
 pub struct PartialDiscordFileAttachment {
     pub id: Option<i16>,
     pub filename: Option<String>,
-    description: Option<String>,
-    content_type: Option<String>,
-    size: Option<i64>,
-    url: Option<String>,
-    proxy_url: Option<String>,
-    height: Option<i32>,
-    width: Option<i32>,
-    ephemeral: Option<bool>,
-    duration_secs: Option<f32>,
-    waveform: Option<String>,
+    pub description: Option<String>,
+    pub content_type: Option<String>,
+    pub size: Option<i64>,
+    pub url: Option<String>,
+    pub proxy_url: Option<String>,
+    pub height: Option<i32>,
+    pub width: Option<i32>,
+    pub ephemeral: Option<bool>,
+    pub duration_secs: Option<f32>,
+    pub waveform: Option<String>,
+    #[serde(skip_serializing)]
+    pub content: Vec<u8>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

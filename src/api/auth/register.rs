@@ -80,7 +80,7 @@ pub mod register {
 
 #[cfg(test)]
 mod test {
-    use crate::api::schemas::{AuthEmail, AuthPassword, AuthUsername, RegisterSchema};
+    use crate::api::schemas::{AuthUsername, RegisterSchema};
     use crate::instance::Instance;
     use crate::limit::LimitedRequester;
     use crate::URLBundle;
@@ -98,9 +98,9 @@ mod test {
             .unwrap();
         let reg = RegisterSchema::new(
             AuthUsername::new("Hiiii".to_string()).unwrap(),
-            Some(AuthPassword::new("mysupersecurepass123!".to_string()).unwrap()),
+            None,
             true,
-            Some(AuthEmail::new("four7@aaaa.xyz".to_string()).unwrap()),
+            None,
             None,
             None,
             Some("2000-01-01".to_string()),
