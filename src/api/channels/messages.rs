@@ -46,52 +46,29 @@ pub mod messages {
                     )
                     .await
             } else {
+                for (index, attachment) in message.attachments.iter_mut().enumerate() {
+                    attachment.get_mut(index).unwrap().set_id(index as i16);
+                }
                 let mut form = reqwest::multipart::Form::new();
                 let payload_json = to_string(message).unwrap();
-                let mut payload_field =
-                    reqwest::multipart::Part::text(payload_json).file_name("payload_json");
-                payload_field = match payload_field.mime_str("application/json") {
-                    Ok(part) => part,
-                    Err(e) => {
-                        return Err(InstanceServerError::MultipartCreationError {
-                            error: e.to_string(),
-                        })
-                    }
-                };
+                let payload_field = reqwest::multipart::Part::text(payload_json);
 
                 form = form.part("payload_json", payload_field);
 
                 for (index, attachment) in files.unwrap().into_iter().enumerate() {
                     let (attachment_content, current_attachment) = attachment.move_content();
-                    let (attachment_filename, current_attachment) =
-                        current_attachment.move_filename();
-                    let (attachment_content_type, _) = current_attachment.move_content_type();
+                    let (attachment_filename, _) = current_attachment.move_filename();
                     let part_name = format!("files[{}]", index);
                     let content_disposition = format!(
                         "form-data; name=\"{}\"'; filename=\"{}\"",
                         part_name, &attachment_filename
                     );
                     let mut header_map = HeaderMap::new();
-                    header_map
-                        .insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap())
-                        .unwrap();
+                    header_map.insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap());
 
                     let mut part = multipart::Part::bytes(attachment_content)
                         .file_name(attachment_filename)
                         .headers(header_map);
-
-                    part = match part.mime_str(
-                        attachment_content_type
-                            .unwrap_or("application/octet-stream".to_string())
-                            .as_str(),
-                    ) {
-                        Ok(part) => part,
-                        Err(e) => {
-                            return Err(InstanceServerError::MultipartCreationError {
-                                error: e.to_string(),
-                            })
-                        }
-                    };
 
                     form = form.part(part_name, part);
                 }
@@ -100,6 +77,8 @@ pub mod messages {
                     .post(format!("{}/channels/{}/messages/", url_api, channel_id))
                     .bearer_auth(token)
                     .multipart(form);
+
+                println!("[Request Headers: ] {:?}", message_request);
 
                 requester
                     .send_request(
@@ -142,6 +121,10 @@ mod test {
         limit::LimitedRequester,
     };
 
+    use std::fs::File;
+    use std::io::BufReader;
+    use std::io::Read;
+
     #[tokio::test]
     async fn send_message() {
         let channel_id = "1104413094102290492".to_string();
@@ -178,6 +161,7 @@ mod test {
         .unwrap();
         let login_result = instance.login_account(&login_schema).await.unwrap();
         let token = login_result.token;
+        println!("TOKEN: {}", token);
         let settings = login_result.settings;
         let limits = instance.limits.clone();
         let mut user = crate::api::types::User::new(&mut instance, token, limits, settings, None);
@@ -188,12 +172,18 @@ mod test {
     }
 
     #[tokio::test]
-    async fn send_message_two() {
+    async fn send_message_attachment() {
         let channel_id = "1104413094102290492".to_string();
+
+        let f = File::open("/drive/hdd1/Pictures/polyphony-chorus8bit.png").unwrap();
+        let mut reader = BufReader::new(f);
+        let mut buffer = Vec::new();
+
+        reader.read_to_end(&mut buffer).unwrap();
 
         let attachment = crate::api::types::PartialDiscordFileAttachment {
             id: None,
-            filename: "test".to_string(),
+            filename: "test.png".to_string(),
             description: None,
             content_type: None,
             size: None,
@@ -201,15 +191,15 @@ mod test {
             proxy_url: None,
             width: None,
             height: None,
-            ephemeral: Some(false),
+            ephemeral: None,
             duration_secs: None,
             waveform: None,
-            content: vec![8],
+            content: buffer,
         };
 
         let mut message = crate::api::schemas::MessageSendSchema::new(
             None,
-            Some("ashjkdhjksdfgjsdfzjkhsdvhjksdf".to_string()),
+            Some("trans rights now".to_string()),
             None,
             None,
             None,
@@ -245,9 +235,10 @@ mod test {
         let mut user = crate::api::types::User::new(&mut instance, token, limits, settings, None);
         let vec_attach = vec![attachment.clone()];
         let _arg = Some(&vec_attach);
-        let _response = user
+        let response = user
             .send_message(&mut message, &channel_id, Some(vec![attachment.clone()]))
             .await
             .unwrap();
+        println!("[Response:] {}", response.text().await.unwrap());
     }
 }
