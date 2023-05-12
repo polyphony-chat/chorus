@@ -1,6 +1,6 @@
 pub mod messages {
     use http::header::CONTENT_DISPOSITION;
-    use http::{header, HeaderMap};
+    use http::HeaderMap;
     use reqwest::{multipart, Client};
     use serde_json::to_string;
 
@@ -24,7 +24,7 @@ pub mod messages {
             url_api: &String,
             channel_id: &String,
             message: &mut crate::api::schemas::MessageSendSchema,
-            files: Option<&'static Vec<PartialDiscordFileAttachment>>,
+            files: Option<Vec<PartialDiscordFileAttachment>>,
             token: &String,
             user: &mut User<'a>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
@@ -61,36 +61,30 @@ pub mod messages {
 
                 form = form.part("payload_json", payload_field);
 
-                for (index, attachment) in files.iter().enumerate() {
+                for (index, attachment) in files.unwrap().into_iter().enumerate() {
+                    let (attachment_content, current_attachment) = attachment.move_content();
+                    let (attachment_filename, current_attachment) =
+                        current_attachment.move_filename();
+                    let (attachment_content_type, _) = current_attachment.move_content_type();
                     let part_name = format!("files[{}]", index);
                     let content_disposition = format!(
                         "form-data; name=\"{}\"'; filename=\"{}\"",
-                        part_name,
-                        attachment
-                            .get(index)
-                            .unwrap()
-                            .filename
-                            .as_deref()
-                            .unwrap_or("file")
+                        part_name, &attachment_filename
                     );
                     let mut header_map = HeaderMap::new();
                     header_map
                         .insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap())
                         .unwrap();
 
-                    let mut part =
-                        multipart::Part::bytes(attachment.get(index).unwrap().content.as_slice())
-                            .file_name(
-                                attachment
-                                    .get(index)
-                                    .unwrap()
-                                    .filename
-                                    .as_deref()
-                                    .unwrap_or("file"),
-                            )
-                            .headers(header_map);
+                    let mut part = multipart::Part::bytes(attachment_content)
+                        .file_name(attachment_filename)
+                        .headers(header_map);
 
-                    part = match part.mime_str("application/octet-stream") {
+                    part = match part.mime_str(
+                        attachment_content_type
+                            .unwrap_or("application/octet-stream".to_string())
+                            .as_str(),
+                    ) {
                         Ok(part) => part,
                         Err(e) => {
                             return Err(InstanceServerError::MultipartCreationError {
@@ -115,7 +109,6 @@ pub mod messages {
                         user_rate_limits,
                     )
                     .await
-                // TODO: Deallocate the darn memory leak!
             }
         }
     }
@@ -125,7 +118,7 @@ pub mod messages {
             &mut self,
             message: &mut crate::api::schemas::MessageSendSchema,
             channel_id: &String,
-            files: Option<&'static Vec<PartialDiscordFileAttachment>>,
+            files: Option<Vec<PartialDiscordFileAttachment>>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
             let token = self.token().clone();
             Message::send(
@@ -143,8 +136,6 @@ pub mod messages {
 
 #[cfg(test)]
 mod test {
-    use std::borrow::Cow;
-
     use crate::{
         api::{AuthUsername, LoginSchema},
         instance::Instance,
@@ -190,7 +181,7 @@ mod test {
         let settings = login_result.settings;
         let limits = instance.limits.clone();
         let mut user = crate::api::types::User::new(&mut instance, token, limits, settings, None);
-        let response = user
+        let _ = user
             .send_message(&mut message, &channel_id, None)
             .await
             .unwrap();
@@ -202,7 +193,7 @@ mod test {
 
         let attachment = crate::api::types::PartialDiscordFileAttachment {
             id: None,
-            filename: Some("test".to_string()),
+            filename: "test".to_string(),
             description: None,
             content_type: None,
             size: None,
@@ -255,7 +246,7 @@ mod test {
         let vec_attach = vec![attachment.clone()];
         let arg = Some(&vec_attach);
         let response = user
-            .send_message(&mut message, &channel_id, arg)
+            .send_message(&mut message, &channel_id, Some(vec![attachment.clone()]))
             .await
             .unwrap();
     }
