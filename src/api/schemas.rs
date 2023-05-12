@@ -1,5 +1,3 @@
-
-
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -257,7 +255,7 @@ pub struct MessageSendSchema {
     message_reference: Option<super::MessageReference>,
     components: Option<Vec<super::Component>>,
     sticker_ids: Option<Vec<String>>,
-    attachments: Option<Vec<super::PartialDiscordFileAttachment>>,
+    pub attachments: Option<Vec<super::PartialDiscordFileAttachment>>,
 }
 
 // make a new() method for MessageSendSchema
