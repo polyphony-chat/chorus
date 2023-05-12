@@ -109,6 +109,6 @@ mod test {
             None,
         )
         .unwrap();
-        let token = test_instance.register_account(&reg).await.unwrap().token;
+        let _ = test_instance.register_account(&reg).await.unwrap().token;
     }
 }
