@@ -927,6 +927,10 @@ impl PartialDiscordFileAttachment {
         };
         (content_type, updated_struct)
     }
+
+    pub fn set_id(&mut self, id: i16) {
+        self.id = Some(id);
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
