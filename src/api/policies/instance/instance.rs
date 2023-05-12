@@ -51,6 +51,6 @@ mod instance_policies_schema_test {
             .await
             .unwrap();
 
-        let schema = test_instance.instance_policies_schema().await.unwrap();
+        let _schema = test_instance.instance_policies_schema().await.unwrap();
     }
 }

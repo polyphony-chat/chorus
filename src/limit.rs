@@ -329,6 +329,6 @@ mod rate_limit {
             Ok(result) => result,
             Err(_) => panic!("Request failed"),
         };
-        let config: Config = from_str(result.text().await.unwrap().as_str()).unwrap();
+        let _config: Config = from_str(result.text().await.unwrap().as_str()).unwrap();
     }
 }
