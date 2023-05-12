@@ -244,8 +244,8 @@ mod test {
         let limits = instance.limits.clone();
         let mut user = crate::api::types::User::new(&mut instance, token, limits, settings, None);
         let vec_attach = vec![attachment.clone()];
-        let arg = Some(&vec_attach);
-        let response = user
+        let _arg = Some(&vec_attach);
+        let _response = user
             .send_message(&mut message, &channel_id, Some(vec![attachment.clone()]))
             .await
             .unwrap();
