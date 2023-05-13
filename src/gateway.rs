@@ -385,57 +385,6 @@ struct HeartbeatThreadCommunication {
     d: u64
 }
 
-struct WebSocketConnection {
-    rx: Arc<Mutex<Receiver<tokio_tungstenite::tungstenite::Message>>>,
-    tx: Arc<Mutex<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tokio_tungstenite::tungstenite::Message>>>,
-}
-
-impl<'a> WebSocketConnection {
-    async fn new(websocket_url: String) -> WebSocketConnection {
-        let (receive_channel_write, receive_channel_read): (
-            Sender<tokio_tungstenite::tungstenite::Message>,
-            Receiver<tokio_tungstenite::tungstenite::Message>,
-        ) = channel(32);
-
-        let shared_receive_channel_read = Arc::new(Mutex::new(receive_channel_read));
-
-        let (ws_stream, _) = match connect_async_tls_with_config(
-            &websocket_url,
-            None,
-            Some(Connector::NativeTls(
-                TlsConnector::builder().build().unwrap(),
-            )),
-        )
-        .await
-        {
-            Ok(ws_stream) => ws_stream,
-            Err(e) => panic!("{:?}", e),
-        };
-
-        let (ws_tx, mut ws_rx) = ws_stream.split();
-
-        task::spawn(async move {
-            loop {
-
-                // Write received messages to the receive channel
-                let msg = ws_rx.next().await;
-                if msg.as_ref().is_some() {
-                    let msg_unwrapped = msg.unwrap().unwrap();
-                    receive_channel_write
-                        .send(msg_unwrapped)
-                        .await
-                        .unwrap();
-                };
-            }
-        });
-
-        WebSocketConnection {
-            tx: Arc::new(Mutex::new(ws_tx)),
-            rx: shared_receive_channel_read,
-        }
-    }
-}
-
 /**
 Trait which defines the behaviour of an Observer. An Observer is an object which is subscribed to
 an Observable. The Observer is notified when the Observable's data changes.
