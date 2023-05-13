@@ -78,7 +78,11 @@ impl LimitedRequester {
             let result = self.http.execute(built_request).await;
             let response = match result {
                 Ok(is_response) => is_response,
-                Err(e) => panic!("An error occured while processing the response: {}", e),
+                Err(e) => {
+                    return Err(InstanceServerError::ReceivedErrorCodeError {
+                        error_code: e.to_string(),
+                    })
+                }
             };
             self.update_limits(
                 &response,
@@ -86,7 +90,13 @@ impl LimitedRequester {
                 instance_rate_limits,
                 user_rate_limits,
             );
-            Ok(response)
+            if !response.status().is_success() {
+                Err(InstanceServerError::ReceivedErrorCodeError {
+                    error_code: response.status().as_str().to_string(),
+                })
+            } else {
+                Ok(response)
+            }
         } else {
             self.requests.push_back(TypedRequest {
                 request,
