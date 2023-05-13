@@ -40,7 +40,7 @@ Core functionality:
 - [x] Login (conventional way) (Guess what? Found [an Issue with the Spacebar Server](https://github.com/spacebarchat/server/pull/1043) :3)
 - [ ] 2FA
 - [x] Registration (encountered another [Issue with the Spacebar Server](https://github.com/spacebarchat/server/issues/1040) which makes some error messages an empty string)
-- [ ] Gateway Events, multithreaded
+- [x] Gateway Events, multithreaded
 - [x] Sending messages (Text, Images, Attachments)
 - [x] Events (Message, User, Channel, etc.)
 - [ ] Adding, deleting and editing channels
