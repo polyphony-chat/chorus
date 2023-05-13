@@ -542,23 +542,33 @@ mod example {
         };
 
         let consumer = Consumer;
+        let arc_mut_consumer = Arc::new(Mutex::new(consumer));
 
-        event.subscribe(Arc::new(Mutex::new(consumer)));
+        event.subscribe(arc_mut_consumer.clone());
 
         event.notify().await;
 
         event.update_data(new_data).await;
 
         let second_consumer = Consumer;
+        let arc_mut_second_consumer = Arc::new(Mutex::new(second_consumer));
 
-        match event.subscribe(Arc::new(Mutex::new(second_consumer))) {
+        match event.subscribe(arc_mut_second_consumer.clone()) {
             None => assert!(false),
             Some(err) => println!("You cannot subscribe twice: {}", err),
         }
+
+        event.unsubscribe(arc_mut_consumer.clone());
+
+        match event.subscribe(arc_mut_second_consumer.clone()) {
+            None => assert!(true),
+            Some(err) => assert!(false),
+        }
+    
     }
 
     #[tokio::test]
-    async fn test_gateway() {
+    async fn test_gateway_establish() {
         let _gateway = Gateway::new("ws://localhost:3001/".to_string())
             .await
             .unwrap();
