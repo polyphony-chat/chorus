@@ -620,7 +620,7 @@ pub struct MessageActivity {
     pub party_id: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Application {
     pub id: String,
     pub name: String,
@@ -646,7 +646,7 @@ pub struct Application {
     pub role_connections_verification_url: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Team {
     pub icon: Option<String>,
     pub id: u64,
@@ -655,7 +655,7 @@ pub struct Team {
     pub owner_user_id: u64,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TeamMember {
     pub membership_state: u8,
     pub permissions: Vec<String>,
@@ -670,7 +670,7 @@ pub enum MembershipState {
     Accepted = 2,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InstallParams {
     pub scopes: Vec<String>,
     pub permissions: String,
@@ -784,6 +784,65 @@ pub struct ThreadMember {
     pub join_timestamp: Option<String>,
     pub flags: Option<u64>,
     pub member: Option<GuildMember>,
+}
+
+#[derive(Default, Debug, Deserialize, Serialize, Clone)]
+/// See https://discord.com/developers/docs/resources/guild#integration-object-integration-structure
+pub struct Integration {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub integration_type: String,
+    pub enabled: bool,
+    pub syncing: Option<bool>,
+    pub role_id: Option<String>,
+    pub enabled_emoticons: Option<bool>,
+    pub expire_behaviour: Option<u8>,
+    pub expire_grace_period: Option<u16>,
+    pub user: Option<UserObject>,
+    pub account: IntegrationAccount,
+    pub synced_at: Option<DateTime<Utc>>,
+    pub subscriber_count: Option<f64>,
+    pub revoked: Option<bool>,
+    pub application: Option<Application>,
+    pub scopes: Option<Vec<String>>
+}
+
+#[derive(Default, Debug, Deserialize, Serialize, Clone)]
+/// See https://discord.com/developers/docs/resources/guild#integration-account-object-integration-account-structure
+pub struct IntegrationAccount {
+    pub id: String,
+    pub name: String
+}
+
+#[derive(Default, Debug, Deserialize, Serialize, Clone)]
+/// See https://discord.com/developers/docs/resources/voice#voice-state-object
+pub struct VoiceStateObject {
+    pub guild_id: Option<String>,
+    pub channel_id: Option<String>,
+    pub user_id: String,
+    pub member: Option<GuildMember>,
+    pub session_id: String,
+    pub deaf: bool,
+    pub mute: bool,
+    pub self_deaf: bool,
+    pub self_mute: bool,
+    pub self_stream: Option<bool>,
+    pub self_video: bool,
+    pub suppress: bool,
+    pub request_to_speak_timestamp: DateTime<Utc>
+}
+
+#[derive(Default, Debug, Deserialize, Serialize, Clone)]
+/// See https://discord.com/developers/docs/resources/stage-instance#stage-instance-object
+pub struct StageInstance {
+    pub id: String,
+    pub guild_id: String,
+    pub channel_id: String,
+    pub topic: String,
+    pub privacy_level: u8,
+    pub discoverable_disabled: bool,
+    pub guild_scheduled_event_id: Option<String>
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
