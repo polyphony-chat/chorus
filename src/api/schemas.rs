@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::FieldFormatError;
 
-use super::Embed;
+use super::{Channel, Embed};
 
 /**
 A struct that represents a well-formed email address.
@@ -285,6 +285,18 @@ impl MessageSendSchema {
             attachments,
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct GuildCreateSchema {
+    name: Option<String>,
+    region: Option<String>,
+    icon: Option<String>,
+    channels: Option<Vec<Channel>>,
+    guild_template_code: Option<String>,
+    system_channel_id: Option<String>,
+    rules_channel_id: Option<String>,
 }
 
 // I know that some of these tests are... really really basic and unneccessary, but sometimes, I
