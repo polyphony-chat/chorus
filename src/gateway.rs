@@ -183,6 +183,7 @@ impl<'a> Gateway {
                     "READY" => {
                         let data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
+                    "RESUMED" => {}
                     "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
                     "AUTO_MODERATION_RULE_CREATE" => {}
                     "AUTO_MODERATION_RULE_UPDATE" => {}
@@ -200,10 +201,16 @@ impl<'a> Gateway {
                     "THREAD_MEMBERS_UPDATE" => {}
                     "GUILD_CREATE" => {}
                     "GUILD_UPDATE" => {}
-                    "GUILD_DELETE" => {}
+                    "GUILD_DELETE" => {
+                        let new_data: UnavailableGuild = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                    }
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => {}
-                    "GUILD_BAN_ADD" => {}
-                    "GUILD_BAN_REMOVE" => {}
+                    "GUILD_BAN_ADD" => {
+                        let new_data: GuildBanAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                    }
+                    "GUILD_BAN_REMOVE" => {
+                        let new_data: GuildBanRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                    }
                     "GUILD_EMOJIS_UPDATE" => {}
                     "GUILD_STICKERS_UPDATE" => {}
                     "GUILD_INTEGRATIONS_UPDATE" => {}
@@ -270,7 +277,11 @@ impl<'a> Gateway {
                         let new_data: TypingStartEvent = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.user.typing_start_event.update_data(new_data).await;
                     }
-                    "USER_UPDATE" => {}
+                    "USER_UPDATE" => {
+                        let user: UserObject = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data = UserUpdate {user};
+                        self.events.lock().await.user.user_update.update_data(new_data).await;
+                    }
                     "VOICE_STATE_UPDATE" => {}
                     "VOICE_SERVER_UPDATE" => {}
                     "WEBHOOKS_UPDATE" => {}
@@ -531,6 +542,7 @@ mod events {
 
     #[derive(Default, Debug)]
     pub struct User {
+        pub user_update: GatewayEvent<UserUpdate>,
         pub presence_update: GatewayEvent<PresenceUpdate>,
         pub typing_start_event: GatewayEvent<TypingStartEvent>,
     }

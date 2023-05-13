@@ -4,6 +4,7 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{api::limits::Limits, instance::Instance};
@@ -856,6 +857,43 @@ pub struct GatewayHeartbeatAck {
 }
 
 impl WebSocketEvent for GatewayHeartbeatAck {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#channel-pins-update
+pub struct ChannelPinsUpdate {
+    pub guild_id: Option<String>,
+    pub channel_id: String,
+    pub last_pin_timestamp: Option<DateTime<Utc>>
+}
+
+impl WebSocketEvent for ChannelPinsUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-add-guild-ban-add-event-fields
+pub struct GuildBanAdd {
+    pub guild_id: String,
+    pub user: UserObject,
+}
+
+impl WebSocketEvent for GuildBanAdd {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-remove
+pub struct GuildBanRemove {
+    pub guild_id: String,
+    pub user: UserObject,
+}
+
+impl WebSocketEvent for GuildBanRemove {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#user-update
+/// Not directly serialized, as the inner payload is the user object
+pub struct UserUpdate {
+    pub user: UserObject,
+}
+
+impl WebSocketEvent for UserUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {
