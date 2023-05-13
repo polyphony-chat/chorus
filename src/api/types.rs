@@ -4,6 +4,7 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{api::limits::Limits, instance::Instance};
@@ -133,6 +134,12 @@ pub struct Error {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
+pub struct UnavailableGuild {
+    id: String,
+    unavailable: bool
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct UserObject {
     pub id: String,
     username: String,
@@ -158,7 +165,7 @@ pub struct UserObject {
     premium: bool,
     purchased_flags: i32,
     premium_usage_flags: i32,
-    disabled: bool,
+    disabled: Option<bool>,
 }
 
 #[derive(Debug)]
@@ -717,7 +724,7 @@ pub struct PresenceUpdate {
     since: Option<i64>,
     activities: Vec<Activity>,
     status: String,
-    afk: bool,
+    afk: Option<bool>,
 }
 
 impl WebSocketEvent for PresenceUpdate {}
@@ -785,6 +792,42 @@ pub struct GatewayResume {
 
 impl WebSocketEvent for GatewayResume {}
 
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct GatewayReady {
+    pub v: u8,
+    pub user: UserObject,
+    pub guilds: Vec<UnavailableGuild>,
+    pub session_id: String,
+    pub resume_gateway_url: Option<String>,
+    pub shard: Option<(u64, u64)>,
+}
+
+impl WebSocketEvent for GatewayReady {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#request-guild-members-request-guild-members-structure
+pub struct GatewayRequestGuildMembers {
+    pub guild_id: String,
+    pub query: Option<String>,
+    pub limit: u64,
+    pub presence: Option<bool>,
+    pub user_ids: Option<String>,
+    pub nonce: Option<String>,
+}
+
+impl WebSocketEvent for GatewayRequestGuildMembers {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#update-voice-state-gateway-voice-state-update-structure
+pub struct GatewayVoiceStateUpdate {
+    pub guild_id: String,
+    pub channel_id: Option<String>,
+    pub self_mute: bool,
+    pub self_deaf: bool,
+}
+
+impl WebSocketEvent for GatewayVoiceStateUpdate {}
+
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayHello {
     pub op: i32,
@@ -795,7 +838,7 @@ impl WebSocketEvent for GatewayHello {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct HelloData {
-    pub heartbeat_interval: i32,
+    pub heartbeat_interval: u128,
 }
 
 impl WebSocketEvent for HelloData {}
@@ -803,7 +846,7 @@ impl WebSocketEvent for HelloData {}
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayHeartbeat {
     pub op: u8,
-    pub d: u64,
+    pub d: Option<u64>,
 }
 
 impl WebSocketEvent for GatewayHeartbeat {}
@@ -816,10 +859,47 @@ pub struct GatewayHeartbeatAck {
 impl WebSocketEvent for GatewayHeartbeatAck {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#channel-pins-update
+pub struct ChannelPinsUpdate {
+    pub guild_id: Option<String>,
+    pub channel_id: String,
+    pub last_pin_timestamp: Option<DateTime<Utc>>
+}
+
+impl WebSocketEvent for ChannelPinsUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-add-guild-ban-add-event-fields
+pub struct GuildBanAdd {
+    pub guild_id: String,
+    pub user: UserObject,
+}
+
+impl WebSocketEvent for GuildBanAdd {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-remove
+pub struct GuildBanRemove {
+    pub guild_id: String,
+    pub user: UserObject,
+}
+
+impl WebSocketEvent for GuildBanRemove {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#user-update
+/// Not directly serialized, as the inner payload is the user object
+pub struct UserUpdate {
+    pub user: UserObject,
+}
+
+impl WebSocketEvent for UserUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {
-    pub op: i32,
-    pub d: Option<String>,
-    pub s: Option<i64>,
+    pub op: u8,
+    pub d: Option<serde_json::Value>,
+    pub s: Option<u64>,
     pub t: Option<String>,
 }
 

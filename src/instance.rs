@@ -16,7 +16,6 @@ pub struct Instance {
     pub instance_info: InstancePolicies,
     pub requester: LimitedRequester,
     pub limits: Limits,
-    //pub gateway: Gateway,
 }
 
 impl Instance {
