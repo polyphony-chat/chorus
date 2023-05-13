@@ -69,7 +69,29 @@ impl GatewayHandle {
 
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
+        println!("GW: Sending Presence Update..");
+
         self.send_json_event(3, to_send_value).await;
+    }
+
+    /// Sends a Request Guild Members to the server
+    pub async fn send_request_guild_members(&self, to_send: GatewayRequestGuildMembers) {
+
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        println!("GW: Sending Request Guild Members..");
+
+        self.send_json_event(8, to_send_value).await;
+    }
+
+    /// Sends a Request Guild Members to the server
+    pub async fn send_update_voice_state(&self, to_send: GatewayVoiceStateUpdate) {
+
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        println!("GW: Sending Voice State Update..");
+
+        self.send_json_event(4, to_send_value).await;
     }
 }
 
