@@ -57,7 +57,8 @@ impl LimitedRequester {
 
     ## Errors
 
-    This method will panic, if:
+    This method will error, if:
+    - The request does not return a success status code (200-299)
     - The supplied [`RequestBuilder`](reqwest::RequestBuilder) contains invalid or incomplete
     information
     - There has been an error with processing (unwrapping) the [`Response`](`reqwest::Response`)
@@ -72,9 +73,15 @@ impl LimitedRequester {
         user_rate_limits: &mut Limits,
     ) -> Result<Response, InstanceServerError> {
         if self.can_send_request(limit_type, instance_rate_limits, user_rate_limits) {
-            let built_request = request
-                .build()
-                .unwrap_or_else(|e| panic!("Error while building the Request for sending: {}", e));
+            let built_request = match request.build() {
+                Ok(request) => request,
+                Err(e) => {
+                    return Err(InstanceServerError::RequestErrorError {
+                        url: "".to_string(),
+                        error: e.to_string(),
+                    })
+                }
+            };
             let result = self.http.execute(built_request).await;
             let response = match result {
                 Ok(is_response) => is_response,
