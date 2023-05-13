@@ -10,7 +10,7 @@ use native_tls::TlsConnector;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::error::TryRecvError;
-use tokio::sync::mpsc::{channel, Receiver, Sender};
+use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 use tokio::task;
 use tokio::time;
@@ -181,7 +181,7 @@ impl<'a> Gateway {
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                 match gateway_payload_t.as_str() {
                     "READY" => {
-                        let data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let _data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "RESUMED" => {}
                     "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
@@ -202,14 +202,14 @@ impl<'a> Gateway {
                     "GUILD_CREATE" => {}
                     "GUILD_UPDATE" => {}
                     "GUILD_DELETE" => {
-                        let new_data: UnavailableGuild = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let _new_data: UnavailableGuild = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => {}
                     "GUILD_BAN_ADD" => {
-                        let new_data: GuildBanAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let _new_data: GuildBanAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "GUILD_BAN_REMOVE" => {
-                        let new_data: GuildBanRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let _new_data: GuildBanRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "GUILD_EMOJIS_UPDATE" => {}
                     "GUILD_STICKERS_UPDATE" => {}
@@ -545,7 +545,7 @@ mod example {
 
         match event.subscribe(arc_mut_second_consumer.clone()) {
             None => assert!(true),
-            Some(err) => assert!(false),
+            Some(_) => assert!(false),
         }
     
     }
