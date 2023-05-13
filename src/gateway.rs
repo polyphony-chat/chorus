@@ -35,33 +35,19 @@ impl GatewayHandle {
     /// Sends json to the gateway with an opcode
     async fn send_json_event(&self, op: u8, to_send: serde_json::Value) {
 
-        println!("1");
-
         let gateway_payload = GatewayPayload { op, d: Some(to_send), s: None, t: None };
-
-        println!("2");
 
         let payload_json = serde_json::to_string(&gateway_payload).unwrap();
 
-        println!("3");
-
         let message = tokio_tungstenite::tungstenite::Message::text(payload_json);
 
-        println!("4");
-
         self.websocket_tx.lock().await.send(message).await.unwrap();
-
-        println!("5");
     }
 
     /// Sends an identify event to the gateway
     pub async fn send_identify(&self, to_send: GatewayIdentifyPayload) {
 
-        println!("0.1");
-
         let to_send_value = serde_json::to_value(&to_send).unwrap();
-
-        println!("0.2");
 
         println!("GW: Sending Identify..");
 
