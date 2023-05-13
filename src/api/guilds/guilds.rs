@@ -35,7 +35,7 @@ impl<'a> types::Guild {
     pub async fn create(
         user: &mut types::User<'a>,
         instance: &mut crate::instance::Instance,
-        guild_create_schema: &schemas::GuildCreateSchema,
+        guild_create_schema: schemas::GuildCreateSchema,
     ) -> Result<String, crate::errors::InstanceServerError> {
         let url = format!("{}/guilds/", instance.urls.get_api().to_string());
         let limits_user = user.limits.get_as_mut();
@@ -43,7 +43,7 @@ impl<'a> types::Guild {
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone())
-            .body(to_string(guild_create_schema).unwrap());
+            .body(to_string(&guild_create_schema).unwrap());
         let mut requester = crate::limit::LimitedRequester::new().await;
         let result = match requester
             .send_request(
@@ -66,5 +66,17 @@ impl<'a> types::Guild {
                 })
             }
         });
+    }
+    pub async fn get(
+        user: &mut types::User<'a>,
+        instance: &mut crate::instance::Instance,
+        id: String,
+    ) {
+        let url = format!("{}/guilds/{}/", instance.urls.get_api().to_string(), id);
+        let limits_user = user.limits.get_as_mut();
+        let limits_instance = instance.limits.get_as_mut();
+        let request = reqwest::Client::new()
+            .get(url.clone())
+            .bearer_auth(user.token.clone());
     }
 }
