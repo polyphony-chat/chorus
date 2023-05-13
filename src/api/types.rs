@@ -6,6 +6,7 @@ I do not feel like re-documenting all of this, as everything is already perfectl
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::from_value;
 
 use crate::{api::limits::Limits, instance::Instance};
 
@@ -139,7 +140,154 @@ pub struct UnavailableGuild {
     unavailable: bool
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+/// See https://discord.com/developers/docs/resources/guild
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct Guild {
+    pub id: String,
+    pub name: String,
+    pub icon: Option<String>,
+    pub icon_hash: Option<String>,
+    pub splash: Option<String>,
+    pub discovery_splash: Option<String>,
+    pub owner: Option<bool>,
+    pub owner_id: String,
+    pub permissions: Option<String>,
+    pub afk_channel_id: Option<String>,
+    pub afk_timeout: u8,
+    pub widget_enabled: Option<bool>,
+    pub widget_channel_id: Option<String>,
+    pub verification_level: u8,
+    pub default_message_notifications: u8,
+    pub explicit_content_filter: u8,
+    pub roles: Vec<RoleObject>,
+    pub emojis: Vec<Emoji>,
+    pub features: Vec<String>,
+    pub mfa_level: u8,
+    pub application_id: Option<String>,
+    pub system_channel_id: Option<String>,
+    pub system_channel_flags: u8,
+    pub rules_channel_id: Option<String>,
+    pub max_presences: Option<u64>,
+    pub max_members: Option<u64>,
+    pub vanity_url_code: Option<String>,
+    pub description: Option<String>,
+    pub banner: Option<String>,
+    pub premium_tier: u8,
+    pub premium_subscription_count: Option<u64>,
+    pub preferred_locale: String,
+    pub public_updates_channel_id: Option<String>,
+    pub max_video_channel_users: Option<u8>,
+    pub max_stage_video_channel_users: Option<u8>,
+    pub approximate_member_count: Option<u64>,
+    pub approximate_presence_count: Option<u64>,
+    pub welcome_screen: Option<WelcomeScreenObject>,
+    pub nsfw_level: u8,
+    pub stickers: Option<Vec<Sticker>>,
+    pub premium_progress_bar_enabled: bool
+}
+
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-create-guild-create-extra-fields
+/// This is like [Guild], expect it has extra fields
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct GuildCreateGuild {
+    pub id: String,
+    pub name: String,
+    pub icon: Option<String>,
+    pub icon_hash: Option<String>,
+    pub splash: Option<String>,
+    pub discovery_splash: Option<String>,
+    pub owner: Option<bool>,
+    pub owner_id: String,
+    pub permissions: Option<String>,
+    pub afk_channel_id: Option<String>,
+    pub afk_timeout: u8,
+    pub widget_enabled: Option<bool>,
+    pub widget_channel_id: Option<String>,
+    pub verification_level: u8,
+    pub default_message_notifications: u8,
+    pub explicit_content_filter: u8,
+    pub roles: Vec<RoleObject>,
+    pub emojis: Vec<Emoji>,
+    pub features: Vec<String>,
+    pub mfa_level: u8,
+    pub application_id: Option<String>,
+    pub system_channel_id: Option<String>,
+    pub system_channel_flags: u8,
+    pub rules_channel_id: Option<String>,
+    pub max_presences: Option<u64>,
+    pub max_members: Option<u64>,
+    pub vanity_url_code: Option<String>,
+    pub description: Option<String>,
+    pub banner: Option<String>,
+    pub premium_tier: u8,
+    pub premium_subscription_count: Option<u64>,
+    pub preferred_locale: String,
+    pub public_updates_channel_id: Option<String>,
+    pub max_video_channel_users: Option<u8>,
+    pub max_stage_video_channel_users: Option<u8>,
+    pub approximate_member_count: Option<u64>,
+    pub approximate_presence_count: Option<u64>,
+    pub welcome_screen: Option<WelcomeScreenObject>,
+    pub nsfw_level: u8,
+    pub stickers: Option<Vec<Sticker>>,
+    pub premium_progress_bar_enabled: bool,
+    // ------ Extra Fields ------
+    pub joined_at: DateTime<Utc>,
+    pub large: bool,
+    pub unavailable: Option<bool>,
+    pub member_count: u64,
+    // to:do implement voice states
+    //pub voice_states: Vec<VoiceState>,
+    pub members: Vec<GuildMember>,
+    pub channels: Vec<Channel>,
+    pub threads: Vec<Channel>,
+    pub presences: Vec<PresenceUpdate>,
+    // to:do add stage instances
+    //pub stage_instances: Vec<StageInstance>,
+    // to:do add guild schedules events
+    //pub guild_scheduled_events: Vec<GuildScheduledEvent>
+}
+
+impl GuildCreateGuild {
+    /// Converts self to a [Guild], discarding the extra fields
+    pub fn to_guild(&self) -> Guild {
+        let as_value = serde_json::to_value(&self).unwrap();
+        return from_value(as_value).unwrap();
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct WelcomeScreenObject {
+    pub description: Option<String>,
+    pub welcome_channels: Vec<WelcomeScreenChannel>
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct WelcomeScreenChannel {
+    pub channel_id: String,
+    pub description: String,
+    pub emoji_id: Option<String>,
+    pub emoji_name: Option<String>
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+/// See https://discord.com/developers/docs/topics/permissions#role-object
+pub struct RoleObject {
+    pub id: String,
+    pub name: String,
+    pub color: f64,
+    pub hoist: bool,
+    pub icon: Option<String>,
+    pub unicode_emoji: Option<String>,
+    pub position: u16,
+    pub permissions: String,
+    pub managed: bool,
+    pub mentionable: bool,
+    // to:do add role tags https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure
+    //pub tags: Option<RoleTags>
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct UserObject {
     pub id: String,
     username: String,
@@ -447,201 +595,201 @@ struct EmbedField {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Reaction {
-    count: i32,
-    me: bool,
-    emoji: Emoji,
+pub struct Reaction {
+    pub count: i32,
+    pub me: bool,
+    pub emoji: Emoji,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default)]
-struct Emoji {
-    id: Option<u64>,
-    name: Option<String>,
-    roles: Option<Vec<u64>>,
-    user: Option<UserObject>,
-    require_colons: Option<bool>,
-    managed: Option<bool>,
-    animated: Option<bool>,
-    available: Option<bool>,
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+pub struct Emoji {
+    pub id: Option<u64>,
+    pub name: Option<String>,
+    pub roles: Option<Vec<u64>>,
+    pub user: Option<UserObject>,
+    pub require_colons: Option<bool>,
+    pub managed: Option<bool>,
+    pub animated: Option<bool>,
+    pub available: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct MessageActivity {
+pub struct MessageActivity {
     #[serde(rename = "type")]
-    activity_type: i64,
-    party_id: Option<String>,
+    pub activity_type: i64,
+    pub party_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct Application {
-    id: String,
-    name: String,
-    icon: Option<String>,
-    description: String,
-    rpc_origins: Option<Vec<String>>,
-    bot_public: bool,
-    bot_require_code_grant: bool,
-    terms_of_service_url: Option<String>,
-    privacy_policy_url: Option<String>,
-    owner: Option<UserObject>,
-    summary: String,
-    verify_key: String,
-    team: Option<Team>,
-    guild_id: Option<String>,
-    primary_sku_id: Option<String>,
-    slug: Option<String>,
-    cover_image: Option<String>,
-    flags: Option<i32>,
-    tags: Option<Vec<String>>,
-    install_params: Option<InstallParams>,
-    custom_install_url: Option<String>,
-    role_connections_verification_url: Option<String>,
+pub struct Application {
+    pub id: String,
+    pub name: String,
+    pub icon: Option<String>,
+    pub description: String,
+    pub rpc_origins: Option<Vec<String>>,
+    pub bot_public: bool,
+    pub bot_require_code_grant: bool,
+    pub terms_of_service_url: Option<String>,
+    pub privacy_policy_url: Option<String>,
+    pub owner: Option<UserObject>,
+    pub summary: String,
+    pub verify_key: String,
+    pub team: Option<Team>,
+    pub guild_id: Option<String>,
+    pub primary_sku_id: Option<String>,
+    pub slug: Option<String>,
+    pub cover_image: Option<String>,
+    pub flags: Option<i32>,
+    pub tags: Option<Vec<String>>,
+    pub install_params: Option<InstallParams>,
+    pub custom_install_url: Option<String>,
+    pub role_connections_verification_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct Team {
-    icon: Option<String>,
-    id: u64,
-    members: Vec<TeamMember>,
-    name: String,
-    owner_user_id: u64,
+pub struct Team {
+    pub icon: Option<String>,
+    pub id: u64,
+    pub members: Vec<TeamMember>,
+    pub name: String,
+    pub owner_user_id: u64,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct TeamMember {
-    membership_state: u8,
-    permissions: Vec<String>,
-    team_id: u64,
-    user: UserObject,
+pub struct TeamMember {
+    pub membership_state: u8,
+    pub permissions: Vec<String>,
+    pub team_id: u64,
+    pub user: UserObject,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-enum MembershipState {
+pub enum MembershipState {
     Invited = 1,
     Accepted = 2,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct InstallParams {
-    scopes: Vec<String>,
-    permissions: String,
+pub struct InstallParams {
+    pub scopes: Vec<String>,
+    pub permissions: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MessageReference {
-    message_id: String,
-    channel_id: String,
-    guild_id: Option<String>,
-    fail_if_not_exists: Option<bool>,
+    pub message_id: String,
+    pub channel_id: String,
+    pub guild_id: Option<String>,
+    pub fail_if_not_exists: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct MessageInteraction {
-    id: u64,
+pub struct MessageInteraction {
+    pub id: u64,
     #[serde(rename = "type")]
-    interaction_type: u8,
-    name: String,
-    user: UserObject,
-    member: Option<GuildMember>,
+    pub interaction_type: u8,
+    pub name: String,
+    pub user: UserObject,
+    pub member: Option<GuildMember>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct GuildMember {
-    user: Option<UserObject>,
-    nick: Option<String>,
-    avatar: Option<String>,
-    roles: Vec<String>,
-    joined_at: String,
-    premium_since: Option<String>,
-    deaf: bool,
-    mute: bool,
-    flags: i32,
-    pending: Option<bool>,
-    permissions: Option<String>,
-    communication_disabled_until: Option<String>,
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct GuildMember {
+    pub user: Option<UserObject>,
+    pub nick: Option<String>,
+    pub avatar: Option<String>,
+    pub roles: Vec<String>,
+    pub joined_at: String,
+    pub premium_since: Option<String>,
+    pub deaf: bool,
+    pub mute: bool,
+    pub flags: i32,
+    pub pending: Option<bool>,
+    pub permissions: Option<String>,
+    pub communication_disabled_until: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Channel {
-    id: String,
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
+pub struct Channel {
+    pub id: String,
     #[serde(rename = "type")]
-    channel_type: i32,
-    guild_id: Option<String>,
-    position: Option<i32>,
-    permission_overwrites: Option<Vec<PermissionOverwrite>>,
-    name: Option<String>,
-    topic: Option<String>,
-    nsfw: Option<bool>,
-    last_message_id: Option<String>,
-    bitrate: Option<i32>,
-    user_limit: Option<i32>,
-    rate_limit_per_user: Option<i32>,
-    recipients: Option<Vec<UserObject>>,
-    icon: Option<String>,
-    owner_id: Option<String>,
-    application_id: Option<String>,
-    parent_id: Option<String>,
-    last_pin_timestamp: Option<String>,
-    rtc_region: Option<String>,
-    video_quality_mode: Option<i32>,
-    message_count: Option<i32>,
-    member_count: Option<i32>,
-    thread_metadata: Option<ThreadMetadata>,
-    member: Option<ThreadMember>,
-    default_auto_archive_duration: Option<i32>,
-    permissions: Option<String>,
-    flags: Option<i32>,
-    total_message_sent: Option<i32>,
-    available_tags: Option<Vec<Tag>>,
-    applied_tags: Option<Vec<String>>,
-    default_reaction_emoji: Option<DefaultReaction>,
-    default_thread_rate_limit_per_user: Option<i32>,
-    default_sort_order: Option<i32>,
-    default_forum_layout: Option<i32>,
+    pub channel_type: i32,
+    pub guild_id: Option<String>,
+    pub position: Option<i32>,
+    pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    pub name: Option<String>,
+    pub topic: Option<String>,
+    pub nsfw: Option<bool>,
+    pub last_message_id: Option<String>,
+    pub bitrate: Option<i32>,
+    pub user_limit: Option<i32>,
+    pub rate_limit_per_user: Option<i32>,
+    pub recipients: Option<Vec<UserObject>>,
+    pub icon: Option<String>,
+    pub owner_id: Option<String>,
+    pub application_id: Option<String>,
+    pub parent_id: Option<String>,
+    pub last_pin_timestamp: Option<String>,
+    pub rtc_region: Option<String>,
+    pub video_quality_mode: Option<i32>,
+    pub message_count: Option<i32>,
+    pub member_count: Option<i32>,
+    pub thread_metadata: Option<ThreadMetadata>,
+    pub member: Option<ThreadMember>,
+    pub default_auto_archive_duration: Option<i32>,
+    pub permissions: Option<String>,
+    pub flags: Option<i32>,
+    pub total_message_sent: Option<i32>,
+    pub available_tags: Option<Vec<Tag>>,
+    pub applied_tags: Option<Vec<String>>,
+    pub default_reaction_emoji: Option<DefaultReaction>,
+    pub default_thread_rate_limit_per_user: Option<i32>,
+    pub default_sort_order: Option<i32>,
+    pub default_forum_layout: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Tag {
-    id: u64,
-    name: String,
-    moderated: bool,
-    emoji_id: Option<u64>,
-    emoji_name: Option<String>,
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Tag {
+    pub id: u64,
+    pub name: String,
+    pub moderated: bool,
+    pub emoji_id: Option<u64>,
+    pub emoji_name: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PermissionOverwrite {
-    id: String,
+    pub id: String,
     #[serde(rename = "type")]
-    overwrite_type: u8,
-    allow: String,
-    deny: String,
+    pub overwrite_type: u8,
+    pub allow: String,
+    pub deny: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct ThreadMetadata {
-    archived: bool,
-    auto_archive_duration: i32,
-    archive_timestamp: String,
-    locked: bool,
-    invitable: Option<bool>,
-    create_timestamp: Option<String>,
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ThreadMetadata {
+    pub archived: bool,
+    pub auto_archive_duration: i32,
+    pub archive_timestamp: String,
+    pub locked: bool,
+    pub invitable: Option<bool>,
+    pub create_timestamp: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct ThreadMember {
-    id: Option<u64>,
-    user_id: Option<u64>,
-    join_timestamp: Option<String>,
-    flags: Option<u64>,
-    member: Option<GuildMember>,
+#[derive(Default, Debug, Deserialize, Serialize, Clone)]
+pub struct ThreadMember {
+    pub id: Option<u64>,
+    pub user_id: Option<u64>,
+    pub join_timestamp: Option<String>,
+    pub flags: Option<u64>,
+    pub member: Option<GuildMember>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct DefaultReaction {
-    emoji_id: Option<String>,
-    emoji_name: Option<String>,
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct DefaultReaction {
+    pub emoji_id: Option<String>,
+    pub emoji_name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -657,44 +805,44 @@ pub enum Component {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct StickerItem {
-    id: u64,
-    name: String,
-    format_type: u8,
+pub struct StickerItem {
+    pub id: u64,
+    pub name: String,
+    pub format_type: u8,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Sticker {
-    id: u64,
-    pack_id: Option<u64>,
-    name: String,
-    description: Option<String>,
-    tags: String,
-    asset: Option<String>,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Sticker {
+    pub id: u64,
+    pub pack_id: Option<u64>,
+    pub name: String,
+    pub description: Option<String>,
+    pub tags: String,
+    pub asset: Option<String>,
     #[serde(rename = "type")]
-    sticker_type: u8,
-    format_type: u8,
-    available: Option<bool>,
-    guild_id: Option<u64>,
-    user: Option<UserObject>,
-    sort_value: Option<u8>,
+    pub sticker_type: u8,
+    pub format_type: u8,
+    pub available: Option<bool>,
+    pub guild_id: Option<u64>,
+    pub user: Option<UserObject>,
+    pub sort_value: Option<u8>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct RoleSubscriptionData {
-    role_subscription_listing_id: u64,
-    tier_name: String,
-    total_months_subscribed: u32,
-    is_renewal: bool,
+pub struct RoleSubscriptionData {
+    pub role_subscription_listing_id: u64,
+    pub tier_name: String,
+    pub total_months_subscribed: u32,
+    pub is_renewal: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct TypingStartEvent {
-    channel_id: String,
-    guild_id: Option<String>,
-    user_id: String,
-    timestamp: i64,
-    member: Option<GuildMember>,
+    pub channel_id: String,
+    pub guild_id: Option<String>,
+    pub user_id: String,
+    pub timestamp: i64,
+    pub member: Option<GuildMember>,
 }
 
 impl WebSocketEvent for TypingStartEvent {}
@@ -719,18 +867,28 @@ pub struct GatewayIdentifyConnectionProps {
     pub device: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+/// See https://discord.com/developers/docs/topics/gateway-events#presence-update-presence-update-event-fields
 pub struct PresenceUpdate {
-    since: Option<i64>,
-    activities: Vec<Activity>,
-    status: String,
-    afk: Option<bool>,
+    pub user: UserObject,
+    pub guild_id: String,
+    pub status: String,
+    pub activities: Vec<Activity>,
+    pub client_status: ClientStatusObject
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+/// See https://discord.com/developers/docs/topics/gateway-events#client-status-object
+pub struct ClientStatusObject {
+    pub desktop: Option<String>,
+    pub mobile: Option<String>,
+    pub web: Option<String>
 }
 
 impl WebSocketEvent for PresenceUpdate {}
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Activity {
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Activity {
     name: String,
     #[serde(rename = "type")]
     activity_type: i32,
@@ -749,19 +907,19 @@ struct Activity {
     buttons: Option<Vec<ActivityButton>>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct ActivityTimestamps {
     start: Option<i64>,
     end: Option<i64>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct ActivityParty {
     id: Option<String>,
     size: Option<Vec<(i32, i32)>>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct ActivityAssets {
     large_image: Option<String>,
     large_text: Option<String>,
@@ -769,7 +927,7 @@ struct ActivityAssets {
     small_text: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct ActivitySecrets {
     join: Option<String>,
     spectate: Option<String>,
@@ -777,7 +935,7 @@ struct ActivitySecrets {
     match_string: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct ActivityButton {
     label: String,
     url: String,
@@ -894,6 +1052,126 @@ pub struct UserUpdate {
 }
 
 impl WebSocketEvent for UserUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#channel-create
+/// Not directly serialized, as the inner payload is a channel object
+pub struct ChannelCreate {
+    pub channel: Channel,
+}
+
+impl WebSocketEvent for ChannelCreate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#channel-update
+/// Not directly serialized, as the inner payload is a channel object
+pub struct ChannelUpdate {
+    pub channel: Channel,
+}
+
+impl WebSocketEvent for ChannelUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#channel-delete
+/// Not directly serialized, as the inner payload is a channel object
+pub struct ChannelDelete {
+    pub channel: Channel,
+}
+
+impl WebSocketEvent for ChannelDelete {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#thread-create
+/// Not directly serialized, as the inner payload is a channel object
+pub struct ThreadCreate {
+    pub thread: Channel,
+}
+
+impl WebSocketEvent for ThreadCreate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#thread-update
+/// Not directly serialized, as the inner payload is a channel object
+pub struct ThreadUpdate {
+    pub thread: Channel,
+}
+
+impl WebSocketEvent for ThreadUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#thread-delete
+/// Not directly serialized, as the inner payload is a channel object
+pub struct ThreadDelete {
+    pub thread: Channel,
+}
+
+impl WebSocketEvent for ThreadDelete {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#thread-list-sync
+pub struct ThreadListSync {
+    pub guild_id: String,
+    pub channel_ids: Option<Vec<String>>,
+    pub threads: Vec<Channel>,
+    pub members: Vec<ThreadMember>
+}
+
+impl WebSocketEvent for ThreadListSync {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#thread-member-update
+/// The inner payload is a thread member object with an extra field.
+/// The extra field is a bit painful, because we can't just serialize a thread member object
+pub struct ThreadMemberUpdate {
+    pub id: Option<u64>,
+    pub user_id: Option<u64>,
+    pub join_timestamp: Option<String>,
+    pub flags: Option<u64>,
+    pub member: Option<GuildMember>,
+    pub guild_id: String,
+}
+
+impl ThreadMemberUpdate {
+    /// Convert self to a thread member, losing the added guild_id field
+    pub fn to_thread_member(&self) -> ThreadMember {
+        ThreadMember { id: self.id, user_id: self.user_id, join_timestamp: self.join_timestamp.clone(), flags: self.flags, member: self.member.clone() }
+    }
+}
+
+impl WebSocketEvent for ThreadMemberUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#thread-members-update
+pub struct ThreadMembersUpdate {
+    pub id: String,
+    pub guild_id: String,
+    /// Capped at 50
+    pub member_count: u8,
+    pub added_members: Option<Vec<ThreadMember>>,
+    pub removed_members: Option<Vec<String>>
+}
+
+impl WebSocketEvent for ThreadMembersUpdate {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-create
+/// This one is particularly painful, it can be a Guild object with extra field or an unavailbile guild object
+pub struct GuildCreate {
+    pub d: GuildCreateDataOption
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub enum GuildCreateDataOption {
+    UnavailableGuild(UnavailableGuild),
+    Guild(Guild)
+}
+
+impl Default for GuildCreateDataOption {
+    fn default() -> Self {
+        GuildCreateDataOption::UnavailableGuild(UnavailableGuild::default())
+    }
+}
+impl WebSocketEvent for GuildCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {
