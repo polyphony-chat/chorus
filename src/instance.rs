@@ -1,14 +1,13 @@
 use crate::api::limits::Limits;
 use crate::api::types::{InstancePolicies};
 use crate::errors::{FieldFormatError, InstanceServerError};
-use crate::gateway::{GatewayHandle, Gateway};
 use crate::limit::LimitedRequester;
 use crate::URLBundle;
 
 
 use std::fmt;
-#[derive(Debug)]
 
+#[derive(Debug)]
 /**
 The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
  */

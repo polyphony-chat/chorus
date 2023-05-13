@@ -101,7 +101,7 @@ pub struct Gateway {
     pub websocket_tx: Arc<Mutex<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tokio_tungstenite::tungstenite::Message>>>
 }
 
-impl<'a> Gateway {
+impl Gateway {
     pub async fn new(
         websocket_url: String,
     ) -> Result<GatewayHandle, tokio_tungstenite::tungstenite::Error> {
