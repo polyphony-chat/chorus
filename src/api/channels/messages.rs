@@ -127,10 +127,10 @@ mod test {
 
     #[tokio::test]
     async fn send_message() {
-        let channel_id = "1104413094102290492".to_string();
+        let channel_id = "1106954414356168802".to_string();
         let mut message = crate::api::schemas::MessageSendSchema::new(
             None,
-            Some("ashjkdhjksdfgjsdfzjkhsdvhjksdf".to_string()),
+            Some("A Message!".to_string()),
             None,
             None,
             None,
@@ -173,7 +173,7 @@ mod test {
 
     #[tokio::test]
     async fn send_message_attachment() {
-        let channel_id = "1104413094102290492".to_string();
+        let channel_id = "1106954414356168802".to_string();
 
         let f = File::open("./README.md").unwrap();
         let mut reader = BufReader::new(f);
