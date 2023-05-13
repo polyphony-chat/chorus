@@ -164,7 +164,7 @@ pub struct UserObject {
     premium: bool,
     purchased_flags: i32,
     premium_usage_flags: i32,
-    disabled: bool,
+    disabled: Option<bool>,
 }
 
 #[derive(Debug)]
