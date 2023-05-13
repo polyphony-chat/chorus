@@ -67,16 +67,4 @@ impl<'a> types::Guild {
             }
         });
     }
-    pub async fn get(
-        user: &mut types::User<'a>,
-        instance: &mut crate::instance::Instance,
-        id: String,
-    ) {
-        let url = format!("{}/guilds/{}/", instance.urls.get_api().to_string(), id);
-        let limits_user = user.limits.get_as_mut();
-        let limits_instance = instance.limits.get_as_mut();
-        let request = reqwest::Client::new()
-            .get(url.clone())
-            .bearer_auth(user.token.clone());
-    }
 }
