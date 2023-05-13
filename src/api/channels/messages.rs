@@ -127,10 +127,10 @@ mod test {
 
     #[tokio::test]
     async fn send_message() {
-        let channel_id = "1104413094102290492".to_string();
+        let channel_id = "1106954414356168802".to_string();
         let mut message = crate::api::schemas::MessageSendSchema::new(
             None,
-            Some("ashjkdhjksdfgjsdfzjkhsdvhjksdf".to_string()),
+            Some("A Message!".to_string()),
             None,
             None,
             None,
@@ -151,8 +151,8 @@ mod test {
         .await
         .unwrap();
         let login_schema: LoginSchema = LoginSchema::new(
-            AuthUsername::new("user1@gmail.com".to_string()).unwrap(),
-            "user".to_string(),
+            AuthUsername::new("user@test.xyz".to_string()).unwrap(),
+            "transrights".to_string(),
             None,
             None,
             None,
@@ -173,9 +173,9 @@ mod test {
 
     #[tokio::test]
     async fn send_message_attachment() {
-        let channel_id = "1104413094102290492".to_string();
+        let channel_id = "1106954414356168802".to_string();
 
-        let f = File::open("/drive/hdd1/Pictures/polyphony-chorus8bit.png").unwrap();
+        let f = File::open("./README.md").unwrap();
         let mut reader = BufReader::new(f);
         let mut buffer = Vec::new();
 
@@ -183,7 +183,7 @@ mod test {
 
         let attachment = crate::api::types::PartialDiscordFileAttachment {
             id: None,
-            filename: "test.png".to_string(),
+            filename: "README.md".to_string(),
             description: None,
             content_type: None,
             size: None,
@@ -220,8 +220,8 @@ mod test {
         .await
         .unwrap();
         let login_schema: LoginSchema = LoginSchema::new(
-            AuthUsername::new("user1@gmail.com".to_string()).unwrap(),
-            "user".to_string(),
+            AuthUsername::new("user@test.xyz".to_string()).unwrap(),
+            "transrights".to_string(),
             None,
             None,
             None,
