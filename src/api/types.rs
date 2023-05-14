@@ -140,7 +140,7 @@ pub struct Error {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct UnavailableGuild {
     id: String,
-    unavailable: Option<bool>
+    unavailable: Option<bool>,
 }
 
 /// See https://discord.com/developers/docs/resources/guild
@@ -152,41 +152,71 @@ pub struct Guild {
     pub icon_hash: Option<String>,
     pub splash: Option<String>,
     pub discovery_splash: Option<String>,
-    pub owner: Option<bool>,
-    pub owner_id: String,
+    pub owner: Option<UserObject>,
+    pub owner_id: Option<String>,
     pub permissions: Option<String>,
     pub afk_channel_id: Option<String>,
-    pub afk_timeout: u8,
+    pub afk_timeout: Option<u8>,
     pub widget_enabled: Option<bool>,
     pub widget_channel_id: Option<String>,
-    pub verification_level: u8,
-    pub default_message_notifications: u8,
-    pub explicit_content_filter: u8,
+    pub widget_channel: Option<Channel>,
+    pub verification_level: Option<u8>,
+    pub default_message_notifications: Option<u8>,
+    pub explicit_content_filter: Option<u8>,
     pub roles: Vec<RoleObject>,
     pub emojis: Vec<Emoji>,
     pub features: Vec<String>,
-    pub mfa_level: u8,
     pub application_id: Option<String>,
     pub system_channel_id: Option<String>,
-    pub system_channel_flags: u8,
+    pub system_channel_flags: Option<u8>,
     pub rules_channel_id: Option<String>,
+    pub rules_channel: Option<String>,
     pub max_presences: Option<u64>,
     pub max_members: Option<u64>,
     pub vanity_url_code: Option<String>,
     pub description: Option<String>,
     pub banner: Option<String>,
-    pub premium_tier: u8,
+    pub premium_tier: Option<u8>,
     pub premium_subscription_count: Option<u64>,
-    pub preferred_locale: String,
+    pub preferred_locale: Option<String>,
     pub public_updates_channel_id: Option<String>,
+    pub public_updates_channel: Option<Channel>,
     pub max_video_channel_users: Option<u8>,
     pub max_stage_video_channel_users: Option<u8>,
     pub approximate_member_count: Option<u64>,
     pub approximate_presence_count: Option<u64>,
+    pub member_count: Option<u64>,
+    pub presence_count: Option<u64>,
     pub welcome_screen: Option<WelcomeScreenObject>,
     pub nsfw_level: u8,
+    pub nsfw: bool,
     pub stickers: Option<Vec<Sticker>>,
-    pub premium_progress_bar_enabled: bool
+    pub premium_progress_bar_enabled: Option<bool>,
+    pub joined_at: String,
+    pub afk_channel: Option<Channel>,
+    pub bans: Option<Vec<GuildBan>>,
+    pub primary_category_id: Option<String>,
+    pub large: Option<bool>,
+    pub channels: Option<Vec<Channel>>,
+    pub template_id: Option<String>,
+    pub template: Option<GuildTemplate>,
+    pub invites: Option<Vec<GuildInvite>>,
+    pub voice_states: Option<Vec<VoiceState>>,
+    pub webhooks: Option<Vec<Webhook>>,
+    pub mfa_level: Option<u8>,
+    pub region: Option<String>,
+    pub unavailable: bool,
+    pub parent: Option<String>,
+}
+
+/// See https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user-
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct GuildBan {
+    pub id: String,
+    pub user_id: String,
+    pub guild_id: String,
+    pub executor_id: String,
+    pub reason: Option<String>,
 }
 
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-create-guild-create-extra-fields
@@ -262,7 +292,7 @@ impl GuildCreateGuild {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct WelcomeScreenObject {
     pub description: Option<String>,
-    pub welcome_channels: Vec<WelcomeScreenChannel>
+    pub welcome_channels: Vec<WelcomeScreenChannel>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -270,7 +300,7 @@ pub struct WelcomeScreenChannel {
     pub channel_id: String,
     pub description: String,
     pub emoji_id: Option<String>,
-    pub emoji_name: Option<String>
+    pub emoji_name: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -842,14 +872,14 @@ pub struct Integration {
     pub subscriber_count: Option<f64>,
     pub revoked: Option<bool>,
     pub application: Option<Application>,
-    pub scopes: Option<Vec<String>>
+    pub scopes: Option<Vec<String>>,
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/resources/guild#integration-account-object-integration-account-structure
 pub struct IntegrationAccount {
     pub id: String,
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
@@ -879,7 +909,7 @@ pub struct StageInstance {
     pub topic: String,
     pub privacy_level: u8,
     pub discoverable_disabled: bool,
-    pub guild_scheduled_event_id: Option<String>
+    pub guild_scheduled_event_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -982,7 +1012,7 @@ pub struct PresenceUpdate {
     pub guild_id: String,
     pub status: String,
     pub activities: Vec<Activity>,
-    pub client_status: ClientStatusObject
+    pub client_status: ClientStatusObject,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
@@ -990,7 +1020,7 @@ pub struct PresenceUpdate {
 pub struct ClientStatusObject {
     pub desktop: Option<String>,
     pub mobile: Option<String>,
-    pub web: Option<String>
+    pub web: Option<String>,
 }
 
 impl WebSocketEvent for PresenceUpdate {}
@@ -1178,7 +1208,7 @@ impl WebSocketEvent for GatewayHeartbeatAck {}
 pub struct ChannelPinsUpdate {
     pub guild_id: Option<String>,
     pub channel_id: String,
-    pub last_pin_timestamp: Option<DateTime<Utc>>
+    pub last_pin_timestamp: Option<DateTime<Utc>>,
 }
 
 impl WebSocketEvent for ChannelPinsUpdate {}
@@ -1270,7 +1300,7 @@ pub struct ThreadListSync {
     pub guild_id: String,
     pub channel_ids: Option<Vec<String>>,
     pub threads: Vec<Channel>,
-    pub members: Vec<ThreadMember>
+    pub members: Vec<ThreadMember>,
 }
 
 impl WebSocketEvent for ThreadListSync {}
@@ -1294,7 +1324,7 @@ pub struct ThreadMembersUpdate {
     /// Capped at 50
     pub member_count: u8,
     pub added_members: Option<Vec<ThreadMember>>,
-    pub removed_members: Option<Vec<String>>
+    pub removed_members: Option<Vec<String>>,
 }
 
 impl WebSocketEvent for ThreadMembersUpdate {}
@@ -1304,13 +1334,13 @@ impl WebSocketEvent for ThreadMembersUpdate {}
 /// This one is particularly painful, it can be a Guild object with extra field or an unavailbile guild object
 pub struct GuildCreate {
     #[serde(flatten)]
-    pub d: GuildCreateDataOption
+    pub d: GuildCreateDataOption,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum GuildCreateDataOption {
     UnavailableGuild(UnavailableGuild),
-    Guild(Guild)
+    Guild(Guild),
 }
 
 impl Default for GuildCreateDataOption {
@@ -1510,6 +1540,7 @@ impl PartialDiscordFileAttachment {
             proxy_url: self.proxy_url,
             height: self.height,
             width: self.width,
+
             ephemeral: self.ephemeral,
             duration_secs: self.duration_secs,
             waveform: self.waveform,
@@ -1562,4 +1593,92 @@ pub enum AllowedMentionType {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Token {
     pub token: String,
+}
+
+/// See https://docs.spacebar.chat/routes/#cmp--schemas-template
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct GuildTemplate {
+    pub code: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub usage_count: Option<u64>,
+    pub creator_id: String,
+    pub creator: UserObject,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub source_guild_id: String,
+    pub source_guild: Vec<Guild>, // Unsure how a {recursive: Guild} looks like, might be a Vec?
+    pub serialized_source_guild: Vec<Guild>,
+    id: String,
+}
+
+/// See https://docs.spacebar.chat/routes/#cmp--schemas-invite
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct GuildInvite {
+    pub code: String,
+    pub temporary: Option<bool>,
+    pub uses: Option<i32>,
+    pub max_uses: Option<i32>,
+    pub max_age: Option<i32>,
+    pub created_at: DateTime<Utc>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub guild_id: String,
+    pub guild: Option<Guild>,
+    pub channel_id: String,
+    pub channel: Option<Channel>,
+    pub inviter_id: Option<String>,
+    pub inviter: Option<UserObject>,
+    pub target_user_id: Option<String>,
+    pub target_user: Option<String>,
+    pub target_user_type: Option<i32>,
+    pub vanity_url: Option<bool>,
+}
+
+/// See https://docs.spacebar.chat/routes/#cmp--schemas-voicestate
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct VoiceState {
+    pub guild_id: String,
+    pub guild: Option<Guild>,
+    pub channel_id: String,
+    pub channel: Option<Channel>,
+    pub user_id: String,
+    pub user: Option<UserObject>,
+    pub member: Option<GuildMember>,
+    pub session_id: String,
+    pub token: String,
+    pub deaf: bool,
+    pub mute: bool,
+    pub self_deaf: bool,
+    pub self_mute: bool,
+    pub self_stream: Option<bool>,
+    pub self_video: bool,
+    pub suppress: bool,
+    pub request_to_speak_timestamp: Option<DateTime<Utc>>,
+    pub id: String,
+}
+
+/// See https://docs.spacebar.chat/routes/#cmp--schemas-webhook
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct Webhook {
+    #[serde(rename = "type")]
+    pub webhook_type: i32,
+    pub name: String,
+    pub avatar: String,
+    pub token: String,
+    pub guild_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild: Option<Guild>,
+    pub channel_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
+    pub application_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub application: Option<Application>,
+    pub user_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user: Option<UserObject>,
+    pub source_guild_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_guild: Option<Guild>,
+    pub id: String,
 }
