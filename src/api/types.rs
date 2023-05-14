@@ -846,24 +846,6 @@ pub struct IntegrationAccount {
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/resources/voice#voice-state-object
-pub struct VoiceStateObject {
-    pub guild_id: Option<String>,
-    pub channel_id: Option<String>,
-    pub user_id: String,
-    pub member: Option<GuildMember>,
-    pub session_id: String,
-    pub deaf: bool,
-    pub mute: bool,
-    pub self_deaf: bool,
-    pub self_mute: bool,
-    pub self_stream: Option<bool>,
-    pub self_video: bool,
-    pub suppress: bool,
-    pub request_to_speak_timestamp: DateTime<Utc>,
-}
-
-#[derive(Default, Debug, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/resources/stage-instance#stage-instance-object
 pub struct StageInstance {
     pub id: String,
