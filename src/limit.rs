@@ -98,9 +98,15 @@ impl LimitedRequester {
                 user_rate_limits,
             );
             if !response.status().is_success() {
-                Err(InstanceServerError::ReceivedErrorCodeError {
-                    error_code: response.status().as_str().to_string(),
-                })
+                match response.status().as_u16() {
+                    401 => return Err(InstanceServerError::TokenExpired),
+                    403 => return Err(InstanceServerError::TokenExpired),
+                    _ => {
+                        return Err(InstanceServerError::ReceivedErrorCodeError {
+                            error_code: response.status().as_str().to_string(),
+                        })
+                    }
+                }
             } else {
                 Ok(response)
             }

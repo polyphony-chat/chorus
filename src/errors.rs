@@ -19,6 +19,8 @@ custom_error! {
     InvalidFormBodyError{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
     RateLimited = "Ratelimited.",
     MultipartCreationError{error: String} = "Got an error whilst creating the form: {}",
+    TokenExpired = "Token expired, invalid or not found.",
+    NoPermission = "You do not have the permissions needed to perform this action.",
 }
 
 custom_error! {
