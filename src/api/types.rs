@@ -4,6 +4,8 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
@@ -138,7 +140,7 @@ pub struct Error {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct UnavailableGuild {
     id: String,
-    unavailable: bool
+    unavailable: Option<bool>
 }
 
 /// See https://discord.com/developers/docs/resources/guild
@@ -834,7 +836,7 @@ pub struct VoiceStateObject {
     pub self_stream: Option<bool>,
     pub self_video: bool,
     pub suppress: bool,
-    pub request_to_speak_timestamp: DateTime<Utc>
+    pub request_to_speak_timestamp: Option<DateTime<Utc>>
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
@@ -1035,7 +1037,7 @@ pub struct GatewayRequestGuildMembers {
     pub guild_id: String,
     pub query: Option<String>,
     pub limit: u64,
-    pub presence: Option<bool>,
+    pub presences: Option<bool>,
     pub user_ids: Option<String>,
     pub nonce: Option<String>,
 }
@@ -1113,8 +1115,8 @@ impl WebSocketEvent for GuildBanRemove {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#user-update
-/// Not directly serialized, as the inner payload is the user object
 pub struct UserUpdate {
+    #[serde(flatten)]
     pub user: UserObject,
 }
 
@@ -1122,8 +1124,8 @@ impl WebSocketEvent for UserUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-create
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ChannelCreate {
+    #[serde(flatten)]
     pub channel: Channel,
 }
 
@@ -1131,8 +1133,8 @@ impl WebSocketEvent for ChannelCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-update
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ChannelUpdate {
+    #[serde(flatten)]
     pub channel: Channel,
 }
 
@@ -1140,8 +1142,8 @@ impl WebSocketEvent for ChannelUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-delete
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ChannelDelete {
+    #[serde(flatten)]
     pub channel: Channel,
 }
 
@@ -1149,8 +1151,8 @@ impl WebSocketEvent for ChannelDelete {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-create
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ThreadCreate {
+    #[serde(flatten)]
     pub thread: Channel,
 }
 
@@ -1158,8 +1160,8 @@ impl WebSocketEvent for ThreadCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-update
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ThreadUpdate {
+    #[serde(flatten)]
     pub thread: Channel,
 }
 
@@ -1167,8 +1169,8 @@ impl WebSocketEvent for ThreadUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-delete
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ThreadDelete {
+    #[serde(flatten)]
     pub thread: Channel,
 }
 
@@ -1188,21 +1190,10 @@ impl WebSocketEvent for ThreadListSync {}
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-member-update
 /// The inner payload is a thread member object with an extra field.
-/// The extra field is a bit painful, because we can't just serialize a thread member object
 pub struct ThreadMemberUpdate {
-    pub id: Option<u64>,
-    pub user_id: Option<u64>,
-    pub join_timestamp: Option<String>,
-    pub flags: Option<u64>,
-    pub member: Option<GuildMember>,
+    #[serde(flatten)]
+    pub member: ThreadMember,
     pub guild_id: String,
-}
-
-impl ThreadMemberUpdate {
-    /// Convert self to a thread member, losing the added guild_id field
-    pub fn to_thread_member(&self) -> ThreadMember {
-        ThreadMember { id: self.id, user_id: self.user_id, join_timestamp: self.join_timestamp.clone(), flags: self.flags, member: self.member.clone() }
-    }
 }
 
 impl WebSocketEvent for ThreadMemberUpdate {}
@@ -1224,6 +1215,7 @@ impl WebSocketEvent for ThreadMembersUpdate {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-create
 /// This one is particularly painful, it can be a Guild object with extra field or an unavailbile guild object
 pub struct GuildCreate {
+    #[serde(flatten)]
     pub d: GuildCreateDataOption
 }
 
@@ -1242,8 +1234,8 @@ impl WebSocketEvent for GuildCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-update
-/// Not directly serialized, as the inner payload is a guild object
 pub struct GuildUpdate {
+    #[serde(flatten)]
     pub guild: Guild
 }
 
@@ -1251,8 +1243,8 @@ impl WebSocketEvent for GuildUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-delete
-/// Not directly serialized, as the inner payload is an unavailable guild object
 pub struct GuildDelete {
+    #[serde(flatten)]
     pub guild: UnavailableGuild
 }
 
@@ -1268,7 +1260,7 @@ pub struct GuildEmojisUpdate {
 impl WebSocketEvent for GuildEmojisUpdate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
-/// Undocumented
+/// Officially Undocumented
 /// {"t":"CALL_CREATE","s":2,"op":0,"d":{"voice_states":[],"ringing":[],"region":"milan","message_id":"1107187514906775613","embedded_activities":[],"channel_id":"837609115475771392"}}
 pub struct CallCreate {
     pub voice_states: Vec<VoiceStateObject>,
@@ -1283,7 +1275,7 @@ pub struct CallCreate {
 impl WebSocketEvent for CallCreate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
-/// Undocumented
+/// Officially Undocumented
 /// {"t":"CALL_UPDATE","s":5,"op":0,"d":{"ringing":["837606544539254834"],"region":"milan","message_id":"1107191540234846308","guild_id":null,"channel_id":"837609115475771392"}}
 pub struct CallUpdate {
     /// Seems like a vec of channel ids
@@ -1296,12 +1288,54 @@ pub struct CallUpdate {
 impl WebSocketEvent for CallUpdate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
-/// Undocumented
+/// Officially Undocumented
 /// {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
 pub struct CallDelete {
     pub channel_id: String,
 }
 impl WebSocketEvent for CallDelete {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// See https://unofficial-discord-docs.vercel.app/gateway/op13
+/// {"op":13,"d":{"channel_id":"837609115475771392"}}
+pub struct CallSync {
+    pub channel_id: String,
+}
+impl WebSocketEvent for CallSync {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// See https://luna.gitlab.io/discord-unofficial-docs/lazy_guilds.html#op-14-lazy-request
+/// {"op":14,"d":{"guild_id":"848582562217590824","typing":true,"activities":true,"threads":true}}
+pub struct LazyRequest {
+    pub guild_id: String,
+    pub typing: bool,
+    pub activities: bool,
+    pub threads: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub members: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channels: Option<HashMap<String, Vec<Vec<(u64, u64)>>>>
+}
+impl WebSocketEvent for LazyRequest {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// Not documented anywhere unofficially
+/// Apparently "Message ACK refers to marking a message as read for Discord's API." (https://github.com/Rapptz/discord.py/issues/1851)
+/// I suspect this is sent and recieved from the gateway to let clients on other devices know the user has read a message
+/// {"t":"MESSAGE_ACK","s":3,"op":0,"d":{"version":52,"message_id":"1107236673638633472","last_viewed":null,"flags":null,"channel_id":"967363950217936897"}}
+pub struct MessageACK {
+    /// ?
+    pub version: u16,
+    pub message_id: String,
+    pub last_viewed: Option<DateTime<Utc>>,
+    /// What flags?
+    pub flags: Option<serde_json::Value>,
+    pub channel_id: String,
+}
+impl WebSocketEvent for MessageACK {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {

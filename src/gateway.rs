@@ -93,6 +93,26 @@ impl GatewayHandle {
 
         self.send_json_event(4, to_send_value).await;
     }
+
+    /// Sends a Call Sync
+    pub async fn send_call_sync(&self, to_send: CallSync) {
+
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        println!("GW: Sending Call Sync..");
+
+        self.send_json_event(13, to_send_value).await;
+    }
+
+    /// Sends a Lazy Request
+    pub async fn send_lazy_request(&self, to_send: LazyRequest) {
+
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        println!("GW: Sending Lazy Request..");
+
+        self.send_json_event(14, to_send_value).await;
+    }
 }
 
 pub struct Gateway {
@@ -195,18 +215,15 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_DELETE" => {}
                     "AUTO_MODERATION_ACTION_EXECUTION" => {}
                     "CHANNEL_CREATE" => {
-                        let channel: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelCreate {channel};
+                        let new_data: ChannelCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.channel.create.update_data(new_data).await;
                     }
                     "CHANNEL_UPDATE" => {
-                        let channel: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelUpdate {channel};
+                        let new_data: ChannelUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.channel.update.update_data(new_data).await;
                     }
                     "CHANNEL_DELETE" => {
-                        let channel: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelDelete {channel};
+                        let new_data: ChannelDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.channel.delete.update_data(new_data).await;
                     }
                     "CHANNEL_PINS_UPDATE" => {
@@ -226,18 +243,15 @@ impl Gateway {
                         self.events.lock().await.call.delete.update_data(new_data).await;
                     }
                     "THREAD_CREATE" => {
-                        let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadCreate {thread};
+                        let new_data: ThreadCreate =  serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.thread.create.update_data(new_data).await;
                     }
                     "THREAD_UPDATE" => {
-                        let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadUpdate {thread};
+                        let new_data: ThreadUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.thread.update.update_data(new_data).await;
                     }
                     "THREAD_DELETE" => {
-                        let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadDelete {thread};
+                        let new_data: ThreadDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.thread.delete.update_data(new_data).await;
                     }
                     "THREAD_LIST_SYNC" => {
@@ -257,13 +271,11 @@ impl Gateway {
                         self.events.lock().await.guild.create.update_data(new_data).await;
                     }
                     "GUILD_UPDATE" => {
-                        let guild: Guild = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = GuildUpdate {guild};
+                        let new_data: GuildUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.guild.update.update_data(new_data).await;
                     }
                     "GUILD_DELETE" => {
-                        let guild: UnavailableGuild = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = GuildDelete {guild};
+                        let new_data: GuildDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.guild.delete.update_data(new_data).await;
                     }
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => {}
@@ -330,6 +342,10 @@ impl Gateway {
                     "MESSAGE_REACTION_REMOVE_EMOJI" => {
                         let new_data: MessageReactionRemoveEmoji= serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.message.reaction_remove_emoji.update_data(new_data).await;
+                    },
+                    "MESSAGE_ACK" => {
+                        let new_data: MessageACK = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.message.ack.update_data(new_data).await;
                     }
                     "PRESENCE_UPDATE" => {
                         let new_data: PresenceUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
@@ -558,6 +574,7 @@ mod events {
         pub reaction_remove: GatewayEvent<MessageReactionRemove>,
         pub reaction_remove_all: GatewayEvent<MessageReactionRemoveAll>,
         pub reaction_remove_emoji: GatewayEvent<MessageReactionRemoveEmoji>,
+        pub ack: GatewayEvent<MessageACK>
     }
 
     #[derive(Default, Debug)]
