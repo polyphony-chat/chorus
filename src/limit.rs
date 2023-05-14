@@ -115,7 +115,9 @@ impl LimitedRequester {
                 request,
                 limit_type,
             });
-            Err(InstanceServerError::RateLimited)
+            Err(InstanceServerError::RateLimited {
+                bucket: limit_type.to_string(),
+            })
         }
     }
 
