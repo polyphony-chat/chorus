@@ -1,3 +1,4 @@
+use serde_json::from_str;
 use serde_json::to_string;
 
 use crate::api::schemas;
@@ -35,12 +36,12 @@ impl<'a> types::Guild {
     /// ```
     pub async fn create(
         user: &mut types::User<'a>,
-        instance: &mut crate::instance::Instance,
+        url_api: &str,
         guild_create_schema: schemas::GuildCreateSchema,
     ) -> Result<String, crate::errors::InstanceServerError> {
-        let url = format!("{}/guilds/", instance.urls.get_api().to_string());
+        let url = format!("{}/guilds/", url_api);
         let limits_user = user.limits.get_as_mut();
-        let limits_instance = instance.limits.get_as_mut();
+        let limits_instance = &mut user.belongs_to.limits;
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone())
@@ -58,15 +59,8 @@ impl<'a> types::Guild {
             Ok(result) => result,
             Err(e) => return Err(e),
         };
-        return Ok(match result.text().await {
-            Ok(string) => string,
-            Err(e) => {
-                return Err(crate::errors::InstanceServerError::RequestErrorError {
-                    url: url.to_string(),
-                    error: e.to_string(),
-                })
-            }
-        });
+        let id: types::GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
+        Ok(id.id)
     }
 
     /// Deletes a guild.
@@ -95,16 +89,12 @@ impl<'a> types::Guild {
     /// ```
     pub async fn delete(
         user: &mut types::User<'a>,
-        instance: &mut crate::instance::Instance,
+        url_api: &str,
         guild_id: String,
     ) -> Option<InstanceServerError> {
-        let url = format!(
-            "{}/guilds/{}/delete/",
-            instance.urls.get_api().to_string(),
-            guild_id
-        );
+        let url = format!("{}/guilds/{}/delete/", url_api, guild_id);
         let limits_user = user.limits.get_as_mut();
-        let limits_instance = instance.limits.get_as_mut();
+        let limits_instance = &mut user.belongs_to.limits;
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone());
@@ -121,6 +111,59 @@ impl<'a> types::Guild {
             Some(result.err().unwrap())
         } else {
             None
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::api::schemas;
+    use crate::api::types;
+    use crate::instance::Instance;
+
+    #[tokio::test]
+    async fn guild_creation_deletion() {
+        let mut instance = Instance::new(
+            crate::URLBundle {
+                api: "http://localhost:3001/api".to_string(),
+                wss: "ws://localhost:3001/".to_string(),
+                cdn: "http://localhost:3001".to_string(),
+            },
+            crate::limit::LimitedRequester::new().await,
+        )
+        .await
+        .unwrap();
+        let login_schema: schemas::LoginSchema = schemas::LoginSchema::new(
+            schemas::AuthUsername::new("user@test.xyz".to_string()).unwrap(),
+            "transrights".to_string(),
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        let mut user = instance.login_account(&login_schema).await.unwrap();
+
+        let guild_create_schema = schemas::GuildCreateSchema {
+            name: Some("test".to_string()),
+            region: None,
+            icon: None,
+            channels: None,
+            guild_template_code: None,
+            system_channel_id: None,
+            rules_channel_id: None,
+        };
+
+        let guild =
+            types::Guild::create(&mut user, "http://localhost:3001/api", guild_create_schema)
+                .await
+                .unwrap();
+
+        println!("{}", guild);
+
+        match types::Guild::delete(&mut user, "http://localhost:3001/api", guild).await {
+            None => assert!(true),
+            Some(_) => assert!(false),
         }
     }
 }
