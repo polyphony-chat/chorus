@@ -2,6 +2,7 @@ use serde_json::to_string;
 
 use crate::api::schemas;
 use crate::api::types;
+use crate::errors::InstanceServerError;
 
 impl<'a> types::Guild {
     /// Creates a new guild with the given parameters.
@@ -66,5 +67,60 @@ impl<'a> types::Guild {
                 })
             }
         });
+    }
+
+    /// Deletes a guild.
+    ///
+    /// # Arguments
+    ///
+    /// * `user` - A mutable reference to a `User` instance.
+    /// * `instance` - A mutable reference to an `Instance` instance.
+    /// * `guild_id` - A `String` representing the ID of the guild to delete.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing an `InstanceServerError` if an error occurred during the request, otherwise `None`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let mut user = User::new();
+    /// let mut instance = Instance::new();
+    /// let guild_id = String::from("1234567890");
+    ///
+    /// match Guild::delete(&mut user, &mut instance, guild_id) {
+    ///     Some(e) => println!("Error deleting guild: {:?}", e),
+    ///     None => println!("Guild deleted successfully"),
+    /// }
+    /// ```
+    pub async fn delete(
+        user: &mut types::User<'a>,
+        instance: &mut crate::instance::Instance,
+        guild_id: String,
+    ) -> Option<InstanceServerError> {
+        let url = format!(
+            "{}/guilds/{}/delete/",
+            instance.urls.get_api().to_string(),
+            guild_id
+        );
+        let limits_user = user.limits.get_as_mut();
+        let limits_instance = instance.limits.get_as_mut();
+        let request = reqwest::Client::new()
+            .post(url.clone())
+            .bearer_auth(user.token.clone());
+        let mut requester = crate::limit::LimitedRequester::new().await;
+        let result = requester
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Guild,
+                limits_instance,
+                limits_user,
+            )
+            .await;
+        if result.is_err() {
+            Some(result.err().unwrap())
+        } else {
+            None
+        }
     }
 }

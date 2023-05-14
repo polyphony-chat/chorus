@@ -21,6 +21,7 @@ custom_error! {
     MultipartCreationError{error: String} = "Got an error whilst creating the form: {}",
     TokenExpired = "Token expired, invalid or not found.",
     NoPermission = "You do not have the permissions needed to perform this action.",
+    NotFound{error: String} = "The provided resource hasn't been found: {}",
 }
 
 custom_error! {
