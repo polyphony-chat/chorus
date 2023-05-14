@@ -1192,6 +1192,15 @@ pub struct GatewayVoiceStateUpdate {
 
 impl WebSocketEvent for GatewayVoiceStateUpdate {}
 
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#webhooks-update
+pub struct WebhooksUpdate {
+    pub guild_id: String,
+    pub channel_id: String,
+}
+
+impl WebSocketEvent for WebhooksUpdate {}
+
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayHello {
     pub op: i32,
@@ -1490,6 +1499,36 @@ pub struct GuildRoleDelete {
 }
 
 impl WebSocketEvent for GuildRoleDelete {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#integration-create
+pub struct IntegrationCreate {
+    #[serde(flatten)]
+    pub integration: Integration,
+    pub guild_id: String,
+}
+
+impl WebSocketEvent for IntegrationCreate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#integration-update
+pub struct IntegrationUpdate {
+    #[serde(flatten)]
+    pub integration: Integration,
+    pub guild_id: String,
+}
+
+impl WebSocketEvent for IntegrationUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#integration-delete
+pub struct IntegrationDelete {
+    pub id: String,
+    pub guild_id: String,
+    pub application_id: Option<String>,
+}
+
+impl WebSocketEvent for IntegrationDelete {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
