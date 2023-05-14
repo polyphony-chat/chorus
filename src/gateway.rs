@@ -187,11 +187,7 @@ impl Gateway {
             return;
         }
 
-        let msg_string = msg.to_string();
-
-        println!("{}", &msg_string);
-
-        let gateway_payload: GatewayPayload = serde_json::from_str(&msg_string).unwrap();
+        let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
         // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
         match gateway_payload.op {
@@ -205,8 +201,12 @@ impl Gateway {
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                 match gateway_payload_t.as_str() {
                     "READY" => {
-                        let data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        println!("{:?}", data);
+                        let new_data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.ready.ready.update_data(new_data).await;
+                    },
+                    "READY_SUPPLEMENTAL" => {
+                        let new_data: GatewayReadySupplemental = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.ready.ready_supplimental.update_data(new_data).await;
                     }
                     "RESUMED" => {}
                     "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
@@ -267,7 +267,7 @@ impl Gateway {
                         self.events.lock().await.thread.members_update.update_data(new_data).await;
                     }
                     "GUILD_CREATE" => {
-                        let new_data: GuildCreate = serde_json::from_str(&msg_string).unwrap();
+                        let new_data: GuildCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.guild.create.update_data(new_data).await;
                     }
                     "GUILD_UPDATE" => {
@@ -361,8 +361,7 @@ impl Gateway {
                         self.events.lock().await.user.typing_start_event.update_data(new_data).await;
                     }
                     "USER_UPDATE" => {
-                        let user: UserObject = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = UserUpdate {user};
+                        let new_data: UserUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.user.update.update_data(new_data).await;
                     }
                     "VOICE_STATE_UPDATE" => {}
@@ -554,6 +553,7 @@ mod events {
     use super::*;
     #[derive(Default, Debug)]
     pub struct Events {
+        pub ready: Ready,
         pub message: Message,
         pub user: User,
         pub channel: Channel,
@@ -562,6 +562,12 @@ mod events {
         pub call: Call,
         pub gateway_identify_payload: GatewayEvent<GatewayIdentifyPayload>,
         pub gateway_resume: GatewayEvent<GatewayResume>,
+    }
+
+    #[derive(Default, Debug)]
+    pub struct Ready {
+        pub ready: GatewayEvent<GatewayReady>,
+        pub ready_supplimental: GatewayEvent<GatewayReadySupplemental>
     }
 
     #[derive(Default, Debug)]
