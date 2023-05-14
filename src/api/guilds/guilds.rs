@@ -24,7 +24,7 @@ impl<'a> types::Guild {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```rs
     /// let guild_create_schema = chorus::api::schemas::GuildCreateSchema::new(insert args here);
     ///
     /// let result = Guild::create(&mut user, &mut instance, &guild_create_schema).await;
@@ -77,7 +77,7 @@ impl<'a> types::Guild {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```rs
     /// let mut user = User::new();
     /// let mut instance = Instance::new();
     /// let guild_id = String::from("1234567890");
