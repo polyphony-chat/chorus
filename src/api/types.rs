@@ -7,6 +7,7 @@ I do not feel like re-documenting all of this, as everything is already perfectl
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
+use serde_aux::field_attributes::{deserialize_number_from_string};
 
 use crate::{api::limits::Limits, instance::Instance};
 
@@ -293,14 +294,17 @@ pub struct UserObject {
     username: String,
     discriminator: String,
     avatar: Option<String>,
-    bot: bool,
+    bot: Option<bool>,
     system: Option<bool>,
     mfa_enabled: Option<bool>,
     accent_color: Option<String>,
     locale: Option<String>,
     verified: Option<bool>,
     email: Option<String>,
-    flags: String,
+    /// This field comes as either a string or a number as a string
+    /// So we need to account for that
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    flags: i32,
     premium_since: Option<String>,
     premium_type: i8,
     pronouns: Option<String>,
@@ -311,8 +315,8 @@ pub struct UserObject {
     phone: Option<String>,
     nsfw_allowed: bool,
     premium: bool,
-    purchased_flags: i32,
-    premium_usage_flags: i32,
+    purchased_flags: Option<i32>,
+    premium_usage_flags: Option<i32>,
     disabled: Option<bool>,
 }
 
@@ -910,9 +914,13 @@ impl WebSocketEvent for TypingStartEvent {}
 pub struct GatewayIdentifyPayload {
     pub token: String,
     pub properties: GatewayIdentifyConnectionProps,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub compress: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub large_threshold: Option<i16>, //default: 50
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub shard: Option<Vec<(i32, i32)>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<PresenceUpdate>,
     pub intents: i32,
 }
@@ -1231,6 +1239,48 @@ impl Default for GuildCreateDataOption {
     }
 }
 impl WebSocketEvent for GuildCreate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-update
+/// Not directly serialized, as the inner payload is a guild object
+pub struct GuildUpdate {
+    pub guild: Guild
+}
+
+impl WebSocketEvent for GuildUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-delete
+/// Not directly serialized, as the inner payload is an unavailable guild object
+pub struct GuildDelete {
+    pub guild: UnavailableGuild
+}
+
+impl WebSocketEvent for GuildDelete {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-emojis-update
+pub struct GuildEmojisUpdate {
+    pub guild_id: String,
+    pub emojis: Vec<Emoji>
+}
+
+impl WebSocketEvent for GuildEmojisUpdate {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Undocumented
+/// {"t":"CALL_CREATE","s":2,"op":0,"d":{"voice_states":[],"ringing":[],"region":"milan","message_id":"1107187514906775613","embedded_activities":[],"channel_id":"837609115475771392"}}
+pub struct CallCreate {
+    pub voice_states: Vec<VoiceStateObject>,
+    /// What is this?
+    pub ringing: Vec<serde_json::Value>,
+    pub region: String, // milan
+    pub message_id: String,
+    /// What is this?
+    pub embedded_activities: Vec<serde_json::Value>,
+    pub channel_id: String,
+}
+impl WebSocketEvent for CallCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {
