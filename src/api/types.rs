@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
-use serde_aux::field_attributes::deserialize_option_number_from_string;
+use serde_aux::{field_attributes::deserialize_option_number_from_string, prelude::deserialize_string_from_number};
 
 use crate::{api::limits::Limits, instance::Instance};
 
@@ -323,8 +323,8 @@ pub struct RoleObject {
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct UserObject {
     pub id: String,
-    username: String,
-    discriminator: String,
+    username: Option<String>,
+    discriminator: Option<String>,
     avatar: Option<String>,
     bot: Option<bool>,
     system: Option<bool>,
@@ -335,6 +335,7 @@ pub struct UserObject {
     email: Option<String>,
     /// This field comes as either a string or a number as a string
     /// So we need to account for that
+    #[serde(default)]
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     flags: Option<i32>,
     premium_since: Option<String>,
@@ -401,7 +402,7 @@ pub struct Message {
     edited_timestamp: Option<String>,
     tts: bool,
     mention_everyone: bool,
-    mentions: Vec<UserObject>,
+    mentions: Option<Vec<UserObject>>,
     mention_roles: Vec<String>,
     mention_channels: Option<Vec<ChannelMention>>,
     pub attachments: Vec<DiscordFileAttachment>,
@@ -434,7 +435,7 @@ pub struct MessageCreate {
     message: Message,
     guild_id: Option<String>,
     member: Option<GuildMember>,
-    mentions: Vec<MessageCreateUser>,
+    mentions: Option<Vec<MessageCreateUser>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -513,7 +514,7 @@ pub struct MessageUpdate {
     message: PartialMessage,
     guild_id: Option<String>,
     member: Option<GuildMember>,
-    mentions: Vec<(UserObject, GuildMember)>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
+    mentions: Option<Vec<(UserObject, GuildMember)>>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
 }
 
 impl WebSocketEvent for MessageUpdate {}
@@ -766,7 +767,7 @@ pub struct GuildMember {
     pub user: Option<UserObject>,
     pub nick: Option<String>,
     pub avatar: Option<String>,
-    pub roles: Vec<RoleObject>,
+    pub roles: Vec<String>,
     pub joined_at: String,
     pub premium_since: Option<String>,
     pub deaf: bool,
@@ -829,8 +830,13 @@ pub struct Tag {
 pub struct PermissionOverwrite {
     pub id: String,
     #[serde(rename = "type")]
-    pub overwrite_type: u8,
+    #[serde(deserialize_with = "deserialize_string_from_number")]
+    pub overwrite_type: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_string_from_number")]
     pub allow: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_string_from_number")]
     pub deny: String,
 }
 
@@ -1009,7 +1015,7 @@ pub struct GatewayIdentifyConnectionProps {
 /// See https://discord.com/developers/docs/topics/gateway-events#presence-update-presence-update-event-fields
 pub struct PresenceUpdate {
     pub user: UserObject,
-    pub guild_id: String,
+    pub guild_id: Option<String>,
     pub status: String,
     pub activities: Vec<Activity>,
     pub client_status: ClientStatusObject,
@@ -1608,7 +1614,7 @@ pub struct MessageACK {
 }
 impl WebSocketEvent for MessageACK {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 pub struct GatewayPayload {
     pub op: u8,
     pub d: Option<serde_json::Value>,

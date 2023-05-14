@@ -194,10 +194,10 @@ impl Gateway {
             // Dispatch
             // An event was dispatched, we need to look at the gateway event name t
             0 => {
-                let gateway_payload_t = gateway_payload.t.unwrap();
+                let gateway_payload_t = gateway_payload.clone().t.unwrap();
 
                 println!("GW: Received {}..", gateway_payload_t);
-
+                
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                 match gateway_payload_t.as_str() {
                     "READY" => {
@@ -387,6 +387,8 @@ impl Gateway {
                         let new_data: PresenceUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.user.presence_update.update_data(new_data).await;
                     }
+                    // What is this?
+                    "PASSIVE_UPDATE_V1" => {}
                     "STAGE_INSTANCE_CREATE" => {}
                     "STAGE_INSTANCE_UPDATE" => {}
                     "STAGE_INSTANCE_DELETE" => {}
@@ -408,7 +410,10 @@ impl Gateway {
                         let new_data: WebhooksUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.webhooks.update.update_data(new_data).await;
                     }
-                    _ => {panic!("Invalid gateway event ({})", &gateway_payload_t)}
+                    _ => {
+                        //panic!("Invalid gateway event ({})", &gateway_payload_t)
+                        println!("New gateway event ({})", &gateway_payload_t);
+                    }
                 }
             }
             // Heartbeat
@@ -429,7 +434,7 @@ impl Gateway {
                 println!("GW: Received Heartbeat ACK");
             }
             2 | 3 | 4 | 6 | 8 => {panic!("Received Gateway op code that's meant to be sent, not received ({})", gateway_payload.op)}
-            _ => {panic!("Received Invalid Gateway op code ({})", gateway_payload.op)}
+            _ => {println!("Received new Gateway op code ({})", gateway_payload.op)}
         }
 
         // If we have an active heartbeat thread and we received a seq number we should let it know
