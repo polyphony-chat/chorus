@@ -1272,8 +1272,8 @@ impl WebSocketEvent for GuildEmojisUpdate {}
 /// {"t":"CALL_CREATE","s":2,"op":0,"d":{"voice_states":[],"ringing":[],"region":"milan","message_id":"1107187514906775613","embedded_activities":[],"channel_id":"837609115475771392"}}
 pub struct CallCreate {
     pub voice_states: Vec<VoiceStateObject>,
-    /// What is this?
-    pub ringing: Vec<serde_json::Value>,
+    /// Seems like a vec of channel ids
+    pub ringing: Vec<String>,
     pub region: String, // milan
     pub message_id: String,
     /// What is this?
@@ -1281,6 +1281,27 @@ pub struct CallCreate {
     pub channel_id: String,
 }
 impl WebSocketEvent for CallCreate {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Undocumented
+/// {"t":"CALL_UPDATE","s":5,"op":0,"d":{"ringing":["837606544539254834"],"region":"milan","message_id":"1107191540234846308","guild_id":null,"channel_id":"837609115475771392"}}
+pub struct CallUpdate {
+    /// Seems like a vec of channel ids
+    pub ringing: Vec<String>,
+    pub region: String, // milan
+    pub message_id: String,
+    pub guild_id: Option<String>,
+    pub channel_id: String,
+}
+impl WebSocketEvent for CallUpdate {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Undocumented
+/// {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
+pub struct CallDelete {
+    pub channel_id: String,
+}
+impl WebSocketEvent for CallDelete {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {

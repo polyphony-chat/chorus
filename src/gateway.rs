@@ -216,6 +216,14 @@ impl Gateway {
                     "CALL_CREATE" => {
                         let new_data: CallCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.call.create.update_data(new_data).await;
+                    },
+                    "CALL_UPDATE" => {
+                        let new_data: CallUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.call.update.update_data(new_data).await;
+                    }
+                    "CALL_DELETE" => {
+                        let new_data: CallDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.call.delete.update_data(new_data).await;
                     }
                     "THREAD_CREATE" => {
                         let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
@@ -604,7 +612,9 @@ mod events {
 
     #[derive(Default, Debug)]
     pub struct Call {
-        pub create: GatewayEvent<CallCreate>
+        pub create: GatewayEvent<CallCreate>,
+        pub update: GatewayEvent<CallUpdate>,
+        pub delete: GatewayEvent<CallDelete>
     }
 }
 
