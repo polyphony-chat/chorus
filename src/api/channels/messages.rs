@@ -5,7 +5,6 @@ pub mod messages {
     use serde_json::to_string;
 
     use crate::api::types::{Message, PartialDiscordFileAttachment, User};
-    use crate::errors::InstanceServerError;
     use crate::limit::LimitedRequester;
 
     impl Message {
