@@ -1163,6 +1163,25 @@ pub struct GatewayRequestGuildMembers {
 impl WebSocketEvent for GatewayRequestGuildMembers {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// Seems like it sends active session info to users on connect
+/// [{"activities":[],"client_info":{"client":"web","os":"other","version":0},"session_id":"ab5941b50d818b1f8d93b4b1b581b192","status":"online"}]
+pub struct SessionsReplace {
+    pub sessions: Vec<Session>
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Session info for the current user
+pub struct Session {
+    pub activities: Vec<Activity>,
+    pub client_info: ClientStatusObject,
+    pub session_id: String,
+    pub status: String,
+}
+
+impl WebSocketEvent for SessionsReplace {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#update-voice-state-gateway-voice-state-update-structure
 pub struct GatewayVoiceStateUpdate {
     pub guild_id: String,
@@ -1376,6 +1395,101 @@ pub struct GuildEmojisUpdate {
 }
 
 impl WebSocketEvent for GuildEmojisUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-stickers-update
+pub struct GuildStickersUpdate {
+    pub guild_id: String,
+    pub stickers: Vec<Sticker>
+}
+
+impl WebSocketEvent for GuildStickersUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-integrations-update
+pub struct GuildIntegrationsUpdate {
+    pub guild_id: String,
+}
+
+impl WebSocketEvent for GuildIntegrationsUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-add
+pub struct GuildMemberAdd {
+    #[serde(flatten)]
+    pub member: GuildMember,
+    pub guild_id: String,
+}
+
+impl WebSocketEvent for GuildMemberAdd {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-remove
+pub struct GuildMemberRemove {
+    pub guild_id: String,
+    pub user: UserObject,
+}
+
+impl WebSocketEvent for GuildMemberRemove {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-update
+pub struct GuildMemberUpdate {
+    pub guild_id: String,
+    pub roles: Vec<String>,
+    pub user: UserObject,
+    pub nick: Option<String>,
+    pub avatar: Option<String>,
+    pub joined_at: Option<DateTime<Utc>>,
+    pub premium_since: Option<DateTime<Utc>>,
+    pub deaf: Option<bool>,
+    pub mute: Option<bool>,
+    pub pending: Option<bool>,
+    pub communication_disabled_until: Option<DateTime<Utc>>,
+}
+
+impl WebSocketEvent for GuildMemberUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-members-chunk
+pub struct GuildMembersChunk {
+    pub guild_id: String,
+    pub members: Vec<GuildMember>,
+    pub chunk_index: u16,
+    pub chunk_count: u16,
+    pub not_found: Option<Vec<String>>,
+    pub presences: Option<PresenceUpdate>,
+    pub nonce: Option<String>
+}
+
+impl WebSocketEvent for GuildMembersChunk {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-role-create
+pub struct GuildRoleCreate {
+    pub guild_id: String,
+    pub role: RoleObject,
+}
+
+impl WebSocketEvent for GuildRoleCreate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-role-update
+pub struct GuildRoleUpdate {
+    pub guild_id: String,
+    pub role: RoleObject,
+}
+
+impl WebSocketEvent for GuildRoleUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-role-delete
+pub struct GuildRoleDelete {
+    pub guild_id: String,
+    pub role_id: String,
+}
+
+impl WebSocketEvent for GuildRoleDelete {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
