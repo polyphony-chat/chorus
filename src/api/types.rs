@@ -4,9 +4,12 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
+use serde_aux::field_attributes::deserialize_option_number_from_string;
 
 use crate::{api::limits::Limits, instance::Instance};
 
@@ -137,7 +140,7 @@ pub struct Error {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct UnavailableGuild {
     id: String,
-    unavailable: bool,
+    unavailable: Option<bool>,
 }
 
 /// See https://discord.com/developers/docs/resources/guild
@@ -317,32 +320,35 @@ pub struct RoleObject {
     //pub tags: Option<RoleTags>
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct UserObject {
     pub id: String,
     username: String,
     discriminator: String,
     avatar: Option<String>,
-    bot: bool,
+    bot: Option<bool>,
     system: Option<bool>,
     mfa_enabled: Option<bool>,
     accent_color: Option<String>,
     locale: Option<String>,
     verified: Option<bool>,
     email: Option<String>,
-    flags: String,
+    /// This field comes as either a string or a number as a string
+    /// So we need to account for that
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    flags: Option<i32>,
     premium_since: Option<String>,
-    premium_type: i8,
+    premium_type: Option<i8>,
     pronouns: Option<String>,
-    public_flags: Option<i8>,
+    public_flags: Option<i32>,
     banner: Option<String>,
-    bio: String,
+    bio: Option<String>,
     theme_colors: Option<Vec<i32>>,
     phone: Option<String>,
-    nsfw_allowed: bool,
-    premium: bool,
-    purchased_flags: i32,
-    premium_usage_flags: i32,
+    nsfw_allowed: Option<bool>,
+    premium: Option<bool>,
+    purchased_flags: Option<i32>,
+    premium_usage_flags: Option<i32>,
     disabled: Option<bool>,
 }
 
@@ -422,12 +428,43 @@ pub struct Message {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#message-create
 pub struct MessageCreate {
     #[serde(flatten)]
     message: Message,
     guild_id: Option<String>,
     member: Option<GuildMember>,
-    mentions: Vec<(UserObject, GuildMember)>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
+    mentions: Vec<MessageCreateUser>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#message-create-message-create-extra-fields
+pub struct MessageCreateUser {
+    pub id: String,
+    username: String,
+    discriminator: String,
+    avatar: Option<String>,
+    bot: Option<bool>,
+    system: Option<bool>,
+    mfa_enabled: Option<bool>,
+    accent_color: Option<String>,
+    locale: Option<String>,
+    verified: Option<bool>,
+    email: Option<String>,
+    premium_since: Option<String>,
+    premium_type: Option<i8>,
+    pronouns: Option<String>,
+    public_flags: Option<i32>,
+    banner: Option<String>,
+    bio: Option<String>,
+    theme_colors: Option<Vec<i32>>,
+    phone: Option<String>,
+    nsfw_allowed: Option<bool>,
+    premium: Option<bool>,
+    purchased_flags: Option<i32>,
+    premium_usage_flags: Option<i32>,
+    disabled: Option<bool>,
+    member: GuildMember
 }
 
 impl WebSocketEvent for MessageCreate {}
@@ -724,17 +761,17 @@ pub struct MessageInteraction {
     pub member: Option<GuildMember>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct GuildMember {
     pub user: Option<UserObject>,
     pub nick: Option<String>,
     pub avatar: Option<String>,
-    pub roles: Vec<String>,
+    pub roles: Vec<RoleObject>,
     pub joined_at: String,
     pub premium_since: Option<String>,
     pub deaf: bool,
     pub mute: bool,
-    pub flags: i32,
+    pub flags: Option<i32>,
     pub pending: Option<bool>,
     pub permissions: Option<String>,
     pub communication_disabled_until: Option<String>,
@@ -846,6 +883,24 @@ pub struct IntegrationAccount {
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
+/// See https://discord.com/developers/docs/resources/voice#voice-state-object
+pub struct VoiceStateObject {
+    pub guild_id: Option<String>,
+    pub channel_id: Option<String>,
+    pub user_id: String,
+    pub member: Option<GuildMember>,
+    pub session_id: String,
+    pub deaf: bool,
+    pub mute: bool,
+    pub self_deaf: bool,
+    pub self_mute: bool,
+    pub self_stream: Option<bool>,
+    pub self_video: bool,
+    pub suppress: bool,
+    pub request_to_speak_timestamp: Option<DateTime<Utc>>
+}
+
+#[derive(Default, Debug, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/resources/stage-instance#stage-instance-object
 pub struct StageInstance {
     pub id: String,
@@ -922,11 +977,23 @@ impl WebSocketEvent for TypingStartEvent {}
 pub struct GatewayIdentifyPayload {
     pub token: String,
     pub properties: GatewayIdentifyConnectionProps,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub compress: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub large_threshold: Option<i16>, //default: 50
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub shard: Option<Vec<(i32, i32)>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<PresenceUpdate>,
-    pub intents: i32,
+    pub capabilities: i32,
+}
+
+impl GatewayIdentifyPayload {
+    pub fn default_w_client_capabilities() -> Self {
+        let mut def = Self::default();
+        def.capabilities = 8189; // Default capabilities for a client
+        def
+    }
 }
 
 impl WebSocketEvent for GatewayIdentifyPayload {}
@@ -1034,12 +1101,61 @@ pub struct GatewayReady {
 impl WebSocketEvent for GatewayReady {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// Sent after the READY event when a client has capabilities
+/// {"t":"READY_SUPPLEMENTAL","s":2,"op":0,"d":{"merged_presences":{"guilds":[[{"user_id":"463640391196082177","status":"online","game":null,"client_status":{"web":"online"},"activities":[]}]],"friends":[{"user_id":"463640391196082177","status":"online","last_modified":1684053508443,"client_status":{"web":"online"},"activities":[]}]},"merged_members":[[{"user_id":"463640391196082177","roles":[],"premium_since":null,"pending":false,"nick":"pog","mute":false,"joined_at":"2021-05-30T15:24:08.763000+00:00","flags":0,"deaf":false,"communication_disabled_until":null,"avatar":null}]],"lazy_private_channels":[],"guilds":[{"voice_states":[],"id":"848582562217590824","embedded_activities":[]}],"disclose":["pomelo"]}}
+pub struct GatewayReadySupplemental {
+    pub merged_presences: MergedPresences,
+    pub merged_members: Vec<Vec<GuildMember>>,
+    // ?
+    pub lazy_private_channels: Vec<serde_json::Value>,
+    pub guilds: Vec<SupplimentalGuild>,
+    // ? pomelo
+    pub disclose: Vec<String>,
+}
+
+impl WebSocketEvent for GatewayReadySupplemental {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct MergedPresences {
+    pub guilds: Vec<Vec<MergedPresenceGuild>>,
+    pub friends: Vec<MergedPresenceFriend>
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct MergedPresenceFriend {
+    pub user_id: String,
+    pub status: String,
+    /// Looks like ms??
+    pub last_modified: u128,
+    pub client_status: ClientStatusObject,
+    pub activities: Vec<Activity>
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct MergedPresenceGuild {
+    pub user_id: String,
+    pub status: String,
+    // ?
+    pub game: Option<serde_json::Value>,
+    pub client_status: ClientStatusObject,
+    pub activities: Vec<Activity>
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct SupplimentalGuild {
+    pub voice_states: Vec<VoiceStateObject>,
+    pub id: String,
+    pub embedded_activities: Vec<serde_json::Value>
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#request-guild-members-request-guild-members-structure
 pub struct GatewayRequestGuildMembers {
     pub guild_id: String,
     pub query: Option<String>,
     pub limit: u64,
-    pub presence: Option<bool>,
+    pub presences: Option<bool>,
     pub user_ids: Option<String>,
     pub nonce: Option<String>,
 }
@@ -1117,8 +1233,8 @@ impl WebSocketEvent for GuildBanRemove {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#user-update
-/// Not directly serialized, as the inner payload is the user object
 pub struct UserUpdate {
+    #[serde(flatten)]
     pub user: UserObject,
 }
 
@@ -1126,8 +1242,8 @@ impl WebSocketEvent for UserUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-create
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ChannelCreate {
+    #[serde(flatten)]
     pub channel: Channel,
 }
 
@@ -1135,8 +1251,8 @@ impl WebSocketEvent for ChannelCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-update
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ChannelUpdate {
+    #[serde(flatten)]
     pub channel: Channel,
 }
 
@@ -1144,8 +1260,8 @@ impl WebSocketEvent for ChannelUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-delete
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ChannelDelete {
+    #[serde(flatten)]
     pub channel: Channel,
 }
 
@@ -1153,8 +1269,8 @@ impl WebSocketEvent for ChannelDelete {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-create
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ThreadCreate {
+    #[serde(flatten)]
     pub thread: Channel,
 }
 
@@ -1162,8 +1278,8 @@ impl WebSocketEvent for ThreadCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-update
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ThreadUpdate {
+    #[serde(flatten)]
     pub thread: Channel,
 }
 
@@ -1171,8 +1287,8 @@ impl WebSocketEvent for ThreadUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-delete
-/// Not directly serialized, as the inner payload is a channel object
 pub struct ThreadDelete {
+    #[serde(flatten)]
     pub thread: Channel,
 }
 
@@ -1192,27 +1308,10 @@ impl WebSocketEvent for ThreadListSync {}
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-member-update
 /// The inner payload is a thread member object with an extra field.
-/// The extra field is a bit painful, because we can't just serialize a thread member object
 pub struct ThreadMemberUpdate {
-    pub id: Option<u64>,
-    pub user_id: Option<u64>,
-    pub join_timestamp: Option<String>,
-    pub flags: Option<u64>,
-    pub member: Option<GuildMember>,
+    #[serde(flatten)]
+    pub member: ThreadMember,
     pub guild_id: String,
-}
-
-impl ThreadMemberUpdate {
-    /// Convert self to a thread member, losing the added guild_id field
-    pub fn to_thread_member(&self) -> ThreadMember {
-        ThreadMember {
-            id: self.id,
-            user_id: self.user_id,
-            join_timestamp: self.join_timestamp.clone(),
-            flags: self.flags,
-            member: self.member.clone(),
-        }
-    }
 }
 
 impl WebSocketEvent for ThreadMemberUpdate {}
@@ -1234,6 +1333,7 @@ impl WebSocketEvent for ThreadMembersUpdate {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-create
 /// This one is particularly painful, it can be a Guild object with extra field or an unavailbile guild object
 pub struct GuildCreate {
+    #[serde(flatten)]
     pub d: GuildCreateDataOption,
 }
 
@@ -1249,6 +1349,111 @@ impl Default for GuildCreateDataOption {
     }
 }
 impl WebSocketEvent for GuildCreate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-update
+pub struct GuildUpdate {
+    #[serde(flatten)]
+    pub guild: Guild
+}
+
+impl WebSocketEvent for GuildUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-delete
+pub struct GuildDelete {
+    #[serde(flatten)]
+    pub guild: UnavailableGuild
+}
+
+impl WebSocketEvent for GuildDelete {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-emojis-update
+pub struct GuildEmojisUpdate {
+    pub guild_id: String,
+    pub emojis: Vec<Emoji>
+}
+
+impl WebSocketEvent for GuildEmojisUpdate {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// {"t":"CALL_CREATE","s":2,"op":0,"d":{"voice_states":[],"ringing":[],"region":"milan","message_id":"1107187514906775613","embedded_activities":[],"channel_id":"837609115475771392"}}
+pub struct CallCreate {
+    pub voice_states: Vec<VoiceStateObject>,
+    /// Seems like a vec of channel ids
+    pub ringing: Vec<String>,
+    pub region: String, // milan
+    pub message_id: String,
+    /// What is this?
+    pub embedded_activities: Vec<serde_json::Value>,
+    pub channel_id: String,
+}
+impl WebSocketEvent for CallCreate {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// {"t":"CALL_UPDATE","s":5,"op":0,"d":{"ringing":["837606544539254834"],"region":"milan","message_id":"1107191540234846308","guild_id":null,"channel_id":"837609115475771392"}}
+pub struct CallUpdate {
+    /// Seems like a vec of channel ids
+    pub ringing: Vec<String>,
+    pub region: String, // milan
+    pub message_id: String,
+    pub guild_id: Option<String>,
+    pub channel_id: String,
+}
+impl WebSocketEvent for CallUpdate {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
+pub struct CallDelete {
+    pub channel_id: String,
+}
+impl WebSocketEvent for CallDelete {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// See https://unofficial-discord-docs.vercel.app/gateway/op13
+/// {"op":13,"d":{"channel_id":"837609115475771392"}}
+pub struct CallSync {
+    pub channel_id: String,
+}
+impl WebSocketEvent for CallSync {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// See https://luna.gitlab.io/discord-unofficial-docs/lazy_guilds.html#op-14-lazy-request
+/// {"op":14,"d":{"guild_id":"848582562217590824","typing":true,"activities":true,"threads":true}}
+pub struct LazyRequest {
+    pub guild_id: String,
+    pub typing: bool,
+    pub activities: bool,
+    pub threads: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub members: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channels: Option<HashMap<String, Vec<Vec<(u64, u64)>>>>
+}
+impl WebSocketEvent for LazyRequest {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// Not documented anywhere unofficially
+/// Apparently "Message ACK refers to marking a message as read for Discord's API." (https://github.com/Rapptz/discord.py/issues/1851)
+/// I suspect this is sent and recieved from the gateway to let clients on other devices know the user has read a message
+/// {"t":"MESSAGE_ACK","s":3,"op":0,"d":{"version":52,"message_id":"1107236673638633472","last_viewed":null,"flags":null,"channel_id":"967363950217936897"}}
+pub struct MessageACK {
+    /// ?
+    pub version: u16,
+    pub message_id: String,
+    pub last_viewed: Option<DateTime<Utc>>,
+    /// What flags?
+    pub flags: Option<serde_json::Value>,
+    pub channel_id: String,
+}
+impl WebSocketEvent for MessageACK {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayPayload {

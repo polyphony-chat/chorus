@@ -93,6 +93,26 @@ impl GatewayHandle {
 
         self.send_json_event(4, to_send_value).await;
     }
+
+    /// Sends a Call Sync
+    pub async fn send_call_sync(&self, to_send: CallSync) {
+
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        println!("GW: Sending Call Sync..");
+
+        self.send_json_event(13, to_send_value).await;
+    }
+
+    /// Sends a Lazy Request
+    pub async fn send_lazy_request(&self, to_send: LazyRequest) {
+
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        println!("GW: Sending Lazy Request..");
+
+        self.send_json_event(14, to_send_value).await;
+    }
 }
 
 pub struct Gateway {
@@ -167,9 +187,7 @@ impl Gateway {
             return;
         }
 
-        let msg_string = msg.to_string();
-
-        let gateway_payload: GatewayPayload = serde_json::from_str(&msg_string).unwrap();
+        let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
         // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
         match gateway_payload.op {
@@ -183,7 +201,12 @@ impl Gateway {
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                 match gateway_payload_t.as_str() {
                     "READY" => {
-                        let _data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.ready.ready.update_data(new_data).await;
+                    },
+                    "READY_SUPPLEMENTAL" => {
+                        let new_data: GatewayReadySupplemental = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.ready.ready_supplimental.update_data(new_data).await;
                     }
                     "RESUMED" => {}
                     "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
@@ -192,37 +215,43 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_DELETE" => {}
                     "AUTO_MODERATION_ACTION_EXECUTION" => {}
                     "CHANNEL_CREATE" => {
-                        let channel: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelCreate {channel};
+                        let new_data: ChannelCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.channel.create.update_data(new_data).await;
                     }
                     "CHANNEL_UPDATE" => {
-                        let channel: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelUpdate {channel};
+                        let new_data: ChannelUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.channel.update.update_data(new_data).await;
                     }
                     "CHANNEL_DELETE" => {
-                        let channel: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelDelete {channel};
+                        let new_data: ChannelDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.channel.delete.update_data(new_data).await;
                     }
                     "CHANNEL_PINS_UPDATE" => {
                         let new_data: ChannelPinsUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.channel.pins_update.update_data(new_data).await;
                     }
+                    "CALL_CREATE" => {
+                        let new_data: CallCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.call.create.update_data(new_data).await;
+                    },
+                    "CALL_UPDATE" => {
+                        let new_data: CallUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.call.update.update_data(new_data).await;
+                    }
+                    "CALL_DELETE" => {
+                        let new_data: CallDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.call.delete.update_data(new_data).await;
+                    }
                     "THREAD_CREATE" => {
-                        let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadCreate {thread};
+                        let new_data: ThreadCreate =  serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.thread.create.update_data(new_data).await;
                     }
                     "THREAD_UPDATE" => {
-                        let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadUpdate {thread};
+                        let new_data: ThreadUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.thread.update.update_data(new_data).await;
                     }
                     "THREAD_DELETE" => {
-                        let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadDelete {thread};
+                        let new_data: ThreadDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.thread.delete.update_data(new_data).await;
                     }
                     "THREAD_LIST_SYNC" => {
@@ -238,21 +267,30 @@ impl Gateway {
                         self.events.lock().await.thread.members_update.update_data(new_data).await;
                     }
                     "GUILD_CREATE" => {
-                        let new_data: GuildCreate = serde_json::from_str(&msg_string).unwrap();
+                        let new_data: GuildCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.guild.create.update_data(new_data).await;
                     }
-                    "GUILD_UPDATE" => {}
+                    "GUILD_UPDATE" => {
+                        let new_data: GuildUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.guild.update.update_data(new_data).await;
+                    }
                     "GUILD_DELETE" => {
-                        let _new_data: UnavailableGuild = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.guild.delete.update_data(new_data).await;
                     }
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => {}
                     "GUILD_BAN_ADD" => {
-                        let _new_data: GuildBanAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildBanAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.guild.ban_add.update_data(new_data).await;
                     }
                     "GUILD_BAN_REMOVE" => {
-                        let _new_data: GuildBanRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildBanRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.guild.ban_remove.update_data(new_data).await;
                     }
-                    "GUILD_EMOJIS_UPDATE" => {}
+                    "GUILD_EMOJIS_UPDATE" => {
+                        let new_data: GuildEmojisUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.guild.emojis_update.update_data(new_data).await;
+                    }
                     "GUILD_STICKERS_UPDATE" => {}
                     "GUILD_INTEGRATIONS_UPDATE" => {}
                     "GUILD_MEMBER_ADD" => {}
@@ -304,6 +342,10 @@ impl Gateway {
                     "MESSAGE_REACTION_REMOVE_EMOJI" => {
                         let new_data: MessageReactionRemoveEmoji= serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.message.reaction_remove_emoji.update_data(new_data).await;
+                    },
+                    "MESSAGE_ACK" => {
+                        let new_data: MessageACK = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.message.ack.update_data(new_data).await;
                     }
                     "PRESENCE_UPDATE" => {
                         let new_data: PresenceUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
@@ -319,8 +361,7 @@ impl Gateway {
                         self.events.lock().await.user.typing_start_event.update_data(new_data).await;
                     }
                     "USER_UPDATE" => {
-                        let user: UserObject = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = UserUpdate {user};
+                        let new_data: UserUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.user.update.update_data(new_data).await;
                     }
                     "VOICE_STATE_UPDATE" => {}
@@ -512,13 +553,21 @@ mod events {
     use super::*;
     #[derive(Default, Debug)]
     pub struct Events {
+        pub ready: Ready,
         pub message: Message,
         pub user: User,
         pub channel: Channel,
         pub thread: Thread,
         pub guild: Guild,
+        pub call: Call,
         pub gateway_identify_payload: GatewayEvent<GatewayIdentifyPayload>,
         pub gateway_resume: GatewayEvent<GatewayResume>,
+    }
+
+    #[derive(Default, Debug)]
+    pub struct Ready {
+        pub ready: GatewayEvent<GatewayReady>,
+        pub ready_supplimental: GatewayEvent<GatewayReadySupplemental>
     }
 
     #[derive(Default, Debug)]
@@ -531,6 +580,7 @@ mod events {
         pub reaction_remove: GatewayEvent<MessageReactionRemove>,
         pub reaction_remove_all: GatewayEvent<MessageReactionRemoveAll>,
         pub reaction_remove_emoji: GatewayEvent<MessageReactionRemoveEmoji>,
+        pub ack: GatewayEvent<MessageACK>
     }
 
     #[derive(Default, Debug)]
@@ -561,13 +611,13 @@ mod events {
     #[derive(Default, Debug)]
     pub struct Guild {
         pub create: GatewayEvent<GuildCreate>,
-        /*pub update: GatewayEvent<ThreadCreate>,
-        pub delete: GatewayEvent<ThreadCreate>,
-        pub audit_log_entry_create: GatewayEvent<ThreadCreate>,
-        pub ban_add: GatewayEvent<ThreadCreate>,
-        pub ban_remove: GatewayEvent<ThreadCreate>,
-        pub emojis_update: GatewayEvent<ThreadCreate>,
-        pub stickers_update: GatewayEvent<ThreadCreate>,
+        pub update: GatewayEvent<GuildUpdate>,
+        pub delete: GatewayEvent<GuildDelete>,
+        //pub audit_log_entry_create: GatewayEvent<ThreadCreate>,
+        pub ban_add: GatewayEvent<GuildBanAdd>,
+        pub ban_remove: GatewayEvent<GuildBanRemove>,
+        pub emojis_update: GatewayEvent<GuildEmojisUpdate>,
+        /*pub stickers_update: GatewayEvent<ThreadCreate>,
         pub integrations_update: GatewayEvent<ThreadCreate>,
         pub member_add: GatewayEvent<ThreadCreate>,
         pub member_remove: GatewayEvent<ThreadCreate>,
@@ -581,6 +631,13 @@ mod events {
         pub role_scheduled_event_delete: GatewayEvent<ThreadCreate>,
         pub role_scheduled_event_user_add: GatewayEvent<ThreadCreate>,
         pub role_scheduled_event_user_remove: GatewayEvent<ThreadCreate>,*/
+    }
+
+    #[derive(Default, Debug)]
+    pub struct Call {
+        pub create: GatewayEvent<CallCreate>,
+        pub update: GatewayEvent<CallUpdate>,
+        pub delete: GatewayEvent<CallDelete>
     }
 }
 
