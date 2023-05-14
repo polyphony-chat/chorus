@@ -1,5 +1,5 @@
 pub mod limits {
-    use std::{collections::HashMap};
+    use std::collections::HashMap;
 
     use reqwest::Client;
     use serde::{Deserialize, Serialize};
@@ -18,6 +18,23 @@ pub mod limits {
         Error,
         Guild,
         Webhook,
+    }
+
+    impl ToString for LimitType {
+        fn to_string(&self) -> String {
+            match self {
+                LimitType::AuthRegister => "AuthRegister".to_string(),
+                LimitType::AuthLogin => "AuthLogin".to_string(),
+                LimitType::AbsoluteMessage => "AbsoluteMessage".to_string(),
+                LimitType::AbsoluteRegister => "AbsoluteRegister".to_string(),
+                LimitType::Global => "Global".to_string(),
+                LimitType::Ip => "Ip".to_string(),
+                LimitType::Channel => "Channel".to_string(),
+                LimitType::Error => "Error".to_string(),
+                LimitType::Guild => "Guild".to_string(),
+                LimitType::Webhook => "Webhook".to_string(),
+            }
+        }
     }
 
     #[derive(Debug, Deserialize, Serialize)]
