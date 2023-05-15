@@ -1841,3 +1841,8 @@ pub struct Webhook {
     pub source_guild: Option<Guild>,
     pub id: String,
 }
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct GuildCreateResponse {
+    pub id: String,
+}

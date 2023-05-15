@@ -57,7 +57,8 @@ impl LimitedRequester {
 
     ## Errors
 
-    This method will panic, if:
+    This method will error, if:
+    - The request does not return a success status code (200-299)
     - The supplied [`RequestBuilder`](reqwest::RequestBuilder) contains invalid or incomplete
     information
     - There has been an error with processing (unwrapping) the [`Response`](`reqwest::Response`)
@@ -72,13 +73,23 @@ impl LimitedRequester {
         user_rate_limits: &mut Limits,
     ) -> Result<Response, InstanceServerError> {
         if self.can_send_request(limit_type, instance_rate_limits, user_rate_limits) {
-            let built_request = request
-                .build()
-                .unwrap_or_else(|e| panic!("Error while building the Request for sending: {}", e));
+            let built_request = match request.build() {
+                Ok(request) => request,
+                Err(e) => {
+                    return Err(InstanceServerError::RequestErrorError {
+                        url: "".to_string(),
+                        error: e.to_string(),
+                    })
+                }
+            };
             let result = self.http.execute(built_request).await;
             let response = match result {
                 Ok(is_response) => is_response,
-                Err(e) => panic!("An error occured while processing the response: {}", e),
+                Err(e) => {
+                    return Err(InstanceServerError::ReceivedErrorCodeError {
+                        error_code: e.to_string(),
+                    })
+                }
             };
             self.update_limits(
                 &response,
@@ -86,13 +97,27 @@ impl LimitedRequester {
                 instance_rate_limits,
                 user_rate_limits,
             );
-            Ok(response)
+            if !response.status().is_success() {
+                match response.status().as_u16() {
+                    401 => return Err(InstanceServerError::TokenExpired),
+                    403 => return Err(InstanceServerError::TokenExpired),
+                    _ => {
+                        return Err(InstanceServerError::ReceivedErrorCodeError {
+                            error_code: response.status().as_str().to_string(),
+                        })
+                    }
+                }
+            } else {
+                Ok(response)
+            }
         } else {
             self.requests.push_back(TypedRequest {
                 request,
                 limit_type,
             });
-            Err(InstanceServerError::RateLimited)
+            Err(InstanceServerError::RateLimited {
+                bucket: limit_type.to_string(),
+            })
         }
     }
 
