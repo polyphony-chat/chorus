@@ -210,7 +210,7 @@ pub struct Guild {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum AvailableOrUnavailibleGuild {
+pub enum AvailableOrUnavailableGuild {
     UnavailableGuild(UnavailableGuild),
     AvailableGuild(Guild)
 }
@@ -1111,7 +1111,8 @@ pub struct GatewayReady {
 
     pub v: u8,
     pub user: UserObject,
-    pub guilds: Vec<AvailableOrUnavailibleGuild>,
+    /// For bots these are [UnavailableGuild]s, for users they are [Guild]
+    pub guilds: Vec<AvailableOrUnavailableGuild>,
     pub presences: Option<Vec<PresenceUpdate>>,
     pub sessions: Option<Vec<Session>>,
     pub session_id: String,
