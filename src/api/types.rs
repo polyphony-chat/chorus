@@ -209,6 +209,12 @@ pub struct Guild {
     pub parent: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub enum AvailableOrUnavailibleGuild {
+    UnavailableGuild(UnavailableGuild),
+    AvailableGuild(Guild)
+}
+
 /// See https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user-
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct GuildBan {
@@ -1095,11 +1101,21 @@ pub struct GatewayResume {
 impl WebSocketEvent for GatewayResume {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
+/// Sort of documented, though most fields are left out
+/// For a full example see https://gist.github.com/kozabrada123/a347002b1fb8825a5727e40746d4e199
+/// to:do add all undocumented fields
 pub struct GatewayReady {
+    pub analytics_token: Option<String>,
+    pub auth_session_id_hash: Option<String>,
+    pub country_code: Option<String>,
+
     pub v: u8,
     pub user: UserObject,
-    pub guilds: Vec<UnavailableGuild>,
+    pub guilds: Vec<AvailableOrUnavailibleGuild>,
+    pub presences: Option<Vec<PresenceUpdate>>,
+    pub sessions: Option<Vec<Session>>,
     pub session_id: String,
+    pub session_type: Option<String>,
     pub resume_gateway_url: Option<String>,
     pub shard: Option<(u64, u64)>,
 }
@@ -1180,9 +1196,19 @@ pub struct SessionsReplace {
 /// Session info for the current user
 pub struct Session {
     pub activities: Vec<Activity>,
-    pub client_info: ClientStatusObject,
+    pub client_info: ClientInfo,
     pub session_id: String,
     pub status: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Another Client info object
+/// {"client":"web","os":"other","version":0}
+// Note: I don't think this one exists yet? Though I might've made a mistake and this might be a duplicate 
+pub struct ClientInfo {
+    pub client: String,
+    pub os: String,
+    pub version: u8
 }
 
 impl WebSocketEvent for SessionsReplace {}
@@ -1291,6 +1317,25 @@ pub struct ChannelUpdate {
 }
 
 impl WebSocketEvent for ChannelUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// Officially undocumented.
+/// Contains very 
+/// {"channel_unread_updates": [{"id": "816412869766938648", "last_message_id": "1085892012085104680"}}
+pub struct ChannelUnreadUpdate {
+    pub channel_unread_updates: Vec<ChannelUnreadUpdateObject>,
+    pub guild_id: String,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// Contains very few fields from [Channel]
+/// See also [ChannelUnreadUpdates]
+pub struct ChannelUnreadUpdateObject {
+    pub id: String,
+    pub last_message_id: String
+}
+
+impl WebSocketEvent for ChannelUnreadUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-delete
@@ -1593,7 +1638,7 @@ pub struct LazyRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub members: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub channels: Option<HashMap<String, Vec<Vec<(u64, u64)>>>>
+    pub channels: Option<HashMap<String, Vec<Vec<u64>>>>
 }
 impl WebSocketEvent for LazyRequest {}
 

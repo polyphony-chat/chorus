@@ -222,6 +222,10 @@ impl Gateway {
                         let new_data: ChannelUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.channel.update.update_data(new_data).await;
                     }
+                    "CHANNEL_UNREAD_UPDATE" => {
+                        let new_data: ChannelUnreadUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events.lock().await.channel.unread_update.update_data(new_data).await;
+                    }
                     "CHANNEL_DELETE" => {
                         let new_data: ChannelDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events.lock().await.channel.delete.update_data(new_data).await;
@@ -393,7 +397,8 @@ impl Gateway {
                     "STAGE_INSTANCE_UPDATE" => {}
                     "STAGE_INSTANCE_DELETE" => {}
                     "SESSIONS_REPLACE" => {
-                        let new_data: SessionsReplace = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let sessions: Vec<Session> = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data = SessionsReplace {sessions};
                         self.events.lock().await.session.replace.update_data(new_data).await;
                     }
                     "TYPING_START" => {
@@ -434,8 +439,12 @@ impl Gateway {
                 println!("GW: Received Heartbeat ACK");
             }
             2 | 3 | 4 | 6 | 8 => {panic!("Received Gateway op code that's meant to be sent, not received ({})", gateway_payload.op)}
-            _ => {println!("Received new Gateway op code ({})", gateway_payload.op)}
+            _ => {println!("Received new Gateway op code ({})", gateway_payload.op);}
         }
+
+        let redeserialize: serde_json::Value = serde_json::from_str(msg.to_text().unwrap()).unwrap();
+        let pretty_json = serde_json::to_string_pretty(&redeserialize).unwrap();
+        println!("Event data dump: {}", pretty_json);
 
         // If we have an active heartbeat thread and we received a seq number we should let it know
         if gateway_payload.s.is_some() {
@@ -643,6 +652,7 @@ mod events {
     pub struct Channel {
         pub create: GatewayEvent<ChannelCreate>,
         pub update: GatewayEvent<ChannelUpdate>,
+        pub unread_update: GatewayEvent<ChannelUnreadUpdate>,
         pub delete: GatewayEvent<ChannelDelete>,
         pub pins_update: GatewayEvent<ChannelPinsUpdate>
     }
