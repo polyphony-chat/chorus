@@ -76,6 +76,23 @@ impl<'a> User<'a> {
             Err(e) => Err(e),
         }
     }
+
+    pub async fn modify(
+        self,
+        username: Option<&str>,
+        avatar: Option<&str>,
+        bio: Option<&str>,
+        accent_color: Option<u64>,
+        banner: Option<&str>,
+        current_password: Option<&str>,
+        new_password: Option<&str>,
+        code: Option<&str>,
+        email: Option<&str>,
+        discriminator: Option<i16>,
+    ) {
+        let mut limits = self.limits;
+        let request = Client::new().patch(format!("{}/users/@me/", self.belongs_to.urls.get_api()));
+    }
 }
 
 impl Instance {
