@@ -1666,15 +1666,36 @@ pub struct MessageACK {
 }
 impl WebSocketEvent for MessageACK {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
-pub struct GatewayPayload {
+#[derive(Debug, Default, Serialize, Clone)]
+/// The payload used for sending events to the gateway
+/// 
+/// Similar to [GatewayReceivePayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
+/// Also, we never need to send the event name
+pub struct GatewaySendPayload {
     pub op: u8,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub d: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub s: Option<u64>,
+}
+
+impl WebSocketEvent for GatewaySendPayload {}
+
+#[derive(Debug, Default, Deserialize, Clone)]
+/// The payload used for receiving events from the gateway
+/// 
+/// Similar to [GatewaySendPayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
+/// Also, we never need to sent the event name
+
+pub struct GatewayReceivePayload<'a> {
+    pub op: u8,
+    #[serde(borrow)]
+    pub d: Option<&'a serde_json::value::RawValue>,
     pub s: Option<u64>,
     pub t: Option<String>,
 }
 
-impl WebSocketEvent for GatewayPayload {}
+impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DiscordFileAttachment {

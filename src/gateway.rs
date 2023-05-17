@@ -35,7 +35,7 @@ impl GatewayHandle {
     /// Sends json to the gateway with an opcode
     async fn send_json_event(&self, op: u8, to_send: serde_json::Value) {
 
-        let gateway_payload = GatewayPayload { op, d: Some(to_send), s: None, t: None };
+        let gateway_payload = GatewaySendPayload { op, d: Some(to_send), s: None };
 
         let payload_json = serde_json::to_string(&gateway_payload).unwrap();
 
@@ -150,7 +150,7 @@ impl Gateway {
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
         let msg = ws_rx.next().await.unwrap().unwrap();
-        let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
+        let gateway_payload: GatewayReceivePayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
         if gateway_payload.op != 10 {
             println!("Recieved non hello on gateway init, what is happening?");
@@ -159,7 +159,7 @@ impl Gateway {
 
         println!("GW: Received Hello");
 
-        let gateway_hello: HelloData = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+        let gateway_hello: HelloData = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
         gateway.heartbeat_handler = Some(HeartbeatHandler::new(gateway_hello.heartbeat_interval, shared_tx.clone()));
 
         // Now we can continously check for messages in a different task, since we aren't going to receive another hello
@@ -187,7 +187,7 @@ impl Gateway {
             return;
         }
 
-        let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
+        let gateway_payload: GatewayReceivePayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
         // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
         match gateway_payload.op {
@@ -205,11 +205,11 @@ impl Gateway {
                 // "Some" of these are uncodumented
                 match gateway_payload_t.as_str() {
                     "READY" => {
-                        let new_data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GatewayReady = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.session.ready.update_data(new_data).await;
                     },
                     "READY_SUPPLEMENTAL" => {
-                        let new_data: GatewayReadySupplemental = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GatewayReadySupplemental = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.session.ready_supplimental.update_data(new_data).await;
                     }
                     "RESUMED" => {}
@@ -219,120 +219,120 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_DELETE" => {}
                     "AUTO_MODERATION_ACTION_EXECUTION" => {}
                     "CHANNEL_CREATE" => {
-                        let new_data: ChannelCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ChannelCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.channel.create.update_data(new_data).await;
                     }
                     "CHANNEL_UPDATE" => {
-                        let new_data: ChannelUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ChannelUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.channel.update.update_data(new_data).await;
                     }
                     "CHANNEL_UNREAD_UPDATE" => {
-                        let new_data: ChannelUnreadUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ChannelUnreadUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.channel.unread_update.update_data(new_data).await;
                     }
                     "CHANNEL_DELETE" => {
-                        let new_data: ChannelDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ChannelDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.channel.delete.update_data(new_data).await;
                     }
                     "CHANNEL_PINS_UPDATE" => {
-                        let new_data: ChannelPinsUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ChannelPinsUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.channel.pins_update.update_data(new_data).await;
                     }
                     "CALL_CREATE" => {
-                        let new_data: CallCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: CallCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.call.create.update_data(new_data).await;
                     },
                     "CALL_UPDATE" => {
-                        let new_data: CallUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: CallUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.call.update.update_data(new_data).await;
                     }
                     "CALL_DELETE" => {
-                        let new_data: CallDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: CallDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.call.delete.update_data(new_data).await;
                     }
                     "THREAD_CREATE" => {
-                        let new_data: ThreadCreate =  serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ThreadCreate =  serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.thread.create.update_data(new_data).await;
                     }
                     "THREAD_UPDATE" => {
-                        let new_data: ThreadUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ThreadUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.thread.update.update_data(new_data).await;
                     }
                     "THREAD_DELETE" => {
-                        let new_data: ThreadDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ThreadDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.thread.delete.update_data(new_data).await;
                     }
                     "THREAD_LIST_SYNC" => {
-                        let new_data: ThreadListSync = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ThreadListSync = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.thread.list_sync.update_data(new_data).await;
                     }
                     "THREAD_MEMBER_UPDATE" => {
-                        let new_data: ThreadMemberUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ThreadMemberUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.thread.member_update.update_data(new_data).await;
                     }
                     "THREAD_MEMBERS_UPDATE" => {
-                        let new_data: ThreadMembersUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: ThreadMembersUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.thread.members_update.update_data(new_data).await;
                     }
                     "GUILD_CREATE" => {
-                        let new_data: GuildCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.create.update_data(new_data).await;
                     }
                     "GUILD_UPDATE" => {
-                        let new_data: GuildUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.update.update_data(new_data).await;
                     }
                     "GUILD_DELETE" => {
-                        let new_data: GuildDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.delete.update_data(new_data).await;
                     }
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => {}
                     "GUILD_BAN_ADD" => {
-                        let new_data: GuildBanAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildBanAdd = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.ban_add.update_data(new_data).await;
                     }
                     "GUILD_BAN_REMOVE" => {
-                        let new_data: GuildBanRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildBanRemove = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.ban_remove.update_data(new_data).await;
                     }
                     "GUILD_EMOJIS_UPDATE" => {
-                        let new_data: GuildEmojisUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildEmojisUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.emojis_update.update_data(new_data).await;
                     }
                     "GUILD_STICKERS_UPDATE" => {
-                        let new_data: GuildStickersUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildStickersUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.stickers_update.update_data(new_data).await;
                     }
                     "GUILD_INTEGRATIONS_UPDATE" => {
-                        let new_data: GuildIntegrationsUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildIntegrationsUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.integrations_update.update_data(new_data).await;
                     }
                     "GUILD_MEMBER_ADD" => {
-                        let new_data: GuildMemberAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildMemberAdd = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.member_add.update_data(new_data).await;
                     }
                     "GUILD_MEMBER_REMOVE" => {
-                        let new_data: GuildMemberRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildMemberRemove = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.member_remove.update_data(new_data).await;
                     }
                     "GUILD_MEMBER_UPDATE" => {
-                        let new_data: GuildMemberUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildMemberUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.member_update.update_data(new_data).await;
                     }
                     "GUILD_MEMBERS_CHUNK" => {
-                        let new_data: GuildMembersChunk = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildMembersChunk = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.members_chunk.update_data(new_data).await;
                     }
                     "GUILD_ROLE_CREATE" => {
-                        let new_data: GuildRoleCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildRoleCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.role_create.update_data(new_data).await;
                     }
                     "GUILD_ROLE_UPDATE" => {
-                        let new_data: GuildRoleUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildRoleUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.role_update.update_data(new_data).await;
                     }
                     "GUILD_ROLE_DELETE" => {
-                        let new_data: GuildRoleDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: GuildRoleDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.role_delete.update_data(new_data).await;
                     }
                     "GUILD_SCHEDULED_EVENT_CREATE" => {}
@@ -341,58 +341,58 @@ impl Gateway {
                     "GUILD_SCHEDULED_EVENT_USER_ADD" => {}
                     "GUILD_SCHEDULED_EVENT_USER_REMOVE" => {}
                     "INTEGRATION_CREATE" => {
-                        let new_data: IntegrationCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: IntegrationCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.integration.create.update_data(new_data).await;
                     }
                     "INTEGRATION_UPDATE" => {
-                        let new_data: IntegrationUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: IntegrationUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.integration.update.update_data(new_data).await;
                     }
                     "INTEGRATION_DELETE" => {
-                        let new_data: IntegrationDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: IntegrationDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.integration.delete.update_data(new_data).await;
                     }
                     "INTERACTION_CREATE" => {}
                     "INVITE_CREATE" => {}
                     "INVITE_DELETE" => {}
                     "MESSAGE_CREATE" => {
-                        let new_data: MessageCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: MessageCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.create.update_data(new_data).await;
                     }
                     "MESSAGE_UPDATE" => {
-                        let new_data: MessageUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: MessageUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.update.update_data(new_data).await;
                     }
                     "MESSAGE_DELETE" => {
-                        let new_data: MessageDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: MessageDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.delete.update_data(new_data).await;
                     }
                     "MESSAGE_DELETE_BULK" => {
-                        let new_data: MessageDeleteBulk = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: MessageDeleteBulk = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.delete_bulk.update_data(new_data).await;
                     }
                     "MESSAGE_REACTION_ADD" => {
-                        let new_data: MessageReactionAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: MessageReactionAdd = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.reaction_add.update_data(new_data).await;
                     }
                     "MESSAGE_REACTION_REMOVE" => {
-                        let new_data: MessageReactionRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: MessageReactionRemove = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.reaction_remove.update_data(new_data).await;
                     }
                     "MESSAGE_REACTION_REMOVE_ALL" => {
-                        let new_data: MessageReactionRemoveAll = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: MessageReactionRemoveAll = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.reaction_remove_all.update_data(new_data).await;
                     }
                     "MESSAGE_REACTION_REMOVE_EMOJI" => {
-                        let new_data: MessageReactionRemoveEmoji= serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: MessageReactionRemoveEmoji= serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.reaction_remove_emoji.update_data(new_data).await;
                     },
                     "MESSAGE_ACK" => {
-                        let new_data: MessageACK = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: MessageACK = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.ack.update_data(new_data).await;
                     }
                     "PRESENCE_UPDATE" => {
-                        let new_data: PresenceUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: PresenceUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.user.presence_update.update_data(new_data).await;
                     }
                     // What is this?
@@ -401,22 +401,22 @@ impl Gateway {
                     "STAGE_INSTANCE_UPDATE" => {}
                     "STAGE_INSTANCE_DELETE" => {}
                     "SESSIONS_REPLACE" => {
-                        let sessions: Vec<Session> = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let sessions: Vec<Session> = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         let new_data = SessionsReplace {sessions};
                         self.events.lock().await.session.replace.update_data(new_data).await;
                     }
                     "TYPING_START" => {
-                        let new_data: TypingStartEvent = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: TypingStartEvent = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.user.typing_start_event.update_data(new_data).await;
                     }
                     "USER_UPDATE" => {
-                        let new_data: UserUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: UserUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.user.update.update_data(new_data).await;
                     }
                     "VOICE_STATE_UPDATE" => {}
                     "VOICE_SERVER_UPDATE" => {}
                     "WEBHOOKS_UPDATE" => {
-                        let new_data: WebhooksUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data: WebhooksUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.webhooks.update.update_data(new_data).await;
                     }
                     _ => {
