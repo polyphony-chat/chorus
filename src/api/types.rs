@@ -208,13 +208,6 @@ pub struct Guild {
     pub unavailable: bool,
     pub parent: Option<String>,
 }
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum AvailableOrUnavailableGuild {
-    UnavailableGuild(UnavailableGuild),
-    AvailableGuild(Guild)
-}
-
 /// See https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user-
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct GuildBan {
@@ -1112,7 +1105,7 @@ pub struct GatewayReady {
     pub v: u8,
     pub user: UserObject,
     /// For bots these are [UnavailableGuild]s, for users they are [Guild]
-    pub guilds: Vec<AvailableOrUnavailableGuild>,
+    pub guilds: Vec<Guild>,
     pub presences: Option<Vec<PresenceUpdate>>,
     pub sessions: Option<Vec<Session>>,
     pub session_id: String,
@@ -1125,7 +1118,7 @@ impl WebSocketEvent for GatewayReady {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
-/// Sent after the READY event when a client has capabilities
+/// Sent after the READY event when a client is a user
 /// {"t":"READY_SUPPLEMENTAL","s":2,"op":0,"d":{"merged_presences":{"guilds":[[{"user_id":"463640391196082177","status":"online","game":null,"client_status":{"web":"online"},"activities":[]}]],"friends":[{"user_id":"463640391196082177","status":"online","last_modified":1684053508443,"client_status":{"web":"online"},"activities":[]}]},"merged_members":[[{"user_id":"463640391196082177","roles":[],"premium_since":null,"pending":false,"nick":"pog","mute":false,"joined_at":"2021-05-30T15:24:08.763000+00:00","flags":0,"deaf":false,"communication_disabled_until":null,"avatar":null}]],"lazy_private_channels":[],"guilds":[{"voice_states":[],"id":"848582562217590824","embedded_activities":[]}],"disclose":["pomelo"]}}
 pub struct GatewayReadySupplemental {
     pub merged_presences: MergedPresences,
@@ -1321,7 +1314,7 @@ impl WebSocketEvent for ChannelUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// Officially undocumented.
-/// Contains very 
+/// Sends updates to client about a new message with its id
 /// {"channel_unread_updates": [{"id": "816412869766938648", "last_message_id": "1085892012085104680"}}
 pub struct ChannelUnreadUpdate {
     pub channel_unread_updates: Vec<ChannelUnreadUpdateObject>,
@@ -1418,6 +1411,7 @@ pub struct GuildCreate {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
 pub enum GuildCreateDataOption {
     UnavailableGuild(UnavailableGuild),
     Guild(Guild),
@@ -1584,6 +1578,7 @@ impl WebSocketEvent for IntegrationDelete {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
+/// Is sent to a client by the server to signify a new being created
 /// {"t":"CALL_CREATE","s":2,"op":0,"d":{"voice_states":[],"ringing":[],"region":"milan","message_id":"1107187514906775613","embedded_activities":[],"channel_id":"837609115475771392"}}
 pub struct CallCreate {
     pub voice_states: Vec<VoiceStateObject>,
@@ -1599,6 +1594,7 @@ impl WebSocketEvent for CallCreate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
+/// Updates the status of calls
 /// {"t":"CALL_UPDATE","s":5,"op":0,"d":{"ringing":["837606544539254834"],"region":"milan","message_id":"1107191540234846308","guild_id":null,"channel_id":"837609115475771392"}}
 pub struct CallUpdate {
     /// Seems like a vec of channel ids
@@ -1612,6 +1608,7 @@ impl WebSocketEvent for CallUpdate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
+/// Deletes a ringing call
 /// {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
 pub struct CallDelete {
     pub channel_id: String,
@@ -1629,7 +1626,13 @@ impl WebSocketEvent for CallSync {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
+/// 
+/// Sent to the server to signify lazy loading of a guild;
+/// Sent by the official client when switching to a guild or channel;
+/// After this, you should recieve message updates
+/// 
 /// See https://luna.gitlab.io/discord-unofficial-docs/lazy_guilds.html#op-14-lazy-request
+/// 
 /// {"op":14,"d":{"guild_id":"848582562217590824","typing":true,"activities":true,"threads":true}}
 pub struct LazyRequest {
     pub guild_id: String,
@@ -1645,9 +1648,12 @@ impl WebSocketEvent for LazyRequest {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
+/// 
 /// Not documented anywhere unofficially
+/// 
 /// Apparently "Message ACK refers to marking a message as read for Discord's API." (https://github.com/Rapptz/discord.py/issues/1851)
 /// I suspect this is sent and recieved from the gateway to let clients on other devices know the user has read a message
+/// 
 /// {"t":"MESSAGE_ACK","s":3,"op":0,"d":{"version":52,"message_id":"1107236673638633472","last_viewed":null,"flags":null,"channel_id":"967363950217936897"}}
 pub struct MessageACK {
     /// ?

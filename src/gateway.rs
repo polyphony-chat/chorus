@@ -197,8 +197,12 @@ impl Gateway {
                 let gateway_payload_t = gateway_payload.clone().t.unwrap();
 
                 println!("GW: Received {}..", gateway_payload_t);
+
+                let pretty_json = serde_json::to_string_pretty(&gateway_payload.clone().d.unwrap()).unwrap();
+                println!("Event data dump: {}", pretty_json);
                 
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
+                // "Some" of these are uncodumented
                 match gateway_payload_t.as_str() {
                     "READY" => {
                         let new_data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
@@ -441,10 +445,6 @@ impl Gateway {
             2 | 3 | 4 | 6 | 8 => {panic!("Received Gateway op code that's meant to be sent, not received ({})", gateway_payload.op)}
             _ => {println!("Received new Gateway op code ({})", gateway_payload.op);}
         }
-
-        let redeserialize: serde_json::Value = serde_json::from_str(msg.to_text().unwrap()).unwrap();
-        let pretty_json = serde_json::to_string_pretty(&redeserialize).unwrap();
-        println!("Event data dump: {}", pretty_json);
 
         // If we have an active heartbeat thread and we received a seq number we should let it know
         if gateway_payload.s.is_some() {
