@@ -994,7 +994,6 @@ pub struct GatewayIdentifyPayload {
 }
 
 impl GatewayIdentifyPayload {
-    /// Creates an identify payload with the same default intents as the official client
     pub fn default_w_client_capabilities() -> Self {
         let mut def = Self::default();
         def.capabilities = 8189; // Default capabilities for a client
@@ -1670,14 +1669,7 @@ impl WebSocketEvent for MessageACK {}
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 pub struct GatewayPayload {
     pub op: u8,
-    /// In reality this is a [serde_json::Value], but deserializing into a value and then into types causes problems in practice??
-    /// So, we use this directly as a json string and then deserialize using [serde_json::from_str]
-    /// 
-    /// (Particualarly, deserializing to value causes later problems with custom serializers like [deserialize_option_number_from_string] (in my experience))
-    /// 
-    /// Also, deserializing [WebSocketEvent]s from a string gives us the column where we get a serde error 
-    /// (i.e. line: 1, column: 13 vs line: 0, column: 0)
-    pub d: Option<String>,
+    pub d: Option<serde_json::Value>,
     pub s: Option<u64>,
     pub t: Option<String>,
 }
