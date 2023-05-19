@@ -22,6 +22,7 @@ custom_error! {
     TokenExpired = "Token expired, invalid or not found.",
     NoPermission = "You do not have the permissions needed to perform this action.",
     NotFound{error: String} = "The provided resource hasn't been found: {}",
+    PasswordRequiredError = "You need to provide your current password to authenticate for this action.",
 }
 
 custom_error! {
