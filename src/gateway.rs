@@ -129,6 +129,7 @@ impl Gateway {
         let (ws_stream, _) = match connect_async_tls_with_config(
             &websocket_url,
             None,
+            false,
             Some(Connector::NativeTls(
                 TlsConnector::builder().build().unwrap(),
             )),
@@ -198,8 +199,7 @@ impl Gateway {
 
                 println!("GW: Received {}..", gateway_payload_t);
 
-                let pretty_json = serde_json::to_string_pretty(&gateway_payload.clone().d.unwrap()).unwrap();
-                println!("Event data dump: {}", pretty_json);
+                println!("Event data dump: {}", gateway_payload.d.clone().unwrap().get());
                 
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                 // "Some" of these are uncodumented

@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
-use serde_aux::{field_attributes::deserialize_option_number_from_string, prelude::deserialize_string_from_number};
+use serde_aux::{field_attributes::deserialize_option_number_from_string, prelude::{deserialize_string_from_number, deserialize_number_from_string, deserialize_bool_from_anything}};
 
 use crate::{api::limits::Limits, instance::Instance};
 
@@ -147,7 +147,7 @@ pub struct UnavailableGuild {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Guild {
     pub id: String,
-    pub name: String,
+    pub name: Option<String>,
     pub icon: Option<String>,
     pub icon_hash: Option<String>,
     pub splash: Option<String>,
@@ -165,7 +165,7 @@ pub struct Guild {
     pub explicit_content_filter: Option<u8>,
     pub roles: Vec<RoleObject>,
     pub emojis: Vec<Emoji>,
-    pub features: Vec<String>,
+    pub features: Option<Vec<String>>,
     pub application_id: Option<String>,
     pub system_channel_id: Option<String>,
     pub system_channel_flags: Option<u8>,
@@ -188,8 +188,8 @@ pub struct Guild {
     pub member_count: Option<u64>,
     pub presence_count: Option<u64>,
     pub welcome_screen: Option<WelcomeScreenObject>,
-    pub nsfw_level: u8,
-    pub nsfw: bool,
+    pub nsfw_level: Option<u8>,
+    pub nsfw: Option<bool>,
     pub stickers: Option<Vec<Sticker>>,
     pub premium_progress_bar_enabled: Option<bool>,
     pub joined_at: String,
@@ -205,7 +205,7 @@ pub struct Guild {
     pub webhooks: Option<Vec<Webhook>>,
     pub mfa_level: Option<u8>,
     pub region: Option<String>,
-    pub unavailable: bool,
+    pub unavailable: Option<bool>,
     pub parent: Option<String>,
 }
 /// See https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user-
@@ -312,11 +312,30 @@ pub struct RoleObject {
     pub icon: Option<String>,
     pub unicode_emoji: Option<String>,
     pub position: u16,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_string_from_number")]
     pub permissions: String,
     pub managed: bool,
     pub mentionable: bool,
-    // to:do add role tags https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure
-    //pub tags: Option<RoleTags>
+    pub tags: Option<RoleTags>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+/// See https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure
+pub struct RoleTags {
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    pub bot_id: Option<usize>,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    pub integration_id: Option<usize>,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    pub subscription_listing_id: Option<usize>,
+    // These use the bad bool format, "Tags with type null represent booleans. They will be present and set to null if they are "true", and will be not present if they are "false"."
+    // premium_subscriber: bool,
+    // available_for_purchase: bool,
+    // guild_connections: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
@@ -670,6 +689,8 @@ pub struct Reaction {
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct Emoji {
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub id: Option<u64>,
     pub name: Option<String>,
     pub roles: Option<Vec<u64>>,
@@ -818,9 +839,13 @@ pub struct Channel {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Tag {
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub id: u64,
     pub name: String,
     pub moderated: bool,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub emoji_id: Option<u64>,
     pub emoji_name: Option<String>,
 }
@@ -919,7 +944,9 @@ pub struct StageInstance {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DefaultReaction {
-    pub emoji_id: Option<String>,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    pub emoji_id: Option<u64>,
     pub emoji_name: Option<String>,
 }
 
@@ -944,6 +971,8 @@ pub struct StickerItem {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Sticker {
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub id: u64,
     pub pack_id: Option<u64>,
     pub name: String,
@@ -954,6 +983,8 @@ pub struct Sticker {
     pub sticker_type: u8,
     pub format_type: u8,
     pub available: Option<bool>,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub guild_id: Option<u64>,
     pub user: Option<UserObject>,
     pub sort_value: Option<u8>,
@@ -994,9 +1025,17 @@ pub struct GatewayIdentifyPayload {
 }
 
 impl GatewayIdentifyPayload {
+    /// Creates an identify payload with the same default capabilities as the official client
     pub fn default_w_client_capabilities() -> Self {
         let mut def = Self::default();
         def.capabilities = 8189; // Default capabilities for a client
+        def
+    }
+
+    /// Creates an identify payload with all possible capabilities
+    pub fn default_w_all_capabilities() -> Self {
+        let mut def = Self::default();
+        def.capabilities = i32::MAX; // Since discord uses bitwise for capabilities, this has almost every bit as 1, so all capabilities
         def
     }
 }
