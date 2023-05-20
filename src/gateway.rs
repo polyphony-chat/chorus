@@ -340,6 +340,10 @@ impl Gateway {
                     "GUILD_SCHEDULED_EVENT_DELETE" => {}
                     "GUILD_SCHEDULED_EVENT_USER_ADD" => {}
                     "GUILD_SCHEDULED_EVENT_USER_REMOVE" => {}
+                    "PASSIVE_UPDATE_V1" => {
+                        let new_data: PassiveUpdateV1 = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.guild.passive_update_v1.update_data(new_data).await;
+                    }
                     "INTEGRATION_CREATE" => {
                         let new_data: IntegrationCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.integration.create.update_data(new_data).await;
@@ -395,8 +399,6 @@ impl Gateway {
                         let new_data: PresenceUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.user.presence_update.update_data(new_data).await;
                     }
-                    // What is this?
-                    "PASSIVE_UPDATE_V1" => {}
                     "STAGE_INSTANCE_CREATE" => {}
                     "STAGE_INSTANCE_UPDATE" => {}
                     "STAGE_INSTANCE_DELETE" => {}
@@ -690,6 +692,7 @@ mod events {
         pub role_scheduled_event_delete: GatewayEvent<ThreadCreate>,
         pub role_scheduled_event_user_add: GatewayEvent<ThreadCreate>,
         pub role_scheduled_event_user_remove: GatewayEvent<ThreadCreate>,*/
+        pub passive_update_v1: GatewayEvent<PassiveUpdateV1>,
     }
 
     #[derive(Default, Debug)]

@@ -1347,7 +1347,8 @@ pub struct ChannelUnreadUpdate {
 /// See also [ChannelUnreadUpdates]
 pub struct ChannelUnreadUpdateObject {
     pub id: String,
-    pub last_message_id: String
+    pub last_message_id: String,
+    pub last_pin_timestamp: Option<String>
 }
 
 impl WebSocketEvent for ChannelUnreadUpdate {}
@@ -1566,6 +1567,19 @@ pub struct GuildRoleDelete {
 }
 
 impl WebSocketEvent for GuildRoleDelete {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// 
+/// Seems to be passively set to update the client on guild details (though, why not just send the update events?)
+pub struct PassiveUpdateV1 {
+    pub voice_states: Vec<VoiceState>,
+    pub members: Vec<GuildMember>,
+    pub guild_id: String,
+    pub channels: Vec<ChannelUnreadUpdateObject>,
+}
+
+impl WebSocketEvent for PassiveUpdateV1 {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#integration-create
