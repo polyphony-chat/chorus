@@ -913,24 +913,6 @@ pub struct IntegrationAccount {
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/resources/voice#voice-state-object
-pub struct VoiceStateObject {
-    pub guild_id: Option<String>,
-    pub channel_id: Option<String>,
-    pub user_id: String,
-    pub member: Option<GuildMember>,
-    pub session_id: String,
-    pub deaf: bool,
-    pub mute: bool,
-    pub self_deaf: bool,
-    pub self_mute: bool,
-    pub self_stream: Option<bool>,
-    pub self_video: bool,
-    pub suppress: bool,
-    pub request_to_speak_timestamp: Option<DateTime<Utc>>
-}
-
-#[derive(Default, Debug, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/resources/stage-instance#stage-instance-object
 pub struct StageInstance {
     pub id: String,
@@ -1199,7 +1181,7 @@ pub struct MergedPresenceGuild {
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct SupplimentalGuild {
-    pub voice_states: Vec<VoiceStateObject>,
+    pub voice_states: Vec<VoiceState>,
     pub id: String,
     pub embedded_activities: Vec<serde_json::Value>
 }
@@ -1620,7 +1602,7 @@ impl WebSocketEvent for IntegrationDelete {}
 /// Is sent to a client by the server to signify a new being created
 /// {"t":"CALL_CREATE","s":2,"op":0,"d":{"voice_states":[],"ringing":[],"region":"milan","message_id":"1107187514906775613","embedded_activities":[],"channel_id":"837609115475771392"}}
 pub struct CallCreate {
-    pub voice_states: Vec<VoiceStateObject>,
+    pub voice_states: Vec<VoiceState>,
     /// Seems like a vec of channel ids
     pub ringing: Vec<String>,
     pub region: String, // milan
@@ -1908,7 +1890,7 @@ pub struct GuildInvite {
 /// See https://docs.spacebar.chat/routes/#cmp--schemas-voicestate
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct VoiceState {
-    pub guild_id: String,
+    pub guild_id: Option<String>,
     pub guild: Option<Guild>,
     pub channel_id: String,
     pub channel: Option<Channel>,
@@ -1916,7 +1898,7 @@ pub struct VoiceState {
     pub user: Option<UserObject>,
     pub member: Option<GuildMember>,
     pub session_id: String,
-    pub token: String,
+    pub token: Option<String>,
     pub deaf: bool,
     pub mute: bool,
     pub self_deaf: bool,
@@ -1925,7 +1907,7 @@ pub struct VoiceState {
     pub self_video: bool,
     pub suppress: bool,
     pub request_to_speak_timestamp: Option<DateTime<Utc>>,
-    pub id: String,
+    pub id: Option<String>,
 }
 
 /// See https://docs.spacebar.chat/routes/#cmp--schemas-webhook
