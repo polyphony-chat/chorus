@@ -286,7 +286,10 @@ impl Gateway {
                         let new_data: GuildDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.delete.update_data(new_data).await;
                     }
-                    "GUILD_AUDIT_LOG_ENTRY_CREATE" => {}
+                    "GUILD_AUDIT_LOG_ENTRY_CREATE" => {
+                        let new_data: GuildAuditLogEntryCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.guild.audit_log_entry_create.update_data(new_data).await;
+                    }
                     "GUILD_BAN_ADD" => {
                         let new_data: GuildBanAdd = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.ban_add.update_data(new_data).await;
@@ -681,7 +684,7 @@ mod events {
         pub create: GatewayEvent<GuildCreate>,
         pub update: GatewayEvent<GuildUpdate>,
         pub delete: GatewayEvent<GuildDelete>,
-        //pub audit_log_entry_create: GatewayEvent<ThreadCreate>,
+        pub audit_log_entry_create: GatewayEvent<GuildAuditLogEntryCreate>,
         pub ban_add: GatewayEvent<GuildBanAdd>,
         pub ban_remove: GatewayEvent<GuildBanRemove>,
         pub emojis_update: GatewayEvent<GuildEmojisUpdate>,
