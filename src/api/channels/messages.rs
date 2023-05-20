@@ -4,6 +4,7 @@ pub mod messages {
     use reqwest::{multipart, Client};
     use serde_json::to_string;
 
+    use crate::api::limits::Limits;
     use crate::api::types::{Message, PartialDiscordFileAttachment, User};
     use crate::limit::LimitedRequester;
 
@@ -20,16 +21,15 @@ pub mod messages {
         * [`InstanceServerError`] - If the message cannot be sent.
          */
         pub async fn send<'a>(
-            url_api: &String,
-            channel_id: &String,
+            url_api: String,
+            channel_id: String,
             message: &mut crate::api::schemas::MessageSendSchema,
             files: Option<Vec<PartialDiscordFileAttachment>>,
-            token: &String,
-            user: &mut User<'a>,
+            token: String,
+            limits_user: &mut Limits,
+            limits_instance: &mut Limits,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
             let mut requester = LimitedRequester::new().await;
-            let user_rate_limits = &mut user.limits;
-            let instance_rate_limits = &mut user.belongs_to.limits;
 
             if files.is_none() {
                 let message_request = Client::new()
@@ -40,8 +40,8 @@ pub mod messages {
                     .send_request(
                         message_request,
                         crate::api::limits::LimitType::Channel,
-                        instance_rate_limits,
-                        user_rate_limits,
+                        limits_instance,
+                        limits_user,
                     )
                     .await
             } else {
@@ -83,29 +83,30 @@ pub mod messages {
                     .send_request(
                         message_request,
                         crate::api::limits::LimitType::Channel,
-                        instance_rate_limits,
-                        user_rate_limits,
+                        limits_instance,
+                        limits_user,
                     )
                     .await
             }
         }
     }
 
-    impl<'a> User<'a> {
+    impl User {
         pub async fn send_message(
             &mut self,
             message: &mut crate::api::schemas::MessageSendSchema,
-            channel_id: &String,
+            channel_id: String,
             files: Option<Vec<PartialDiscordFileAttachment>>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
             let token = self.token().clone();
             Message::send(
-                &self.belongs_to.urls.get_api().to_string(),
+                self.belongs_to.borrow_mut().urls.get_api().to_string(),
                 channel_id,
                 message,
                 files,
-                &token,
-                self,
+                token,
+                &mut self.limits,
+                &mut self.belongs_to.borrow_mut().limits,
             )
             .await
         }
@@ -120,9 +121,9 @@ mod test {
         limit::LimitedRequester,
     };
 
-    use std::fs::File;
-    use std::io::BufReader;
     use std::io::Read;
+    use std::{cell::RefCell, fs::File};
+    use std::{io::BufReader, rc::Rc};
 
     #[tokio::test]
     async fn send_message() {
@@ -139,14 +140,11 @@ mod test {
             None,
             None,
         );
-        let mut instance = Instance::new(
-            crate::URLBundle {
-                api: "http://localhost:3001/api".to_string(),
-                wss: "ws://localhost:3001/".to_string(),
-                cdn: "http://localhost:3001".to_string(),
-            },
-            LimitedRequester::new().await,
-        )
+        let mut instance = Instance::new(crate::URLBundle {
+            api: "http://localhost:3001/api".to_string(),
+            wss: "ws://localhost:3001/".to_string(),
+            cdn: "http://localhost:3001".to_string(),
+        })
         .await
         .unwrap();
         let login_schema: LoginSchema = LoginSchema::new(
@@ -163,9 +161,15 @@ mod test {
         println!("TOKEN: {}", token);
         let settings = login_result.settings;
         let limits = instance.limits.clone();
-        let mut user = crate::api::types::User::new(&mut instance, token, limits, settings, None);
+        let mut user = crate::api::types::User::new(
+            Rc::new(RefCell::new(instance)),
+            token,
+            limits,
+            settings,
+            None,
+        );
         let _ = user
-            .send_message(&mut message, &channel_id, None)
+            .send_message(&mut message, channel_id, None)
             .await
             .unwrap();
     }
@@ -208,14 +212,11 @@ mod test {
             None,
             Some(vec![attachment.clone()]),
         );
-        let mut instance = Instance::new(
-            crate::URLBundle {
-                api: "http://localhost:3001/api".to_string(),
-                wss: "ws://localhost:3001/".to_string(),
-                cdn: "http://localhost:3001".to_string(),
-            },
-            LimitedRequester::new().await,
-        )
+        let mut instance = Instance::new(crate::URLBundle {
+            api: "http://localhost:3001/api".to_string(),
+            wss: "ws://localhost:3001/".to_string(),
+            cdn: "http://localhost:3001".to_string(),
+        })
         .await
         .unwrap();
         let login_schema: LoginSchema = LoginSchema::new(
@@ -231,11 +232,17 @@ mod test {
         let token = login_result.token;
         let settings = login_result.settings;
         let limits = instance.limits.clone();
-        let mut user = crate::api::types::User::new(&mut instance, token, limits, settings, None);
+        let mut user = crate::api::types::User::new(
+            Rc::new(RefCell::new(instance)),
+            token,
+            limits,
+            settings,
+            None,
+        );
         let vec_attach = vec![attachment.clone()];
         let _arg = Some(&vec_attach);
         let response = user
-            .send_message(&mut message, &channel_id, Some(vec![attachment.clone()]))
+            .send_message(&mut message, channel_id, Some(vec![attachment.clone()]))
             .await
             .unwrap();
         println!("[Response:] {}", response.text().await.unwrap());

@@ -1,20 +1,17 @@
 use crate::api::limits::Limits;
-use crate::api::types::{InstancePolicies};
+use crate::api::types::InstancePolicies;
 use crate::errors::{FieldFormatError, InstanceServerError};
-use crate::limit::LimitedRequester;
 use crate::URLBundle;
-
 
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /**
 The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
  */
 pub struct Instance {
     pub urls: URLBundle,
     pub instance_info: InstancePolicies,
-    pub requester: LimitedRequester,
     pub limits: Limits,
 }
 
@@ -25,10 +22,7 @@ impl Instance {
     /// * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
     /// # Errors
     /// * [`InstanceError`] - If the instance cannot be created.
-    pub async fn new(
-        urls: URLBundle,
-        requester: LimitedRequester,
-    ) -> Result<Instance, InstanceServerError> {
+    pub async fn new(urls: URLBundle) -> Result<Instance, InstanceServerError> {
         let mut instance = Instance {
             urls: urls.clone(),
             instance_info: InstancePolicies::new(
@@ -43,7 +37,6 @@ impl Instance {
                 None,
             ),
             limits: Limits::check_limits(urls.api).await,
-            requester,
         };
         instance.instance_info = match instance.instance_policies_schema().await {
             Ok(schema) => schema,

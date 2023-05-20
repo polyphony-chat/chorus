@@ -47,9 +47,7 @@ mod instance_policies_schema_test {
             "http://localhost:3001".to_string(),
         );
         let limited_requester = LimitedRequester::new().await;
-        let test_instance = Instance::new(urls.clone(), limited_requester)
-            .await
-            .unwrap();
+        let test_instance = Instance::new(urls.clone()).await.unwrap();
 
         let _schema = test_instance.instance_policies_schema().await.unwrap();
     }
