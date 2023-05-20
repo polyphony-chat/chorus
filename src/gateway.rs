@@ -357,8 +357,14 @@ impl Gateway {
                         self.events.lock().await.integration.delete.update_data(new_data).await;
                     }
                     "INTERACTION_CREATE" => {}
-                    "INVITE_CREATE" => {}
-                    "INVITE_DELETE" => {}
+                    "INVITE_CREATE" => {
+                        let new_data: InviteCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.invite.create.update_data(new_data).await;
+                    }
+                    "INVITE_DELETE" => {
+                        let new_data: InviteDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.invite.delete.update_data(new_data).await;
+                    }
                     "MESSAGE_CREATE" => {
                         let new_data: MessageCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.message.create.update_data(new_data).await;
@@ -616,6 +622,7 @@ mod events {
         pub channel: Channel,
         pub thread: Thread,
         pub guild: Guild,
+        pub invite: Invite,
         pub integration: Integration,
         pub call: Call,
         pub webhooks: Webhooks,
@@ -693,6 +700,12 @@ mod events {
         pub role_scheduled_event_user_add: GatewayEvent<ThreadCreate>,
         pub role_scheduled_event_user_remove: GatewayEvent<ThreadCreate>,*/
         pub passive_update_v1: GatewayEvent<PassiveUpdateV1>,
+    }
+
+    #[derive(Default, Debug)]
+    pub struct Invite {
+        pub create: GatewayEvent<InviteCreate>,
+        pub delete: GatewayEvent<InviteDelete>
     }
 
     #[derive(Default, Debug)]
