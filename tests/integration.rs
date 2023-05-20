@@ -7,39 +7,18 @@ use chorus::{
     URLBundle,
 };
 
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref INSTANCE: Mutex<Instance> =
-        tokio::runtime::Runtime::new().unwrap().block_on(async {
-            Mutex::new(
-                Instance::new(
-                    URLBundle::new(
-                        "http://localhost:3001/api".to_string(),
-                        "ws://localhost:3001".to_string(),
-                        "http://localhost:3001".to_string(),
-                    ),
-                    LimitedRequester::new().await,
-                )
-                .await
-                .unwrap(),
-            )
-        });
-}
-
-struct TestBundle<'a> {
+struct TestBundle {
     urls: URLBundle,
-    user: User<'a>,
+    user: User,
 }
 
-async fn setup<'a>() -> TestBundle<'a> {
+async fn setup() -> TestBundle {
     let urls = URLBundle::new(
         "http://localhost:3001/api".to_string(),
         "ws://localhost:3001".to_string(),
         "http://localhost:3001".to_string(),
     );
-    let requester = LimitedRequester::new().await;
-    let mut instance = Instance::new(urls.clone(), requester).await.unwrap();
+    let mut instance = Instance::new(urls.clone()).await.unwrap();
     // Requires the existance of the below user.
     let login_schema: LoginSchema = LoginSchema::new(
         AuthUsername::new("user@test.xyz".to_string()).unwrap(),
@@ -57,3 +36,5 @@ async fn setup<'a>() -> TestBundle<'a> {
         user: user,
     }
 }
+
+async fn teardown() {}
