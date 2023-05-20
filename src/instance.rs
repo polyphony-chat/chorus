@@ -1,9 +1,8 @@
 use crate::api::limits::Limits;
-use crate::api::types::{InstancePolicies};
+use crate::api::types::InstancePolicies;
 use crate::errors::{FieldFormatError, InstanceServerError};
 use crate::limit::LimitedRequester;
 use crate::URLBundle;
-
 
 use std::fmt;
 
