@@ -35,13 +35,13 @@ impl<'a> types::Guild {
     /// }
     /// ```
     pub async fn create(
-        user: &mut types::User<'a>,
+        user: &mut types::User,
         url_api: &str,
         guild_create_schema: schemas::GuildCreateSchema,
     ) -> Result<String, crate::errors::InstanceServerError> {
         let url = format!("{}/guilds/", url_api);
         let limits_user = user.limits.get_as_mut();
-        let limits_instance = &mut user.belongs_to.limits;
+        let limits_instance = &mut user.belongs_to.borrow_mut().limits;
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone())
@@ -88,13 +88,13 @@ impl<'a> types::Guild {
     /// }
     /// ```
     pub async fn delete(
-        user: &mut types::User<'a>,
+        user: &mut types::User,
         url_api: &str,
         guild_id: String,
     ) -> Option<InstanceServerError> {
         let url = format!("{}/guilds/{}/delete/", url_api, guild_id);
         let limits_user = user.limits.get_as_mut();
-        let limits_instance = &mut user.belongs_to.limits;
+        let limits_instance = &mut user.belongs_to.borrow_mut().limits;
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone());
@@ -123,14 +123,11 @@ mod test {
 
     #[tokio::test]
     async fn guild_creation_deletion() {
-        let mut instance = Instance::new(
-            crate::URLBundle {
-                api: "http://localhost:3001/api".to_string(),
-                wss: "ws://localhost:3001/".to_string(),
-                cdn: "http://localhost:3001".to_string(),
-            },
-            crate::limit::LimitedRequester::new().await,
-        )
+        let mut instance = Instance::new(crate::URLBundle {
+            api: "http://localhost:3001/api".to_string(),
+            wss: "ws://localhost:3001/".to_string(),
+            cdn: "http://localhost:3001".to_string(),
+        })
         .await
         .unwrap();
         let login_schema: schemas::LoginSchema = schemas::LoginSchema::new(

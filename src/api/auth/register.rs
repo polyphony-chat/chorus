@@ -1,4 +1,6 @@
 pub mod register {
+    use std::{cell::RefCell, rc::Rc};
+
     use reqwest::Client;
     use serde_json::{from_str, json};
 
@@ -6,6 +8,7 @@ pub mod register {
         api::{limits::LimitType, schemas::RegisterSchema, types::ErrorResponse, Token},
         errors::InstanceServerError,
         instance::Instance,
+        limit::LimitedRequester,
     };
 
     impl Instance {
@@ -21,7 +24,7 @@ pub mod register {
             register_schema: &RegisterSchema,
         ) -> Result<crate::api::types::User, InstanceServerError> {
             let json_schema = json!(register_schema);
-            let limited_requester = &mut self.requester;
+            let mut limited_requester = LimitedRequester::new().await;
             let client = Client::new();
             let endpoint_url = self.urls.get_api().to_string() + "/auth/register";
             let request_builder = client.post(endpoint_url).body(json_schema.to_string());
@@ -67,7 +70,7 @@ pub mod register {
             .await
             .unwrap();
             let user: crate::api::types::User = crate::api::types::User::new(
-                self,
+                Rc::new(RefCell::new(self.clone())),
                 token.clone(),
                 cloned_limits,
                 settings,
@@ -93,9 +96,7 @@ mod test {
             "http://localhost:3001".to_string(),
         );
         let limited_requester = LimitedRequester::new().await;
-        let mut test_instance = Instance::new(urls.clone(), limited_requester)
-            .await
-            .unwrap();
+        let mut test_instance = Instance::new(urls.clone()).await.unwrap();
         let reg = RegisterSchema::new(
             AuthUsername::new("Hiiii".to_string()).unwrap(),
             None,
