@@ -99,14 +99,15 @@ pub mod messages {
             files: Option<Vec<PartialDiscordFileAttachment>>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
             let token = self.token().clone();
+            let mut belongs_to = self.belongs_to.borrow_mut();
             Message::send(
-                self.belongs_to.borrow_mut().urls.get_api().to_string(),
+                belongs_to.urls.get_api().to_string(),
                 channel_id,
                 message,
                 files,
                 token,
                 &mut self.limits,
-                &mut self.belongs_to.borrow_mut().limits,
+                &mut belongs_to.limits,
             )
             .await
         }
