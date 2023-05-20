@@ -12,7 +12,7 @@ use crate::{
     limit::LimitedRequester,
 };
 
-impl<'a> User<'a> {
+impl User {
     /**
     Get a user object by id, or get the current user.
     # Arguments
@@ -99,7 +99,10 @@ impl<'a> User<'a> {
             return Err(InstanceServerError::PasswordRequiredError);
         }
         let request = Client::new()
-            .patch(format!("{}/users/@me/", self.belongs_to.urls.get_api()))
+            .patch(format!(
+                "{}/users/@me/",
+                self.belongs_to.borrow_mut().urls.get_api()
+            ))
             .body(to_string(&modify_schema).unwrap())
             .bearer_auth(self.token());
         let result = match LimitedRequester::new()
@@ -107,7 +110,7 @@ impl<'a> User<'a> {
             .send_request(
                 request,
                 crate::api::limits::LimitType::Global,
-                &mut self.belongs_to.limits,
+                &mut self.belongs_to.borrow_mut().limits,
                 &mut self.limits,
             )
             .await
