@@ -1,4 +1,7 @@
 pub mod login {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
     use reqwest::Client;
     use serde_json::{from_str, json};
 
@@ -7,13 +10,14 @@ pub mod login {
     use crate::api::types::{ErrorResponse, LoginResult};
     use crate::errors::InstanceServerError;
     use crate::instance::Instance;
+    use crate::limit::LimitedRequester;
 
     impl Instance {
         pub async fn login_account(
             &mut self,
             login_schema: &LoginSchema,
         ) -> Result<crate::api::types::User, InstanceServerError> {
-            let requester = &mut self.requester;
+            let mut requester = LimitedRequester::new().await;
             let json_schema = json!(login_schema);
             let client = Client::new();
             let endpoint_url = self.urls.get_api().to_string() + "/auth/login";
@@ -56,7 +60,7 @@ pub mod login {
                 .await
                 .unwrap();
             let user = crate::api::types::User::new(
-                self,
+                Rc::new(RefCell::new(self.clone())),
                 login_result.token,
                 cloned_limits,
                 login_result.settings,

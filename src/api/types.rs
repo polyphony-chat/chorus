@@ -4,6 +4,8 @@ https://discord.com/developers/docs .
 I do not feel like re-documenting all of this, as everything is already perfectly explained there.
 */
 
+use std::{cell::RefCell, rc::Rc};
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
@@ -347,19 +349,15 @@ pub struct UserObject {
 }
 
 #[derive(Debug)]
-pub struct User<'a> {
-    pub belongs_to: &'a mut Instance,
+pub struct User {
+    pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,
     pub limits: Limits,
     pub settings: UserSettings,
     pub object: Option<UserObject>,
 }
 
-impl<'a> User<'a> {
-    pub fn belongs_to(&mut self) -> &mut Instance {
-        self.belongs_to
-    }
-
+impl User {
     pub fn token(&self) -> String {
         self.token.clone()
     }
@@ -369,12 +367,12 @@ impl<'a> User<'a> {
     }
 
     pub fn new(
-        belongs_to: &'a mut Instance,
+        belongs_to: Rc<RefCell<Instance>>,
         token: String,
         limits: Limits,
         settings: UserSettings,
         object: Option<UserObject>,
-    ) -> User<'a> {
+    ) -> User {
         User {
             belongs_to,
             token,
