@@ -299,6 +299,21 @@ pub struct GuildCreateSchema {
     pub rules_channel_id: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct UserModifySchema {
+    pub username: Option<String>,
+    pub avatar: Option<String>,
+    pub bio: Option<String>,
+    pub accent_color: Option<u64>,
+    pub banner: Option<String>,
+    pub current_password: Option<String>,
+    pub new_password: Option<String>,
+    pub code: Option<String>,
+    pub email: Option<String>,
+    pub discriminator: Option<i16>,
+}
+
 // I know that some of these tests are... really really basic and unneccessary, but sometimes, I
 // just feel like writing tests, so there you go :) -@bitfl0wer
 #[cfg(test)]

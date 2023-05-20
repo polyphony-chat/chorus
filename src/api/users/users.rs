@@ -1,13 +1,15 @@
 use reqwest::Client;
+use serde_json::{from_str, to_string};
 
 use crate::{
     api::{
         limits::Limits,
         types::{User, UserObject},
-        UserSettings,
+        UserModifySchema, UserSettings,
     },
     errors::InstanceServerError,
     instance::Instance,
+    limit::LimitedRequester,
 };
 
 impl<'a> User<'a> {
@@ -75,6 +77,50 @@ impl<'a> User<'a> {
             Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
             Err(e) => Err(e),
         }
+    }
+
+    /// Modify the current user's `UserObject`.
+    ///
+    /// # Arguments
+    ///
+    /// * `modify_schema` - A `UserModifySchema` object containing the fields to modify.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `InstanceServerError` if the request fails or if a password is required but not provided.
+    pub async fn modify(
+        &mut self,
+        modify_schema: UserModifySchema,
+    ) -> Result<UserObject, InstanceServerError> {
+        if modify_schema.new_password.is_some()
+            || modify_schema.email.is_some()
+            || modify_schema.code.is_some()
+        {
+            return Err(InstanceServerError::PasswordRequiredError);
+        }
+        let request = Client::new()
+            .patch(format!("{}/users/@me/", self.belongs_to.urls.get_api()))
+            .body(to_string(&modify_schema).unwrap())
+            .bearer_auth(self.token());
+        let result = match LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Global,
+                &mut self.belongs_to.limits,
+                &mut self.limits,
+            )
+            .await
+        {
+            Ok(response) => response,
+            Err(e) => return Err(e),
+        };
+        let user_updated: UserObject = from_str(&result.text().await.unwrap()).unwrap();
+        let _ = std::mem::replace(
+            &mut self.object.as_mut().unwrap(),
+            &mut user_updated.clone(),
+        );
+        Ok(user_updated)
     }
 }
 
