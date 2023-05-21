@@ -125,6 +125,35 @@ impl User {
         );
         Ok(user_updated)
     }
+
+    /// Sends a request to the server which deletes the user from the Instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - The `User` object to delete.
+    ///
+    /// # Returns
+    ///
+    /// Returns `None` if the user was successfully deleted, or an `InstanceServerError` if an error occurred.
+    pub async fn delete(mut self) -> Option<InstanceServerError> {
+        let mut belongs_to = self.belongs_to.borrow_mut();
+        let request = Client::new()
+            .post(format!("{}/users/@me/delete/", belongs_to.urls.get_api()))
+            .bearer_auth(self.token);
+        match LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Global,
+                &mut belongs_to.limits,
+                &mut self.limits,
+            )
+            .await
+        {
+            Ok(_) => None,
+            Err(e) => Some(e),
+        }
+    }
 }
 
 impl Instance {
