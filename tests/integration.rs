@@ -4,12 +4,13 @@ use chorus::{
     URLBundle,
 };
 
+#[derive(Debug)]
 struct TestBundle {
     urls: URLBundle,
     user: User,
 }
 
-// Set up a test by creating an Instance and a User.
+// Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 async fn setup() -> TestBundle {
     let urls = URLBundle::new(
         "http://localhost:3001/api".to_string(),
