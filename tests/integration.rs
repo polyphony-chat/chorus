@@ -1,9 +1,6 @@
-use std::sync::Mutex;
-
 use chorus::{
-    api::{AuthUsername, LoginSchema, User},
+    api::{AuthUsername, RegisterSchema, User},
     instance::Instance,
-    limit::LimitedRequester,
     URLBundle,
 };
 
@@ -12,6 +9,7 @@ struct TestBundle {
     user: User,
 }
 
+// Set up a test by creating an Instance and a User.
 async fn setup() -> TestBundle {
     let urls = URLBundle::new(
         "http://localhost:3001/api".to_string(),
@@ -20,21 +18,25 @@ async fn setup() -> TestBundle {
     );
     let mut instance = Instance::new(urls.clone()).await.unwrap();
     // Requires the existance of the below user.
-    let login_schema: LoginSchema = LoginSchema::new(
-        AuthUsername::new("user@test.xyz".to_string()).unwrap(),
-        "transrights".to_string(),
+    let reg = RegisterSchema::new(
+        AuthUsername::new("integrationtestuser".to_string()).unwrap(),
         None,
+        true,
+        None,
+        None,
+        None,
+        Some("2000-01-01".to_string()),
         None,
         None,
         None,
     )
     .unwrap();
-    let user = instance.login_account(&login_schema).await.unwrap();
+    let user = instance.register_account(&reg).await.unwrap();
 
-    TestBundle {
-        urls: urls,
-        user: user,
-    }
+    TestBundle { urls, user }
 }
 
-async fn teardown() {}
+// Teardown method to clean up after a test.
+async fn teardown(bundle: TestBundle) {
+    bundle.user.delete().await;
+}
