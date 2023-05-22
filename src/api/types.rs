@@ -8,7 +8,7 @@ use std::{cell::RefCell, rc::Rc, collections::HashMap};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
-use serde_aux::{field_attributes::deserialize_option_number_from_string, prelude::{deserialize_string_from_number, deserialize_number_from_string, deserialize_bool_from_anything}};
+use serde_aux::{field_attributes::deserialize_option_number_from_string, prelude::{deserialize_string_from_number, deserialize_number_from_string}};
 
 use crate::{api::limits::Limits, instance::Instance};
 
@@ -215,76 +215,6 @@ pub struct GuildBan {
     pub guild_id: String,
     pub executor_id: String,
     pub reason: Option<String>,
-}
-
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-create-guild-create-extra-fields
-/// This is like [Guild], expect it has extra fields
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct GuildCreateGuild {
-    pub id: String,
-    pub name: String,
-    pub icon: Option<String>,
-    pub icon_hash: Option<String>,
-    pub splash: Option<String>,
-    pub discovery_splash: Option<String>,
-    pub owner: Option<bool>,
-    pub owner_id: String,
-    pub permissions: Option<String>,
-    pub afk_channel_id: Option<String>,
-    pub afk_timeout: u8,
-    pub widget_enabled: Option<bool>,
-    pub widget_channel_id: Option<String>,
-    pub verification_level: u8,
-    pub default_message_notifications: u8,
-    pub explicit_content_filter: u8,
-    pub roles: Vec<RoleObject>,
-    pub emojis: Vec<Emoji>,
-    pub features: Vec<String>,
-    pub mfa_level: u8,
-    pub application_id: Option<String>,
-    pub system_channel_id: Option<String>,
-    pub system_channel_flags: u8,
-    pub rules_channel_id: Option<String>,
-    pub max_presences: Option<u64>,
-    pub max_members: Option<u64>,
-    pub vanity_url_code: Option<String>,
-    pub description: Option<String>,
-    pub banner: Option<String>,
-    pub premium_tier: u8,
-    pub premium_subscription_count: Option<u64>,
-    pub preferred_locale: String,
-    pub public_updates_channel_id: Option<String>,
-    pub max_video_channel_users: Option<u8>,
-    pub max_stage_video_channel_users: Option<u8>,
-    pub approximate_member_count: Option<u64>,
-    pub approximate_presence_count: Option<u64>,
-    pub welcome_screen: Option<WelcomeScreenObject>,
-    pub nsfw_level: u8,
-    pub stickers: Option<Vec<Sticker>>,
-    pub premium_progress_bar_enabled: bool,
-    // ------ Extra Fields ------
-    pub joined_at: DateTime<Utc>,
-    pub large: bool,
-    pub unavailable: Option<bool>,
-    pub member_count: u64,
-    // to:do implement voice states
-    //pub voice_states: Vec<VoiceState>,
-    pub members: Vec<GuildMember>,
-    pub channels: Vec<Channel>,
-    pub threads: Vec<Channel>,
-    pub presences: Vec<PresenceUpdate>,
-    // to:do add stage instances
-    //pub stage_instances: Vec<StageInstance>,
-    // to:do add guild schedules events
-    //pub guild_scheduled_events: Vec<GuildScheduledEvent>
-}
-
-impl GuildCreateGuild {
-    /// Converts self to a [Guild], discarding the extra fields
-    pub fn to_guild(&self) -> Guild {
-        let as_value = serde_json::to_value(&self).unwrap();
-        return from_value(as_value).unwrap();
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
