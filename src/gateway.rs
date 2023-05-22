@@ -338,11 +338,26 @@ impl Gateway {
                         let new_data: GuildRoleDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.role_delete.update_data(new_data).await;
                     }
-                    "GUILD_SCHEDULED_EVENT_CREATE" => {}
-                    "GUILD_SCHEDULED_EVENT_UPDATE" => {}
-                    "GUILD_SCHEDULED_EVENT_DELETE" => {}
-                    "GUILD_SCHEDULED_EVENT_USER_ADD" => {}
-                    "GUILD_SCHEDULED_EVENT_USER_REMOVE" => {}
+                    "GUILD_SCHEDULED_EVENT_CREATE" => {
+                        let new_data: GuildScheduledEventCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.guild.role_scheduled_event_create.update_data(new_data).await;
+                    }
+                    "GUILD_SCHEDULED_EVENT_UPDATE" => {
+                        let new_data: GuildScheduledEventUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.guild.role_scheduled_event_update.update_data(new_data).await;
+                    }
+                    "GUILD_SCHEDULED_EVENT_DELETE" => {
+                        let new_data: GuildScheduledEventDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.guild.role_scheduled_event_delete.update_data(new_data).await;
+                    }
+                    "GUILD_SCHEDULED_EVENT_USER_ADD" => {
+                        let new_data: GuildScheduledEventUserAdd = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.guild.role_scheduled_event_user_add.update_data(new_data).await;
+                    }
+                    "GUILD_SCHEDULED_EVENT_USER_REMOVE" => {
+                        let new_data: GuildScheduledEventUserRemove = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.guild.role_scheduled_event_user_remove.update_data(new_data).await;
+                    }
                     "PASSIVE_UPDATE_V1" => {
                         let new_data: PassiveUpdateV1 = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.guild.passive_update_v1.update_data(new_data).await;
@@ -697,11 +712,11 @@ mod events {
         pub role_create: GatewayEvent<GuildRoleCreate>,
         pub role_update: GatewayEvent<GuildRoleUpdate>,
         pub role_delete: GatewayEvent<GuildRoleDelete>,
-        /*pub role_scheduled_event_create: GatewayEvent<ThreadCreate>,
-        pub role_scheduled_event_update: GatewayEvent<ThreadCreate>,
-        pub role_scheduled_event_delete: GatewayEvent<ThreadCreate>,
-        pub role_scheduled_event_user_add: GatewayEvent<ThreadCreate>,
-        pub role_scheduled_event_user_remove: GatewayEvent<ThreadCreate>,*/
+        pub role_scheduled_event_create: GatewayEvent<GuildScheduledEventCreate>,
+        pub role_scheduled_event_update: GatewayEvent<GuildScheduledEventUpdate>,
+        pub role_scheduled_event_delete: GatewayEvent<GuildScheduledEventDelete>,
+        pub role_scheduled_event_user_add: GatewayEvent<GuildScheduledEventUserAdd>,
+        pub role_scheduled_event_user_remove: GatewayEvent<GuildScheduledEventUserRemove>,
         pub passive_update_v1: GatewayEvent<PassiveUpdateV1>,
     }
 
