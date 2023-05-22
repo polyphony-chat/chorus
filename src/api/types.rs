@@ -1232,15 +1232,42 @@ pub struct ClientInfo {
 impl WebSocketEvent for SessionsReplace {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
-/// See https://discord.com/developers/docs/topics/gateway-events#update-voice-state-gateway-voice-state-update-structure
-pub struct GatewayVoiceStateUpdate {
+/// See https://discord.com/developers/docs/topics/gateway-events#update-voice-state
+/// 
+/// Sent to the server
+/// 
+/// Not to be confused with [VoiceStateUpdate]
+pub struct UpdateVoiceState {
     pub guild_id: String,
     pub channel_id: Option<String>,
     pub self_mute: bool,
     pub self_deaf: bool,
 }
 
-impl WebSocketEvent for GatewayVoiceStateUpdate {}
+impl WebSocketEvent for UpdateVoiceState {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#voice-state-update
+/// 
+/// Received from the server
+/// 
+/// Not to be confused with [UpdateVoiceState]
+pub struct VoiceStateUpdate {
+    #[serde(flatten)]
+    pub state: VoiceState
+}
+
+impl WebSocketEvent for VoiceStateUpdate {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#voice-server-update
+pub struct VoiceServerUpdate {
+    pub token: String,
+    pub guild_id: String,
+    pub endpoint: Option<String>
+}
+
+impl WebSocketEvent for VoiceServerUpdate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#webhooks-update

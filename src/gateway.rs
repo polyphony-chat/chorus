@@ -74,7 +74,7 @@ impl GatewayHandle {
         self.send_json_event(3, to_send_value).await;
     }
 
-    /// Sends a Request Guild Members to the server
+    /// Sends a request guild members to the server
     pub async fn send_request_guild_members(&self, to_send: GatewayRequestGuildMembers) {
 
         let to_send_value = serde_json::to_value(&to_send).unwrap();
@@ -84,17 +84,17 @@ impl GatewayHandle {
         self.send_json_event(8, to_send_value).await;
     }
 
-    /// Sends a Request Guild Members to the server
-    pub async fn send_update_voice_state(&self, to_send: GatewayVoiceStateUpdate) {
+    /// Sends an update voice state to the server
+    pub async fn send_update_voice_state(&self, to_send: UpdateVoiceState) {
 
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        println!("GW: Sending Voice State Update..");
+        println!("GW: Sending Update Voice State..");
 
         self.send_json_event(4, to_send_value).await;
     }
 
-    /// Sends a Call Sync
+    /// Sends a call sync to the server
     pub async fn send_call_sync(&self, to_send: CallSync) {
 
         let to_send_value = serde_json::to_value(&to_send).unwrap();
@@ -439,8 +439,14 @@ impl Gateway {
                         let new_data: UserUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.user.update.update_data(new_data).await;
                     }
-                    "VOICE_STATE_UPDATE" => {}
-                    "VOICE_SERVER_UPDATE" => {}
+                    "VOICE_STATE_UPDATE" => {
+                        let new_data: VoiceStateUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.voice.state_update.update_data(new_data).await;
+                    }
+                    "VOICE_SERVER_UPDATE" => {
+                        let new_data: VoiceServerUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.voice.server_update.update_data(new_data).await;
+                    }
                     "WEBHOOKS_UPDATE" => {
                         let new_data: WebhooksUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.webhooks.update.update_data(new_data).await;
@@ -643,6 +649,7 @@ mod events {
         pub invite: Invite,
         pub integration: Integration,
         pub call: Call,
+        pub voice: Voice,
         pub webhooks: Webhooks,
         pub gateway_identify_payload: GatewayEvent<GatewayIdentifyPayload>,
         pub gateway_resume: GatewayEvent<GatewayResume>,
@@ -738,6 +745,12 @@ mod events {
         pub create: GatewayEvent<CallCreate>,
         pub update: GatewayEvent<CallUpdate>,
         pub delete: GatewayEvent<CallDelete>
+    }
+
+    #[derive(Default, Debug)]
+    pub struct Voice {
+        pub state_update: GatewayEvent<VoiceStateUpdate>,
+        pub server_update: GatewayEvent<VoiceServerUpdate>
     }
 
     #[derive(Default, Debug)]
