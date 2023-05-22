@@ -5,7 +5,7 @@ use crate::api::schemas;
 use crate::api::types;
 use crate::errors::InstanceServerError;
 
-impl<'a> types::Guild {
+impl types::Guild {
     /// Creates a new guild with the given parameters.
     ///
     /// # Arguments
@@ -112,5 +112,17 @@ impl<'a> types::Guild {
         } else {
             None
         }
+    }
+
+    pub async fn create_channel() {}
+}
+
+impl types::Channel {
+    pub async fn create(
+        token: &str,
+        url_api: &str,
+        guild_id: &str,
+        schema: schemas::ChannelCreateSchema,
+    ) {
     }
 }

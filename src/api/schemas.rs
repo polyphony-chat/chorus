@@ -314,6 +314,31 @@ pub struct UserModifySchema {
     pub discriminator: Option<i16>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+// TODO: Implement in polyphony/types
+pub struct ChannelCreateSchema {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub channel_type: Option<u8>,
+    pub topic: Option<String>,
+    pub icon: Option<String>,
+    pub bitrate: Option<i32>,
+    pub user_limit: Option<i32>,
+    pub rate_limit_per_user: Option<i32>,
+    pub position: Option<i32>,
+    pub permission_overwrites: Option<Vec<crate::api::types::PermissionOverwrite>>,
+    pub parent_id: Option<String>,
+    pub id: Option<String>,
+    pub nsfw: Option<bool>,
+    pub rtc_region: Option<String>,
+    pub default_auto_archive_duration: Option<i32>,
+    pub default_reaction_emoji: Option<String>,
+    pub flags: Option<i32>,
+    pub default_thread_rate_limit_per_user: Option<i32>,
+    pub video_quality_mode: Option<i32>,
+}
+
 // I know that some of these tests are... really really basic and unneccessary, but sometimes, I
 // just feel like writing tests, so there you go :) -@bitfl0wer
 #[cfg(test)]
