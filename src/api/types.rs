@@ -7,7 +7,7 @@ I do not feel like re-documenting all of this, as everything is already perfectl
 use std::{cell::RefCell, rc::Rc, collections::HashMap};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::from_value;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_aux::{field_attributes::deserialize_option_number_from_string, prelude::{deserialize_string_from_number, deserialize_number_from_string}};
 
 use crate::{api::limits::Limits, instance::Instance};
@@ -229,6 +229,62 @@ pub struct WelcomeScreenChannel {
     pub description: String,
     pub emoji_id: Option<String>,
     pub emoji_name: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object
+pub struct GuildScheduledEvent {
+    pub id: String,
+    pub guild_id: String,
+    pub channel_id: Option<String>,
+    pub creator_id: Option<String>,
+    pub name: String,
+    pub description: String,
+    pub scheduled_start_time: DateTime<Utc>,
+    pub scheduled_end_time: Option<DateTime<Utc>>,
+    pub privacy_level: GuildScheduledEventPrivacyLevel,
+    pub status: GuildScheduledEventStatus,
+    pub entity_type: GuildScheduledEventEntityType,
+    pub entity_id: Option<String>,
+    pub entity_metadata: Option<GuildScheduledEventEntityMetadata>,
+    pub creator: Option<UserObject>,
+    pub user_count: Option<u64>,
+    pub image: Option<String>
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
+#[repr(u8)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-privacy-level
+pub enum GuildScheduledEventPrivacyLevel {
+    #[default]
+    GuildOnly = 2,
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
+#[repr(u8)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-status
+pub enum GuildScheduledEventStatus {
+    #[default]
+    Scheduled = 1,
+    Active = 2,
+    Completed = 3,
+    Canceled = 4
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
+#[repr(u8)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types
+pub enum GuildScheduledEventEntityType {
+    #[default]
+    StageInstance = 1,
+    Voice = 2,
+    External = 3,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-metadata
+pub struct GuildScheduledEventEntityMetadata {
+    pub location: Option<String>
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -1523,6 +1579,53 @@ pub struct GuildRoleDelete {
 }
 
 impl WebSocketEvent for GuildRoleDelete {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-create
+pub struct GuildScheduledEventCreate {
+    #[serde(flatten)]
+    pub event: GuildScheduledEvent,
+}
+
+impl WebSocketEvent for GuildScheduledEventCreate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-update
+pub struct GuildScheduledEventUpdate {
+    #[serde(flatten)]
+    pub event: GuildScheduledEvent,
+}
+
+impl WebSocketEvent for GuildScheduledEventUpdate {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-delete
+pub struct GuildScheduledEventDelete {
+    #[serde(flatten)]
+    pub event: GuildScheduledEvent,
+}
+
+impl WebSocketEvent for GuildScheduledEventDelete {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-user-add
+pub struct GuildScheduledEventUserAdd {
+    pub guild_scheduled_event_id: String,
+    pub user_id: String,
+    pub guild_id: String,
+}
+
+impl WebSocketEvent for GuildScheduledEventUserAdd {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-user-remove
+pub struct GuildScheduledEventUserRemove {
+    pub guild_scheduled_event_id: String,
+    pub user_id: String,
+    pub guild_id: String,
+}
+
+impl WebSocketEvent for GuildScheduledEventUserRemove {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
