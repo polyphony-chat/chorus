@@ -12,7 +12,7 @@ use crate::{
     limit::LimitedRequester,
 };
 
-impl<'a> User<'a> {
+impl User {
     /**
     Get a user object by id, or get the current user.
     # Arguments
@@ -99,7 +99,10 @@ impl<'a> User<'a> {
             return Err(InstanceServerError::PasswordRequiredError);
         }
         let request = Client::new()
-            .patch(format!("{}/users/@me/", self.belongs_to.urls.get_api()))
+            .patch(format!(
+                "{}/users/@me/",
+                self.belongs_to.borrow_mut().urls.get_api()
+            ))
             .body(to_string(&modify_schema).unwrap())
             .bearer_auth(self.token());
         let result = match LimitedRequester::new()
@@ -107,7 +110,7 @@ impl<'a> User<'a> {
             .send_request(
                 request,
                 crate::api::limits::LimitType::Global,
-                &mut self.belongs_to.limits,
+                &mut self.belongs_to.borrow_mut().limits,
                 &mut self.limits,
             )
             .await
@@ -121,6 +124,35 @@ impl<'a> User<'a> {
             &mut user_updated.clone(),
         );
         Ok(user_updated)
+    }
+
+    /// Sends a request to the server which deletes the user from the Instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - The `User` object to delete.
+    ///
+    /// # Returns
+    ///
+    /// Returns `None` if the user was successfully deleted, or an `InstanceServerError` if an error occurred.
+    pub async fn delete(mut self) -> Option<InstanceServerError> {
+        let mut belongs_to = self.belongs_to.borrow_mut();
+        let request = Client::new()
+            .post(format!("{}/users/@me/delete/", belongs_to.urls.get_api()))
+            .bearer_auth(self.token);
+        match LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Global,
+                &mut belongs_to.limits,
+                &mut self.limits,
+            )
+            .await
+        {
+            Ok(_) => None,
+            Err(e) => Some(e),
+        }
     }
 }
 
