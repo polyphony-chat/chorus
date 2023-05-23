@@ -202,12 +202,12 @@ impl types::Channel {
     pub async fn get(
         token: &str,
         url_api: &str,
-        guild_id: &str,
+        channel_id: &str,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
     ) -> Result<types::Channel, InstanceServerError> {
         let request = Client::new()
-            .get(format!("{}/guilds/{}/channels/", url_api, guild_id))
+            .get(format!("{}/channels/{}/", url_api, channel_id))
             .bearer_auth(token);
         let mut requester = LimitedRequester::new().await;
         let result = match requester
@@ -222,10 +222,11 @@ impl types::Channel {
             Ok(result) => result,
             Err(e) => return Err(e),
         };
-        match from_str::<types::Channel>(&result.text().await.unwrap()) {
+        let result_text = result.text().await.unwrap();
+        match from_str::<types::Channel>(&result_text) {
             Ok(object) => Ok(object),
             Err(e) => Err(InstanceServerError::RequestErrorError {
-                url: format!("{}/guilds/{}/channels/", url_api, guild_id),
+                url: format!("{}/channels/{}/", url_api, channel_id),
                 error: e.to_string(),
             }),
         }
