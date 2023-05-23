@@ -1,5 +1,6 @@
 use chorus::{
-    api::{AuthUsername, Channel, Guild, RegisterSchema, User},
+    api::schemas,
+    api::{AuthUsername, Channel, Guild, GuildCreateSchema, RegisterSchema, User},
     instance::Instance,
     URLBundle,
 };
@@ -9,7 +10,7 @@ struct TestBundle {
     urls: URLBundle,
     user: User,
     instance: Instance,
-    guild: Guild,
+    guild_id: String,
     channel: Channel,
 }
 
@@ -35,9 +36,57 @@ async fn setup() -> TestBundle {
         None,
     )
     .unwrap();
-    let user = instance.register_account(&reg).await.unwrap();
+    let guild_create_schema = GuildCreateSchema {
+        name: Some("Test-Guild!".to_string()),
+        region: None,
+        icon: None,
+        channels: None,
+        guild_template_code: None,
+        system_channel_id: None,
+        rules_channel_id: None,
+    };
+    let channel_create_schema = schemas::ChannelCreateSchema {
+        name: "testchannel".to_string(),
+        channel_type: Some(0),
+        topic: None,
+        icon: None,
+        bitrate: None,
+        user_limit: None,
+        rate_limit_per_user: None,
+        position: None,
+        permission_overwrites: None,
+        parent_id: None,
+        id: None,
+        nsfw: None,
+        rtc_region: None,
+        default_auto_archive_duration: None,
+        default_reaction_emoji: None,
+        flags: None,
+        default_thread_rate_limit_per_user: None,
+        video_quality_mode: None,
+    };
+    let mut user = instance.register_account(&reg).await.unwrap();
+    let guild_id = Guild::create(&mut user, urls.get_api(), guild_create_schema)
+        .await
+        .unwrap();
+    let channel = Channel::create(
+        &user.token,
+        urls.get_api(),
+        guild_id.as_str(),
+        channel_create_schema,
+        &mut user.limits,
+        &mut instance.limits,
+    )
+    .await
+    .unwrap();
 
-    TestBundle { urls, user }
+    TestBundle {
+        urls,
+        user,
+        instance,
+        guild_id,
+        channel,
+    }
 }
 
 // Teardown method to clean up after a test.
