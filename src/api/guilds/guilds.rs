@@ -1,11 +1,30 @@
+use async_trait::async_trait;
+use polyphony_types::entities::Guild;
+use polyphony_types::entities::GuildCreateResponse;
+use polyphony_types::schema::GuildCreateSchema;
 use serde_json::from_str;
 use serde_json::to_string;
 
-use crate::api::schemas;
-use crate::api::types;
 use crate::errors::InstanceServerError;
+use crate::instance::UserMeta;
 
-impl<'a> types::Guild {
+#[async_trait(?Send)]
+pub trait GuildExt {
+    async fn create(
+        user: &mut UserMeta,
+        url_api: &str,
+        guild_create_schema: GuildCreateSchema,
+    ) -> Result<String, crate::errors::InstanceServerError>;
+
+    async fn delete(
+        user: &mut UserMeta,
+        url_api: &str,
+        guild_id: String,
+    ) -> Option<InstanceServerError>;
+}
+
+#[async_trait(?Send)]
+impl GuildExt for Guild {
     /// Creates a new guild with the given parameters.
     ///
     /// # Arguments
@@ -34,10 +53,10 @@ impl<'a> types::Guild {
     ///     Err(e) => println!("Failed to create guild: {}", e),
     /// }
     /// ```
-    pub async fn create(
-        user: &mut types::User,
+    async fn create(
+        user: &mut UserMeta,
         url_api: &str,
-        guild_create_schema: schemas::GuildCreateSchema,
+        guild_create_schema: GuildCreateSchema,
     ) -> Result<String, crate::errors::InstanceServerError> {
         let url = format!("{}/guilds/", url_api);
         let limits_user = user.limits.get_as_mut();
@@ -59,7 +78,7 @@ impl<'a> types::Guild {
             Ok(result) => result,
             Err(e) => return Err(e),
         };
-        let id: types::GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
+        let id: GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
         Ok(id.id)
     }
 
@@ -87,8 +106,8 @@ impl<'a> types::Guild {
     ///     None => println!("Guild deleted successfully"),
     /// }
     /// ```
-    pub async fn delete(
-        user: &mut types::User,
+    async fn delete(
+        user: &mut UserMeta,
         url_api: &str,
         guild_id: String,
     ) -> Option<InstanceServerError> {
