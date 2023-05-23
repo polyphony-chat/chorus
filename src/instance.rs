@@ -25,17 +25,18 @@ impl Instance {
     pub async fn new(urls: URLBundle) -> Result<Instance, InstanceServerError> {
         let mut instance = Instance {
             urls: urls.clone(),
-            instance_info: GeneralConfiguration::new(
+            instance_info: GeneralConfiguration {
                 // This is okay, because the instance_info will be overwritten by the instance_policies_schema() function.
-                "".to_string(),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ),
+                instance_name: "".to_string(),
+                instance_description: None,
+                front_page: None,
+                tos_page: None,
+                correspondence_email: None,
+                correspondence_user_id: None,
+                image: None,
+                instance_id: None,
+                auto_create_bot_users: Some(false),
+            },
             limits: Limits::check_limits(urls.api).await,
         };
         instance.instance_info = match instance.instance_policies_schema().await {
