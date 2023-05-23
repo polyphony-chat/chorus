@@ -1,14 +1,30 @@
 pub mod messages {
+    use async_trait::async_trait;
     use http::header::CONTENT_DISPOSITION;
     use http::HeaderMap;
+    use polyphony_types::entities::{Message, PartialDiscordFileAttachment};
+    use polyphony_types::schema::MessageSendSchema;
     use reqwest::{multipart, Client};
     use serde_json::to_string;
 
     use crate::api::limits::Limits;
-    use crate::api::types::{Message, PartialDiscordFileAttachment, User};
     use crate::limit::LimitedRequester;
 
-    impl Message {
+    #[async_trait(?Send)]
+    pub trait MessageExt {
+        async fn send(
+            url_api: String,
+            channel_id: String,
+            message: &mut MessageSendSchema,
+            files: Option<Vec<PartialDiscordFileAttachment>>,
+            token: String,
+            limits_user: &mut Limits,
+            limits_instance: &mut Limits,
+        ) -> Result<reqwest::Response, crate::errors::InstanceServerError>;
+    }
+
+    #[async_trait(?Send)]
+    impl MessageExt for Message {
         /**
         Sends a message to the Spacebar server.
         # Arguments
@@ -20,10 +36,10 @@ pub mod messages {
         # Errors
         * [`InstanceServerError`] - If the message cannot be sent.
          */
-        pub async fn send<'a>(
+        async fn send(
             url_api: String,
             channel_id: String,
-            message: &mut crate::api::schemas::MessageSendSchema,
+            message: &mut MessageSendSchema,
             files: Option<Vec<PartialDiscordFileAttachment>>,
             token: String,
             limits_user: &mut Limits,
@@ -88,28 +104,6 @@ pub mod messages {
                     )
                     .await
             }
-        }
-    }
-
-    impl User {
-        pub async fn send_message(
-            &mut self,
-            message: &mut crate::api::schemas::MessageSendSchema,
-            channel_id: String,
-            files: Option<Vec<PartialDiscordFileAttachment>>,
-        ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
-            let token = self.token().clone();
-            let mut belongs_to = self.belongs_to.borrow_mut();
-            Message::send(
-                belongs_to.urls.get_api().to_string(),
-                channel_id,
-                message,
-                files,
-                token,
-                &mut self.limits,
-                &mut belongs_to.limits,
-            )
-            .await
         }
     }
 }
