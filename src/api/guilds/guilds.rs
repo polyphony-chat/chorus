@@ -137,7 +137,7 @@ impl types::Guild {
         schema: schemas::ChannelCreateSchema,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
-    ) -> Result<reqwest::Response, InstanceServerError> {
+    ) -> Result<types::Channel, InstanceServerError> {
         types::Channel::create(
             token,
             url_api,
@@ -172,13 +172,13 @@ impl types::Channel {
         schema: schemas::ChannelCreateSchema,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
-    ) -> Result<reqwest::Response, InstanceServerError> {
+    ) -> Result<types::Channel, InstanceServerError> {
         let request = Client::new()
             .post(format!("{}/guilds/{}/channels/", url_api, guild_id))
             .bearer_auth(token)
             .body(to_string(&schema).unwrap());
         let mut requester = LimitedRequester::new().await;
-        requester
+        let result = match requester
             .send_request(
                 request,
                 crate::api::limits::LimitType::Guild,
@@ -186,5 +186,16 @@ impl types::Channel {
                 limits_user,
             )
             .await
+        {
+            Ok(result) => result,
+            Err(e) => return Err(e),
+        };
+        match from_str::<types::Channel>(&result.text().await.unwrap()) {
+            Ok(object) => Ok(object),
+            Err(e) => Err(InstanceServerError::RequestErrorError {
+                url: url_api.to_string(),
+                error: e.to_string(),
+            }),
+        }
     }
 }
