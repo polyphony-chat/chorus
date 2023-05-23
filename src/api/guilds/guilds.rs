@@ -199,5 +199,35 @@ impl types::Channel {
         }
     }
 
-    pub async fn get() {}
+    pub async fn get(
+        token: &str,
+        url_api: &str,
+        guild_id: &str,
+        limits_user: &mut Limits,
+        limits_instance: &mut Limits,
+    ) -> Result<types::Channel, InstanceServerError> {
+        let request = Client::new()
+            .get(format!("{}/guilds/{}/channels/", url_api, guild_id))
+            .bearer_auth(token);
+        let mut requester = LimitedRequester::new().await;
+        let result = match requester
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Guild,
+                limits_instance,
+                limits_user,
+            )
+            .await
+        {
+            Ok(result) => result,
+            Err(e) => return Err(e),
+        };
+        match from_str::<types::Channel>(&result.text().await.unwrap()) {
+            Ok(object) => Ok(object),
+            Err(e) => Err(InstanceServerError::RequestErrorError {
+                url: url_api.to_string(),
+                error: e.to_string(),
+            }),
+        }
+    }
 }
