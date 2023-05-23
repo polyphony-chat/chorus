@@ -193,7 +193,7 @@ impl types::Channel {
         match from_str::<types::Channel>(&result.text().await.unwrap()) {
             Ok(object) => Ok(object),
             Err(e) => Err(InstanceServerError::RequestErrorError {
-                url: url_api.to_string(),
+                url: format!("{}/guilds/{}/channels/", url_api, guild_id),
                 error: e.to_string(),
             }),
         }
@@ -225,7 +225,7 @@ impl types::Channel {
         match from_str::<types::Channel>(&result.text().await.unwrap()) {
             Ok(object) => Ok(object),
             Err(e) => Err(InstanceServerError::RequestErrorError {
-                url: url_api.to_string(),
+                url: format!("{}/guilds/{}/channels/", url_api, guild_id),
                 error: e.to_string(),
             }),
         }
