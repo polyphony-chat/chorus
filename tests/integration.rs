@@ -90,7 +90,13 @@ async fn setup() -> TestBundle {
 }
 
 // Teardown method to clean up after a test.
-async fn teardown(bundle: TestBundle) {
+async fn teardown(mut bundle: TestBundle) {
+    Guild::delete(
+        &mut bundle.user,
+        bundle.instance.urls.get_api(),
+        bundle.guild_id,
+    )
+    .await;
     bundle.user.delete().await;
 }
 
