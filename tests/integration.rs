@@ -57,12 +57,12 @@ async fn setup() -> TestBundle {
         permission_overwrites: None,
         parent_id: None,
         id: None,
-        nsfw: None,
+        nsfw: Some(false),
         rtc_region: None,
         default_auto_archive_duration: None,
         default_reaction_emoji: None,
-        flags: None,
-        default_thread_rate_limit_per_user: None,
+        flags: Some(0),
+        default_thread_rate_limit_per_user: Some(0),
         video_quality_mode: None,
     };
     let mut user = instance.register_account(&reg).await.unwrap();
@@ -142,7 +142,7 @@ mod guild {
             Channel::get(
                 bundle_user.token.as_str(),
                 bundle.instance.urls.get_api(),
-                bundle.guild_id.as_str(),
+                &bundle_channel.id,
                 &mut bundle_user.limits,
                 &mut bundle.instance.limits
             )
