@@ -544,8 +544,7 @@ struct ChannelMention {
     id: String,
     guild_id: String,
     #[serde(rename = "type")]
-    #[serde(flatten)]
-    channel_type: ChannelType,
+    channel_type: i32,
     name: String,
 }
 
@@ -743,8 +742,7 @@ pub struct GuildMember {
 pub struct Channel {
     pub id: String,
     #[serde(rename = "type")]
-    #[serde(flatten)]
-    pub channel_type: ChannelType,
+    pub channel_type: i32,
     pub guild_id: Option<String>,
     pub position: Option<i32>,
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
@@ -1481,23 +1479,4 @@ pub struct Webhook {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct GuildCreateResponse {
     pub id: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-// TODO: Implement in polyphony/types
-pub enum ChannelType {
-    #[default]
-    GuildText = 0,
-    DM = 1,
-    GuildVoice = 2,
-    GroupDM = 3,
-    GuildCategory = 4,
-    GuildAnnouncement = 5,
-    AnnouncementThread = 10,
-    PublicThread = 11,
-    PrivateThread = 12,
-    GuildStageVoice = 13,
-    GuildDirectory = 14,
-    GuildForum = 15,
 }
