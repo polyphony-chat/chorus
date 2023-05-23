@@ -128,5 +128,6 @@ mod guild {
             None => assert!(true),
             Some(_) => assert!(false),
         }
+        crate::teardown(bundle).await
     }
 }
