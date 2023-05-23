@@ -339,7 +339,7 @@ pub struct ChannelCreateSchema {
     pub video_quality_mode: Option<i32>,
 }
 
-// I know that some of these tests are... really really basic and unneccessary, but sometimes, I
+// I know that some of these tests are... really really basic and unnecessary, but sometimes, I
 // just feel like writing tests, so there you go :) -@bitfl0wer
 #[cfg(test)]
 mod schemas_tests {

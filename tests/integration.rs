@@ -22,7 +22,7 @@ async fn setup() -> TestBundle {
         "http://localhost:3001".to_string(),
     );
     let mut instance = Instance::new(urls.clone()).await.unwrap();
-    // Requires the existance of the below user.
+    // Requires the existence of the below user.
     let reg = RegisterSchema::new(
         AuthUsername::new("integrationtestuser".to_string()).unwrap(),
         None,
