@@ -1,5 +1,5 @@
 use chorus::{
-    api::{AuthUsername, RegisterSchema, User},
+    api::{AuthUsername, Channel, Guild, RegisterSchema, User},
     instance::Instance,
     URLBundle,
 };
@@ -8,6 +8,9 @@ use chorus::{
 struct TestBundle {
     urls: URLBundle,
     user: User,
+    instance: Instance,
+    guild: Guild,
+    channel: Channel,
 }
 
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
