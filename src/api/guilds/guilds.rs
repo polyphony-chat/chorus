@@ -198,4 +198,6 @@ impl types::Channel {
             }),
         }
     }
+
+    pub async fn get() {}
 }
