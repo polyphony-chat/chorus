@@ -1,7 +1,7 @@
 use crate::api::limits::Limits;
-use crate::api::types::InstancePolicies;
 use crate::errors::{FieldFormatError, InstanceServerError};
 use crate::URLBundle;
+use polyphony_types::config::GeneralConfiguration;
 
 use std::fmt;
 
@@ -11,7 +11,7 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
  */
 pub struct Instance {
     pub urls: URLBundle,
-    pub instance_info: InstancePolicies,
+    pub instance_info: GeneralConfiguration,
     pub limits: Limits,
 }
 
@@ -25,7 +25,7 @@ impl Instance {
     pub async fn new(urls: URLBundle) -> Result<Instance, InstanceServerError> {
         let mut instance = Instance {
             urls: urls.clone(),
-            instance_info: InstancePolicies::new(
+            instance_info: GeneralConfiguration::new(
                 // This is okay, because the instance_info will be overwritten by the instance_policies_schema() function.
                 "".to_string(),
                 None,
