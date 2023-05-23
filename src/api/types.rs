@@ -544,6 +544,7 @@ struct ChannelMention {
     id: String,
     guild_id: String,
     #[serde(rename = "type")]
+    #[serde(flatten)]
     channel_type: ChannelType,
     name: String,
 }
@@ -742,6 +743,7 @@ pub struct GuildMember {
 pub struct Channel {
     pub id: String,
     #[serde(rename = "type")]
+    #[serde(flatten)]
     pub channel_type: ChannelType,
     pub guild_id: Option<String>,
     pub position: Option<i32>,
