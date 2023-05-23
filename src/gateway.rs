@@ -4,29 +4,9 @@ use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use native_tls::TlsConnector;
-use polyphony_types::entities::Channel;
-use polyphony_types::entities::MessageCreate;
-use polyphony_types::entities::UnavailableGuild;
-use polyphony_types::events::ChannelCreate;
-use polyphony_types::events::ChannelDelete;
-use polyphony_types::events::ChannelPinsUpdate;
-use polyphony_types::events::ChannelUpdate;
-use polyphony_types::events::GatewayReady;
-use polyphony_types::events::GatewayRequestGuildMembers;
-use polyphony_types::events::GatewayResume;
-use polyphony_types::events::GatewayVoiceStateUpdate;
-use polyphony_types::events::GuildBanAdd;
-use polyphony_types::events::GuildBanRemove;
-use polyphony_types::events::GuildCreate;
-use polyphony_types::events::HelloData;
-use polyphony_types::events::PresenceUpdate;
-use polyphony_types::events::ThreadCreate;
-use polyphony_types::events::ThreadDelete;
-use polyphony_types::events::ThreadListSync;
-use polyphony_types::events::ThreadMemberUpdate;
-use polyphony_types::events::ThreadMembersUpdate;
-use polyphony_types::events::ThreadUpdate;
-use polyphony_types::events::{GatewayIdentifyPayload, GatewayPayload};
+use polyphony_types::entities::User;
+use polyphony_types::entities::{Channel, MessageCreate, UnavailableGuild};
+use polyphony_types::events::*;
 use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
@@ -512,7 +492,7 @@ impl Gateway {
                             .await;
                     }
                     "USER_UPDATE" => {
-                        let user: UserObject =
+                        let user: User =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         let new_data = UserUpdate { user };
                         self.events
