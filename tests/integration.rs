@@ -101,7 +101,7 @@ async fn teardown(mut bundle: TestBundle) {
 }
 
 mod guild {
-    use chorus::api::{schemas, types};
+    use chorus::api::{schemas, types, Channel};
 
     #[tokio::test]
     async fn guild_creation_deletion() {
@@ -128,6 +128,27 @@ mod guild {
             None => assert!(true),
             Some(_) => assert!(false),
         }
+        crate::teardown(bundle).await
+    }
+
+    #[tokio::test]
+    async fn get_channel() {
+        let mut bundle = crate::setup().await;
+        let bundle_channel = bundle.channel.clone();
+        let bundle_user = &mut bundle.user;
+
+        assert_eq!(
+            bundle_channel,
+            Channel::get(
+                bundle_user.token.as_str(),
+                bundle.instance.urls.get_api(),
+                bundle.guild_id.as_str(),
+                &mut bundle_user.limits,
+                &mut bundle.instance.limits
+            )
+            .await
+            .unwrap()
+        );
         crate::teardown(bundle).await
     }
 }
