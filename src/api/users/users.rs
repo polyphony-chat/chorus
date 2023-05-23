@@ -1,18 +1,45 @@
+use std::{cell::RefCell, rc::Rc};
+
+use polyphony_types::{
+    entities::{PrivateUser, UserSettings},
+    schema::UserModifySchema,
+};
 use reqwest::Client;
 use serde_json::{from_str, to_string};
 
 use crate::{
-    api::{
-        limits::Limits,
-        types::{User, UserObject},
-        UserModifySchema, UserSettings,
-    },
+    api::limits::Limits,
     errors::InstanceServerError,
-    instance::Instance,
+    instance::{Instance, UserMeta},
     limit::LimitedRequester,
 };
+use async_trait::async_trait;
 
-impl User {
+#[async_trait(?Send)]
+pub trait UserMetaExt {
+    async fn get(
+        token: &String,
+        url_api: &String,
+        id: Option<&String>,
+        instance_limits: &mut Limits,
+    ) -> Result<PrivateUser, InstanceServerError>;
+
+    async fn get_settings(
+        token: &String,
+        url_api: &String,
+        instance_limits: &mut Limits,
+    ) -> Result<UserSettings, InstanceServerError>;
+
+    async fn modify(
+        &mut self,
+        modify_schema: UserModifySchema,
+    ) -> Result<PrivateUser, InstanceServerError>;
+
+    async fn delete(mut self) -> Option<InstanceServerError>;
+}
+
+#[async_trait(?Send)]
+impl UserMetaExt for UserMeta {
     /**
     Get a user object by id, or get the current user.
     # Arguments
@@ -23,12 +50,12 @@ impl User {
     # Errors
     * [`InstanceServerError`] - If the request fails.
      */
-    pub async fn get(
+    async fn get(
         token: &String,
         url_api: &String,
         id: Option<&String>,
         instance_limits: &mut Limits,
-    ) -> Result<UserObject, InstanceServerError> {
+    ) -> Result<PrivateUser, InstanceServerError> {
         let url: String;
         if id.is_none() {
             url = format!("{}/users/@me/", url_api);
@@ -49,13 +76,13 @@ impl User {
         {
             Ok(result) => {
                 let result_text = result.text().await.unwrap();
-                Ok(serde_json::from_str::<UserObject>(&result_text).unwrap())
+                Ok(serde_json::from_str::<PrivateUser>(&result_text).unwrap())
             }
             Err(e) => Err(e),
         }
     }
 
-    pub async fn get_settings(
+    async fn get_settings(
         token: &String,
         url_api: &String,
         instance_limits: &mut Limits,
@@ -88,10 +115,10 @@ impl User {
     /// # Errors
     ///
     /// Returns an `InstanceServerError` if the request fails or if a password is required but not provided.
-    pub async fn modify(
+    async fn modify(
         &mut self,
         modify_schema: UserModifySchema,
-    ) -> Result<UserObject, InstanceServerError> {
+    ) -> Result<PrivateUser, InstanceServerError> {
         if modify_schema.new_password.is_some()
             || modify_schema.email.is_some()
             || modify_schema.code.is_some()
@@ -118,7 +145,7 @@ impl User {
             Ok(response) => response,
             Err(e) => return Err(e),
         };
-        let user_updated: UserObject = from_str(&result.text().await.unwrap()).unwrap();
+        let user_updated: PrivateUser = from_str(&result.text().await.unwrap()).unwrap();
         let _ = std::mem::replace(
             &mut self.object.as_mut().unwrap(),
             &mut user_updated.clone(),
@@ -135,7 +162,7 @@ impl User {
     /// # Returns
     ///
     /// Returns `None` if the user was successfully deleted, or an `InstanceServerError` if an error occurred.
-    pub async fn delete(mut self) -> Option<InstanceServerError> {
+    async fn delete(mut self) -> Option<InstanceServerError> {
         let mut belongs_to = self.belongs_to.borrow_mut();
         let request = Client::new()
             .post(format!("{}/users/@me/delete/", belongs_to.urls.get_api()))
@@ -171,8 +198,8 @@ impl Instance {
         &mut self,
         token: String,
         id: Option<&String>,
-    ) -> Result<UserObject, InstanceServerError> {
-        User::get(
+    ) -> Result<PrivateUser, InstanceServerError> {
+        UserMeta::get(
             &token,
             &self.urls.get_api().to_string(),
             id,
