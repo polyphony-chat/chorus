@@ -1483,6 +1483,7 @@ pub struct GuildCreateResponse {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+// TODO: Implement in polyphony/types
 pub enum ChannelType {
     #[default]
     GuildText = 0,
