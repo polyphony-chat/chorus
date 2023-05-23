@@ -4,8 +4,7 @@ use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use native_tls::TlsConnector;
-use polyphony_types::entities::User;
-use polyphony_types::entities::{Channel, MessageCreate, UnavailableGuild};
+use polyphony_types::entities::{Channel, UnavailableGuild, User};
 use polyphony_types::events::*;
 use std::sync::Arc;
 use tokio::net::TcpStream;
@@ -801,7 +800,6 @@ mod events {
 #[cfg(test)]
 mod example {
     use super::*;
-    use crate::api::types::GatewayResume;
 
     #[derive(Debug)]
     struct Consumer;
