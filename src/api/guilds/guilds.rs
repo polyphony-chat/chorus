@@ -1,9 +1,12 @@
+use reqwest::Client;
 use serde_json::from_str;
 use serde_json::to_string;
 
+use crate::api::limits::Limits;
 use crate::api::schemas;
 use crate::api::types;
 use crate::errors::InstanceServerError;
+use crate::limit::LimitedRequester;
 
 impl types::Guild {
     /// Creates a new guild with the given parameters.
@@ -114,15 +117,74 @@ impl types::Guild {
         }
     }
 
-    pub async fn create_channel() {}
+    /// Sends a request to create a new channel in the guild.
+    ///
+    /// # Arguments
+    ///
+    /// * `url_api` - The base URL for the Discord API.
+    /// * `token` - A Discord bot token.
+    /// * `schema` - A `ChannelCreateSchema` struct containing the properties of the new channel.
+    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
+    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `InstanceServerError` if there was an error.
+    pub async fn create_channel(
+        &self,
+        url_api: &str,
+        token: &str,
+        schema: schemas::ChannelCreateSchema,
+        limits_user: &mut Limits,
+        limits_instance: &mut Limits,
+    ) -> Result<reqwest::Response, InstanceServerError> {
+        types::Channel::create(
+            token,
+            url_api,
+            &self.id,
+            schema,
+            limits_user,
+            limits_instance,
+        )
+        .await
+    }
 }
 
 impl types::Channel {
+    /// Sends a request to create a new channel in a guild.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A Discord bot token.
+    /// * `url_api` - The base URL for the Discord API.
+    /// * `guild_id` - The ID of the guild where the channel will be created.
+    /// * `schema` - A `ChannelCreateSchema` struct containing the properties of the new channel.
+    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
+    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `InstanceServerError` if there was an error.
     pub async fn create(
         token: &str,
         url_api: &str,
         guild_id: &str,
         schema: schemas::ChannelCreateSchema,
-    ) {
+        limits_user: &mut Limits,
+        limits_instance: &mut Limits,
+    ) -> Result<reqwest::Response, InstanceServerError> {
+        let request = Client::new()
+            .post(format!("{}/guilds/{}/channels/", url_api, guild_id))
+            .bearer_auth(token)
+            .body(to_string(&schema).unwrap());
+        let mut requester = LimitedRequester::new().await;
+        requester
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Guild,
+                limits_instance,
+                limits_user,
+            )
+            .await
     }
 }
