@@ -110,11 +110,11 @@ pub mod messages {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        api::{AuthUsername, LoginSchema},
-        instance::Instance,
-        limit::LimitedRequester,
-    };
+    use polyphony_types::entities::PartialDiscordFileAttachment;
+    use polyphony_types::schema::{AuthUsername, LoginSchema, MessageSendSchema};
+
+    use crate::instance::UserMeta;
+    use crate::{instance::Instance, limit::LimitedRequester};
 
     use std::io::Read;
     use std::{cell::RefCell, fs::File};
@@ -123,7 +123,7 @@ mod test {
     #[tokio::test]
     async fn send_message() {
         let channel_id = "1106954414356168802".to_string();
-        let mut message = crate::api::schemas::MessageSendSchema::new(
+        let mut message = MessageSendSchema::new(
             None,
             Some("A Message!".to_string()),
             None,
@@ -143,7 +143,7 @@ mod test {
         .await
         .unwrap();
         let login_schema: LoginSchema = LoginSchema::new(
-            AuthUsername::new("user@test.xyz".to_string()).unwrap(),
+            "user@test.xyz".to_string(),
             "transrights".to_string(),
             None,
             None,
@@ -156,7 +156,7 @@ mod test {
         println!("TOKEN: {}", token);
         let settings = login_result.settings;
         let limits = instance.limits.clone();
-        let mut user = crate::api::types::User::new(
+        let mut user = UserMeta::new(
             Rc::new(RefCell::new(instance)),
             token,
             limits,
@@ -179,7 +179,7 @@ mod test {
 
         reader.read_to_end(&mut buffer).unwrap();
 
-        let attachment = crate::api::types::PartialDiscordFileAttachment {
+        let attachment = PartialDiscordFileAttachment {
             id: None,
             filename: "README.md".to_string(),
             description: None,
@@ -195,7 +195,7 @@ mod test {
             content: buffer,
         };
 
-        let mut message = crate::api::schemas::MessageSendSchema::new(
+        let mut message = MessageSendSchema::new(
             None,
             Some("trans rights now".to_string()),
             None,
@@ -215,7 +215,7 @@ mod test {
         .await
         .unwrap();
         let login_schema: LoginSchema = LoginSchema::new(
-            AuthUsername::new("user@test.xyz".to_string()).unwrap(),
+            "user@test.xyz".to_string(),
             "transrights".to_string(),
             None,
             None,
@@ -227,7 +227,7 @@ mod test {
         let token = login_result.token;
         let settings = login_result.settings;
         let limits = instance.limits.clone();
-        let mut user = crate::api::types::User::new(
+        let mut user = UserMeta::new(
             Rc::new(RefCell::new(instance)),
             token,
             limits,
