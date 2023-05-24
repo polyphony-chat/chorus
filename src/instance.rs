@@ -3,6 +3,7 @@ use crate::errors::{FieldFormatError, InstanceServerError};
 use crate::URLBundle;
 use polyphony_types::config::GeneralConfiguration;
 use polyphony_types::entities::{PrivateUser, UserSettings};
+use serde::{Deserialize, Serialize};
 
 use std::cell::RefCell;
 use std::fmt;
@@ -54,7 +55,7 @@ impl Instance {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Token {
     pub token: String,
 }
