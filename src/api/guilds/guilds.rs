@@ -1,14 +1,24 @@
+use polyphony_types::entities::Channel;
+use polyphony_types::entities::Guild;
+use polyphony_types::entities::GuildCreateResponse;
+use polyphony_types::events::ChannelCreate;
+use polyphony_types::schema::ChannelCreateSchema;
+use polyphony_types::schema::GuildCreateSchema;
 use reqwest::Client;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::from_str;
 use serde_json::to_string;
 
 use crate::api::limits::Limits;
-use crate::api::schemas;
-use crate::api::types;
 use crate::errors::InstanceServerError;
+use crate::instance::UserObj;
 use crate::limit::LimitedRequester;
 
-impl types::Guild {
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+pub struct GuildObj(Guild);
+
+impl GuildObj {
     /// Creates a new guild with the given parameters.
     ///
     /// # Arguments
@@ -38,9 +48,9 @@ impl types::Guild {
     /// }
     /// ```
     pub async fn create(
-        user: &mut types::User,
+        user: &mut UserObj,
         url_api: &str,
-        guild_create_schema: schemas::GuildCreateSchema,
+        guild_create_schema: GuildCreateSchema,
     ) -> Result<String, crate::errors::InstanceServerError> {
         let url = format!("{}/guilds/", url_api);
         let limits_user = user.limits.get_as_mut();
@@ -62,7 +72,7 @@ impl types::Guild {
             Ok(result) => result,
             Err(e) => return Err(e),
         };
-        let id: types::GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
+        let id: GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
         Ok(id.id)
     }
 
@@ -91,7 +101,7 @@ impl types::Guild {
     /// }
     /// ```
     pub async fn delete(
-        user: &mut types::User,
+        user: &mut UserObj,
         url_api: &str,
         guild_id: String,
     ) -> Option<InstanceServerError> {
@@ -134,14 +144,14 @@ impl types::Guild {
         &self,
         url_api: &str,
         token: &str,
-        schema: schemas::ChannelCreateSchema,
+        schema: ChannelCreateSchema,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
-    ) -> Result<types::Channel, InstanceServerError> {
-        types::Channel::create(
+    ) -> Result<ChannelObj, InstanceServerError> {
+        ChannelObj::create(
             token,
             url_api,
-            &self.id,
+            &self.0.id.to_string(),
             schema,
             limits_user,
             limits_instance,
@@ -150,7 +160,20 @@ impl types::Guild {
     }
 }
 
-impl types::Channel {
+#[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct ChannelObj(Channel);
+
+impl ChannelObj {
+    /// Returns a reference to the `Channel` object inside the `ChannelObj` struct.
+    pub fn channel(&self) -> &Channel {
+        &self.0
+    }
+
+    /// Returns a mutable reference to the `Channel` object inside the `ChannelObj` struct.
+    pub fn channel_as_mut(&mut self) -> &mut Channel {
+        &mut self.0
+    }
+
     /// Sends a request to create a new channel in a guild.
     ///
     /// # Arguments
@@ -169,10 +192,10 @@ impl types::Channel {
         token: &str,
         url_api: &str,
         guild_id: &str,
-        schema: schemas::ChannelCreateSchema,
+        schema: ChannelCreateSchema,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
-    ) -> Result<types::Channel, InstanceServerError> {
+    ) -> Result<ChannelObj, InstanceServerError> {
         let request = Client::new()
             .post(format!("{}/guilds/{}/channels/", url_api, guild_id))
             .bearer_auth(token)
@@ -190,7 +213,7 @@ impl types::Channel {
             Ok(result) => result,
             Err(e) => return Err(e),
         };
-        match from_str::<types::Channel>(&result.text().await.unwrap()) {
+        match from_str::<ChannelObj>(&result.text().await.unwrap()) {
             Ok(object) => Ok(object),
             Err(e) => Err(InstanceServerError::RequestErrorError {
                 url: format!("{}/guilds/{}/channels/", url_api, guild_id),
