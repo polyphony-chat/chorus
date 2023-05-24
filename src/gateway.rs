@@ -133,7 +133,7 @@ impl Gateway {
         let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
         if gateway_payload.op != 10 {
-            println!("Recieved non hello on gateway init, what is happening?");
+            println!("Received non hello on gateway init, what is happening?");
             return Err(tokio_tungstenite::tungstenite::Error::Protocol(tokio_tungstenite::tungstenite::error::ProtocolError::InvalidOpcode(gateway_payload.op)))
         }
 
@@ -142,7 +142,7 @@ impl Gateway {
         let gateway_hello: HelloData = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
         gateway.heartbeat_handler = Some(HeartbeatHandler::new(gateway_hello.heartbeat_interval, shared_tx.clone()));
 
-        // Now we can continously check for messages in a different task, since we aren't going to receive another hello
+        // Now we can continuously check for messages in a different task, since we aren't going to receive another hello.
         task::spawn(async move {
             loop {
                 let msg = ws_rx.next().await;
@@ -312,7 +312,7 @@ impl Gateway {
                     "STAGE_INSTANCE_CREATE" => {}
                     "STAGE_INSTANCE_UPDATE" => {}
                     "STAGE_INSTANCE_DELETE" => {}
-                    // Not documented in discord docs, I assume this isnt for bots / apps but is for users?
+                    // Not documented in discord docs, I assume this isn't for bots / apps but is for users?
                     "SESSIONS_REPLACE" => {}
                     "TYPING_START" => {
                         let new_data: TypingStartEvent = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
@@ -340,7 +340,7 @@ impl Gateway {
             // Starts our heartbeat
             // We should have already handled this in gateway init
             10 => {
-                panic!("Recieved hello when it was unexpected");
+                panic!("Received hello when it was unexpected");
             }
             // Heartbeat ACK
             11 => {

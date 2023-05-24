@@ -322,12 +322,12 @@ pub mod limits {
                 .get(url_parsed)
                 .send()
                 .await
-                .unwrap_or_else(|e| panic!("An error occured while performing the request: {}", e))
+                .unwrap_or_else(|e| panic!("An error occurred while performing the request: {}", e))
                 .text()
                 .await
                 .unwrap_or_else(|e| {
                     panic!(
-                        "An error occured while parsing the request body string: {}",
+                        "An error occurred while parsing the request body string: {}",
                         e
                     )
                 });
