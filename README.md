@@ -9,7 +9,7 @@
 </br>
 <div align="center">
   <a href="https://github.com/polyphony-chat/chorus">
-    <img src="images/polyphony-chorus-round.png" alt="Logo" width="128" height="128">
+    <img src="https://raw.githubusercontent.com/polyphony-chat/design/main/branding/polyphony-chorus-round-8bit.png" alt="Logo" width="128" height="128">
   </a>
 
 <h3 align="center">Chorus</h3>
