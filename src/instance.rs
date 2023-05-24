@@ -2,11 +2,8 @@ use crate::api::limits::Limits;
 use crate::errors::{FieldFormatError, InstanceServerError};
 use crate::URLBundle;
 use polyphony_types::config::GeneralConfiguration;
-use polyphony_types::entities::{PrivateUser, UserSettings};
 
-use std::cell::RefCell;
 use std::fmt;
-use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 /**
@@ -81,40 +78,5 @@ impl Username {
             return Err(FieldFormatError::UsernameError);
         }
         Ok(Username { username })
-    }
-}
-
-#[derive(Debug)]
-pub struct UserMeta {
-    pub belongs_to: Rc<RefCell<Instance>>,
-    pub token: String,
-    pub limits: Limits,
-    pub settings: UserSettings,
-    pub object: Option<PrivateUser>,
-}
-
-impl UserMeta {
-    pub fn token(&self) -> String {
-        self.token.clone()
-    }
-
-    pub fn set_token(&mut self, token: String) {
-        self.token = token;
-    }
-
-    pub fn new(
-        belongs_to: Rc<RefCell<Instance>>,
-        token: String,
-        limits: Limits,
-        settings: UserSettings,
-        object: Option<PrivateUser>,
-    ) -> UserMeta {
-        UserMeta {
-            belongs_to,
-            token,
-            limits,
-            settings,
-            object,
-        }
     }
 }
