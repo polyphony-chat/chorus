@@ -341,7 +341,7 @@ pub struct RoleObject {
     pub tags: Option<RoleTags>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
 /// See https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure
 pub struct RoleTags {
     #[serde(default)]
@@ -799,7 +799,7 @@ pub struct MessageInteraction {
     pub member: Option<GuildMember>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct GuildMember {
     pub user: Option<UserObject>,
     pub nick: Option<String>,
@@ -815,7 +815,7 @@ pub struct GuildMember {
     pub communication_disabled_until: Option<String>,
 }
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct Channel {
     pub id: String,
     #[serde(rename = "type")]
@@ -854,7 +854,7 @@ pub struct Channel {
     pub default_forum_layout: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 pub struct Tag {
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_number_from_string")]
@@ -867,7 +867,7 @@ pub struct Tag {
     pub emoji_name: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct PermissionOverwrite {
     pub id: String,
     #[serde(rename = "type")]
@@ -881,7 +881,7 @@ pub struct PermissionOverwrite {
     pub deny: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: i32,
@@ -891,7 +891,7 @@ pub struct ThreadMetadata {
     pub create_timestamp: Option<String>,
 }
 
-#[derive(Default, Debug, Deserialize, Serialize, Clone)]
+#[derive(Default, Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 pub struct ThreadMember {
     pub id: Option<u64>,
     pub user_id: Option<u64>,
@@ -941,7 +941,7 @@ pub struct StageInstance {
     pub guild_scheduled_event_id: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 pub struct DefaultReaction {
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
