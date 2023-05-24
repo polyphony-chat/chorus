@@ -1,14 +1,18 @@
 pub mod messages {
     use http::header::CONTENT_DISPOSITION;
     use http::HeaderMap;
+    use polyphony_types::entities::{Message, PartialDiscordFileAttachment};
+    use polyphony_types::schema::MessageSendSchema;
     use reqwest::{multipart, Client};
     use serde_json::to_string;
 
     use crate::api::limits::Limits;
-    use crate::api::types::{Message, PartialDiscordFileAttachment, User};
+    use crate::instance::UserObj;
     use crate::limit::LimitedRequester;
 
-    impl Message {
+    pub struct MessageObj(Message);
+
+    impl MessageObj {
         /**
         Sends a message to the Spacebar server.
         # Arguments
@@ -23,7 +27,7 @@ pub mod messages {
         pub async fn send<'a>(
             url_api: String,
             channel_id: String,
-            message: &mut crate::api::schemas::MessageSendSchema,
+            message: &mut MessageSendSchema,
             files: Option<Vec<PartialDiscordFileAttachment>>,
             token: String,
             limits_user: &mut Limits,
@@ -91,16 +95,16 @@ pub mod messages {
         }
     }
 
-    impl User {
+    impl UserObj {
         pub async fn send_message(
             &mut self,
-            message: &mut crate::api::schemas::MessageSendSchema,
+            message: &mut MessageSendSchema,
             channel_id: String,
             files: Option<Vec<PartialDiscordFileAttachment>>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
             let token = self.token().clone();
             let mut belongs_to = self.belongs_to.borrow_mut();
-            Message::send(
+            MessageObj::send(
                 belongs_to.urls.get_api().to_string(),
                 channel_id,
                 message,
@@ -116,11 +120,10 @@ pub mod messages {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        api::{AuthUsername, LoginSchema},
-        instance::Instance,
-        limit::LimitedRequester,
-    };
+    use polyphony_types::entities::PartialDiscordFileAttachment;
+    use polyphony_types::schema::{LoginSchema, MessageSendSchema};
+
+    use crate::instance::{Instance, UserObj};
 
     use std::io::Read;
     use std::{cell::RefCell, fs::File};
@@ -129,7 +132,7 @@ mod test {
     #[tokio::test]
     async fn send_message() {
         let channel_id = "1106954414356168802".to_string();
-        let mut message = crate::api::schemas::MessageSendSchema::new(
+        let mut message = MessageSendSchema::new(
             None,
             Some("A Message!".to_string()),
             None,
@@ -149,7 +152,7 @@ mod test {
         .await
         .unwrap();
         let login_schema: LoginSchema = LoginSchema::new(
-            AuthUsername::new("user@test.xyz".to_string()).unwrap(),
+            "user@test.xyz".to_string(),
             "transrights".to_string(),
             None,
             None,
@@ -162,7 +165,7 @@ mod test {
         println!("TOKEN: {}", token);
         let settings = login_result.settings;
         let limits = instance.limits.clone();
-        let mut user = crate::api::types::User::new(
+        let mut user = UserObj::new(
             Rc::new(RefCell::new(instance)),
             token,
             limits,
@@ -185,7 +188,7 @@ mod test {
 
         reader.read_to_end(&mut buffer).unwrap();
 
-        let attachment = crate::api::types::PartialDiscordFileAttachment {
+        let attachment = PartialDiscordFileAttachment {
             id: None,
             filename: "README.md".to_string(),
             description: None,
@@ -201,7 +204,7 @@ mod test {
             content: buffer,
         };
 
-        let mut message = crate::api::schemas::MessageSendSchema::new(
+        let mut message = MessageSendSchema::new(
             None,
             Some("trans rights now".to_string()),
             None,
@@ -221,7 +224,7 @@ mod test {
         .await
         .unwrap();
         let login_schema: LoginSchema = LoginSchema::new(
-            AuthUsername::new("user@test.xyz".to_string()).unwrap(),
+            "user@test.xyz".to_string(),
             "transrights".to_string(),
             None,
             None,
@@ -233,7 +236,7 @@ mod test {
         let token = login_result.token;
         let settings = login_result.settings;
         let limits = instance.limits.clone();
-        let mut user = crate::api::types::User::new(
+        let mut user = UserObj::new(
             Rc::new(RefCell::new(instance)),
             token,
             limits,
