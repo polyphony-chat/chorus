@@ -17,7 +17,6 @@ use tokio::time;
 use tokio::time::Instant;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
-use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 
 #[derive(Debug)]
 /**
@@ -29,14 +28,6 @@ Using this handle you can also send Gateway Events directly.
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
-    pub websocket_tx: Arc<
-        Mutex<
-            SplitSink<
-                WebSocketStream<MaybeTlsStream<TcpStream>>,
-                tokio_tungstenite::tungstenite::Message,
-            >,
-        >,
-    >,
     pub websocket_tx: Arc<
         Mutex<
             SplitSink<
