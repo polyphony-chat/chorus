@@ -17,6 +17,7 @@ use tokio::time;
 use tokio::time::Instant;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
+use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 
 #[derive(Debug)]
 /**
@@ -28,6 +29,14 @@ Using this handle you can also send Gateway Events directly.
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
+    pub websocket_tx: Arc<
+        Mutex<
+            SplitSink<
+                WebSocketStream<MaybeTlsStream<TcpStream>>,
+                tokio_tungstenite::tungstenite::Message,
+            >,
+        >,
+    >,
     pub websocket_tx: Arc<
         Mutex<
             SplitSink<
@@ -149,7 +158,7 @@ impl Gateway {
         let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
         if gateway_payload.op != 10 {
-            println!("Received non hello on gateway init, what is happening?");
+            println!("Recieved non hello on gateway init, what is happening?");
             return Err(tokio_tungstenite::tungstenite::Error::Protocol(
                 tokio_tungstenite::tungstenite::error::ProtocolError::InvalidOpcode(
                     gateway_payload.op,
