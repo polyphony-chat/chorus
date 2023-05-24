@@ -1,18 +1,18 @@
+use polyphony_types::{
+    entities::{PrivateUser, UserSettings},
+    schema::UserModifySchema,
+};
 use reqwest::Client;
 use serde_json::{from_str, to_string};
 
 use crate::{
-    api::{
-        limits::Limits,
-        types::{User, UserObject},
-        UserModifySchema, UserSettings,
-    },
+    api::limits::Limits,
     errors::InstanceServerError,
-    instance::Instance,
+    instance::{Instance, UserObj},
     limit::LimitedRequester,
 };
 
-impl User {
+impl UserObj {
     /**
     Get a user object by id, or get the current user.
     # Arguments
@@ -28,7 +28,7 @@ impl User {
         url_api: &String,
         id: Option<&String>,
         instance_limits: &mut Limits,
-    ) -> Result<UserObject, InstanceServerError> {
+    ) -> Result<PrivateUser, InstanceServerError> {
         let url: String;
         if id.is_none() {
             url = format!("{}/users/@me/", url_api);
@@ -49,7 +49,7 @@ impl User {
         {
             Ok(result) => {
                 let result_text = result.text().await.unwrap();
-                Ok(serde_json::from_str::<UserObject>(&result_text).unwrap())
+                Ok(serde_json::from_str::<PrivateUser>(&result_text).unwrap())
             }
             Err(e) => Err(e),
         }
@@ -91,7 +91,7 @@ impl User {
     pub async fn modify(
         &mut self,
         modify_schema: UserModifySchema,
-    ) -> Result<UserObject, InstanceServerError> {
+    ) -> Result<PrivateUser, InstanceServerError> {
         if modify_schema.new_password.is_some()
             || modify_schema.email.is_some()
             || modify_schema.code.is_some()
@@ -118,7 +118,7 @@ impl User {
             Ok(response) => response,
             Err(e) => return Err(e),
         };
-        let user_updated: UserObject = from_str(&result.text().await.unwrap()).unwrap();
+        let user_updated: PrivateUser = from_str(&result.text().await.unwrap()).unwrap();
         let _ = std::mem::replace(
             &mut self.object.as_mut().unwrap(),
             &mut user_updated.clone(),
@@ -171,8 +171,8 @@ impl Instance {
         &mut self,
         token: String,
         id: Option<&String>,
-    ) -> Result<UserObject, InstanceServerError> {
-        User::get(
+    ) -> Result<PrivateUser, InstanceServerError> {
+        UserObj::get(
             &token,
             &self.urls.get_api().to_string(),
             id,
