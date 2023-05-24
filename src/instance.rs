@@ -1,9 +1,13 @@
 use crate::api::limits::Limits;
-use crate::api::types::InstancePolicies;
 use crate::errors::{FieldFormatError, InstanceServerError};
 use crate::URLBundle;
+use polyphony_types::config::GeneralConfiguration;
+use polyphony_types::entities::{PrivateUser, UserSettings};
+use serde::{Deserialize, Serialize};
 
+use std::cell::RefCell;
 use std::fmt;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 /**
@@ -11,7 +15,7 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
  */
 pub struct Instance {
     pub urls: URLBundle,
-    pub instance_info: InstancePolicies,
+    pub instance_info: GeneralConfiguration,
     pub limits: Limits,
 }
 
@@ -25,17 +29,18 @@ impl Instance {
     pub async fn new(urls: URLBundle) -> Result<Instance, InstanceServerError> {
         let mut instance = Instance {
             urls: urls.clone(),
-            instance_info: InstancePolicies::new(
+            instance_info: GeneralConfiguration {
                 // This is okay, because the instance_info will be overwritten by the instance_policies_schema() function.
-                "".to_string(),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ),
+                instance_name: "".to_string(),
+                instance_description: None,
+                front_page: None,
+                tos_page: None,
+                correspondence_email: None,
+                correspondence_user_id: None,
+                image: None,
+                instance_id: None,
+                auto_create_bot_users: Some(false),
+            },
             limits: Limits::check_limits(urls.api).await,
         };
         instance.instance_info = match instance.instance_policies_schema().await {
@@ -50,7 +55,7 @@ impl Instance {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Token {
     pub token: String,
 }
@@ -77,5 +82,40 @@ impl Username {
             return Err(FieldFormatError::UsernameError);
         }
         Ok(Username { username })
+    }
+}
+
+#[derive(Debug)]
+pub struct UserObj {
+    pub belongs_to: Rc<RefCell<Instance>>,
+    pub token: String,
+    pub limits: Limits,
+    pub settings: UserSettings,
+    pub object: Option<PrivateUser>,
+}
+
+impl UserObj {
+    pub fn token(&self) -> String {
+        self.token.clone()
+    }
+
+    pub fn set_token(&mut self, token: String) {
+        self.token = token;
+    }
+
+    pub fn new(
+        belongs_to: Rc<RefCell<Instance>>,
+        token: String,
+        limits: Limits,
+        settings: UserSettings,
+        object: Option<PrivateUser>,
+    ) -> UserObj {
+        UserObj {
+            belongs_to,
+            token,
+            limits,
+            settings,
+            object,
+        }
     }
 }

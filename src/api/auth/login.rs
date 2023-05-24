@@ -2,21 +2,22 @@ pub mod login {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use polyphony_types::entities::LoginResult;
+    use polyphony_types::errors::ErrorResponse;
+    use polyphony_types::schema::LoginSchema;
     use reqwest::Client;
     use serde_json::{from_str, json};
 
     use crate::api::limits::LimitType;
-    use crate::api::schemas::LoginSchema;
-    use crate::api::types::{ErrorResponse, LoginResult};
     use crate::errors::InstanceServerError;
-    use crate::instance::Instance;
+    use crate::instance::{Instance, UserObj};
     use crate::limit::LimitedRequester;
 
     impl Instance {
         pub async fn login_account(
             &mut self,
             login_schema: &LoginSchema,
-        ) -> Result<crate::api::types::User, InstanceServerError> {
+        ) -> Result<UserObj, InstanceServerError> {
             let mut requester = LimitedRequester::new().await;
             let json_schema = json!(login_schema);
             let client = Client::new();
@@ -59,7 +60,7 @@ pub mod login {
                 .get_user(login_result.token.clone(), None)
                 .await
                 .unwrap();
-            let user = crate::api::types::User::new(
+            let user = UserObj::new(
                 Rc::new(RefCell::new(self.clone())),
                 login_result.token,
                 cloned_limits,
