@@ -785,7 +785,7 @@ pub struct MessageInteraction {
     pub member: Option<GuildMember>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Default, Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 pub struct GuildMember {
     pub user: Option<UserObject>,
     pub nick: Option<String>,
