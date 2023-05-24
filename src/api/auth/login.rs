@@ -2,21 +2,21 @@ pub mod login {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use polyphony_types::entities::{LoginResult, PrivateUser};
+    use polyphony_types::schema::LoginSchema;
     use reqwest::Client;
     use serde_json::{from_str, json};
 
     use crate::api::limits::LimitType;
-    use crate::api::schemas::LoginSchema;
-    use crate::api::types::{ErrorResponse, LoginResult};
     use crate::errors::InstanceServerError;
-    use crate::instance::Instance;
+    use crate::instance::{Instance, UserMeta};
     use crate::limit::LimitedRequester;
 
     impl Instance {
         pub async fn login_account(
             &mut self,
             login_schema: &LoginSchema,
-        ) -> Result<crate::api::types::User, InstanceServerError> {
+        ) -> Result<UserMeta, InstanceServerError> {
             let mut requester = LimitedRequester::new().await;
             let json_schema = json!(login_schema);
             let client = Client::new();
@@ -42,7 +42,8 @@ pub mod login {
             let status = response_unwrap.status();
             let response_text_string = response_unwrap.text().await.unwrap();
             if status.is_client_error() {
-                let json: ErrorResponse = serde_json::from_str(&response_text_string).unwrap();
+                let json: polyphony_types::errors::ErrorResponse =
+                    serde_json::from_str(&response_text_string).unwrap();
                 let error_type = json.errors.errors.iter().next().unwrap().0.to_owned();
                 let mut error = "".to_string();
                 for (_, value) in json.errors.errors.iter() {
@@ -59,7 +60,7 @@ pub mod login {
                 .get_user(login_result.token.clone(), None)
                 .await
                 .unwrap();
-            let user = crate::api::types::User::new(
+            let user = UserMeta::new(
                 Rc::new(RefCell::new(self.clone())),
                 login_result.token,
                 cloned_limits,
