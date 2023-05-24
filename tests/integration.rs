@@ -1,17 +1,17 @@
 use chorus::{
-    api::schemas,
-    api::{AuthUsername, Channel, Guild, GuildCreateSchema, RegisterSchema, User},
-    instance::Instance,
+    api::guilds::guilds::{ChannelObj, GuildObj},
+    instance::{Instance, UserObj},
     URLBundle,
 };
+use polyphony_types::schema::{ChannelCreateSchema, GuildCreateSchema, RegisterSchema};
 
 #[derive(Debug)]
 struct TestBundle {
     urls: URLBundle,
-    user: User,
+    user: UserObj,
     instance: Instance,
     guild_id: String,
-    channel: Channel,
+    channel: ChannelObj,
 }
 
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
@@ -24,7 +24,7 @@ async fn setup() -> TestBundle {
     let mut instance = Instance::new(urls.clone()).await.unwrap();
     // Requires the existence of the below user.
     let reg = RegisterSchema::new(
-        AuthUsername::new("integrationtestuser".to_string()).unwrap(),
+        "integrationtestuser".to_string(),
         None,
         true,
         None,
@@ -45,7 +45,7 @@ async fn setup() -> TestBundle {
         system_channel_id: None,
         rules_channel_id: None,
     };
-    let channel_create_schema = schemas::ChannelCreateSchema {
+    let channel_create_schema = ChannelCreateSchema {
         name: "testchannel".to_string(),
         channel_type: Some(0),
         topic: None,
@@ -66,10 +66,10 @@ async fn setup() -> TestBundle {
         video_quality_mode: None,
     };
     let mut user = instance.register_account(&reg).await.unwrap();
-    let guild_id = Guild::create(&mut user, urls.get_api(), guild_create_schema)
+    let guild_id = GuildObj::create(&mut user, urls.get_api(), guild_create_schema)
         .await
         .unwrap();
-    let channel = Channel::create(
+    let channel = ChannelObj::create(
         &user.token,
         urls.get_api(),
         guild_id.as_str(),
@@ -91,7 +91,7 @@ async fn setup() -> TestBundle {
 
 // Teardown method to clean up after a test.
 async fn teardown(mut bundle: TestBundle) {
-    Guild::delete(
+    GuildObj::delete(
         &mut bundle.user,
         bundle.instance.urls.get_api(),
         bundle.guild_id,
@@ -101,13 +101,14 @@ async fn teardown(mut bundle: TestBundle) {
 }
 
 mod guild {
-    use chorus::api::{schemas, types, Channel};
+    use chorus::api::guilds::guilds::{ChannelObj, GuildObj};
+    use polyphony_types::schema::GuildCreateSchema;
 
     #[tokio::test]
     async fn guild_creation_deletion() {
         let mut bundle = crate::setup().await;
 
-        let guild_create_schema = schemas::GuildCreateSchema {
+        let guild_create_schema = GuildCreateSchema {
             name: Some("test".to_string()),
             region: None,
             icon: None,
@@ -117,14 +118,13 @@ mod guild {
             rules_channel_id: None,
         };
 
-        let guild =
-            types::Guild::create(&mut bundle.user, bundle.urls.get_api(), guild_create_schema)
-                .await
-                .unwrap();
+        let guild = GuildObj::create(&mut bundle.user, bundle.urls.get_api(), guild_create_schema)
+            .await
+            .unwrap();
 
         println!("{}", guild);
 
-        match types::Guild::delete(&mut bundle.user, bundle.urls.get_api(), guild).await {
+        match GuildObj::delete(&mut bundle.user, bundle.urls.get_api(), guild).await {
             None => assert!(true),
             Some(_) => assert!(false),
         }
@@ -139,10 +139,10 @@ mod guild {
 
         assert_eq!(
             bundle_channel,
-            Channel::get(
+            ChannelObj::get(
                 bundle_user.token.as_str(),
                 bundle.instance.urls.get_api(),
-                &bundle_channel.id,
+                &bundle_channel.channel().id.to_string(),
                 &mut bundle_user.limits,
                 &mut bundle.instance.limits
             )
