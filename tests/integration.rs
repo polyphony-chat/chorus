@@ -1,14 +1,13 @@
 use chorus::{
-    api::schemas,
-    api::{AuthUsername, Channel, Guild, GuildCreateSchema, RegisterSchema, User},
-    instance::Instance,
+    instance::{Instance, UserObj},
     URLBundle,
 };
+use polyphony_types::schema::RegisterSchema;
 
 #[derive(Debug)]
 struct TestBundle {
     urls: URLBundle,
-    user: User,
+    user: UserObj,
     instance: Instance,
     guild_id: String,
     channel: Channel,
@@ -24,7 +23,7 @@ async fn setup() -> TestBundle {
     let mut instance = Instance::new(urls.clone()).await.unwrap();
     // Requires the existence of the below user.
     let reg = RegisterSchema::new(
-        AuthUsername::new("integrationtestuser".to_string()).unwrap(),
+        "integrationtestuser".to_string(),
         None,
         true,
         None,
@@ -101,13 +100,14 @@ async fn teardown(mut bundle: TestBundle) {
 }
 
 mod guild {
-    use chorus::api::{schemas, types, Channel};
+    use chorus::api::guilds::guilds::GuildObj;
+    use polyphony_types::schema::GuildCreateSchema;
 
     #[tokio::test]
     async fn guild_creation_deletion() {
         let mut bundle = crate::setup().await;
 
-        let guild_create_schema = schemas::GuildCreateSchema {
+        let guild_create_schema = GuildCreateSchema {
             name: Some("test".to_string()),
             region: None,
             icon: None,
@@ -117,14 +117,13 @@ mod guild {
             rules_channel_id: None,
         };
 
-        let guild =
-            types::Guild::create(&mut bundle.user, bundle.urls.get_api(), guild_create_schema)
-                .await
-                .unwrap();
+        let guild = GuildObj::create(&mut bundle.user, bundle.urls.get_api(), guild_create_schema)
+            .await
+            .unwrap();
 
         println!("{}", guild);
 
-        match types::Guild::delete(&mut bundle.user, bundle.urls.get_api(), guild).await {
+        match GuildObj::delete(&mut bundle.user, bundle.urls.get_api(), guild).await {
             None => assert!(true),
             Some(_) => assert!(false),
         }
