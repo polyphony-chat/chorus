@@ -74,7 +74,9 @@ impl UserObj {
             )
             .await
         {
-            Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
+            Ok(result) => {
+                Ok(serde_json::from_str::<UserSettings>(&result.text().await.unwrap()).unwrap())
+            }
             Err(e) => Err(e),
         }
     }
