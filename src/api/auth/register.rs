@@ -1,13 +1,14 @@
 pub mod register {
     use std::{cell::RefCell, rc::Rc};
 
+    use polyphony_types::{errors::ErrorResponse, schema::RegisterSchema};
     use reqwest::Client;
     use serde_json::{from_str, json};
 
     use crate::{
-        api::{limits::LimitType, schemas::RegisterSchema, types::ErrorResponse, Token},
+        api::limits::LimitType,
         errors::InstanceServerError,
-        instance::Instance,
+        instance::{Instance, UserMeta},
         limit::LimitedRequester,
     };
 
@@ -22,7 +23,7 @@ pub mod register {
         pub async fn register_account(
             &mut self,
             register_schema: &RegisterSchema,
-        ) -> Result<crate::api::types::User, InstanceServerError> {
+        ) -> Result<UserMeta, InstanceServerError> {
             let json_schema = json!(register_schema);
             let mut limited_requester = LimitedRequester::new().await;
             let client = Client::new();
@@ -62,14 +63,11 @@ pub mod register {
                 return Err(InstanceServerError::InvalidFormBodyError { error_type, error });
             }
             let user_object = self.get_user(token.clone(), None).await.unwrap();
-            let settings = crate::api::types::User::get_settings(
-                &token,
-                &self.urls.get_api().to_string(),
-                &mut self.limits,
-            )
-            .await
-            .unwrap();
-            let user: crate::api::types::User = crate::api::types::User::new(
+            let settings =
+                UserMeta::get_settings(&token, &self.urls.get_api().to_string(), &mut self.limits)
+                    .await
+                    .unwrap();
+            let user: UserMeta = UserMeta::new(
                 Rc::new(RefCell::new(self.clone())),
                 token.clone(),
                 cloned_limits,
@@ -83,7 +81,8 @@ pub mod register {
 
 #[cfg(test)]
 mod test {
-    use crate::api::schemas::{AuthUsername, RegisterSchema};
+    use polyphony_types::schema::{AuthUsername, RegisterSchema};
+
     use crate::instance::Instance;
     use crate::limit::LimitedRequester;
     use crate::URLBundle;
@@ -98,7 +97,7 @@ mod test {
         let limited_requester = LimitedRequester::new().await;
         let mut test_instance = Instance::new(urls.clone()).await.unwrap();
         let reg = RegisterSchema::new(
-            AuthUsername::new("Hiiii".to_string()).unwrap(),
+            "Hiiii".to_string(),
             None,
             true,
             None,
