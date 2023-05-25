@@ -1,12 +1,46 @@
-use std::sync::Arc;
-use crate::api::types::*;
-use crate::api::WebSocketEvent;
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
+use crate::types::Channel;
+use crate::types::ChannelCreate;
+use crate::types::ChannelDelete;
+use crate::types::ChannelPinsUpdate;
+use crate::types::ChannelUpdate;
+use crate::types::GatewayHeartbeat;
+use crate::types::GatewayIdentifyPayload;
+use crate::types::GatewayPayload;
+use crate::types::GatewayReady;
+use crate::types::GatewayRequestGuildMembers;
+use crate::types::GatewayResume;
+use crate::types::GatewayVoiceStateUpdate;
+use crate::types::GuildBanAdd;
+use crate::types::GuildBanRemove;
+use crate::types::GuildCreate;
+use crate::types::HelloData;
+use crate::types::MessageCreate;
+use crate::types::MessageDelete;
+use crate::types::MessageDeleteBulk;
+use crate::types::MessageReactionAdd;
+use crate::types::MessageReactionRemove;
+use crate::types::MessageReactionRemoveAll;
+use crate::types::MessageReactionRemoveEmoji;
+use crate::types::MessageUpdate;
+use crate::types::PresenceUpdate;
+use crate::types::ThreadCreate;
+use crate::types::ThreadDelete;
+use crate::types::ThreadListSync;
+use crate::types::ThreadMemberUpdate;
+use crate::types::ThreadMembersUpdate;
+use crate::types::ThreadUpdate;
+use crate::types::TypingStartEvent;
+use crate::types::UnavailableGuild;
+use crate::types::User;
+use crate::types::UserUpdate;
+use crate::types::WebSocketEvent;
+use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
-use futures_util::stream::SplitSink;
 use native_tls::TlsConnector;
+use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::error::TryRecvError;
@@ -16,7 +50,7 @@ use tokio::task;
 use tokio::time;
 use tokio::time::Instant;
 use tokio_tungstenite::MaybeTlsStream;
-use tokio_tungstenite::{WebSocketStream, Connector, connect_async_tls_with_config};
+use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 
 #[derive(Debug)]
 /**
@@ -28,14 +62,25 @@ Using this handle you can also send Gateway Events directly.
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
-    pub websocket_tx: Arc<Mutex<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tokio_tungstenite::tungstenite::Message>>>,
+    pub websocket_tx: Arc<
+        Mutex<
+            SplitSink<
+                WebSocketStream<MaybeTlsStream<TcpStream>>,
+                tokio_tungstenite::tungstenite::Message,
+            >,
+        >,
+    >,
 }
 
 impl GatewayHandle {
     /// Sends json to the gateway with an opcode
     async fn send_json_event(&self, op: u8, to_send: serde_json::Value) {
-
-        let gateway_payload = GatewayPayload { op, d: Some(to_send), s: None, t: None };
+        let gateway_payload = GatewayPayload {
+            op,
+            d: Some(to_send),
+            s: None,
+            t: None,
+        };
 
         let payload_json = serde_json::to_string(&gateway_payload).unwrap();
 
@@ -46,7 +91,6 @@ impl GatewayHandle {
 
     /// Sends an identify event to the gateway
     pub async fn send_identify(&self, to_send: GatewayIdentifyPayload) {
-
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Identify..");
@@ -56,7 +100,6 @@ impl GatewayHandle {
 
     /// Sends a resume event to the gateway
     pub async fn send_resume(&self, to_send: GatewayResume) {
-
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Resume..");
@@ -66,7 +109,6 @@ impl GatewayHandle {
 
     /// Sends an update presence event to the gateway
     pub async fn send_update_presence(&self, to_send: PresenceUpdate) {
-
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Presence Update..");
@@ -76,7 +118,6 @@ impl GatewayHandle {
 
     /// Sends a Request Guild Members to the server
     pub async fn send_request_guild_members(&self, to_send: GatewayRequestGuildMembers) {
-
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Request Guild Members..");
@@ -86,7 +127,6 @@ impl GatewayHandle {
 
     /// Sends a Request Guild Members to the server
     pub async fn send_update_voice_state(&self, to_send: GatewayVoiceStateUpdate) {
-
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Voice State Update..");
@@ -98,14 +138,20 @@ impl GatewayHandle {
 pub struct Gateway {
     pub events: Arc<Mutex<Events>>,
     heartbeat_handler: Option<HeartbeatHandler>,
-    pub websocket_tx: Arc<Mutex<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tokio_tungstenite::tungstenite::Message>>>
+    pub websocket_tx: Arc<
+        Mutex<
+            SplitSink<
+                WebSocketStream<MaybeTlsStream<TcpStream>>,
+                tokio_tungstenite::tungstenite::Message,
+            >,
+        >,
+    >,
 }
 
 impl Gateway {
     pub async fn new(
         websocket_url: String,
     ) -> Result<GatewayHandle, tokio_tungstenite::tungstenite::Error> {
-
         let (ws_stream, _) = match connect_async_tls_with_config(
             &websocket_url,
             None,
@@ -123,7 +169,11 @@ impl Gateway {
 
         let shared_tx = Arc::new(Mutex::new(ws_tx));
 
-        let mut gateway = Gateway { events: Arc::new(Mutex::new(Events::default())), heartbeat_handler: None, websocket_tx: shared_tx.clone() };
+        let mut gateway = Gateway {
+            events: Arc::new(Mutex::new(Events::default())),
+            heartbeat_handler: None,
+            websocket_tx: shared_tx.clone(),
+        };
 
         let shared_events = gateway.events.clone();
 
@@ -134,13 +184,20 @@ impl Gateway {
 
         if gateway_payload.op != 10 {
             println!("Recieved non hello on gateway init, what is happening?");
-            return Err(tokio_tungstenite::tungstenite::Error::Protocol(tokio_tungstenite::tungstenite::error::ProtocolError::InvalidOpcode(gateway_payload.op)))
+            return Err(tokio_tungstenite::tungstenite::Error::Protocol(
+                tokio_tungstenite::tungstenite::error::ProtocolError::InvalidOpcode(
+                    gateway_payload.op,
+                ),
+            ));
         }
 
         println!("GW: Received Hello");
 
         let gateway_hello: HelloData = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-        gateway.heartbeat_handler = Some(HeartbeatHandler::new(gateway_hello.heartbeat_interval, shared_tx.clone()));
+        gateway.heartbeat_handler = Some(HeartbeatHandler::new(
+            gateway_hello.heartbeat_interval,
+            shared_tx.clone(),
+        ));
 
         // Now we can continously check for messages in a different task, since we aren't going to receive another hello
         task::spawn(async move {
@@ -162,7 +219,6 @@ impl Gateway {
 
     /// This handles a message as a websocket event and updates its events along with the events' observers
     pub async fn handle_event(&mut self, msg: tokio_tungstenite::tungstenite::Message) {
-        
         if msg.to_string() == String::new() {
             return;
         }
@@ -183,7 +239,8 @@ impl Gateway {
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                 match gateway_payload_t.as_str() {
                     "READY" => {
-                        let _data: GatewayReady = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let _data: GatewayReady =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "RESUMED" => {}
                     "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
@@ -192,65 +249,144 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_DELETE" => {}
                     "AUTO_MODERATION_ACTION_EXECUTION" => {}
                     "CHANNEL_CREATE" => {
-                        let channel: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelCreate {channel};
-                        self.events.lock().await.channel.create.update_data(new_data).await;
+                        let channel: Channel =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data = ChannelCreate { channel };
+                        self.events
+                            .lock()
+                            .await
+                            .channel
+                            .create
+                            .update_data(new_data)
+                            .await;
                     }
                     "CHANNEL_UPDATE" => {
-                        let channel: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelUpdate {channel};
-                        self.events.lock().await.channel.update.update_data(new_data).await;
+                        let channel: Channel =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data = ChannelUpdate { channel };
+                        self.events
+                            .lock()
+                            .await
+                            .channel
+                            .update
+                            .update_data(new_data)
+                            .await;
                     }
                     "CHANNEL_DELETE" => {
-                        let channel: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelDelete {channel};
-                        self.events.lock().await.channel.delete.update_data(new_data).await;
+                        let channel: Channel =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data = ChannelDelete { channel };
+                        self.events
+                            .lock()
+                            .await
+                            .channel
+                            .delete
+                            .update_data(new_data)
+                            .await;
                     }
                     "CHANNEL_PINS_UPDATE" => {
-                        let new_data: ChannelPinsUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.channel.pins_update.update_data(new_data).await;
+                        let new_data: ChannelPinsUpdate =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .channel
+                            .pins_update
+                            .update_data(new_data)
+                            .await;
                     }
                     "THREAD_CREATE" => {
-                        let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadCreate {thread};
-                        self.events.lock().await.thread.create.update_data(new_data).await;
+                        let thread: Channel =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data = ThreadCreate { thread };
+                        self.events
+                            .lock()
+                            .await
+                            .thread
+                            .create
+                            .update_data(new_data)
+                            .await;
                     }
                     "THREAD_UPDATE" => {
-                        let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadUpdate {thread};
-                        self.events.lock().await.thread.update.update_data(new_data).await;
+                        let thread: Channel =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data = ThreadUpdate { thread };
+                        self.events
+                            .lock()
+                            .await
+                            .thread
+                            .update
+                            .update_data(new_data)
+                            .await;
                     }
                     "THREAD_DELETE" => {
-                        let thread: Channel = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadDelete {thread};
-                        self.events.lock().await.thread.delete.update_data(new_data).await;
+                        let thread: Channel =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data = ThreadDelete { thread };
+                        self.events
+                            .lock()
+                            .await
+                            .thread
+                            .delete
+                            .update_data(new_data)
+                            .await;
                     }
                     "THREAD_LIST_SYNC" => {
-                        let new_data: ThreadListSync = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.thread.list_sync.update_data(new_data).await;
+                        let new_data: ThreadListSync =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .thread
+                            .list_sync
+                            .update_data(new_data)
+                            .await;
                     }
                     "THREAD_MEMBER_UPDATE" => {
-                        let new_data: ThreadMemberUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.thread.member_update.update_data(new_data).await;
+                        let new_data: ThreadMemberUpdate =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .thread
+                            .member_update
+                            .update_data(new_data)
+                            .await;
                     }
                     "THREAD_MEMBERS_UPDATE" => {
-                        let new_data: ThreadMembersUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.thread.members_update.update_data(new_data).await;
+                        let new_data: ThreadMembersUpdate =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .thread
+                            .members_update
+                            .update_data(new_data)
+                            .await;
                     }
                     "GUILD_CREATE" => {
                         let new_data: GuildCreate = serde_json::from_str(&msg_string).unwrap();
-                        self.events.lock().await.guild.create.update_data(new_data).await;
+                        self.events
+                            .lock()
+                            .await
+                            .guild
+                            .create
+                            .update_data(new_data)
+                            .await;
                     }
                     "GUILD_UPDATE" => {}
                     "GUILD_DELETE" => {
-                        let _new_data: UnavailableGuild = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let _new_data: UnavailableGuild =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => {}
                     "GUILD_BAN_ADD" => {
-                        let _new_data: GuildBanAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let _new_data: GuildBanAdd =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "GUILD_BAN_REMOVE" => {
-                        let _new_data: GuildBanRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let _new_data: GuildBanRemove =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "GUILD_EMOJIS_UPDATE" => {}
                     "GUILD_STICKERS_UPDATE" => {}
@@ -274,40 +410,103 @@ impl Gateway {
                     "INVITE_CREATE" => {}
                     "INVITE_DELETE" => {}
                     "MESSAGE_CREATE" => {
-                        let new_data: MessageCreate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.message.create.update_data(new_data).await;
+                        let new_data: MessageCreate =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .message
+                            .create
+                            .update_data(new_data)
+                            .await;
                     }
                     "MESSAGE_UPDATE" => {
-                        let new_data: MessageUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.message.update.update_data(new_data).await;
+                        let new_data: MessageUpdate =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .message
+                            .update
+                            .update_data(new_data)
+                            .await;
                     }
                     "MESSAGE_DELETE" => {
-                        let new_data: MessageDelete = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.message.delete.update_data(new_data).await;
+                        let new_data: MessageDelete =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .message
+                            .delete
+                            .update_data(new_data)
+                            .await;
                     }
                     "MESSAGE_DELETE_BULK" => {
-                        let new_data: MessageDeleteBulk = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.message.delete_bulk.update_data(new_data).await;
+                        let new_data: MessageDeleteBulk =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .message
+                            .delete_bulk
+                            .update_data(new_data)
+                            .await;
                     }
                     "MESSAGE_REACTION_ADD" => {
-                        let new_data: MessageReactionAdd = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.message.reaction_add.update_data(new_data).await;
+                        let new_data: MessageReactionAdd =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .message
+                            .reaction_add
+                            .update_data(new_data)
+                            .await;
                     }
                     "MESSAGE_REACTION_REMOVE" => {
-                        let new_data: MessageReactionRemove = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.message.reaction_remove.update_data(new_data).await;
+                        let new_data: MessageReactionRemove =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .message
+                            .reaction_remove
+                            .update_data(new_data)
+                            .await;
                     }
                     "MESSAGE_REACTION_REMOVE_ALL" => {
-                        let new_data: MessageReactionRemoveAll = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.message.reaction_remove_all.update_data(new_data).await;
+                        let new_data: MessageReactionRemoveAll =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .message
+                            .reaction_remove_all
+                            .update_data(new_data)
+                            .await;
                     }
                     "MESSAGE_REACTION_REMOVE_EMOJI" => {
-                        let new_data: MessageReactionRemoveEmoji= serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.message.reaction_remove_emoji.update_data(new_data).await;
+                        let new_data: MessageReactionRemoveEmoji =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .message
+                            .reaction_remove_emoji
+                            .update_data(new_data)
+                            .await;
                     }
                     "PRESENCE_UPDATE" => {
-                        let new_data: PresenceUpdate = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.user.presence_update.update_data(new_data).await;
+                        let new_data: PresenceUpdate =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .user
+                            .presence_update
+                            .update_data(new_data)
+                            .await;
                     }
                     "STAGE_INSTANCE_CREATE" => {}
                     "STAGE_INSTANCE_UPDATE" => {}
@@ -315,27 +514,47 @@ impl Gateway {
                     // Not documented in discord docs, I assume this isnt for bots / apps but is for users?
                     "SESSIONS_REPLACE" => {}
                     "TYPING_START" => {
-                        let new_data: TypingStartEvent = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        self.events.lock().await.user.typing_start_event.update_data(new_data).await;
+                        let new_data: TypingStartEvent =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        self.events
+                            .lock()
+                            .await
+                            .user
+                            .typing_start_event
+                            .update_data(new_data)
+                            .await;
                     }
                     "USER_UPDATE" => {
-                        let user: UserObject = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = UserUpdate {user};
-                        self.events.lock().await.user.update.update_data(new_data).await;
+                        let user: User =
+                            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+                        let new_data = UserUpdate { user };
+                        self.events
+                            .lock()
+                            .await
+                            .user
+                            .update
+                            .update_data(new_data)
+                            .await;
                     }
                     "VOICE_STATE_UPDATE" => {}
                     "VOICE_SERVER_UPDATE" => {}
                     "WEBHOOKS_UPDATE" => {}
-                    _ => {panic!("Invalid gateway event ({})", &gateway_payload_t)}
+                    _ => {
+                        panic!("Invalid gateway event ({})", &gateway_payload_t)
+                    }
                 }
             }
             // Heartbeat
             // We received a heartbeat from the server
             1 => {}
             // Reconnect
-            7 => {todo!()}
+            7 => {
+                todo!()
+            }
             // Invalid Session
-            9 => {todo!()}
+            9 => {
+                todo!()
+            }
             // Hello
             // Starts our heartbeat
             // We should have already handled this in gateway init
@@ -346,17 +565,32 @@ impl Gateway {
             11 => {
                 println!("GW: Received Heartbeat ACK");
             }
-            2 | 3 | 4 | 6 | 8 => {panic!("Received Gateway op code that's meant to be sent, not received ({})", gateway_payload.op)}
-            _ => {panic!("Received Invalid Gateway op code ({})", gateway_payload.op)}
+            2 | 3 | 4 | 6 | 8 => {
+                panic!(
+                    "Received Gateway op code that's meant to be sent, not received ({})",
+                    gateway_payload.op
+                )
+            }
+            _ => {
+                panic!("Received Invalid Gateway op code ({})", gateway_payload.op)
+            }
         }
 
         // If we have an active heartbeat thread and we received a seq number we should let it know
         if gateway_payload.s.is_some() {
             if self.heartbeat_handler.is_some() {
+                let heartbeat_communication = HeartbeatThreadCommunication {
+                    op: gateway_payload.op,
+                    d: gateway_payload.s.unwrap(),
+                };
 
-                let heartbeat_communication = HeartbeatThreadCommunication { op: gateway_payload.op, d: gateway_payload.s.unwrap() };
-
-                self.heartbeat_handler.as_mut().unwrap().tx.send(heartbeat_communication).await.unwrap();
+                self.heartbeat_handler
+                    .as_mut()
+                    .unwrap()
+                    .tx
+                    .send(heartbeat_communication)
+                    .await
+                    .unwrap();
             }
         }
     }
@@ -372,7 +606,17 @@ struct HeartbeatHandler {
 }
 
 impl HeartbeatHandler {
-    pub fn new(heartbeat_interval: u128, websocket_tx: Arc<Mutex<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tokio_tungstenite::tungstenite::Message>>>) -> HeartbeatHandler {
+    pub fn new(
+        heartbeat_interval: u128,
+        websocket_tx: Arc<
+            Mutex<
+                SplitSink<
+                    WebSocketStream<MaybeTlsStream<TcpStream>>,
+                    tokio_tungstenite::tungstenite::Message,
+                >,
+            >,
+        >,
+    ) -> HeartbeatHandler {
         let (tx, mut rx) = mpsc::channel(32);
 
         task::spawn(async move {
@@ -380,37 +624,36 @@ impl HeartbeatHandler {
             let mut last_seq_number: Option<u64> = None;
 
             loop {
-
                 // If we received a seq number update, use that as the last seq number
-                let hb_communication: Result<HeartbeatThreadCommunication, TryRecvError> = rx.try_recv();
+                let hb_communication: Result<HeartbeatThreadCommunication, TryRecvError> =
+                    rx.try_recv();
                 if hb_communication.is_ok() {
                     last_seq_number = Some(hb_communication.unwrap().d);
                 }
 
                 if last_heartbeat.elapsed().as_millis() > heartbeat_interval {
-
                     println!("GW: Sending Heartbeat..");
 
                     let heartbeat = GatewayHeartbeat {
                         op: 1,
-                        d: last_seq_number
+                        d: last_seq_number,
                     };
 
                     let heartbeat_json = serde_json::to_string(&heartbeat).unwrap();
 
                     let msg = tokio_tungstenite::tungstenite::Message::text(heartbeat_json);
 
-                    websocket_tx.lock().await
-                    .send(msg)
-                    .await
-                    .unwrap();
+                    websocket_tx.lock().await.send(msg).await.unwrap();
 
                     last_heartbeat = time::Instant::now();
                 }
             }
         });
 
-        Self { heartbeat_interval, tx }
+        Self {
+            heartbeat_interval,
+            tx,
+        }
     }
 }
 
@@ -423,7 +666,7 @@ struct HeartbeatThreadCommunication {
     /// An opcode for the communication we received
     op: u8,
     /// The sequence number we got from discord
-    d: u64
+    d: u64,
 }
 
 /**
@@ -469,7 +712,10 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     Returns an error if the GatewayEvent is already observed.
     Error type: [`ObserverError::AlreadySubscribedError`]
     */
-    pub fn subscribe(&mut self, observable: Arc<Mutex<dyn Observer<T> + Sync + Send>>) -> Option<ObserverError> {
+    pub fn subscribe(
+        &mut self,
+        observable: Arc<Mutex<dyn Observer<T> + Sync + Send>>,
+    ) -> Option<ObserverError> {
         if self.is_observed {
             return Some(ObserverError::AlreadySubscribedError);
         }
@@ -486,7 +732,8 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
         // pointer value than observable.
         // The usage of the debug format to compare the generic T of observers is quite stupid, but the only thing to compare between them is T and if T == T they are the same
         // anddd there is no way to do that without using format
-        self.observers.retain(|obs| !(format!("{:?}", obs) == format!("{:?}", &observable)));
+        self.observers
+            .retain(|obs| !(format!("{:?}", obs) == format!("{:?}", &observable)));
         self.is_observed = !self.observers.is_empty();
     }
 
@@ -545,7 +792,7 @@ mod events {
         pub create: GatewayEvent<ChannelCreate>,
         pub update: GatewayEvent<ChannelUpdate>,
         pub delete: GatewayEvent<ChannelDelete>,
-        pub pins_update: GatewayEvent<ChannelPinsUpdate>
+        pub pins_update: GatewayEvent<ChannelPinsUpdate>,
     }
 
     #[derive(Default, Debug)]
@@ -587,7 +834,6 @@ mod events {
 #[cfg(test)]
 mod example {
     use super::*;
-    use crate::api::types::GatewayResume;
 
     #[derive(Debug)]
     struct Consumer;
@@ -634,7 +880,6 @@ mod example {
             None => assert!(true),
             Some(_) => assert!(false),
         }
-    
     }
 
     #[tokio::test]

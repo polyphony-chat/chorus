@@ -1,9 +1,11 @@
 use crate::api::limits::Limits;
-use crate::api::types::InstancePolicies;
 use crate::errors::{FieldFormatError, InstanceServerError};
+use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::URLBundle;
 
+use std::cell::RefCell;
 use std::fmt;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 /**
@@ -11,7 +13,7 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
  */
 pub struct Instance {
     pub urls: URLBundle,
-    pub instance_info: InstancePolicies,
+    pub instance_info: GeneralConfiguration,
     pub limits: Limits,
 }
 
@@ -25,7 +27,7 @@ impl Instance {
     pub async fn new(urls: URLBundle) -> Result<Instance, InstanceServerError> {
         let mut instance = Instance {
             urls: urls.clone(),
-            instance_info: InstancePolicies::new(
+            instance_info: GeneralConfiguration::new(
                 // This is okay, because the instance_info will be overwritten by the instance_policies_schema() function.
                 "".to_string(),
                 None,
@@ -38,7 +40,7 @@ impl Instance {
             ),
             limits: Limits::check_limits(urls.api).await,
         };
-        instance.instance_info = match instance.instance_policies_schema().await {
+        instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
             Err(e) => {
                 return Err(InstanceServerError::CantGetInfoError {
@@ -77,5 +79,40 @@ impl Username {
             return Err(FieldFormatError::UsernameError);
         }
         Ok(Username { username })
+    }
+}
+
+#[derive(Debug)]
+pub struct UserMeta {
+    pub belongs_to: Rc<RefCell<Instance>>,
+    pub token: String,
+    pub limits: Limits,
+    pub settings: UserSettings,
+    pub object: Option<User>,
+}
+
+impl UserMeta {
+    pub fn token(&self) -> String {
+        self.token.clone()
+    }
+
+    pub fn set_token(&mut self, token: String) {
+        self.token = token;
+    }
+
+    pub fn new(
+        belongs_to: Rc<RefCell<Instance>>,
+        token: String,
+        limits: Limits,
+        settings: UserSettings,
+        object: Option<User>,
+    ) -> UserMeta {
+        UserMeta {
+            belongs_to,
+            token,
+            limits,
+            settings,
+            object,
+        }
     }
 }

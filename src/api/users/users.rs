@@ -2,17 +2,14 @@ use reqwest::Client;
 use serde_json::{from_str, to_string};
 
 use crate::{
-    api::{
-        limits::Limits,
-        types::{User, UserObject},
-        UserModifySchema, UserSettings,
-    },
+    api::limits::Limits,
     errors::InstanceServerError,
-    instance::Instance,
+    instance::{Instance, UserMeta},
     limit::LimitedRequester,
+    types::{User, UserModifySchema},
 };
 
-impl User {
+impl UserMeta {
     /**
     Get a user object by id, or get the current user.
     # Arguments
@@ -28,7 +25,7 @@ impl User {
         url_api: &String,
         id: Option<&String>,
         instance_limits: &mut Limits,
-    ) -> Result<UserObject, InstanceServerError> {
+    ) -> Result<User, InstanceServerError> {
         let url: String;
         if id.is_none() {
             url = format!("{}/users/@me/", url_api);
@@ -49,7 +46,7 @@ impl User {
         {
             Ok(result) => {
                 let result_text = result.text().await.unwrap();
-                Ok(serde_json::from_str::<UserObject>(&result_text).unwrap())
+                Ok(serde_json::from_str::<User>(&result_text).unwrap())
             }
             Err(e) => Err(e),
         }
@@ -59,7 +56,7 @@ impl User {
         token: &String,
         url_api: &String,
         instance_limits: &mut Limits,
-    ) -> Result<UserSettings, InstanceServerError> {
+    ) -> Result<User, InstanceServerError> {
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings/", url_api))
             .bearer_auth(token);
@@ -91,7 +88,7 @@ impl User {
     pub async fn modify(
         &mut self,
         modify_schema: UserModifySchema,
-    ) -> Result<UserObject, InstanceServerError> {
+    ) -> Result<User, InstanceServerError> {
         if modify_schema.new_password.is_some()
             || modify_schema.email.is_some()
             || modify_schema.code.is_some()
@@ -118,7 +115,7 @@ impl User {
             Ok(response) => response,
             Err(e) => return Err(e),
         };
-        let user_updated: UserObject = from_str(&result.text().await.unwrap()).unwrap();
+        let user_updated: User = from_str(&result.text().await.unwrap()).unwrap();
         let _ = std::mem::replace(
             &mut self.object.as_mut().unwrap(),
             &mut user_updated.clone(),
@@ -171,8 +168,8 @@ impl Instance {
         &mut self,
         token: String,
         id: Option<&String>,
-    ) -> Result<UserObject, InstanceServerError> {
-        User::get(
+    ) -> Result<User, InstanceServerError> {
+        UserMeta::get(
             &token,
             &self.urls.get_api().to_string(),
             id,

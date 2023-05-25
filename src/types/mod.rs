@@ -1,4 +1,5 @@
 pub use config::*;
+pub use entities::*;
 pub use errors::*;
 pub use events::*;
 pub use interfaces::*;

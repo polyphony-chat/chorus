@@ -13,7 +13,6 @@ pub struct GeneralConfiguration {
     pub correspondence_user_id: Option<String>,
     pub image: Option<String>,
     pub instance_id: Option<Snowflake>,
-    pub auto_create_bot_users: Option<bool>,
 }
 
 impl Default for GeneralConfiguration {
@@ -29,7 +28,30 @@ impl Default for GeneralConfiguration {
             correspondence_user_id: None,
             image: None,
             instance_id: Some(Snowflake::generate()),
-            auto_create_bot_users: Some(false),
+        }
+    }
+}
+
+impl GeneralConfiguration {
+    pub fn new(
+        instance_name: String,
+        instance_description: Option<String>,
+        front_page: Option<String>,
+        tos_page: Option<String>,
+        correspondence_email: Option<String>,
+        correspondence_user_id: Option<String>,
+        image: Option<String>,
+        instance_id: Option<Snowflake>,
+    ) -> Self {
+        Self {
+            instance_name,
+            instance_description,
+            front_page,
+            tos_page,
+            correspondence_email,
+            correspondence_user_id,
+            image,
+            instance_id,
         }
     }
 }
