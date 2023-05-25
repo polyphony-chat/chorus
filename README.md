@@ -1,17 +1,15 @@
 <div align="center">
 
-[![Rust]][Rust-url]
+[![Discord]][Discord-invite]
 [![Build][build-shield]][build-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![GPL3 License][license-shield]][license-url]
 
 </br>
 <div align="center">
   <a href="https://github.com/polyphony-chat/chorus">
-    <img src="images/polyphony-chorus-round.png" alt="Logo" width="128" height="128">
+    <img src="https://raw.githubusercontent.com/polyphony-chat/design/main/branding/polyphony-chorus-round-8bit.png" alt="Logo" width="128" height="128">
   </a>
 
 <h3 align="center">Chorus</h3>
@@ -54,15 +52,17 @@ Core functionality:
 
 [Rust]: https://img.shields.io/badge/Rust-orange?style=plastic&logo=rust
 [Rust-url]: https://www.rust-lang.org/
-[build-shield]: https://img.shields.io/github/actions/workflow/status/polyphony-chat/chorus/rust.yml?style=plastic
+[build-shield]: https://img.shields.io/github/actions/workflow/status/polyphony-chat/chorus/rust.yml?style=flat
 [build-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/rust.yml
-[contributors-shield]: https://img.shields.io/github/contributors/polyphony-chat/chorus.svg?style=plastic
+[contributors-shield]: https://img.shields.io/github/contributors/polyphony-chat/chorus.svg?style=flat
 [contributors-url]: https://github.com/polyphony-chat/chorus/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/polyphony-chat/chorus.svg?style=plastic
+[forks-shield]: https://img.shields.io/github/forks/polyphony-chat/chorus.svg?style=flat
 [forks-url]: https://github.com/polyphony-chat/chorus/network/members
-[stars-shield]: https://img.shields.io/github/stars/polyphony-chat/chorus.svg?style=plastic
+[stars-shield]: https://img.shields.io/github/stars/polyphony-chat/chorus.svg?style=flat
 [stars-url]: https://github.com/polyphony-chat/chorus/stargazers
-[issues-shield]: https://img.shields.io/github/issues/polyphony-chat/chorus.svg?style=plastic
+[issues-shield]: https://img.shields.io/github/issues/polyphony-chat/chorus.svg?style=flat
 [issues-url]: https://github.com/polyphony-chat/chorus/issues
-[license-shield]: https://img.shields.io/github/license/polyphony-chat/chorus.svg?style=plastic
+[license-shield]: https://img.shields.io/github/license/polyphony-chat/chorus.svg?style=f;at
 [license-url]: https://github.com/polyphony-chat/chorus/blob/master/LICENSE
+[Discord]: https://dcbadge.vercel.app/api/server/m3FpcapGDD?style=flat
+[Discord-invite]: https://discord.com/invite/m3FpcapGDD
