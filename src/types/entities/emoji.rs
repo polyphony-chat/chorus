@@ -13,10 +13,12 @@ pub struct Emoji {
     #[cfg(not(feature = "sqlx"))]
     pub roles: Option<Vec<Snowflake>>,
     #[cfg(feature = "sqlx")]
+    #[serde(skip)]
     pub guild_id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub guild: Guild,
     #[cfg(feature = "sqlx")]
+    #[serde(skip)]
     pub user_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<User>,
