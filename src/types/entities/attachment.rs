@@ -19,7 +19,7 @@ pub struct Attachment {
     pub duration_secs: Option<f32>,
     pub waveform: Option<String>,
     #[serde(skip_serializing)]
-    #[cfg_attr(feature = "sqlx", sqlx(default)]
+    #[cfg_attr(feature = "sqlx", sqlx(default))]
     pub content: Vec<u8>,
 }
 
