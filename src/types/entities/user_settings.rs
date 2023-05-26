@@ -24,8 +24,6 @@ pub enum UserTheme {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserSettings {
-    #[serde(skip_serializing)]
-    pub index: String, // Database relevance only
     pub afk_timeout: u16,
     pub allow_accessibility_detection: bool,
     pub animate_emoji: bool,
@@ -62,7 +60,6 @@ pub struct UserSettings {
 impl Default for UserSettings {
     fn default() -> Self {
         Self {
-            index: Snowflake::generate().to_string(),
             afk_timeout: 3600,
             allow_accessibility_detection: true,
             animate_emoji: true,
