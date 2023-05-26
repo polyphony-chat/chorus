@@ -7,7 +7,7 @@ pub mod messages {
     use crate::api::limits::Limits;
     use crate::instance::UserMeta;
     use crate::limit::LimitedRequester;
-    use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment, User};
+    use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment};
 
     impl Message {
         /**
@@ -66,7 +66,7 @@ pub mod messages {
                     let mut header_map = HeaderMap::new();
                     header_map.insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap());
 
-                    let mut part = multipart::Part::bytes(attachment_content)
+                    let part = multipart::Part::bytes(attachment_content)
                         .file_name(attachment_filename)
                         .headers(header_map);
 
@@ -119,7 +119,7 @@ pub mod messages {
 mod test {
     use crate::instance::UserMeta;
     use crate::types::{LoginSchema, MessageSendSchema, PartialDiscordFileAttachment};
-    use crate::{instance::Instance, limit::LimitedRequester};
+    use crate::{instance::Instance};
 
     use std::io::Read;
     use std::{cell::RefCell, fs::File};

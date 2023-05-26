@@ -93,7 +93,7 @@ mod test {
             "http://localhost:3001".to_string(),
             "http://localhost:3001".to_string(),
         );
-        let limited_requester = LimitedRequester::new().await;
+        let _limited_requester = LimitedRequester::new().await;
         let mut test_instance = Instance::new(urls.clone()).await.unwrap();
         let reg = RegisterSchema::new(
             "Hiiii".to_string(),
