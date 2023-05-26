@@ -1,4 +1,5 @@
 use crate::types::utils::Snowflake;
+use crate::types::{Team, User};
 use bitflags::{bitflags, Flags};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -19,6 +20,9 @@ pub struct Application {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
     pub verify_key: String,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    pub owner: User,
+    #[cfg(feature = "sqlx")]
     pub owner_id: Snowflake,
     pub flags: u64,
     #[cfg(feature = "sqlx")]
@@ -33,7 +37,10 @@ pub struct Application {
     pub integration_require_code_grant: bool,
     pub discoverability_state: i64,
     pub discovery_eligibility_flags: i64,
-    pub bot_user_id: Snowflake,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    pub bot_user: Option<User>,
+    #[cfg(feature = "sqlx")]
+    pub bot_user_id: Option<Snowflake>,
     #[cfg(feature = "sqlx")]
     pub tags: Option<sqlx::types::Json<Vec<String>>>,
     #[cfg(not(feature = "sqlx"))]
@@ -45,6 +52,9 @@ pub struct Application {
     pub install_params: Option<InstallParams>,
     pub terms_of_service_url: Option<String>,
     pub privacy_policy_url: Option<String>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    pub team: Option<Team>,
+    #[cfg(feature = "sqlx")]
     pub team_id: Option<Snowflake>,
 }
 
