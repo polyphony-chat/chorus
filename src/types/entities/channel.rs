@@ -11,7 +11,7 @@ pub struct Channel {
     pub id: Snowflake,
     #[serde(rename = "type")]
     pub channel_type: ChannelType,
-    pub guild_id: Option<String>,
+    pub guild_id: Option<Snowflake>,
     pub position: Option<i32>,
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     pub name: Option<String>,
