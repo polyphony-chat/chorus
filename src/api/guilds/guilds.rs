@@ -3,12 +3,12 @@ use serde_json::from_str;
 use serde_json::to_string;
 
 use crate::api::limits::Limits;
-use crate::api::schemas;
-use crate::api::types;
 use crate::errors::InstanceServerError;
+use crate::instance::UserMeta;
 use crate::limit::LimitedRequester;
+use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateResponse, GuildCreateSchema};
 
-impl types::Guild {
+impl Guild {
     /// Creates a new guild with the given parameters.
     ///
     /// # Arguments
@@ -38,9 +38,9 @@ impl types::Guild {
     /// }
     /// ```
     pub async fn create(
-        user: &mut types::User,
+        user: &mut UserMeta,
         url_api: &str,
-        guild_create_schema: schemas::GuildCreateSchema,
+        guild_create_schema: GuildCreateSchema,
     ) -> Result<String, crate::errors::InstanceServerError> {
         let url = format!("{}/guilds/", url_api);
         let limits_user = user.limits.get_as_mut();
@@ -62,7 +62,7 @@ impl types::Guild {
             Ok(result) => result,
             Err(e) => return Err(e),
         };
-        let id: types::GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
+        let id: GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
         Ok(id.id)
     }
 
@@ -91,7 +91,7 @@ impl types::Guild {
     /// }
     /// ```
     pub async fn delete(
-        user: &mut types::User,
+        user: &mut UserMeta,
         url_api: &str,
         guild_id: String,
     ) -> Option<InstanceServerError> {
@@ -134,14 +134,14 @@ impl types::Guild {
         &self,
         url_api: &str,
         token: &str,
-        schema: schemas::ChannelCreateSchema,
+        schema: ChannelCreateSchema,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
-    ) -> Result<types::Channel, InstanceServerError> {
-        types::Channel::create(
+    ) -> Result<Channel, InstanceServerError> {
+        Channel::create(
             token,
             url_api,
-            &self.id,
+            &self.id.to_string(),
             schema,
             limits_user,
             limits_instance,
@@ -150,7 +150,7 @@ impl types::Guild {
     }
 }
 
-impl types::Channel {
+impl Channel {
     /// Sends a request to create a new channel in a guild.
     ///
     /// # Arguments
@@ -169,10 +169,10 @@ impl types::Channel {
         token: &str,
         url_api: &str,
         guild_id: &str,
-        schema: schemas::ChannelCreateSchema,
+        schema: ChannelCreateSchema,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
-    ) -> Result<types::Channel, InstanceServerError> {
+    ) -> Result<Channel, InstanceServerError> {
         let request = Client::new()
             .post(format!("{}/guilds/{}/channels/", url_api, guild_id))
             .bearer_auth(token)
@@ -190,7 +190,7 @@ impl types::Channel {
             Ok(result) => result,
             Err(e) => return Err(e),
         };
-        match from_str::<types::Channel>(&result.text().await.unwrap()) {
+        match from_str::<Channel>(&result.text().await.unwrap()) {
             Ok(object) => Ok(object),
             Err(e) => Err(InstanceServerError::RequestErrorError {
                 url: format!("{}/guilds/{}/channels/", url_api, guild_id),

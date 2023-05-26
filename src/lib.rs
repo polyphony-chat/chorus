@@ -3,6 +3,7 @@ pub mod errors;
 pub mod gateway;
 pub mod instance;
 pub mod limit;
+pub mod types;
 pub mod voice;
 
 use url::{ParseError, Url};
