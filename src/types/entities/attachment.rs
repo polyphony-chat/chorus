@@ -1,3 +1,4 @@
+use crate::types::Message;
 use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
@@ -14,7 +15,10 @@ pub struct Attachment {
     pub proxy_url: String,
     pub height: Option<u64>,
     pub width: Option<u64>,
-    pub message_id: Snowflake,
+    #[cfg(feature = "sqlx")]
+    pub message_id: Option<Snowflake>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    pub message: Option<Message>,
     pub ephemeral: Option<bool>,
     pub duration_secs: Option<f32>,
     pub waveform: Option<String>,
