@@ -2,11 +2,9 @@ use crate::types::utils::Snowflake;
 use bitflags::{bitflags, Flags};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-#[cfg(feature = "sqlx")]
-use sqlx::FromRow;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "sqlx", derive(FromRow))]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Application {
     pub id: Snowflake,
     pub name: String,
