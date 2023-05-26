@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
     entities::{GuildMember, User},
@@ -87,7 +88,7 @@ pub struct DefaultReaction {
     pub emoji_name: Option<String>,
 }
 
-#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default, Clone, Copy, Debug, Serialize_repr, Deserialize_repr, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(i32)]
 pub enum ChannelType {

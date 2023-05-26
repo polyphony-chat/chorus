@@ -8,6 +8,7 @@ edition = "2021"
 tokio = {version = "1.28.1", features = ["rt", "macros", "rt-multi-thread", "full"]}
 serde = {version = "1.0.162", features = ["derive"]}
 serde_json = { version = "1.0.96", features = ["raw_value"] }
+serde_repr = "0.1.12"
 reqwest = {version = "0.11.16", features = ["multipart"]}
 url = "2.3.1"
 chrono = {version = "0.4.24", features = ["serde"]}
