@@ -1,41 +1,6 @@
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
-use crate::types::Channel;
-use crate::types::ChannelCreate;
-use crate::types::ChannelDelete;
-use crate::types::ChannelPinsUpdate;
-use crate::types::ChannelUpdate;
-use crate::types::GatewayHeartbeat;
-use crate::types::GatewayIdentifyPayload;
-use crate::types::GatewayPayload;
-use crate::types::GatewayReady;
-use crate::types::GatewayRequestGuildMembers;
-use crate::types::GatewayResume;
-use crate::types::GatewayVoiceStateUpdate;
-use crate::types::GuildBanAdd;
-use crate::types::GuildBanRemove;
-use crate::types::GuildCreate;
-use crate::types::HelloData;
-use crate::types::MessageCreate;
-use crate::types::MessageDelete;
-use crate::types::MessageDeleteBulk;
-use crate::types::MessageReactionAdd;
-use crate::types::MessageReactionRemove;
-use crate::types::MessageReactionRemoveAll;
-use crate::types::MessageReactionRemoveEmoji;
-use crate::types::MessageUpdate;
-use crate::types::PresenceUpdate;
-use crate::types::ThreadCreate;
-use crate::types::ThreadDelete;
-use crate::types::ThreadListSync;
-use crate::types::ThreadMemberUpdate;
-use crate::types::ThreadMembersUpdate;
-use crate::types::ThreadUpdate;
-use crate::types::TypingStartEvent;
-use crate::types::UnavailableGuild;
-use crate::types::User;
-use crate::types::UserUpdate;
-use crate::types::WebSocketEvent;
+use crate::types;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
@@ -75,7 +40,7 @@ pub struct GatewayHandle {
 impl GatewayHandle {
     /// Sends json to the gateway with an opcode
     async fn send_json_event(&self, op: u8, to_send: serde_json::Value) {
-        let gateway_payload = GatewayPayload {
+        let gateway_payload = types::GatewayPayload {
             op,
             d: Some(to_send),
             s: None,
@@ -90,7 +55,7 @@ impl GatewayHandle {
     }
 
     /// Sends an identify event to the gateway
-    pub async fn send_identify(&self, to_send: GatewayIdentifyPayload) {
+    pub async fn send_identify(&self, to_send: types::GatewayIdentifyPayload) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Identify..");
@@ -99,7 +64,7 @@ impl GatewayHandle {
     }
 
     /// Sends a resume event to the gateway
-    pub async fn send_resume(&self, to_send: GatewayResume) {
+    pub async fn send_resume(&self, to_send: types::GatewayResume) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Resume..");
@@ -108,7 +73,7 @@ impl GatewayHandle {
     }
 
     /// Sends an update presence event to the gateway
-    pub async fn send_update_presence(&self, to_send: PresenceUpdate) {
+    pub async fn send_update_presence(&self, to_send: types::PresenceUpdate) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Presence Update..");
@@ -117,7 +82,7 @@ impl GatewayHandle {
     }
 
     /// Sends a Request Guild Members to the server
-    pub async fn send_request_guild_members(&self, to_send: GatewayRequestGuildMembers) {
+    pub async fn send_request_guild_members(&self, to_send: types::GatewayRequestGuildMembers) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Request Guild Members..");
@@ -126,7 +91,7 @@ impl GatewayHandle {
     }
 
     /// Sends a Request Guild Members to the server
-    pub async fn send_update_voice_state(&self, to_send: GatewayVoiceStateUpdate) {
+    pub async fn send_update_voice_state(&self, to_send: types::GatewayVoiceStateUpdate) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         println!("GW: Sending Voice State Update..");
@@ -180,7 +145,8 @@ impl Gateway {
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
         let msg = ws_rx.next().await.unwrap().unwrap();
-        let gateway_payload: GatewayPayload = serde_json::from_str(msg.to_text().unwrap()).unwrap();
+        let gateway_payload: types::GatewayPayload =
+            serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
         if gateway_payload.op != 10 {
             println!("Recieved non hello on gateway init, what is happening?");
@@ -193,7 +159,8 @@ impl Gateway {
 
         println!("GW: Received Hello");
 
-        let gateway_hello: HelloData = serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
+        let gateway_hello: types::HelloData =
+            serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
         gateway.heartbeat_handler = Some(HeartbeatHandler::new(
             gateway_hello.heartbeat_interval,
             shared_tx.clone(),
@@ -225,7 +192,7 @@ impl Gateway {
 
         let msg_string = msg.to_string();
 
-        let gateway_payload: GatewayPayload = serde_json::from_str(&msg_string).unwrap();
+        let gateway_payload: types::GatewayPayload = serde_json::from_str(&msg_string).unwrap();
 
         // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
         match gateway_payload.op {
@@ -239,7 +206,7 @@ impl Gateway {
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                 match gateway_payload_t.as_str() {
                     "READY" => {
-                        let _data: GatewayReady =
+                        let _data: types::GatewayReady =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "RESUMED" => {}
@@ -249,9 +216,9 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_DELETE" => {}
                     "AUTO_MODERATION_ACTION_EXECUTION" => {}
                     "CHANNEL_CREATE" => {
-                        let channel: Channel =
+                        let channel: types::Channel =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelCreate { channel };
+                        let new_data = types::ChannelCreate { channel };
                         self.events
                             .lock()
                             .await
@@ -261,9 +228,9 @@ impl Gateway {
                             .await;
                     }
                     "CHANNEL_UPDATE" => {
-                        let channel: Channel =
+                        let channel: types::Channel =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelUpdate { channel };
+                        let new_data = types::ChannelUpdate { channel };
                         self.events
                             .lock()
                             .await
@@ -273,9 +240,9 @@ impl Gateway {
                             .await;
                     }
                     "CHANNEL_DELETE" => {
-                        let channel: Channel =
+                        let channel: types::Channel =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ChannelDelete { channel };
+                        let new_data = types::ChannelDelete { channel };
                         self.events
                             .lock()
                             .await
@@ -285,7 +252,7 @@ impl Gateway {
                             .await;
                     }
                     "CHANNEL_PINS_UPDATE" => {
-                        let new_data: ChannelPinsUpdate =
+                        let new_data: types::ChannelPinsUpdate =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -296,9 +263,9 @@ impl Gateway {
                             .await;
                     }
                     "THREAD_CREATE" => {
-                        let thread: Channel =
+                        let thread: types::Channel =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadCreate { thread };
+                        let new_data = types::ThreadCreate { thread };
                         self.events
                             .lock()
                             .await
@@ -308,9 +275,9 @@ impl Gateway {
                             .await;
                     }
                     "THREAD_UPDATE" => {
-                        let thread: Channel =
+                        let thread: types::Channel =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadUpdate { thread };
+                        let new_data = types::ThreadUpdate { thread };
                         self.events
                             .lock()
                             .await
@@ -320,9 +287,9 @@ impl Gateway {
                             .await;
                     }
                     "THREAD_DELETE" => {
-                        let thread: Channel =
+                        let thread: types::Channel =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = ThreadDelete { thread };
+                        let new_data = types::ThreadDelete { thread };
                         self.events
                             .lock()
                             .await
@@ -332,7 +299,7 @@ impl Gateway {
                             .await;
                     }
                     "THREAD_LIST_SYNC" => {
-                        let new_data: ThreadListSync =
+                        let new_data: types::ThreadListSync =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -343,7 +310,7 @@ impl Gateway {
                             .await;
                     }
                     "THREAD_MEMBER_UPDATE" => {
-                        let new_data: ThreadMemberUpdate =
+                        let new_data: types::ThreadMemberUpdate =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -354,7 +321,7 @@ impl Gateway {
                             .await;
                     }
                     "THREAD_MEMBERS_UPDATE" => {
-                        let new_data: ThreadMembersUpdate =
+                        let new_data: types::ThreadMembersUpdate =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -365,7 +332,8 @@ impl Gateway {
                             .await;
                     }
                     "GUILD_CREATE" => {
-                        let new_data: GuildCreate = serde_json::from_str(&msg_string).unwrap();
+                        let new_data: types::GuildCreate =
+                            serde_json::from_str(&msg_string).unwrap();
                         self.events
                             .lock()
                             .await
@@ -376,16 +344,16 @@ impl Gateway {
                     }
                     "GUILD_UPDATE" => {}
                     "GUILD_DELETE" => {
-                        let _new_data: UnavailableGuild =
+                        let _new_data: types::UnavailableGuild =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => {}
                     "GUILD_BAN_ADD" => {
-                        let _new_data: GuildBanAdd =
+                        let _new_data: types::GuildBanAdd =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "GUILD_BAN_REMOVE" => {
-                        let _new_data: GuildBanRemove =
+                        let _new_data: types::GuildBanRemove =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                     }
                     "GUILD_EMOJIS_UPDATE" => {}
@@ -410,7 +378,7 @@ impl Gateway {
                     "INVITE_CREATE" => {}
                     "INVITE_DELETE" => {}
                     "MESSAGE_CREATE" => {
-                        let new_data: MessageCreate =
+                        let new_data: types::MessageCreate =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -421,7 +389,7 @@ impl Gateway {
                             .await;
                     }
                     "MESSAGE_UPDATE" => {
-                        let new_data: MessageUpdate =
+                        let new_data: types::MessageUpdate =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -432,7 +400,7 @@ impl Gateway {
                             .await;
                     }
                     "MESSAGE_DELETE" => {
-                        let new_data: MessageDelete =
+                        let new_data: types::MessageDelete =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -443,7 +411,7 @@ impl Gateway {
                             .await;
                     }
                     "MESSAGE_DELETE_BULK" => {
-                        let new_data: MessageDeleteBulk =
+                        let new_data: types::MessageDeleteBulk =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -454,7 +422,7 @@ impl Gateway {
                             .await;
                     }
                     "MESSAGE_REACTION_ADD" => {
-                        let new_data: MessageReactionAdd =
+                        let new_data: types::MessageReactionAdd =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -465,7 +433,7 @@ impl Gateway {
                             .await;
                     }
                     "MESSAGE_REACTION_REMOVE" => {
-                        let new_data: MessageReactionRemove =
+                        let new_data: types::MessageReactionRemove =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -476,7 +444,7 @@ impl Gateway {
                             .await;
                     }
                     "MESSAGE_REACTION_REMOVE_ALL" => {
-                        let new_data: MessageReactionRemoveAll =
+                        let new_data: types::MessageReactionRemoveAll =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -487,7 +455,7 @@ impl Gateway {
                             .await;
                     }
                     "MESSAGE_REACTION_REMOVE_EMOJI" => {
-                        let new_data: MessageReactionRemoveEmoji =
+                        let new_data: types::MessageReactionRemoveEmoji =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -498,7 +466,7 @@ impl Gateway {
                             .await;
                     }
                     "PRESENCE_UPDATE" => {
-                        let new_data: PresenceUpdate =
+                        let new_data: types::PresenceUpdate =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -514,7 +482,7 @@ impl Gateway {
                     // Not documented in discord docs, I assume this isnt for bots / apps but is for users?
                     "SESSIONS_REPLACE" => {}
                     "TYPING_START" => {
-                        let new_data: TypingStartEvent =
+                        let new_data: types::TypingStartEvent =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
                         self.events
                             .lock()
@@ -525,9 +493,9 @@ impl Gateway {
                             .await;
                     }
                     "USER_UPDATE" => {
-                        let user: User =
+                        let user: types::User =
                             serde_json::from_value(gateway_payload.d.unwrap()).unwrap();
-                        let new_data = UserUpdate { user };
+                        let new_data = types::UserUpdate { user };
                         self.events
                             .lock()
                             .await
@@ -634,7 +602,7 @@ impl HeartbeatHandler {
                 if last_heartbeat.elapsed().as_millis() > heartbeat_interval {
                     println!("GW: Sending Heartbeat..");
 
-                    let heartbeat = GatewayHeartbeat {
+                    let heartbeat = types::GatewayHeartbeat {
                         op: 1,
                         d: last_seq_number,
                     };
@@ -674,7 +642,7 @@ Trait which defines the behaviour of an Observer. An Observer is an object which
 an Observable. The Observer is notified when the Observable's data changes.
 In this case, the Observable is a [`GatewayEvent`], which is a wrapper around a WebSocketEvent.
  */
-pub trait Observer<T: WebSocketEvent>: std::fmt::Debug {
+pub trait Observer<T: types::WebSocketEvent>: std::fmt::Debug {
     fn update(&self, data: &T);
 }
 
@@ -683,13 +651,13 @@ change in the WebSocketEvent. GatewayEvents are observable.
 */
 
 #[derive(Default, Debug)]
-pub struct GatewayEvent<T: WebSocketEvent> {
+pub struct GatewayEvent<T: types::WebSocketEvent> {
     observers: Vec<Arc<Mutex<dyn Observer<T> + Sync + Send>>>,
     pub event_data: T,
     pub is_observed: bool,
 }
 
-impl<T: WebSocketEvent> GatewayEvent<T> {
+impl<T: types::WebSocketEvent> GatewayEvent<T> {
     fn new(event_data: T) -> Self {
         Self {
             is_observed: false,
@@ -764,50 +732,50 @@ mod events {
         pub channel: Channel,
         pub thread: Thread,
         pub guild: Guild,
-        pub gateway_identify_payload: GatewayEvent<GatewayIdentifyPayload>,
-        pub gateway_resume: GatewayEvent<GatewayResume>,
+        pub gateway_identify_payload: GatewayEvent<types::GatewayIdentifyPayload>,
+        pub gateway_resume: GatewayEvent<types::GatewayResume>,
     }
 
     #[derive(Default, Debug)]
     pub struct Message {
-        pub create: GatewayEvent<MessageCreate>,
-        pub update: GatewayEvent<MessageUpdate>,
-        pub delete: GatewayEvent<MessageDelete>,
-        pub delete_bulk: GatewayEvent<MessageDeleteBulk>,
-        pub reaction_add: GatewayEvent<MessageReactionAdd>,
-        pub reaction_remove: GatewayEvent<MessageReactionRemove>,
-        pub reaction_remove_all: GatewayEvent<MessageReactionRemoveAll>,
-        pub reaction_remove_emoji: GatewayEvent<MessageReactionRemoveEmoji>,
+        pub create: GatewayEvent<types::MessageCreate>,
+        pub update: GatewayEvent<types::MessageUpdate>,
+        pub delete: GatewayEvent<types::MessageDelete>,
+        pub delete_bulk: GatewayEvent<types::MessageDeleteBulk>,
+        pub reaction_add: GatewayEvent<types::MessageReactionAdd>,
+        pub reaction_remove: GatewayEvent<types::MessageReactionRemove>,
+        pub reaction_remove_all: GatewayEvent<types::MessageReactionRemoveAll>,
+        pub reaction_remove_emoji: GatewayEvent<types::MessageReactionRemoveEmoji>,
     }
 
     #[derive(Default, Debug)]
     pub struct User {
-        pub update: GatewayEvent<UserUpdate>,
-        pub presence_update: GatewayEvent<PresenceUpdate>,
-        pub typing_start_event: GatewayEvent<TypingStartEvent>,
+        pub update: GatewayEvent<types::UserUpdate>,
+        pub presence_update: GatewayEvent<types::PresenceUpdate>,
+        pub typing_start_event: GatewayEvent<types::TypingStartEvent>,
     }
 
     #[derive(Default, Debug)]
     pub struct Channel {
-        pub create: GatewayEvent<ChannelCreate>,
-        pub update: GatewayEvent<ChannelUpdate>,
-        pub delete: GatewayEvent<ChannelDelete>,
-        pub pins_update: GatewayEvent<ChannelPinsUpdate>,
+        pub create: GatewayEvent<types::ChannelCreate>,
+        pub update: GatewayEvent<types::ChannelUpdate>,
+        pub delete: GatewayEvent<types::ChannelDelete>,
+        pub pins_update: GatewayEvent<types::ChannelPinsUpdate>,
     }
 
     #[derive(Default, Debug)]
     pub struct Thread {
-        pub create: GatewayEvent<ThreadCreate>,
-        pub update: GatewayEvent<ThreadUpdate>,
-        pub delete: GatewayEvent<ThreadDelete>,
-        pub list_sync: GatewayEvent<ThreadListSync>,
-        pub member_update: GatewayEvent<ThreadMemberUpdate>,
-        pub members_update: GatewayEvent<ThreadMembersUpdate>,
+        pub create: GatewayEvent<types::ThreadCreate>,
+        pub update: GatewayEvent<types::ThreadUpdate>,
+        pub delete: GatewayEvent<types::ThreadDelete>,
+        pub list_sync: GatewayEvent<types::ThreadListSync>,
+        pub member_update: GatewayEvent<types::ThreadMemberUpdate>,
+        pub members_update: GatewayEvent<types::ThreadMembersUpdate>,
     }
 
     #[derive(Default, Debug)]
     pub struct Guild {
-        pub create: GatewayEvent<GuildCreate>,
+        pub create: GatewayEvent<types::GuildCreate>,
         /*pub update: GatewayEvent<ThreadCreate>,
         pub delete: GatewayEvent<ThreadCreate>,
         pub audit_log_entry_create: GatewayEvent<ThreadCreate>,
@@ -837,21 +805,21 @@ mod example {
 
     #[derive(Debug)]
     struct Consumer;
-    impl Observer<GatewayResume> for Consumer {
-        fn update(&self, data: &GatewayResume) {
+    impl Observer<types::GatewayResume> for Consumer {
+        fn update(&self, data: &types::GatewayResume) {
             println!("{}", data.token)
         }
     }
 
     #[tokio::test]
     async fn test_observer_behaviour() {
-        let mut event = GatewayEvent::new(GatewayResume {
+        let mut event = GatewayEvent::new(types::GatewayResume {
             token: "start".to_string(),
             session_id: "start".to_string(),
             seq: "start".to_string(),
         });
 
-        let new_data = GatewayResume {
+        let new_data = types::GatewayResume {
             token: "token_3276ha37am3".to_string(),
             session_id: "89346671230".to_string(),
             seq: "3".to_string(),

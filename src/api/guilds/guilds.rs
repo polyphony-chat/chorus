@@ -6,11 +6,7 @@ use crate::api::limits::Limits;
 use crate::errors::InstanceServerError;
 use crate::instance::UserMeta;
 use crate::limit::LimitedRequester;
-use crate::types::Channel;
-use crate::types::ChannelCreateSchema;
-use crate::types::Guild;
-use crate::types::GuildCreateResponse;
-use crate::types::GuildCreateSchema;
+use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateResponse, GuildCreateSchema};
 
 impl Guild {
     /// Creates a new guild with the given parameters.
