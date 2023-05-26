@@ -1,6 +1,5 @@
 #[cfg(feature = "client")]
 pub mod api;
-#[cfg(feature = "client")]
 pub mod errors;
 #[cfg(feature = "client")]
 pub mod gateway;
