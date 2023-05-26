@@ -23,6 +23,7 @@ pub struct Application {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub owner: User,
     #[cfg(feature = "sqlx")]
+    #[serde(skip)]
     pub owner_id: Snowflake,
     pub flags: u64,
     #[cfg(feature = "sqlx")]
@@ -40,6 +41,7 @@ pub struct Application {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub bot_user: Option<User>,
     #[cfg(feature = "sqlx")]
+    #[serde(skip)]
     pub bot_user_id: Option<Snowflake>,
     #[cfg(feature = "sqlx")]
     pub tags: Option<sqlx::types::Json<Vec<String>>>,
@@ -55,6 +57,7 @@ pub struct Application {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub team: Option<Team>,
     #[cfg(feature = "sqlx")]
+    #[serde(skip)]
     pub team_id: Option<Snowflake>,
 }
 
