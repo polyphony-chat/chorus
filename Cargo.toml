@@ -5,6 +5,7 @@ license = "AGPL-3"
 edition = "2021"
 
 [features]
+default = ["client"]
 backend = ["poem", "sqlx"]
 client = []
 
