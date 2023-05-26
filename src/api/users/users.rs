@@ -6,7 +6,7 @@ use crate::{
     errors::InstanceServerError,
     instance::{Instance, UserMeta},
     limit::LimitedRequester,
-    types::{User, UserModifySchema},
+    types::{User, UserModifySchema, UserSettings},
 };
 
 impl UserMeta {
@@ -56,7 +56,7 @@ impl UserMeta {
         token: &String,
         url_api: &String,
         instance_limits: &mut Limits,
-    ) -> Result<User, InstanceServerError> {
+    ) -> Result<UserSettings, InstanceServerError> {
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings/", url_api))
             .bearer_auth(token);

@@ -6,17 +6,16 @@ pub mod login {
     use serde_json::{from_str, json};
 
     use crate::api::limits::LimitType;
-    use crate::api::schemas::LoginSchema;
-    use crate::api::types::{ErrorResponse, LoginResult};
     use crate::errors::InstanceServerError;
-    use crate::instance::Instance;
+    use crate::instance::{Instance, UserMeta};
     use crate::limit::LimitedRequester;
+    use crate::types::{ErrorResponse, LoginResult, LoginSchema};
 
     impl Instance {
         pub async fn login_account(
             &mut self,
             login_schema: &LoginSchema,
-        ) -> Result<crate::api::types::User, InstanceServerError> {
+        ) -> Result<UserMeta, InstanceServerError> {
             let mut requester = LimitedRequester::new().await;
             let json_schema = json!(login_schema);
             let client = Client::new();
@@ -59,7 +58,7 @@ pub mod login {
                 .get_user(login_result.token.clone(), None)
                 .await
                 .unwrap();
-            let user = crate::api::types::User::new(
+            let user = UserMeta::new(
                 Rc::new(RefCell::new(self.clone())),
                 login_result.token,
                 cloned_limits,

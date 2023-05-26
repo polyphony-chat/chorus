@@ -1,9 +1,11 @@
 use reqwest::Client;
 use serde_json::from_str;
 
-use crate::{api::limits::Limits, errors::InstanceServerError, limit::LimitedRequester};
+use crate::{
+    api::limits::Limits, errors::InstanceServerError, limit::LimitedRequester, types::Channel,
+};
 
-impl types::Channel {
+impl Channel {
     pub async fn get(
         token: &str,
         url_api: &str,
@@ -28,7 +30,7 @@ impl types::Channel {
             Err(e) => return Err(e),
         };
         let result_text = result.text().await.unwrap();
-        match from_str::<types::Channel>(&result_text) {
+        match from_str::<Channel>(&result_text) {
             Ok(object) => Ok(object),
             Err(e) => Err(InstanceServerError::RequestErrorError {
                 url: format!("{}/channels/{}/", url_api, channel_id),

@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::api::limits::Limits;
 use crate::errors::{FieldFormatError, InstanceServerError};
 use crate::types::{GeneralConfiguration, User, UserSettings};
@@ -52,7 +54,7 @@ impl Instance {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Token {
     pub token: String,
 }
