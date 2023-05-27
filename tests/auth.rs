@@ -1,5 +1,4 @@
 mod common;
-
 use chorus::types;
 
 #[tokio::test]
