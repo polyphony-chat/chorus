@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::User;
 use crate::types::{Guild, Snowflake};
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, PartialEq, Clone, Deserialize, Serialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Emoji {
     pub id: Option<Snowflake>,
