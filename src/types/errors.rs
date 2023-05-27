@@ -48,7 +48,7 @@ pub struct ErrorField {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct APIError {
+pub struct APIErrorPayload {
     pub message: String,
     pub code: String,
 }
