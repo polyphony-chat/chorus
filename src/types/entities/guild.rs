@@ -110,13 +110,13 @@ pub struct GuildInvite {
     pub vanity_url: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct UnavailableGuild {
     id: String,
     unavailable: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct GuildCreateResponse {
     pub id: String,
 }
