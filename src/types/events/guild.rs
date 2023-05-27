@@ -1,14 +1,14 @@
-use crate::types::{AuditLogEntry, Emoji, Sticker, GuildMember, RoleObject, GuildScheduledEvent};
 use crate::types::entities::{Guild, UnavailableGuild, User};
 use crate::types::events::WebSocketEvent;
-use chrono::{Utc, DateTime};
+use crate::types::{AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, RoleObject, Sticker};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use super::PresenceUpdate;
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-create
-/// This one is particularly painful, it can be a Guild object with extra field or an unavailbile guild object
+/// This one is particularly painful, it can be a Guild object with an extra field or an unavailable guild object
 pub struct GuildCreate {
     #[serde(flatten)]
     pub d: GuildCreateDataOption,
@@ -50,7 +50,7 @@ impl WebSocketEvent for GuildBanRemove {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-update
 pub struct GuildUpdate {
     #[serde(flatten)]
-    pub guild: Guild
+    pub guild: Guild,
 }
 
 impl WebSocketEvent for GuildUpdate {}
@@ -59,7 +59,7 @@ impl WebSocketEvent for GuildUpdate {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-delete
 pub struct GuildDelete {
     #[serde(flatten)]
-    pub guild: UnavailableGuild
+    pub guild: UnavailableGuild,
 }
 
 impl WebSocketEvent for GuildDelete {}
@@ -68,7 +68,7 @@ impl WebSocketEvent for GuildDelete {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-audit-log-entry-create
 pub struct GuildAuditLogEntryCreate {
     #[serde(flatten)]
-    pub entry: AuditLogEntry
+    pub entry: AuditLogEntry,
 }
 
 impl WebSocketEvent for GuildAuditLogEntryCreate {}
@@ -77,7 +77,7 @@ impl WebSocketEvent for GuildAuditLogEntryCreate {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-emojis-update
 pub struct GuildEmojisUpdate {
     pub guild_id: String,
-    pub emojis: Vec<Emoji>
+    pub emojis: Vec<Emoji>,
 }
 
 impl WebSocketEvent for GuildEmojisUpdate {}
@@ -86,7 +86,7 @@ impl WebSocketEvent for GuildEmojisUpdate {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-stickers-update
 pub struct GuildStickersUpdate {
     pub guild_id: String,
-    pub stickers: Vec<Sticker>
+    pub stickers: Vec<Sticker>,
 }
 
 impl WebSocketEvent for GuildStickersUpdate {}
@@ -145,7 +145,7 @@ pub struct GuildMembersChunk {
     pub chunk_count: u16,
     pub not_found: Option<Vec<String>>,
     pub presences: Option<PresenceUpdate>,
-    pub nonce: Option<String>
+    pub nonce: Option<String>,
 }
 
 impl WebSocketEvent for GuildMembersChunk {}

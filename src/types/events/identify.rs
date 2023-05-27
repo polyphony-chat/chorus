@@ -15,7 +15,7 @@ pub struct GatewayIdentifyPayload {
     pub presence: Option<PresenceUpdate>,
     // What is the difference between these two?
     // Intents is documented, capabilities is used in users
-    // I wonder if these are interchangable..
+    // I wonder if these are interchangeable...
     #[serde(skip_serializing_if = "Option::is_none")]
     pub intents: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -30,10 +30,19 @@ impl Default for GatewayIdentifyPayload {
 
 impl GatewayIdentifyPayload {
     /// Uses the most common, 25% data along with client capabilities
-    /// 
-    /// Basically pretends to be an official client on windows 10, with chrome 113.0.0.0
+    ///
+    /// Basically pretends to be an official client on Windows 10, with Chrome 113.0.0.0
     pub fn common() -> Self {
-        Self { token: "".to_string(), properties: GatewayIdentifyConnectionProps::default(), compress: Some(false), large_threshold: None, shard: None, presence: None, intents: None, capabilities: Some(8189)  }
+        Self {
+            token: "".to_string(),
+            properties: GatewayIdentifyConnectionProps::default(),
+            compress: Some(false),
+            large_threshold: None,
+            shard: None,
+            presence: None,
+            intents: None,
+            capabilities: Some(8189),
+        }
     }
 }
 
@@ -58,36 +67,36 @@ impl WebSocketEvent for GatewayIdentifyPayload {}
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GatewayIdentifyConnectionProps {
     /// Almost always sent
-    /// 
+    ///
     /// ex: "Linux", "Windows", "Mac OS X"
-    /// 
+    ///
     /// ex (mobile): "Windows Mobile", "iOS", "Android", "BlackBerry"
     pub os: String,
     /// Almost always sent
-    /// 
+    ///
     /// ex: "Firefox", "Chrome", "Opera Mini", "Opera", "Blackberry", "Facebook Mobile", "Chrome iOS", "Mobile Safari", "Safari", "Android Chrome", "Android Mobile", "Edge", "Konqueror", "Internet Explorer", "Mozilla", "Discord Client"
     pub browser: String,
     /// Sometimes not sent, acceptable to be ""
-    /// 
+    ///
     /// Speculation:
     /// Only sent for mobile devices
-    /// 
+    ///
     /// ex: "BlackBerry", "Windows Phone", "Android", "iPhone", "iPad", ""
     pub device: String,
     /// Almost always sent, most commonly en-US
-    /// 
+    ///
     /// ex: "en-US"
     pub system_locale: String,
     /// Almost always sent
-    /// 
+    ///
     /// ex: any user agent, most common is "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
     pub browser_user_agent: String,
     /// Almost always sent
-    /// 
+    ///
     /// ex: "113.0.0.0"
     pub browser_version: String,
     /// Sometimes not sent, acceptable to be ""
-    /// 
+    ///
     /// ex: "10" (For os = "Windows")
     pub os_version: String,
     /// Sometimes not sent, acceptable to be ""
@@ -111,7 +120,6 @@ impl Default for GatewayIdentifyConnectionProps {
 }
 
 impl GatewayIdentifyConnectionProps {
-
     /// Returns a minimal, least data possible default
     fn minimal() -> Self {
         Self {
