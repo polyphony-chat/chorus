@@ -218,7 +218,7 @@ impl Gateway {
 
                 println!("GW: Received {}..", gateway_payload_t);
 
-                println!("Event data dump: {}", gateway_payload.d.clone().unwrap().get());
+                //println!("Event data dump: {}", gateway_payload.d.clone().unwrap().get());
                 
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                 // "Some" of these are uncodumented
