@@ -506,8 +506,7 @@ impl Gateway {
                         self.events.lock().await.webhooks.update.update_data(new_data).await;
                     }
                     _ => {
-                        //panic!("Invalid gateway event ({})", &gateway_payload_t)
-                        println!("New gateway event ({})", &gateway_payload_t);
+                        println!("Received unrecognised gateway event ({})! Please open an issue on the chorus github so we can implement it", &gateway_payload_t);
                     }
                 }
             }
@@ -532,8 +531,8 @@ impl Gateway {
             11 => {
                 println!("GW: Received Heartbeat ACK");
             }
-            2 | 3 | 4 | 6 | 8 => {panic!("Received Gateway op code that's meant to be sent, not received ({})", gateway_payload.op)}
-            _ => {println!("Received new Gateway op code ({})", gateway_payload.op);}
+            2 | 3 | 4 | 6 | 8 => {panic!("Received gateway op code that's meant to be sent, not received ({})", gateway_payload.op)}
+            _ => {println!("Received unrecognised gateway op code ({})! Please open an issue on the chorus github so we can implement it", gateway_payload.op);}
         }
 
         // If we have an active heartbeat thread and we received a seq number we should let it know
