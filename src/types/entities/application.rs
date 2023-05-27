@@ -165,3 +165,33 @@ pub struct ApplicationCommandInteractionDataOption {
     pub value: Value,
     pub options: Vec<ApplicationCommandInteractionDataOption>,
 }
+
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-guild-application-command-permissions-structure
+pub struct GuildApplicationCommandPermissions {
+    pub id: Snowflake,
+    pub application_id: Snowflake,
+    pub guild_id: Snowflake,
+    pub permissions: Vec<ApplicationCommandPermission>,
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure
+pub struct ApplicationCommandPermission {
+    pub id: Snowflake,
+    #[serde(rename = "type")]
+    pub permission_type: ApplicationCommandPermissionType,
+    /// true to allow, false, to disallow
+    pub permission: bool,
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")] 
+#[repr(u8)]
+/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type
+pub enum ApplicationCommandPermissionType {
+    #[default]
+    Role = 1,
+    User = 2,
+    Channel = 3
+}

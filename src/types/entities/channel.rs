@@ -1,5 +1,6 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use serde_aux::prelude::{deserialize_number_from_string, deserialize_option_number_from_string, deserialize_string_from_number};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
@@ -66,9 +67,13 @@ pub struct Channel {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct Tag {
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub id: u64,
     pub name: String,
     pub moderated: bool,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub emoji_id: Option<u64>,
     pub emoji_name: Option<String>,
 }
@@ -77,8 +82,13 @@ pub struct Tag {
 pub struct PermissionOverwrite {
     pub id: String,
     #[serde(rename = "type")]
-    pub overwrite_type: u8,
+    #[serde(deserialize_with = "deserialize_string_from_number")]
+    pub overwrite_type: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_string_from_number")]
     pub allow: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_string_from_number")]
     pub deny: String,
 }
 
@@ -103,7 +113,9 @@ pub struct ThreadMember {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct DefaultReaction {
-    pub emoji_id: Option<String>,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    pub emoji_id: Option<u64>,
     pub emoji_name: Option<String>,
 }
 

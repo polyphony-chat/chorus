@@ -16,6 +16,10 @@ mod user;
 mod user_settings;
 mod voice_state;
 mod webhook;
+mod audit_log;
+mod relationship;
+mod auto_moderation;
+mod stage_instance;
 
 pub use application::*;
 pub use attachment::*;
@@ -35,3 +39,7 @@ pub use user::*;
 pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
+pub use audit_log::*;
+pub use relationship::*;
+pub use auto_moderation::*;
+pub use stage_instance::*;
