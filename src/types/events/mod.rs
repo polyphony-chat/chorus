@@ -20,6 +20,7 @@ mod integration;
 mod invite;
 mod call;
 mod lazy_request;
+mod relationship;
 
 pub use channel::*;
 pub use guild::*;
@@ -41,6 +42,7 @@ pub use integration::*;
 pub use invite::*;
 pub use call::*;
 pub use lazy_request::*;
+pub use relationship::*;
 
 pub trait WebSocketEvent {}
 

@@ -442,6 +442,14 @@ impl Gateway {
                         let new_data: types::PresenceUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.user.presence_update.update_data(new_data).await;
                     }
+                    "RELATIONSHIP_ADD" => {
+                        let new_data: types::RelationshipAdd = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.relationship.add.update_data(new_data).await;
+                    }
+                    "RELATIONSHIP_REMOVE" => {
+                        let new_data: types::RelationshipRemove = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.relationship.remove.update_data(new_data).await;
+                    }
                     "STAGE_INSTANCE_CREATE" => {}
                     "STAGE_INSTANCE_UPDATE" => {}
                     "STAGE_INSTANCE_DELETE" => {}
@@ -687,6 +695,7 @@ mod events {
         pub session: Session,
         pub message: Message,
         pub user: User,
+        pub relationship: Relationship,
         pub channel: Channel,
         pub thread: Thread,
         pub guild: Guild,
@@ -724,6 +733,12 @@ mod events {
         pub update: GatewayEvent<types::UserUpdate>,
         pub presence_update: GatewayEvent<types::PresenceUpdate>,
         pub typing_start_event: GatewayEvent<types::TypingStartEvent>,
+    }
+
+    #[derive(Default, Debug)]
+    pub struct Relationship {
+        pub add: GatewayEvent<types::RelationshipAdd>,
+        pub remove: GatewayEvent<types::RelationshipRemove>,
     }
 
     #[derive(Default, Debug)]

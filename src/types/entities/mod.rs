@@ -17,6 +17,7 @@ mod user_settings;
 mod voice_state;
 mod webhook;
 mod audit_log;
+mod relationship;
 
 pub use application::*;
 pub use attachment::*;
@@ -37,3 +38,4 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 pub use audit_log::*;
+pub use relationship::*;
