@@ -82,7 +82,7 @@ pub struct PermissionOverwrite {
     pub deny: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize_repr, Deserialize_repr, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(i32)]
 pub enum PermissionOverwriteType {
