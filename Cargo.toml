@@ -4,6 +4,11 @@ version = "0.1.0"
 license = "AGPL-3"
 edition = "2021"
 
+[features]
+default = ["client"]
+backend = ["poem", "sqlx"]
+client = []
+
 [dependencies]
 tokio = {version = "1.28.1", features = ["rt", "macros", "rt-multi-thread", "full"]}
 serde = {version = "1.0.163", features = ["derive"]}
@@ -28,7 +33,7 @@ bigdecimal = "0.3.1"
 num-bigint = "0.4.3"
 lazy_static = "1.4.0"
 poem = { version = "1.3.55", optional = true }
-sqlx = { version = "0.6.3", features = ["mysql", "sqlite", "json", "chrono", "ipnetwork", "runtime-tokio-native-tls", "any"], optional = true }
+sqlx = { git = "https://github.com/zert3x/sqlx", branch="feature/skip", features = ["mysql", "sqlite", "json", "chrono", "ipnetwork", "runtime-tokio-native-tls", "any"], optional = true }
 thiserror = "1.0.40"
 jsonwebtoken = "8.3.0"
 

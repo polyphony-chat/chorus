@@ -2,8 +2,6 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
 use serde_json::{Map, Value};
-#[cfg(feature = "sqlx")]
-use sqlx::{FromRow, Type};
 
 use crate::types::{
     errors::Error,
@@ -11,7 +9,7 @@ use crate::types::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[cfg_attr(feature = "sqlx", derive(Type))]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub struct UserData {
     pub valid_tokens_since: DateTime<Utc>,
     pub hash: Option<String>,
@@ -24,36 +22,38 @@ impl User {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct User {
     pub id: Snowflake,
-    username: String,
-    discriminator: String,
-    avatar: Option<String>,
-    bot: Option<bool>,
-    system: Option<bool>,
-    mfa_enabled: Option<bool>,
-    accent_color: Option<u8>,
-    locale: Option<String>,
-    verified: Option<bool>,
-    email: Option<String>,
+    pub username: String,
+    pub discriminator: String,
+    pub avatar: Option<String>,
+    pub bot: Option<bool>,
+    pub system: Option<bool>,
+    pub mfa_enabled: Option<bool>,
+    pub accent_color: Option<u8>,
+    #[cfg_attr(feature = "sqlx", sqlx(default))]
+    pub locale: Option<String>,
+    pub verified: Option<bool>,
+    pub email: Option<String>,
     /// This field comes as either a string or a number as a string
     /// So we need to account for that
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     flags: Option<i32>,
-    premium_since: Option<DateTime<Utc>>,
-    premium_type: u8,
-    pronouns: Option<String>,
-    public_flags: Option<u16>,
-    banner: Option<String>,
-    bio: String,
-    theme_colors: Option<Vec<u8>>,
-    phone: Option<String>,
-    nsfw_allowed: bool,
-    premium: bool,
-    purchased_flags: i32,
-    premium_usage_flags: Option<i32>,
-    disabled: Option<bool>,
+    pub premium_since: Option<DateTime<Utc>>,
+    pub premium_type: u8,
+    pub pronouns: Option<String>,
+    pub public_flags: Option<u16>,
+    pub banner: Option<String>,
+    pub bio: String,
+    pub theme_colors: Option<Vec<u8>>,
+    pub phone: Option<String>,
+    pub nsfw_allowed: bool,
+    pub premium: bool,
+    pub purchased_flags: i32,
+    pub premium_usage_flags: Option<i32>,
+    pub disabled: Option<bool>,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
@@ -97,7 +97,7 @@ const CUSTOM_USER_FLAG_OFFSET: u64 = 1 << 32;
 
 bitflags::bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-    #[cfg_attr(feature = "sqlx", derive(Type))]
+    #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
     pub struct UserFlags: u64 {
         const DISCORD_EMPLOYEE = 1 << 0;
         const PARTNERED_SERVER_OWNER = 1 << 1;

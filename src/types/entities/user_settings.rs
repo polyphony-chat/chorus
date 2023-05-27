@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::utils::Snowflake;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum UserStatus {
     #[default]
@@ -15,6 +16,7 @@ pub enum UserStatus {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum UserTheme {
     #[default]
@@ -23,6 +25,7 @@ pub enum UserTheme {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserSettings {
     pub afk_timeout: u16,
     pub allow_accessibility_detection: bool,
@@ -30,6 +33,9 @@ pub struct UserSettings {
     pub animate_stickers: u8,
     pub contact_sync_enabled: bool,
     pub convert_emoticons: bool,
+    #[cfg(feature = "sqlx")]
+    pub custom_status: Option<sqlx::types::Json<CustomStatus>>,
+    #[cfg(not(feature = "sqlx"))]
     pub custom_status: Option<CustomStatus>,
     pub default_guilds_restricted: bool,
     pub detect_platform_accounts: bool,
@@ -37,10 +43,19 @@ pub struct UserSettings {
     pub disable_games_tab: bool,
     pub enable_tts_command: bool,
     pub explicit_content_filter: u8,
+    #[cfg(feature = "sqlx")]
+    pub friend_source_flags: sqlx::types::Json<FriendSourceFlags>,
+    #[cfg(not(feature = "sqlx"))]
     pub friend_source_flags: FriendSourceFlags,
     pub gateway_connected: bool,
     pub gif_auto_play: bool,
+    #[cfg(feature = "sqlx")]
+    pub guild_folders: sqlx::types::Json<Vec<GuildFolder>>,
+    #[cfg(not(feature = "sqlx"))]
     pub guild_folders: Vec<GuildFolder>,
+    #[cfg(feature = "sqlx")]
+    pub guild_positions: sqlx::types::Json<Vec<String>>,
+    #[cfg(not(feature = "sqlx"))]
     pub guild_positions: Vec<String>,
     pub inline_attachment_media: bool,
     pub inline_embed_media: bool,
@@ -49,6 +64,9 @@ pub struct UserSettings {
     pub native_phone_integration_enabled: bool,
     pub render_embeds: bool,
     pub render_reactions: bool,
+    #[cfg(feature = "sqlx")]
+    pub restricted_guilds: sqlx::types::Json<Vec<String>>,
+    #[cfg(not(feature = "sqlx"))]
     pub restricted_guilds: Vec<String>,
     pub show_current_game: bool,
     pub status: UserStatus,
@@ -73,11 +91,11 @@ impl Default for UserSettings {
             disable_games_tab: true,
             enable_tts_command: false,
             explicit_content_filter: 0,
-            friend_source_flags: FriendSourceFlags::default(),
+            friend_source_flags: Default::default(),
             gateway_connected: false,
             gif_auto_play: false,
-            guild_folders: Vec::new(),
-            guild_positions: Vec::new(),
+            guild_folders: Default::default(),
+            guild_positions: Default::default(),
             inline_attachment_media: true,
             inline_embed_media: true,
             locale: "en-US".to_string(),
@@ -85,7 +103,7 @@ impl Default for UserSettings {
             native_phone_integration_enabled: true,
             render_embeds: true,
             render_reactions: true,
-            restricted_guilds: Vec::new(),
+            restricted_guilds: Default::default(),
             show_current_game: true,
             status: UserStatus::Online,
             stream_notifications_enabled: false,
@@ -96,6 +114,7 @@ impl Default for UserSettings {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct CustomStatus {
     pub emoji_id: Option<String>,
     pub emoji_name: Option<String>,
