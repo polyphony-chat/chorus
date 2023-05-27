@@ -233,10 +233,22 @@ impl Gateway {
                     }
                     "RESUMED" => {}
                     "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
-                    "AUTO_MODERATION_RULE_CREATE" => {}
-                    "AUTO_MODERATION_RULE_UPDATE" => {}
-                    "AUTO_MODERATION_RULE_DELETE" => {}
-                    "AUTO_MODERATION_ACTION_EXECUTION" => {}
+                    "AUTO_MODERATION_RULE_CREATE" => {
+                        let new_data: types::AutoModerationRuleCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.auto_moderation.rule_create.update_data(new_data).await;
+                    }
+                    "AUTO_MODERATION_RULE_UPDATE" => {
+                        let new_data: types::AutoModerationRuleUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.auto_moderation.rule_update.update_data(new_data).await;
+                    }
+                    "AUTO_MODERATION_RULE_DELETE" => {
+                        let new_data: types::AutoModerationRuleDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.auto_moderation.rule_delete.update_data(new_data).await;
+                    }
+                    "AUTO_MODERATION_ACTION_EXECUTION" => {
+                        let new_data: types::AutoModerationActionExecution = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.auto_moderation.action_execution.update_data(new_data).await;
+                    }
                     "CHANNEL_CREATE" => {
                         let new_data: types::ChannelCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.channel.create.update_data(new_data).await;
@@ -692,6 +704,7 @@ mod events {
     use super::*;
     #[derive(Default, Debug)]
     pub struct Events {
+        pub auto_moderation: AutoModeration,
         pub session: Session,
         pub message: Message,
         pub user: User,
@@ -706,6 +719,14 @@ mod events {
         pub webhooks: Webhooks,
         pub gateway_identify_payload: GatewayEvent<types::GatewayIdentifyPayload>,
         pub gateway_resume: GatewayEvent<types::GatewayResume>,
+    }
+
+    #[derive(Default, Debug)]
+    pub struct AutoModeration {
+        pub rule_create: GatewayEvent<types::AutoModerationRuleCreate>,
+        pub rule_update: GatewayEvent<types::AutoModerationRuleUpdate>,
+        pub rule_delete: GatewayEvent<types::AutoModerationRuleDelete>,
+        pub action_execution: GatewayEvent<types::AutoModerationActionExecution>,
     }
 
     #[derive(Default, Debug)]
