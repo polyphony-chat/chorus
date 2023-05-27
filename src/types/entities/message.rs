@@ -184,7 +184,7 @@ pub struct Reaction {
     pub emoji: Emoji,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum Component {
     ActionRow = 1,
     Button = 2,
