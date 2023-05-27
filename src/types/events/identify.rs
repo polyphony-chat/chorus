@@ -113,38 +113,38 @@ impl GatewayIdentifyConnectionProps {
     /// Returns a minimal, least data possible default
     fn minimal() -> Self {
         Self {
-            os: "".to_string(),
-            browser: "".to_string(),
-            device: "".to_string(),
-            system_locale: "en-US".to_string(),
-            browser_user_agent: "".to_string(),
-            browser_version: "".to_string(),
-            os_version: "".to_string(),
-            referrer: "".to_string(),
-            referring_domain: "".to_string(),
-            referrer_current: "".to_string(),
-            release_channel: "stable".to_string(),
+            os: String::new(),
+            browser: String::new(),
+            device: String::new(),
+            system_locale: String::from("en-US"),
+            browser_user_agent: String::new(),
+            browser_version: String::new(),
+            os_version: String::new(),
+            referrer: String::new(),
+            referring_domain: String::new(),
+            referrer_current: String::new(),
+            release_channel: String::from("stable"),
             client_build_number: 199933,
         }
     }
 
     /// Returns the most common connection props so we can't be tracked
     pub fn common() -> Self {
-        let mut default = Self::default();
+        let mut default = Self::minimal();
 
         // See https://www.useragents.me/#most-common-desktop-useragents
         // 25% of the web
-        default.browser_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36".to_string();
-        default.browser = "Chrome".to_string();
-        default.browser_version = "113.0.0.0".to_string();
+        //default.browser_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36".to_string();
+        default.browser = String::from("Chrome");
+        default.browser_version = String::from("113.0.0.0");
 
-        default.system_locale = "en-US".to_string();
+        default.system_locale = String::from("en-US");
 
-        default.os = "Windows".to_string();
-        default.os_version = "10".to_string();
+        default.os = String::from("Windows");
+        default.os_version = String::from("10");
 
         default.client_build_number = 199933;
-        default.release_channel = "stable".to_string();
+        default.release_channel = String::from("stable");
 
         return default;
     }
