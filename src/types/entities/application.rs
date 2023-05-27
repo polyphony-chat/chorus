@@ -50,6 +50,40 @@ pub struct Application {
     pub team: Option<Team>,
 }
 
+impl Default for Application {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            name: "".to_string(),
+            icon: None,
+            description: None,
+            summary: None,
+            r#type: None,
+            hook: true,
+            bot_public: true,
+            bot_require_code_grant: false,
+            verify_key: "".to_string(),
+            owner: Default::default(),
+            flags: 0,
+            redirect_uris: None,
+            rpc_application_state: 0,
+            store_application_state: 1,
+            verification_state: 1,
+            interactions_endpoint_url: None,
+            integration_public: true,
+            integration_require_code_grant: false,
+            discoverability_state: 1,
+            discovery_eligibility_flags: 2240,
+            tags: None,
+            cover_image: None,
+            install_params: None,
+            terms_of_service_url: None,
+            privacy_policy_url: None,
+            team: None,
+        }
+    }
+}
+
 impl Application {
     pub fn flags(&self) -> ApplicationFlags {
         ApplicationFlags::from_bits(self.flags.to_owned()).unwrap()
