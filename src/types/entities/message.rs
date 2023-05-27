@@ -21,7 +21,7 @@ pub struct Message {
     pub tts: bool,
     pub mention_everyone: bool,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub mentions: Vec<User>,
+    pub mentions: Option<Vec<User>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub mention_roles: Vec<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
