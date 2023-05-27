@@ -49,12 +49,6 @@ pub struct User {
     pub purchased_flags: i32,
     pub premium_usage_flags: i32,
     pub disabled: Option<bool>,
-    #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub settings: UserSettings,
-    #[cfg(feature = "sqlx")]
-    pub extended_settings: sqlx::types::Json<Value>,
-    #[cfg(not(feature = "sqlx"))]
-    pub extended_settings: Value,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
