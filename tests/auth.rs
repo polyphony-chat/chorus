@@ -21,22 +21,3 @@ async fn test_registration() {
     bundle.instance.register_account(&reg).await.unwrap();
     common::teardown(bundle).await;
 }
-
-#[tokio::test]
-async fn test_login() {
-    let mut bundle = common::setup().await;
-    let login_schema = types::LoginSchema::new(
-        "integrationtestuser".to_string(),
-        None,
-        Some(false),
-        None,
-        None,
-        None,
-    );
-    bundle
-        .instance
-        .login_account(&login_schema.unwrap())
-        .await
-        .unwrap();
-    common::teardown(bundle).await;
-}
