@@ -462,9 +462,18 @@ impl Gateway {
                         let new_data: types::RelationshipRemove = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.relationship.remove.update_data(new_data).await;
                     }
-                    "STAGE_INSTANCE_CREATE" => {}
-                    "STAGE_INSTANCE_UPDATE" => {}
-                    "STAGE_INSTANCE_DELETE" => {}
+                    "STAGE_INSTANCE_CREATE" => {
+                        let new_data: types::StageInstanceCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.stage_instance.create.update_data(new_data).await;
+                    }
+                    "STAGE_INSTANCE_UPDATE" => {
+                        let new_data: types::StageInstanceUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.stage_instance.update.update_data(new_data).await;
+                    }
+                    "STAGE_INSTANCE_DELETE" => {
+                        let new_data: types::StageInstanceDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.stage_instance.delete.update_data(new_data).await;
+                    }
                     "SESSIONS_REPLACE" => {
                         let sessions: Vec<types::Session> = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         let new_data = types::SessionsReplace {sessions};
@@ -714,6 +723,7 @@ mod events {
         pub guild: Guild,
         pub invite: Invite,
         pub integration: Integration,
+        pub stage_instance: StageInstance,
         pub call: Call,
         pub voice: Voice,
         pub webhooks: Webhooks,
@@ -734,6 +744,13 @@ mod events {
         pub ready: GatewayEvent<types::GatewayReady>,
         pub ready_supplimental: GatewayEvent<types::GatewayReadySupplemental>,
         pub replace: GatewayEvent<types::SessionsReplace>
+    }
+
+    #[derive(Default, Debug)]
+    pub struct StageInstance {
+        pub create: GatewayEvent<types::StageInstanceCreate>,
+        pub update: GatewayEvent<types::StageInstanceUpdate>,
+        pub delete: GatewayEvent<types::StageInstanceDelete>,
     }
 
     #[derive(Default, Debug)]

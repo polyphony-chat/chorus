@@ -19,6 +19,7 @@ mod webhook;
 mod audit_log;
 mod relationship;
 mod auto_moderation;
+mod stage_instance;
 
 pub use application::*;
 pub use attachment::*;
@@ -41,3 +42,4 @@ pub use webhook::*;
 pub use audit_log::*;
 pub use relationship::*;
 pub use auto_moderation::*;
+pub use stage_instance::*;
