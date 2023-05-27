@@ -23,6 +23,7 @@ mod lazy_request;
 mod relationship;
 mod auto_moderation;
 mod stage_instance;
+mod interaction;
 
 pub use channel::*;
 pub use guild::*;
@@ -47,6 +48,7 @@ pub use lazy_request::*;
 pub use relationship::*;
 pub use auto_moderation::*;
 pub use stage_instance::*;
+pub use interaction::*;
 
 pub trait WebSocketEvent {}
 

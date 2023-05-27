@@ -405,7 +405,10 @@ impl Gateway {
                         let new_data: types::IntegrationDelete = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.integration.delete.update_data(new_data).await;
                     }
-                    "INTERACTION_CREATE" => {}
+                    "INTERACTION_CREATE" => {
+                        let new_data: types::InteractionCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.interaction.create.update_data(new_data).await;
+                    }
                     "INVITE_CREATE" => {
                         let new_data: types::InviteCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.invite.create.update_data(new_data).await;
@@ -723,6 +726,7 @@ mod events {
         pub guild: Guild,
         pub invite: Invite,
         pub integration: Integration,
+        pub interaction: Interaction,
         pub stage_instance: StageInstance,
         pub call: Call,
         pub voice: Voice,
@@ -835,6 +839,11 @@ mod events {
         pub create: GatewayEvent<types::IntegrationCreate>,
         pub update: GatewayEvent<types::IntegrationUpdate>,
         pub delete: GatewayEvent<types::IntegrationDelete>
+    }
+
+    #[derive(Default, Debug)]
+    pub struct Interaction {
+        pub create: GatewayEvent<types::InteractionCreate>,
     }
 
     #[derive(Default, Debug)]
