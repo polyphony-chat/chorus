@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
@@ -19,12 +20,43 @@ pub struct TypingStartEvent {
 impl WebSocketEvent for TypingStartEvent {}
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#message-create
 pub struct MessageCreate {
     #[serde(flatten)]
     message: Message,
-    guild_id: Option<Snowflake>,
+    guild_id: Option<String>,
     member: Option<GuildMember>,
-    mentions: Vec<(User, GuildMember)>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
+    mentions: Option<Vec<MessageCreateUser>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+/// See https://discord.com/developers/docs/topics/gateway-events#message-create-message-create-extra-fields
+pub struct MessageCreateUser {
+    pub id: String,
+    username: String,
+    discriminator: String,
+    avatar: Option<String>,
+    bot: Option<bool>,
+    system: Option<bool>,
+    mfa_enabled: Option<bool>,
+    accent_color: Option<String>,
+    locale: Option<String>,
+    verified: Option<bool>,
+    email: Option<String>,
+    premium_since: Option<String>,
+    premium_type: Option<i8>,
+    pronouns: Option<String>,
+    public_flags: Option<i32>,
+    banner: Option<String>,
+    bio: Option<String>,
+    theme_colors: Option<Vec<i32>>,
+    phone: Option<String>,
+    nsfw_allowed: Option<bool>,
+    premium: Option<bool>,
+    purchased_flags: Option<i32>,
+    premium_usage_flags: Option<i32>,
+    disabled: Option<bool>,
+    member: GuildMember
 }
 
 impl WebSocketEvent for MessageCreate {}
@@ -35,7 +67,7 @@ pub struct MessageUpdate {
     message: Message,
     guild_id: Option<String>,
     member: Option<GuildMember>,
-    mentions: Vec<(User, GuildMember)>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
+    mentions: Option<Vec<(User, GuildMember)>>, // Not sure if this is correct: https://discord.com/developers/docs/topics/gateway-events#message-create
 }
 
 impl WebSocketEvent for MessageUpdate {}
@@ -99,3 +131,23 @@ pub struct MessageReactionRemoveEmoji {
 }
 
 impl WebSocketEvent for MessageReactionRemoveEmoji {}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+/// Officially Undocumented
+/// 
+/// Not documented anywhere unofficially
+/// 
+/// Apparently "Message ACK refers to marking a message as read for Discord's API." (https://github.com/Rapptz/discord.py/issues/1851)
+/// I suspect this is sent and recieved from the gateway to let clients on other devices know the user has read a message
+/// 
+/// {"t":"MESSAGE_ACK","s":3,"op":0,"d":{"version":52,"message_id":"1107236673638633472","last_viewed":null,"flags":null,"channel_id":"967363950217936897"}}
+pub struct MessageACK {
+    /// ?
+    pub version: u16,
+    pub message_id: String,
+    pub last_viewed: Option<DateTime<Utc>>,
+    /// What flags?
+    pub flags: Option<serde_json::Value>,
+    pub channel_id: String,
+}
+impl WebSocketEvent for MessageACK {}

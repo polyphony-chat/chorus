@@ -3,7 +3,7 @@ use crate::types::utils::Snowflake;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Interaction {
     pub id: Snowflake,
     pub r#type: InteractionType,
@@ -15,8 +15,9 @@ pub struct Interaction {
     pub version: i32,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub enum InteractionType {
+    #[default]
     SelfCommand = 0,
     Ping = 1,
     ApplicationCommand = 2,

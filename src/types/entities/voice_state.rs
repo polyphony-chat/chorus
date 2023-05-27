@@ -10,11 +10,13 @@ use crate::types::{
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct VoiceState {
-    pub guild_id: Snowflake,
+    pub guild_id: Option<Snowflake>,
+    pub guild: Option<Guild>,
     pub channel_id: Snowflake,
     pub user_id: Snowflake,
     pub member: Option<GuildMember>,
     pub session_id: Snowflake,
+    pub token: Option<String>,
     pub deaf: bool,
     pub mute: bool,
     pub self_deaf: bool,
@@ -23,4 +25,5 @@ pub struct VoiceState {
     pub self_video: bool,
     pub suppress: bool,
     pub request_to_speak_timestamp: Option<DateTime<Utc>>,
+    pub id: Option<Snowflake>,
 }

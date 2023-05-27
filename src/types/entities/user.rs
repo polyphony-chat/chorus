@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_aux::prelude::deserialize_option_number_from_string;
 use serde_json::{Map, Value};
 
 use crate::types::{
@@ -27,7 +28,7 @@ pub struct User {
     pub username: String,
     pub discriminator: String,
     pub avatar: Option<String>,
-    pub bot: bool,
+    pub bot: Option<bool>,
     pub system: Option<bool>,
     pub mfa_enabled: Option<bool>,
     pub accent_color: Option<u8>,
@@ -35,7 +36,11 @@ pub struct User {
     pub locale: Option<String>,
     pub verified: Option<bool>,
     pub email: Option<String>,
-    pub flags: String,
+    /// This field comes as either a string or a number as a string
+    /// So we need to account for that
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    flags: Option<i32>,
     pub premium_since: Option<DateTime<Utc>>,
     pub premium_type: u8,
     pub pronouns: Option<String>,
@@ -47,11 +52,11 @@ pub struct User {
     pub nsfw_allowed: bool,
     pub premium: bool,
     pub purchased_flags: i32,
-    pub premium_usage_flags: i32,
+    pub premium_usage_flags: Option<i32>,
     pub disabled: Option<bool>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PublicUser {
     pub id: Snowflake,
     pub username: String,
@@ -61,7 +66,7 @@ pub struct PublicUser {
     pub banner: Option<String>,
     pub theme_colors: Option<Vec<u8>>,
     pub pronouns: Option<String>,
-    pub bot: bool,
+    pub bot: Option<bool>,
     pub bio: String,
     pub premium_type: u8,
     pub premium_since: Option<DateTime<Utc>>,

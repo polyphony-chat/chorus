@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::entities::User;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Default, Serialize, Clone, PartialEq, Eq)]
 pub struct GuildMember {
     pub user: Option<User>,
     pub nick: Option<String>,
@@ -12,7 +12,7 @@ pub struct GuildMember {
     pub premium_since: Option<String>,
     pub deaf: bool,
     pub mute: bool,
-    pub flags: i32,
+    pub flags: Option<i32>,
     pub pending: Option<bool>,
     pub permissions: Option<String>,
     pub communication_disabled_until: Option<String>,
