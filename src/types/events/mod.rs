@@ -24,6 +24,7 @@ mod relationship;
 mod auto_moderation;
 mod stage_instance;
 mod interaction;
+mod application;
 
 pub use channel::*;
 pub use guild::*;
@@ -49,6 +50,7 @@ pub use relationship::*;
 pub use auto_moderation::*;
 pub use stage_instance::*;
 pub use interaction::*;
+pub use application::*;
 
 pub trait WebSocketEvent {}
 

@@ -232,7 +232,10 @@ impl Gateway {
                         self.events.lock().await.session.ready_supplimental.update_data(new_data).await;
                     }
                     "RESUMED" => {}
-                    "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {}
+                    "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {
+                        let new_data: types::ApplicationCommandPermissionsUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.application.command_permissions_update.update_data(new_data).await;
+                    }
                     "AUTO_MODERATION_RULE_CREATE" => {
                         let new_data: types::AutoModerationRuleCreate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.auto_moderation.rule_create.update_data(new_data).await;
@@ -716,6 +719,7 @@ mod events {
     use super::*;
     #[derive(Default, Debug)]
     pub struct Events {
+        pub application: Application,
         pub auto_moderation: AutoModeration,
         pub session: Session,
         pub message: Message,
@@ -733,6 +737,11 @@ mod events {
         pub webhooks: Webhooks,
         pub gateway_identify_payload: GatewayEvent<types::GatewayIdentifyPayload>,
         pub gateway_resume: GatewayEvent<types::GatewayResume>,
+    }
+
+    #[derive(Default, Debug)]
+    pub struct Application {
+        pub command_permissions_update: GatewayEvent<types::ApplicationCommandPermissionsUpdate>,
     }
 
     #[derive(Default, Debug)]
