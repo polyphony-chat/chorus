@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_repr::{Serialize_repr, Deserialize_repr};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::utils::Snowflake;
 
@@ -21,23 +21,23 @@ pub struct AutoModerationRule {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
 #[repr(u8)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")] 
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-event-types
 pub enum AutoModerationRuleEventType {
     #[default]
-    MessageSend = 1
+    MessageSend = 1,
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
 #[repr(u8)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")] 
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-types
 pub enum AutoModerationRuleTriggerType {
     #[default]
     Keyword = 1,
     Spam = 3,
     KeywordPreset = 4,
-    MentionSpam = 5
+    MentionSpam = 5,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -48,7 +48,7 @@ pub enum AutoModerationRuleTriggerMetadata {
     ForKeywordPreset(AutoModerationRuleTriggerMetadataForKeywordPreset),
     ForMentionSpam(AutoModerationRuleTriggerMetadataForMentionSpam),
     #[default]
-    None
+    None,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -71,37 +71,37 @@ pub struct AutoModerationRuleTriggerMetadataForKeywordPreset {
 pub struct AutoModerationRuleTriggerMetadataForMentionSpam {
     /// Max 50
     pub mention_total_limit: u8,
-    pub mention_raid_protection_enabled: bool
+    pub mention_raid_protection_enabled: bool,
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
 #[repr(u8)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")] 
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-preset-types
 pub enum AutoModerationRuleKeywordPresetType {
     #[default]
     Profanity = 1,
     SexualContent = 2,
-    Slurs = 3
+    Slurs = 3,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 /// See https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object
 pub struct AutoModerationAction {
-    #[serde(rename = "type")] 
+    #[serde(rename = "type")]
     pub action_type: AutoModerationActionType,
-    pub metadata: Option<AutoModerationActionMetadata>
+    pub metadata: Option<AutoModerationActionMetadata>,
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
 #[repr(u8)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")] 
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-types
 pub enum AutoModerationActionType {
     #[default]
     BlockMessage = 1,
     SendAlertMessage = 2,
-    Timeout = 3
+    Timeout = 3,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -112,19 +112,19 @@ pub enum AutoModerationActionMetadata {
     ForSendAlertMessage(AutoModerationActionMetadataForSendAlertMessage),
     ForTimeout(AutoModerationActionMetadataForTimeout),
     #[default]
-    None
+    None,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 /// See https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-metadata
 pub struct AutoModerationActionMetadataForBlockMessage {
-    pub custom_message: Option<String>
+    pub custom_message: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 /// See https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-metadata
 pub struct AutoModerationActionMetadataForSendAlertMessage {
-    pub channel_id: Snowflake
+    pub channel_id: Snowflake,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]

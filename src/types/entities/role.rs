@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::{deserialize_string_from_number, deserialize_option_number_from_string};
+use serde_aux::prelude::{deserialize_option_number_from_string, deserialize_string_from_number};
 
 use crate::types::utils::Snowflake;
 
@@ -19,7 +19,7 @@ pub struct RoleObject {
     pub permissions: String,
     pub managed: bool,
     pub mentionable: bool,
-    pub tags: Option<RoleTags>
+    pub tags: Option<RoleTags>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

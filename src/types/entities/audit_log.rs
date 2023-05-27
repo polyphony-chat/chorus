@@ -13,7 +13,7 @@ pub struct AuditLogEntry {
     pub action_type: u8,
     // to:do add better options type
     pub options: Option<serde_json::Value>,
-    pub reason: Option<String>
+    pub reason: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -21,5 +21,5 @@ pub struct AuditLogEntry {
 pub struct AuditLogChange {
     pub new_value: Option<serde_json::Value>,
     pub old_value: Option<serde_json::Value>,
-    pub key: String
+    pub key: String,
 }

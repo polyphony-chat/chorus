@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_repr::{Serialize_repr, Deserialize_repr};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::Snowflake;
 
@@ -19,11 +19,11 @@ pub struct StageInstance {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
 #[repr(u8)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")] 
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level
 pub enum StageInstancePrivacyLevel {
     /// deprecated, apparently
     Public = 1,
     #[default]
-    GuildOnly = 2
+    GuildOnly = 2,
 }

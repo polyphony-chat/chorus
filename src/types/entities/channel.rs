@@ -1,6 +1,9 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::{deserialize_number_from_string, deserialize_option_number_from_string, deserialize_string_from_number};
+use serde_aux::prelude::{
+    deserialize_number_from_string, deserialize_option_number_from_string,
+    deserialize_string_from_number,
+};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{

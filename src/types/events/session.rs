@@ -7,7 +7,7 @@ use crate::types::{Activity, WebSocketEvent};
 /// Seems like it sends active session info to users on connect
 /// [{"activities":[],"client_info":{"client":"web","os":"other","version":0},"session_id":"ab5941b50d818b1f8d93b4b1b581b192","status":"online"}]
 pub struct SessionsReplace {
-    pub sessions: Vec<Session>
+    pub sessions: Vec<Session>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -22,11 +22,11 @@ pub struct Session {
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Another Client info object
 /// {"client":"web","os":"other","version":0}
-// Note: I don't think this one exists yet? Though I might've made a mistake and this might be a duplicate 
+// Note: I don't think this one exists yet? Though I might've made a mistake and this might be a duplicate
 pub struct ClientInfo {
     pub client: String,
     pub os: String,
-    pub version: u8
+    pub version: u8,
 }
 
 impl WebSocketEvent for SessionsReplace {}

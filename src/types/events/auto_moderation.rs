@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{WebSocketEvent, AutoModerationRule, Snowflake, AutoModerationAction, AutoModerationRuleTriggerType};
+use crate::types::{
+    AutoModerationAction, AutoModerationRule, AutoModerationRuleTriggerType, Snowflake,
+    WebSocketEvent,
+};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-create
@@ -9,7 +12,7 @@ pub struct AutoModerationRuleCreate {
     pub rule: AutoModerationRule,
 }
 
-impl WebSocketEvent for AutoModerationRuleCreate  {}
+impl WebSocketEvent for AutoModerationRuleCreate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-update
@@ -18,7 +21,7 @@ pub struct AutoModerationRuleUpdate {
     pub rule: AutoModerationRule,
 }
 
-impl WebSocketEvent for AutoModerationRuleUpdate  {}
+impl WebSocketEvent for AutoModerationRuleUpdate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-delete
@@ -27,7 +30,7 @@ pub struct AutoModerationRuleDelete {
     pub rule: AutoModerationRule,
 }
 
-impl WebSocketEvent for AutoModerationRuleDelete  {}
+impl WebSocketEvent for AutoModerationRuleDelete {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#auto-moderation-action-execution
@@ -42,7 +45,7 @@ pub struct AutoModerationActionExecution {
     pub alert_system_message_id: Option<Snowflake>,
     pub content: Option<String>,
     pub matched_keyword: Option<String>,
-    pub matched_content: Option<String>
+    pub matched_content: Option<String>,
 }
 
-impl WebSocketEvent for AutoModerationActionExecution  {}
+impl WebSocketEvent for AutoModerationActionExecution {}
