@@ -65,7 +65,7 @@ pub struct GatewayIdentifyConnectionProps {
     pub os: String,
     /// Almost always sent
     /// 
-    /// ex: "Firefox", "Chrome", "Opera Mini", "Opera", "Blackberry", "Facebook Mobile", "Chrome iOS", "Mobile Safari", "Safari", "Android Chrome", "Android Mobile", "Edge", "Konqueror", "Internet Explorer", "Mozilla"
+    /// ex: "Firefox", "Chrome", "Opera Mini", "Opera", "Blackberry", "Facebook Mobile", "Chrome iOS", "Mobile Safari", "Safari", "Android Chrome", "Android Mobile", "Edge", "Konqueror", "Internet Explorer", "Mozilla", "Discord Client"
     pub browser: String,
     /// Sometimes not sent, acceptable to be ""
     /// 
