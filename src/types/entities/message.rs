@@ -8,6 +8,7 @@ use crate::types::{
         StickerItem, User,
     },
     utils::Snowflake,
+    ChannelType,
 };
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
@@ -104,8 +105,8 @@ pub struct ChannelMention {
     pub id: Snowflake,
     pub guild_id: Snowflake,
     #[serde(rename = "type")]
-    channel_type: i32,
-    name: String,
+    pub channel_type: ChannelType,
+    pub name: String,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
