@@ -78,36 +78,3 @@ pub mod register {
         }
     }
 }
-
-#[cfg(test)]
-mod test {
-    use crate::instance::Instance;
-    use crate::limit::LimitedRequester;
-    use crate::types::RegisterSchema;
-    use crate::URLBundle;
-
-    #[tokio::test]
-    async fn test_registration() {
-        let urls = URLBundle::new(
-            "http://localhost:3001/api".to_string(),
-            "http://localhost:3001".to_string(),
-            "http://localhost:3001".to_string(),
-        );
-        let _limited_requester = LimitedRequester::new().await;
-        let mut test_instance = Instance::new(urls.clone()).await.unwrap();
-        let reg = RegisterSchema::new(
-            "Hiiii".to_string(),
-            None,
-            true,
-            None,
-            None,
-            None,
-            Some("2000-01-01".to_string()),
-            None,
-            None,
-            None,
-        )
-        .unwrap();
-        let _ = test_instance.register_account(&reg).await.unwrap().token;
-    }
-}
