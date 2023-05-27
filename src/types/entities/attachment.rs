@@ -15,8 +15,6 @@ pub struct Attachment {
     pub proxy_url: String,
     pub height: Option<u64>,
     pub width: Option<u64>,
-    #[cfg(feature = "sqlx")]
-    pub message_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub message: Option<Message>,
     pub ephemeral: Option<bool>,

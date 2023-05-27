@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// See https://discord.com/developers/docs/topics/permissions#role-object
 pub struct RoleObject {
     pub id: Snowflake,
@@ -19,7 +20,7 @@ pub struct RoleObject {
     //pub tags: Option<RoleTags>
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RoleSubscriptionData {
     pub role_subscription_listing_id: Snowflake,
     pub tier_name: String,

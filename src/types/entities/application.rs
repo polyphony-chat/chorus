@@ -22,9 +22,6 @@ pub struct Application {
     pub verify_key: String,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub owner: User,
-    #[cfg(feature = "sqlx")]
-    #[serde(skip)]
-    pub owner_id: Snowflake,
     pub flags: u64,
     #[cfg(feature = "sqlx")]
     pub redirect_uris: Option<sqlx::types::Json<Vec<String>>>,
@@ -38,11 +35,6 @@ pub struct Application {
     pub integration_require_code_grant: bool,
     pub discoverability_state: i64,
     pub discovery_eligibility_flags: i64,
-    #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub bot_user: Option<User>,
-    #[cfg(feature = "sqlx")]
-    #[serde(skip)]
-    pub bot_user_id: Option<Snowflake>,
     #[cfg(feature = "sqlx")]
     pub tags: Option<sqlx::types::Json<Vec<String>>>,
     #[cfg(not(feature = "sqlx"))]
@@ -56,9 +48,6 @@ pub struct Application {
     pub privacy_policy_url: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub team: Option<Team>,
-    #[cfg(feature = "sqlx")]
-    #[serde(skip)]
-    pub team_id: Option<Snowflake>,
 }
 
 impl Application {

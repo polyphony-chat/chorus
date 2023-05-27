@@ -30,8 +30,9 @@ pub struct Channel {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub recipients: Option<Vec<User>>,
     pub icon: Option<String>,
-    pub owner_id: Option<String>,
-    pub application_id: Option<String>,
+    pub owner_id: Option<Snowflake>,
+    pub application_id: Option<Snowflake>,
+    pub managed: Option<bool>,
     pub parent_id: Option<String>,
     pub last_pin_timestamp: Option<String>,
     pub rtc_region: Option<String>,

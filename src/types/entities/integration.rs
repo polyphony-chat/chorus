@@ -7,6 +7,7 @@ use crate::types::{
 };
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// See https://discord.com/developers/docs/resources/guild#integration-object-integration-structure
 pub struct Integration {
     pub id: Snowflake,
@@ -19,11 +20,14 @@ pub struct Integration {
     pub enabled_emoticons: Option<bool>,
     pub expire_behaviour: Option<u8>,
     pub expire_grace_period: Option<u16>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<User>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub account: IntegrationAccount,
     pub synced_at: Option<DateTime<Utc>>,
     pub subscriber_count: Option<f64>,
     pub revoked: Option<bool>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub application: Option<Application>,
     pub scopes: Option<Vec<String>>,
 }
