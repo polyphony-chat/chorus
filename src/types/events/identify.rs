@@ -59,11 +59,13 @@ impl WebSocketEvent for GatewayIdentifyPayload {}
 pub struct GatewayIdentifyConnectionProps {
     /// Almost always sent
     /// 
-    /// ex: "Linux", "Windows"
+    /// ex: "Linux", "Windows", "Mac OS X"
+    /// 
+    /// ex (mobile): "Windows Mobile", "iOS", "Android", "BlackBerry"
     pub os: String,
     /// Almost always sent
     /// 
-    /// ex: "Firefox", "Chrome"
+    /// ex: "Firefox", "Chrome", "Opera Mini", "Opera", "Blackberry", "Facebook Mobile", "Chrome iOS", "Mobile Safari", "Safari", "Android Chrome", "Android Mobile", "Edge", "Konqueror", "Internet Explorer", "Mozilla"
     pub browser: String,
     /// Sometimes not sent, acceptable to be ""
     /// 
