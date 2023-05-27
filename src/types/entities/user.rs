@@ -2,10 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use crate::types::{
-    errors::Error,
-    utils::Snowflake, //util::{email::adjust_email, entities::user_setting::UserSettings},
-};
+use crate::types::{errors::Error, utils::Snowflake, UserSettings};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
