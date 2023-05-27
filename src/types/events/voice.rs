@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// 
 /// Not to be confused with [VoiceStateUpdate]
 pub struct UpdateVoiceState {
-    pub guild_id: String,
+    pub guild_id: Option<String>,
     pub channel_id: Option<String>,
     pub self_mute: bool,
     pub self_deaf: bool,
