@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::entities::User;
 use crate::types::Snowflake;
@@ -16,8 +17,16 @@ pub struct Team {
 
 #[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
 pub struct TeamMember {
-    pub membership_state: u8,
+    pub membership_state: MembershipState,
     pub permissions: Vec<String>,
     pub team_id: Snowflake,
     pub user: User,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize_repr, Deserialize_repr)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[repr(i32)]
+pub enum MembershipState {
+    Invited = 1,
+    Accepted = 2,
 }
