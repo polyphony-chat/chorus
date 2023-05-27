@@ -1,8 +1,10 @@
+use crate::types::Message;
 use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Attachment {
     pub id: Snowflake,
     pub filename: String,
@@ -13,11 +15,11 @@ pub struct Attachment {
     pub proxy_url: String,
     pub height: Option<u64>,
     pub width: Option<u64>,
-    pub message_id: Snowflake,
     pub ephemeral: Option<bool>,
     pub duration_secs: Option<f32>,
     pub waveform: Option<String>,
     #[serde(skip_serializing)]
+    #[cfg_attr(feature = "sqlx", sqlx(default))]
     pub content: Vec<u8>,
 }
 

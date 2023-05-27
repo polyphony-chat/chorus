@@ -1,12 +1,11 @@
 use crate::types::utils::Snowflake;
+use crate::types::{Team, User};
 use bitflags::{bitflags, Flags};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-#[cfg(feature = "sqlx")]
-use sqlx::FromRow;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "sqlx", derive(FromRow))]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Application {
     pub id: Snowflake,
     pub name: String,
@@ -21,7 +20,8 @@ pub struct Application {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
     pub verify_key: String,
-    pub owner_id: Snowflake,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    pub owner: User,
     pub flags: u64,
     #[cfg(feature = "sqlx")]
     pub redirect_uris: Option<sqlx::types::Json<Vec<String>>>,
@@ -35,7 +35,6 @@ pub struct Application {
     pub integration_require_code_grant: bool,
     pub discoverability_state: i64,
     pub discovery_eligibility_flags: i64,
-    pub bot_user_id: Snowflake,
     #[cfg(feature = "sqlx")]
     pub tags: Option<sqlx::types::Json<Vec<String>>>,
     #[cfg(not(feature = "sqlx"))]
@@ -47,7 +46,8 @@ pub struct Application {
     pub install_params: Option<InstallParams>,
     pub terms_of_service_url: Option<String>,
     pub privacy_policy_url: Option<String>,
-    pub team_id: Option<Snowflake>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    pub team: Option<Team>,
 }
 
 impl Application {

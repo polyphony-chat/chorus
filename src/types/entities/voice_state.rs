@@ -7,17 +7,14 @@ use crate::types::{
 };
 
 /// See https://docs.spacebar.chat/routes/#cmp--schemas-voicestate
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct VoiceState {
     pub guild_id: Snowflake,
-    pub guild: Option<Guild>,
     pub channel_id: Snowflake,
-    pub channel: Option<Channel>,
     pub user_id: Snowflake,
-    pub user: Option<User>,
     pub member: Option<GuildMember>,
     pub session_id: Snowflake,
-    pub token: String,
     pub deaf: bool,
     pub mute: bool,
     pub self_deaf: bool,
@@ -26,5 +23,4 @@ pub struct VoiceState {
     pub self_video: bool,
     pub suppress: bool,
     pub request_to_speak_timestamp: Option<DateTime<Utc>>,
-    pub id: Snowflake,
 }
