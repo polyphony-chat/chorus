@@ -3,6 +3,7 @@ use crate::types::{Team, User};
 use bitflags::{bitflags, Flags};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -137,23 +138,17 @@ pub struct ApplicationCommandOptionChoice {
     pub value: Value,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize_repr, Deserialize_repr)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[repr(i32)]
 pub enum ApplicationCommandOptionType {
-    #[serde(rename = "SUB_COMMAND")]
     SubCommand = 1,
-    #[serde(rename = "SUB_COMMAND_GROUP")]
     SubCommandGroup = 2,
-    #[serde(rename = "STRING")]
     String = 3,
-    #[serde(rename = "INTEGER")]
     Integer = 4,
-    #[serde(rename = "BOOLEAN")]
     Boolean = 5,
-    #[serde(rename = "USER")]
     User = 6,
-    #[serde(rename = "CHANNEL")]
     Channel = 7,
-    #[serde(rename = "ROLE")]
     Role = 8,
 }
 
