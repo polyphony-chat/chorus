@@ -15,8 +15,6 @@ pub struct Attachment {
     pub proxy_url: String,
     pub height: Option<u64>,
     pub width: Option<u64>,
-    #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub message: Option<Message>,
     pub ephemeral: Option<bool>,
     pub duration_secs: Option<f32>,
     pub waveform: Option<String>,
