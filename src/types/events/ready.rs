@@ -71,7 +71,7 @@ pub struct MergedPresenceGuild {
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct SupplimentalGuild {
-    pub voice_states: Vec<VoiceState>,
+    pub voice_states: Option<Vec<VoiceState>>,
     pub id: String,
     pub embedded_activities: Vec<serde_json::Value>
 }

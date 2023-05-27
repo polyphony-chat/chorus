@@ -12,7 +12,7 @@ use crate::types::{
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Guild {
     pub id: Snowflake,
-    pub name: String,
+    pub name: Option<String>,
     pub icon: Option<String>,
     pub icon_hash: Option<String>,
     pub splash: Option<String>,
@@ -30,7 +30,7 @@ pub struct Guild {
     pub explicit_content_filter: Option<u8>,
     pub roles: Vec<RoleObject>,
     pub emojis: Vec<Emoji>,
-    pub features: Vec<String>,
+    pub features: Option<Vec<String>>,
     pub application_id: Option<String>,
     pub system_channel_id: Option<Snowflake>,
     pub system_channel_flags: Option<u8>,
@@ -53,8 +53,8 @@ pub struct Guild {
     pub member_count: Option<u64>,
     pub presence_count: Option<u64>,
     pub welcome_screen: Option<WelcomeScreenObject>,
-    pub nsfw_level: u8,
-    pub nsfw: bool,
+    pub nsfw_level: Option<u8>,
+    pub nsfw: Option<bool>,
     pub stickers: Option<Vec<Sticker>>,
     pub premium_progress_bar_enabled: Option<bool>,
     pub joined_at: String,
@@ -70,7 +70,7 @@ pub struct Guild {
     pub webhooks: Option<Vec<Webhook>>,
     pub mfa_level: Option<u8>,
     pub region: Option<String>,
-    pub unavailable: bool,
+    pub unavailable: Option<bool>,
     pub parent: Option<String>,
 }
 

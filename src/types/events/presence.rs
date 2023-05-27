@@ -1,4 +1,4 @@
-use crate::types::entities::User;
+use crate::types::PublicUser;
 use crate::types::events::WebSocketEvent;
 use crate::types::interfaces::Activity;
 use serde::{Deserialize, Serialize};
@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#presence-update-presence-update-event-fields
 pub struct PresenceUpdate {
-    pub user: User,
+    pub user: PublicUser,
     pub guild_id: Option<String>,
     pub status: String,
     pub activities: Vec<Activity>,

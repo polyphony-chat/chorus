@@ -29,7 +29,7 @@ pub struct User {
     username: String,
     discriminator: String,
     avatar: Option<String>,
-    bot: bool,
+    bot: Option<bool>,
     system: Option<bool>,
     mfa_enabled: Option<bool>,
     accent_color: Option<u8>,
@@ -52,11 +52,11 @@ pub struct User {
     nsfw_allowed: bool,
     premium: bool,
     purchased_flags: i32,
-    premium_usage_flags: i32,
+    premium_usage_flags: Option<i32>,
     disabled: Option<bool>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PublicUser {
     pub id: Snowflake,
     pub username: String,
@@ -66,7 +66,7 @@ pub struct PublicUser {
     pub banner: Option<String>,
     pub theme_colors: Option<Vec<u8>>,
     pub pronouns: Option<String>,
-    pub bot: bool,
+    pub bot: Option<bool>,
     pub bio: String,
     pub premium_type: u8,
     pub premium_since: Option<DateTime<Utc>>,
