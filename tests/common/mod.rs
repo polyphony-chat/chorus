@@ -1,4 +1,3 @@
-
 use chorus::{
     instance::{Instance, UserMeta},
     types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema},
