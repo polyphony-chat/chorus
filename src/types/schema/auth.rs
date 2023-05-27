@@ -187,7 +187,7 @@ You will receive a [`FieldFormatError`], if:
 #[serde(rename_all = "snake_case")]
 pub struct LoginSchema {
     pub login: String,
-    pub password: String,
+    pub password: Option<String>,
     pub undelete: Option<bool>,
     pub captcha_key: Option<String>,
     pub login_source: Option<String>,
@@ -210,15 +210,12 @@ impl LoginSchema {
      */
     pub fn new(
         login: String,
-        password: String,
+        password: Option<String>,
         undelete: Option<bool>,
         captcha_key: Option<String>,
         login_source: Option<String>,
         gift_code_sku_id: Option<String>,
     ) -> Result<LoginSchema, FieldFormatError> {
-        let login = AuthUsername::new(login)?.username;
-        let password = AuthPassword::new(password)?.password;
-
         Ok(LoginSchema {
             login,
             password,
