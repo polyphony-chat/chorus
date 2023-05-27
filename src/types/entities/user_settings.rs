@@ -16,6 +16,7 @@ pub enum UserStatus {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum UserTheme {
     #[default]
