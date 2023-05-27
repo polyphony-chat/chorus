@@ -1,4 +1,6 @@
+use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
     entities::{
@@ -40,7 +42,7 @@ pub struct Message {
     pub pinned: bool,
     pub webhook_id: Option<Snowflake>,
     #[serde(rename = "type")]
-    pub message_type: i32,
+    pub message_type: MessageType,
     #[cfg(feature = "sqlx")]
     pub activity: Option<sqlx::types::Json<MessageActivity>>,
     #[cfg(not(feature = "sqlx"))]
@@ -199,6 +201,71 @@ pub enum Component {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct MessageActivity {
     #[serde(rename = "type")]
-    pub activity_type: i64,
+    pub activity_type: MessageActivityType,
     pub party_id: Option<String>,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Default, Serialize_repr, Deserialize_repr)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[repr(i32)]
+pub enum MessageType {
+    #[default]
+    Default = 0,
+    RecipientAdd = 1,
+    RecipientRemove = 2,
+    Call = 3,
+    ChannelNameChange = 4,
+    ChannelIconChange = 5,
+    ChannelPinnedMessage = 6,
+    UserJoin = 7,
+    GuildBoost = 8,
+    GuildBoostTier1 = 9,
+    GuildBoostTier2 = 10,
+    GuildBoostTier3 = 11,
+    ChannelFollowAdd = 12,
+    GuildDiscoveryDisqualified = 14,
+    GuildDiscoveryRequalified = 15,
+    GuildDiscoveryGracePeriodInitialWarning = 16,
+    GuildDiscoveryGracePeriodFinalWarning = 17,
+    ThreadCreated = 18,
+    Reply = 19,
+    ChatInputCommand = 20,
+    ThreadStarterMessage = 21,
+    GuildInviteReminder = 22,
+    ContextMenuCommand = 23,
+    AutoModerationAction = 24,
+    RoleSubscriptionPurchase = 25,
+    InteractionPremiumUpsell = 26,
+    StageStart = 27,
+    StageEnd = 28,
+    StageSpeaker = 29,
+    StageTopic = 31,
+    GuildApplicationPremiumSubscription = 32,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Default, Serialize_repr, Deserialize_repr)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[repr(i32)]
+pub enum MessageActivityType {
+    #[default]
+    Join = 1,
+    Spectate = 2,
+    Listen = 3,
+    JoinRequest = 4,
+}
+
+bitflags! {
+    pub struct MessageFlag: u64 {
+        const CROSSPOSTED = 1 << 0;
+        const IS_CROSSPOST = 1 << 1;
+        const SUPPRESS_EMBEDS = 1 << 2;
+        const SOURCE_MESSAGE_DELETED = 1 << 3;
+        const URGENT = 1 << 4;
+        const HAS_THREAD = 1 << 5;
+        const EPHEMERAL = 1 << 6;
+        const LOADING = 1 << 7;
+        const FAILED_TO_MENTION_SOME_ROLES_IN_THREAD = 1 << 8;
+        const SUPPRESS_NOTIFICATIONS = 1 << 12;
+        const IS_VOICE_MESSAGE = 1 << 13;
+    }
 }
