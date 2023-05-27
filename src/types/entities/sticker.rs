@@ -5,6 +5,7 @@ use crate::types::{entities::User, utils::Snowflake};
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Sticker {
+    #[serde(default)]
     pub id: Snowflake,
     pub pack_id: Option<Snowflake>,
     pub name: String,

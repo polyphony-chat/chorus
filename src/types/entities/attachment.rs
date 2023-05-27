@@ -1,4 +1,3 @@
-use crate::types::Message;
 use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;

@@ -3,6 +3,7 @@ use crate::types::{Team, User};
 use bitflags::{bitflags, Flags};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -48,6 +49,40 @@ pub struct Application {
     pub privacy_policy_url: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub team: Option<Team>,
+}
+
+impl Default for Application {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            name: "".to_string(),
+            icon: None,
+            description: None,
+            summary: None,
+            r#type: None,
+            hook: true,
+            bot_public: true,
+            bot_require_code_grant: false,
+            verify_key: "".to_string(),
+            owner: Default::default(),
+            flags: 0,
+            redirect_uris: None,
+            rpc_application_state: 0,
+            store_application_state: 1,
+            verification_state: 1,
+            interactions_endpoint_url: None,
+            integration_public: true,
+            integration_require_code_grant: false,
+            discoverability_state: 1,
+            discovery_eligibility_flags: 2240,
+            tags: None,
+            cover_image: None,
+            install_params: None,
+            terms_of_service_url: None,
+            privacy_policy_url: None,
+            team: None,
+        }
+    }
 }
 
 impl Application {
@@ -103,23 +138,17 @@ pub struct ApplicationCommandOptionChoice {
     pub value: Value,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize_repr, Deserialize_repr)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[repr(i32)]
 pub enum ApplicationCommandOptionType {
-    #[serde(rename = "SUB_COMMAND")]
     SubCommand = 1,
-    #[serde(rename = "SUB_COMMAND_GROUP")]
     SubCommandGroup = 2,
-    #[serde(rename = "STRING")]
     String = 3,
-    #[serde(rename = "INTEGER")]
     Integer = 4,
-    #[serde(rename = "BOOLEAN")]
     Boolean = 5,
-    #[serde(rename = "USER")]
     User = 6,
-    #[serde(rename = "CHANNEL")]
     Channel = 7,
-    #[serde(rename = "ROLE")]
     Role = 8,
 }
 
@@ -135,4 +164,34 @@ pub struct ApplicationCommandInteractionDataOption {
     pub name: String,
     pub value: Value,
     pub options: Vec<ApplicationCommandInteractionDataOption>,
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-guild-application-command-permissions-structure
+pub struct GuildApplicationCommandPermissions {
+    pub id: Snowflake,
+    pub application_id: Snowflake,
+    pub guild_id: Snowflake,
+    pub permissions: Vec<ApplicationCommandPermission>,
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure
+pub struct ApplicationCommandPermission {
+    pub id: Snowflake,
+    #[serde(rename = "type")]
+    pub permission_type: ApplicationCommandPermissionType,
+    /// true to allow, false, to disallow
+    pub permission: bool,
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[repr(u8)]
+/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type
+pub enum ApplicationCommandPermissionType {
+    #[default]
+    Role = 1,
+    User = 2,
+    Channel = 3,
 }

@@ -1,8 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
-    entities::{Channel, Emoji, GuildTemplate, RoleObject, Sticker, User, VoiceState, Webhook},
+    entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
     interfaces::WelcomeScreenObject,
     utils::Snowflake,
 };
@@ -12,7 +13,7 @@ use crate::types::{
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Guild {
     pub id: Snowflake,
-    pub name: String,
+    pub name: Option<String>,
     pub icon: Option<String>,
     pub icon_hash: Option<String>,
     pub splash: Option<String>,
@@ -33,7 +34,7 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub emojis: Vec<Emoji>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub features: String, // TODO: Make this a 'simple-array'
+    pub features: Option<Vec<String>>,
     pub application_id: Option<String>,
     pub system_channel_id: Option<Snowflake>,
     pub system_channel_flags: Option<u8>,
@@ -56,7 +57,7 @@ pub struct Guild {
     pub welcome_screen: Option<sqlx::types::Json<WelcomeScreenObject>>,
     #[cfg(not(feature = "sqlx"))]
     pub welcome_screen: Option<WelcomeScreenObject>,
-    pub nsfw_level: u8,
+    pub nsfw_level: Option<u8>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub stickers: Option<Vec<Sticker>>,
     pub premium_progress_bar_enabled: Option<bool>,
@@ -119,4 +120,60 @@ pub struct UnavailableGuild {
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct GuildCreateResponse {
     pub id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object
+pub struct GuildScheduledEvent {
+    pub id: String,
+    pub guild_id: String,
+    pub channel_id: Option<String>,
+    pub creator_id: Option<String>,
+    pub name: String,
+    pub description: String,
+    pub scheduled_start_time: DateTime<Utc>,
+    pub scheduled_end_time: Option<DateTime<Utc>>,
+    pub privacy_level: GuildScheduledEventPrivacyLevel,
+    pub status: GuildScheduledEventStatus,
+    pub entity_type: GuildScheduledEventEntityType,
+    pub entity_id: Option<String>,
+    pub entity_metadata: Option<GuildScheduledEventEntityMetadata>,
+    pub creator: Option<User>,
+    pub user_count: Option<u64>,
+    pub image: Option<String>,
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
+#[repr(u8)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-privacy-level
+pub enum GuildScheduledEventPrivacyLevel {
+    #[default]
+    GuildOnly = 2,
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
+#[repr(u8)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-status
+pub enum GuildScheduledEventStatus {
+    #[default]
+    Scheduled = 1,
+    Active = 2,
+    Completed = 3,
+    Canceled = 4,
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
+#[repr(u8)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types
+pub enum GuildScheduledEventEntityType {
+    #[default]
+    StageInstance = 1,
+    Voice = 2,
+    External = 3,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-metadata
+pub struct GuildScheduledEventEntityMetadata {
+    pub location: Option<String>,
 }

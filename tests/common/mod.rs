@@ -5,16 +5,16 @@ use chorus::{
 };
 
 #[derive(Debug)]
-struct TestBundle {
-    urls: URLBundle,
-    user: UserMeta,
-    instance: Instance,
-    guild_id: String,
-    channel: Channel,
+pub struct TestBundle {
+    pub urls: URLBundle,
+    pub user: UserMeta,
+    pub instance: Instance,
+    pub guild_id: String,
+    pub channel: Channel,
 }
 
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
-async fn setup() -> TestBundle {
+pub async fn setup() -> TestBundle {
     let urls = URLBundle::new(
         "http://localhost:3001/api".to_string(),
         "ws://localhost:3001".to_string(),
@@ -89,7 +89,7 @@ async fn setup() -> TestBundle {
 }
 
 // Teardown method to clean up after a test.
-async fn teardown(mut bundle: TestBundle) {
+pub async fn teardown(mut bundle: TestBundle) {
     Guild::delete(
         &mut bundle.user,
         bundle.instance.urls.get_api(),
@@ -97,56 +97,4 @@ async fn teardown(mut bundle: TestBundle) {
     )
     .await;
     bundle.user.delete().await;
-}
-
-mod guild {
-    use chorus::types::{Channel, Guild, GuildCreateSchema};
-
-    #[tokio::test]
-    async fn guild_creation_deletion() {
-        let mut bundle = crate::setup().await;
-
-        let guild_create_schema = GuildCreateSchema {
-            name: Some("test".to_string()),
-            region: None,
-            icon: None,
-            channels: None,
-            guild_template_code: None,
-            system_channel_id: None,
-            rules_channel_id: None,
-        };
-
-        let guild = Guild::create(&mut bundle.user, bundle.urls.get_api(), guild_create_schema)
-            .await
-            .unwrap();
-
-        println!("{}", guild);
-
-        match Guild::delete(&mut bundle.user, bundle.urls.get_api(), guild).await {
-            None => assert!(true),
-            Some(_) => assert!(false),
-        }
-        crate::teardown(bundle).await
-    }
-
-    #[tokio::test]
-    async fn get_channel() {
-        let mut bundle = crate::setup().await;
-        let bundle_channel = bundle.channel.clone();
-        let bundle_user = &mut bundle.user;
-
-        assert_eq!(
-            bundle_channel,
-            Channel::get(
-                bundle_user.token.as_str(),
-                bundle.instance.urls.get_api(),
-                &bundle_channel.id.to_string(),
-                &mut bundle_user.limits,
-                &mut bundle.instance.limits
-            )
-            .await
-            .unwrap()
-        );
-        crate::teardown(bundle).await
-    }
 }
