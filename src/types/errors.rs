@@ -44,7 +44,7 @@ pub struct IntermittentError {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ErrorField {
     #[serde(default)]
-    pub _errors: Vec<APIError>,
+    pub _errors: Vec<APIErrorPayload>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

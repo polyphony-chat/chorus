@@ -33,7 +33,7 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub emojis: Vec<Emoji>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub features: Vec<String>,
+    pub features: String, // TODO: Make this a 'simple-array'
     pub application_id: Option<String>,
     pub system_channel_id: Option<Snowflake>,
     pub system_channel_flags: Option<u8>,
