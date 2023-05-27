@@ -77,9 +77,19 @@ pub struct Tag {
 pub struct PermissionOverwrite {
     pub id: String,
     #[serde(rename = "type")]
-    pub overwrite_type: u8,
+    pub overwrite_type: PermissionOverwriteType,
     pub allow: String,
     pub deny: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize_repr, Deserialize_repr, Default)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[repr(i32)]
+pub enum PermissionOverwriteType {
+    #[default]
+    Role = 0,
+    Member = 1,
+    Group = 2,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
