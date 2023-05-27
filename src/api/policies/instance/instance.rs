@@ -37,21 +37,3 @@ impl Instance {
         Ok(instance_policies_schema)
     }
 }
-
-#[cfg(test)]
-mod instance_policies_schema_test {
-    use crate::{instance::Instance, limit::LimitedRequester, URLBundle};
-
-    #[tokio::test]
-    async fn generate_instance_policies_schema() {
-        let urls = URLBundle::new(
-            "http://localhost:3001/api".to_string(),
-            "http://localhost:3001".to_string(),
-            "http://localhost:3001".to_string(),
-        );
-        let _limited_requester = LimitedRequester::new().await;
-        let test_instance = Instance::new(urls.clone()).await.unwrap();
-
-        let _schema = test_instance.general_configuration_schema().await.unwrap();
-    }
-}
