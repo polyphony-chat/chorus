@@ -178,10 +178,3 @@ impl Instance {
         .await
     }
 }
-
-#[cfg(test)]
-mod test {
-
-    #[tokio::test]
-    async fn get_user() {}
-}
