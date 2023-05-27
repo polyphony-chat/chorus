@@ -1,5 +1,6 @@
 use crate::types::events::{PresenceUpdate, WebSocketEvent};
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GatewayIdentifyPayload {
@@ -65,6 +66,7 @@ impl GatewayIdentifyPayload {
 impl WebSocketEvent for GatewayIdentifyPayload {}
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde_as]
 pub struct GatewayIdentifyConnectionProps {
     /// Almost always sent
     ///
@@ -82,7 +84,8 @@ pub struct GatewayIdentifyConnectionProps {
     /// Only sent for mobile devices
     ///
     /// ex: "BlackBerry", "Windows Phone", "Android", "iPhone", "iPad", ""
-    pub device: String,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub device: Option<String>,
     /// Almost always sent, most commonly en-US
     ///
     /// ex: "en-US"
@@ -98,13 +101,17 @@ pub struct GatewayIdentifyConnectionProps {
     /// Sometimes not sent, acceptable to be ""
     ///
     /// ex: "10" (For os = "Windows")
-    pub os_version: String,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub os_version: Option<String>,
     /// Sometimes not sent, acceptable to be ""
-    pub referrer: String,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub referrer: Option<String>,
     /// Sometimes not sent, acceptable to be ""
-    pub referring_domain: String,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub referring_domain: Option<String>,
     /// Sometimes not sent, acceptable to be ""
-    pub referrer_current: String,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub referrer_current: Option<String>,
     /// Almost always sent, most commonly "stable"
     pub release_channel: String,
     /// Almost always sent, identifiable if default is 0, should be around 199933
@@ -125,14 +132,14 @@ impl GatewayIdentifyConnectionProps {
         Self {
             os: String::new(),
             browser: String::new(),
-            device: String::new(),
+            device: None,
             system_locale: String::from("en-US"),
             browser_user_agent: String::new(),
             browser_version: String::new(),
-            os_version: String::new(),
-            referrer: String::new(),
-            referring_domain: String::new(),
-            referrer_current: String::new(),
+            os_version: None,
+            referrer: None,
+            referring_domain: None,
+            referrer_current: None,
             release_channel: String::from("stable"),
             client_build_number: 199933,
         }
@@ -151,7 +158,7 @@ impl GatewayIdentifyConnectionProps {
         default.system_locale = String::from("en-US");
 
         default.os = String::from("Windows");
-        default.os_version = String::from("10");
+        default.os_version = Some(String::from("10"));
 
         default.client_build_number = 199933;
         default.release_channel = String::from("stable");
