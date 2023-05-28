@@ -12,7 +12,7 @@ use crate::types::{
 pub struct VoiceState {
     pub guild_id: Option<Snowflake>,
     pub guild: Option<Guild>,
-    pub channel_id: Snowflake,
+    pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
     pub member: Option<GuildMember>,
     pub session_id: Snowflake,
