@@ -40,7 +40,7 @@ pub struct User {
     pub premium_since: Option<DateTime<Utc>>,
     pub premium_type: Option<u8>,
     pub pronouns: Option<String>,
-    pub public_flags: Option<u16>,
+    pub public_flags: Option<u32>,
     pub banner: Option<String>,
     pub bio: Option<String>,
     pub theme_colors: Option<Vec<u8>>,
@@ -66,7 +66,7 @@ pub struct PublicUser {
     pub bio: Option<String>,
     pub premium_type: Option<u8>,
     pub premium_since: Option<DateTime<Utc>>,
-    pub public_flags: Option<u16>,
+    pub public_flags: Option<u32>,
 }
 
 impl From<User> for PublicUser {
