@@ -14,9 +14,9 @@ impl WebSocketEvent for UserUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// Undocumented
-/// 
+///
 /// Possibly an update for muted guild / channel settings for the current user
-/// 
+///
 /// {"version":2,"suppress_roles":false,"suppress_everyone":false,"notify_highlights":0,"muted":false,"mute_scheduled_events":false,"mute_config":null,"mobile_push":true,"message_notifications":1,"hide_muted_channels":false,"guild_id":"848582562217590824","flags":0,"channel_overrides":[{"muted":false,"mute_config":null,"message_notifications":3,"flags":4096,"collapsed":false,"channel_id":"1042689182893604885"}]}
 pub struct UserGuildSettingsUpdate {
     pub version: u8,
@@ -32,16 +32,16 @@ pub struct UserGuildSettingsUpdate {
     pub hide_muted_channels: bool,
     pub guild_id: Snowflake,
     pub flags: i32,
-    pub channel_overrides: Vec<UserGuildSettingsChannelOverride>
+    pub channel_overrides: Vec<UserGuildSettingsChannelOverride>,
 }
 
 impl WebSocketEvent for UserGuildSettingsUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// Undocumented
-/// 
+///
 /// Received in [UserGuildSettingsUpdate]
-/// 
+///
 /// {"muted":false,"mute_config":null,"message_notifications":3,"flags":4096,"collapsed":false,"channel_id":"1042689182893604885"}
 pub struct UserGuildSettingsChannelOverride {
     pub muted: bool,

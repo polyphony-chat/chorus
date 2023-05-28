@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{
     entities::{
-        Application, Attachment, Channel, Emoji, GuildMember, RoleSubscriptionData, Sticker,
-        StickerItem, User, PublicUser
+        Application, Attachment, Channel, Emoji, GuildMember, PublicUser, RoleSubscriptionData,
+        Sticker, StickerItem, User,
     },
     utils::Snowflake,
 };

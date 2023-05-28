@@ -1,4 +1,4 @@
-use crate::types::entities::{Guild, UnavailableGuild, PublicUser};
+use crate::types::entities::{Guild, PublicUser, UnavailableGuild};
 use crate::types::events::WebSocketEvent;
 use crate::types::{AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, RoleObject, Sticker};
 use chrono::{DateTime, Utc};
