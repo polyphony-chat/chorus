@@ -39,6 +39,19 @@ impl Channel {
         }
     }
 
+    /// Deletes a channel.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A string slice that holds the authorization token.
+    /// * `url_api` - A string slice that holds the URL of the API.
+    /// * `channel` - A `Channel` object that represents the channel to be deleted.
+    /// * `limits_user` - A mutable reference to a `Limits` object that represents the user's rate limits.
+    /// * `limits_instance` - A mutable reference to a `Limits` object that represents the instance's rate limits.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` that contains an `InstanceServerError` if an error occurred during the request, or `None` if the request was successful.
     pub async fn delete(
         token: &str,
         url_api: &str,
