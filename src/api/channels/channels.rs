@@ -42,12 +42,12 @@ impl Channel {
     pub async fn delete(
         token: &str,
         url_api: &str,
-        channel_id: &str,
+        channel: Channel,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
     ) -> Option<InstanceServerError> {
         let request = Client::new()
-            .delete(format!("{}/channels/{}/", url_api, channel_id))
+            .delete(format!("{}/channels/{}/", url_api, channel.id.to_string()))
             .bearer_auth(token);
         match LimitedRequester::new()
             .await
