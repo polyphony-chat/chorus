@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+use crate::types::types::guild_configuration::GuildFeaturesList;
 use crate::types::{
     entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
     interfaces::WelcomeScreenObject,
@@ -35,8 +36,9 @@ pub struct Guild {
     pub roles: Vec<RoleObject>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub emojis: Vec<Emoji>,
+    //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
+    pub features: GuildFeaturesList,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub features: Option<Vec<String>>,
     pub application_id: Option<String>,
     pub system_channel_id: Option<Snowflake>,
     pub system_channel_flags: Option<i32>,

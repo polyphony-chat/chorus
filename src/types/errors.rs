@@ -14,6 +14,15 @@ pub enum Error {
 
     #[error(transparent)]
     FieldFormat(#[from] FieldFormatError),
+
+    #[error(transparent)]
+    Guild(#[from] GuildError),
+}
+
+#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+pub enum GuildError {
+    #[error("Invalid Guild Feature")]
+    InvalidGuildFeature,
 }
 
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
