@@ -21,3 +21,18 @@ async fn get_channel() {
     );
     common::teardown(bundle).await
 }
+
+#[tokio::test]
+async fn delete_channel() {
+    let mut bundle = common::setup().await;
+    let result = bundle
+        .channel
+        .delete(
+            &bundle.user.token,
+            bundle.instance.urls.get_api(),
+            &mut bundle.user.limits,
+            &mut bundle.instance.limits,
+        )
+        .await;
+    assert!(result.is_none());
+}
