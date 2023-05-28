@@ -53,14 +53,14 @@ impl Channel {
     ///
     /// An `Option` that contains an `InstanceServerError` if an error occurred during the request, or `None` if the request was successful.
     pub async fn delete(
+        self,
         token: &str,
         url_api: &str,
-        channel: Channel,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
     ) -> Option<InstanceServerError> {
         let request = Client::new()
-            .delete(format!("{}/channels/{}/", url_api, channel.id.to_string()))
+            .delete(format!("{}/channels/{}/", url_api, self.id.to_string()))
             .bearer_auth(token);
         match LimitedRequester::new()
             .await
