@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_repr::{Serialize_repr, Deserialize_repr};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::Snowflake;
 
@@ -9,10 +9,10 @@ use super::PublicUser;
 /// See https://docs.spacebar.chat/routes/#get-/users/@me/relationships/
 pub struct Relationship {
     pub id: Snowflake,
-    #[serde(rename = "type")] 
+    #[serde(rename = "type")]
     pub relationship_type: RelationshipType,
     pub nickname: Option<String>,
-    pub user: PublicUser
+    pub user: PublicUser,
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    entities::{Application, Channel, Guild, User},
+    entities::{Guild, User},
     utils::Snowflake,
 };
 

@@ -1,4 +1,4 @@
-use crate::types::entities::{Channel, GuildMember, ThreadMember};
+use crate::types::entities::{Channel, ThreadMember};
 use crate::types::events::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 

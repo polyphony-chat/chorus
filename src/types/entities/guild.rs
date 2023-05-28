@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_repr::{Serialize_repr, Deserialize_repr};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
-    entities::{Channel, Emoji, GuildTemplate, RoleObject, Sticker, User, VoiceState, Webhook},
+    entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
     interfaces::WelcomeScreenObject,
     utils::Snowflake,
 };
@@ -140,7 +140,7 @@ pub struct GuildScheduledEvent {
     pub entity_metadata: Option<GuildScheduledEventEntityMetadata>,
     pub creator: Option<User>,
     pub user_count: Option<u64>,
-    pub image: Option<String>
+    pub image: Option<String>,
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
@@ -159,7 +159,7 @@ pub enum GuildScheduledEventStatus {
     Scheduled = 1,
     Active = 2,
     Completed = 3,
-    Canceled = 4
+    Canceled = 4,
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
@@ -175,5 +175,5 @@ pub enum GuildScheduledEventEntityType {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 /// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-metadata
 pub struct GuildScheduledEventEntityMetadata {
-    pub location: Option<String>
+    pub location: Option<String>,
 }

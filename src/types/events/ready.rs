@@ -1,7 +1,7 @@
-use crate::types::entities::{UnavailableGuild, User, Guild};
-use crate::types::events::{WebSocketEvent, Session};
+use crate::types::entities::{Guild, User};
+use crate::types::events::{Session, WebSocketEvent};
 use crate::types::interfaces::ClientStatusObject;
-use crate::types::{PresenceUpdate, GuildMember, Activity, VoiceState};
+use crate::types::{Activity, GuildMember, PresenceUpdate, VoiceState};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -46,7 +46,7 @@ impl WebSocketEvent for GatewayReadySupplemental {}
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct MergedPresences {
     pub guilds: Vec<Vec<MergedPresenceGuild>>,
-    pub friends: Vec<MergedPresenceFriend>
+    pub friends: Vec<MergedPresenceFriend>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -56,7 +56,7 @@ pub struct MergedPresenceFriend {
     /// Looks like ms??
     pub last_modified: u128,
     pub client_status: ClientStatusObject,
-    pub activities: Vec<Activity>
+    pub activities: Vec<Activity>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -66,12 +66,12 @@ pub struct MergedPresenceGuild {
     // ?
     pub game: Option<serde_json::Value>,
     pub client_status: ClientStatusObject,
-    pub activities: Vec<Activity>
+    pub activities: Vec<Activity>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct SupplimentalGuild {
     pub voice_states: Option<Vec<VoiceState>>,
     pub id: String,
-    pub embedded_activities: Vec<serde_json::Value>
+    pub embedded_activities: Vec<serde_json::Value>,
 }

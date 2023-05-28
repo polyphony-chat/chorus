@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{VoiceState, GuildMember};
 use super::{ChannelUnreadUpdateObject, WebSocketEvent};
+use crate::types::{GuildMember, VoiceState};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
-/// 
+///
 /// Seems to be passively set to update the client on guild details (though, why not just send the update events?)
 pub struct PassiveUpdateV1 {
     pub voice_states: Vec<VoiceState>,

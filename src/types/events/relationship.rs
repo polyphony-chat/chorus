@@ -1,4 +1,4 @@
-use crate::types::{events::WebSocketEvent, Relationship, Snowflake, RelationshipType};
+use crate::types::{events::WebSocketEvent, Relationship, RelationshipType, Snowflake};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -15,7 +15,7 @@ impl WebSocketEvent for RelationshipAdd {}
 /// See https://github.com/spacebarchat/server/issues/203
 pub struct RelationshipRemove {
     pub id: Snowflake,
-    #[serde(rename = "type")] 
+    #[serde(rename = "type")]
     pub relationship_type: RelationshipType,
 }
 

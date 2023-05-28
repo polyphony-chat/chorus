@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    entities::{Channel, Guild, GuildMember, User},
+    entities::{Guild, GuildMember},
     utils::Snowflake,
 };
 

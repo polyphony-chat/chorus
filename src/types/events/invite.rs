@@ -6,7 +6,7 @@ use crate::types::{GuildInvite, WebSocketEvent};
 /// See https://discord.com/developers/docs/topics/gateway-events#invite-create
 pub struct InviteCreate {
     #[serde(flatten)]
-    pub invite: GuildInvite
+    pub invite: GuildInvite,
 }
 
 impl WebSocketEvent for InviteCreate {}

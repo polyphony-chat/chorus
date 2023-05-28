@@ -1,0 +1,5 @@
+[hooks]
+pre-commit = "cargo fmt -p chorus && exit 0"
+
+[logging]
+verbose = true

@@ -1,6 +1,6 @@
-use crate::types::PublicUser;
 use crate::types::events::WebSocketEvent;
 use crate::types::interfaces::Activity;
+use crate::types::PublicUser;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]

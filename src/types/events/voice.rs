@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#update-voice-state
-/// 
+///
 /// Sent to the server
-/// 
+///
 /// Not to be confused with [VoiceStateUpdate]
 pub struct UpdateVoiceState {
     pub guild_id: Option<String>,
@@ -18,13 +18,13 @@ impl WebSocketEvent for UpdateVoiceState {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#voice-state-update
-/// 
+///
 /// Received from the server
-/// 
+///
 /// Not to be confused with [UpdateVoiceState]
 pub struct VoiceStateUpdate {
     #[serde(flatten)]
-    pub state: VoiceState
+    pub state: VoiceState,
 }
 
 impl WebSocketEvent for VoiceStateUpdate {}
@@ -34,7 +34,7 @@ impl WebSocketEvent for VoiceStateUpdate {}
 pub struct VoiceServerUpdate {
     pub token: String,
     pub guild_id: String,
-    pub endpoint: Option<String>
+    pub endpoint: Option<String>,
 }
 
 impl WebSocketEvent for VoiceServerUpdate {}

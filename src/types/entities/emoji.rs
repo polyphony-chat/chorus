@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::deserialize_option_number_from_string;
 
 use crate::types::entities::User;
-use crate::types::{Guild, Snowflake};
+use crate::types::Snowflake;
 
 #[derive(Debug, PartialEq, Clone, Deserialize, Serialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]

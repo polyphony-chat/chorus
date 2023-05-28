@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{WebSocketEvent, GuildApplicationCommandPermissions};
+use crate::types::{GuildApplicationCommandPermissions, WebSocketEvent};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#application-command-permissions-update
@@ -9,4 +9,4 @@ pub struct ApplicationCommandPermissionsUpdate {
     pub permissions: GuildApplicationCommandPermissions,
 }
 
-impl WebSocketEvent for ApplicationCommandPermissionsUpdate  {}
+impl WebSocketEvent for ApplicationCommandPermissionsUpdate {}

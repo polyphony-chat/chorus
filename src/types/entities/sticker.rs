@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::{deserialize_option_number_from_string};
 
 use crate::types::{entities::User, utils::Snowflake};
 

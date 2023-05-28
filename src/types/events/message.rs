@@ -1,10 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{
-    entities::{Emoji, GuildMember, Message, User},
-    utils::Snowflake, PublicUser,
-};
+use crate::types::entities::{Emoji, GuildMember, Message, PublicUser};
 
 use super::WebSocketEvent;
 
@@ -34,7 +31,7 @@ pub struct MessageCreate {
 pub struct MessageCreateUser {
     #[serde(flatten)]
     user: PublicUser,
-    member: Option<GuildMember>
+    member: Option<GuildMember>,
 }
 
 impl WebSocketEvent for MessageCreate {}
@@ -112,12 +109,12 @@ impl WebSocketEvent for MessageReactionRemoveEmoji {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
-/// 
+///
 /// Not documented anywhere unofficially
-/// 
+///
 /// Apparently "Message ACK refers to marking a message as read for Discord's API." (https://github.com/Rapptz/discord.py/issues/1851)
 /// I suspect this is sent and recieved from the gateway to let clients on other devices know the user has read a message
-/// 
+///
 /// {"t":"MESSAGE_ACK","s":3,"op":0,"d":{"version":52,"message_id":"1107236673638633472","last_viewed":null,"flags":null,"channel_id":"967363950217936897"}}
 pub struct MessageACK {
     /// ?

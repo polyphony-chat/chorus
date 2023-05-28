@@ -46,7 +46,7 @@ pub struct ChannelUnreadUpdate {
 pub struct ChannelUnreadUpdateObject {
     pub id: String,
     pub last_message_id: String,
-    pub last_pin_timestamp: Option<String>
+    pub last_pin_timestamp: Option<String>,
 }
 
 impl WebSocketEvent for ChannelUnreadUpdate {}
