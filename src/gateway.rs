@@ -492,6 +492,10 @@ impl Gateway {
                     "USER_UPDATE" => {
                         let new_data: types::UserUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
                         self.events.lock().await.user.update.update_data(new_data).await;
+                    },
+                    "USER_GUILD_SETTINGS_UPDATE" => {
+                        let new_data: types::UserGuildSettingsUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
+                        self.events.lock().await.user.guild_settings_update.update_data(new_data).await;
                     }
                     "VOICE_STATE_UPDATE" => {
                         let new_data: types::VoiceStateUpdate = serde_json::from_str(gateway_payload.d.unwrap().get()).unwrap();
@@ -781,6 +785,7 @@ mod events {
     #[derive(Default, Debug)]
     pub struct User {
         pub update: GatewayEvent<types::UserUpdate>,
+        pub guild_settings_update: GatewayEvent<types::UserGuildSettingsUpdate>,
         pub presence_update: GatewayEvent<types::PresenceUpdate>,
         pub typing_start_event: GatewayEvent<types::TypingStartEvent>,
     }

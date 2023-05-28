@@ -42,11 +42,11 @@ pub struct User {
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     flags: Option<i32>,
     pub premium_since: Option<DateTime<Utc>>,
-    pub premium_type: u8,
+    pub premium_type: Option<u8>,
     pub pronouns: Option<String>,
     pub public_flags: Option<u16>,
     pub banner: Option<String>,
-    pub bio: String,
+    pub bio: Option<String>,
     pub theme_colors: Option<Vec<u8>>,
     pub phone: Option<String>,
     pub nsfw_allowed: bool,
@@ -56,19 +56,19 @@ pub struct User {
     pub disabled: Option<bool>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PublicUser {
     pub id: Snowflake,
-    pub username: String,
-    pub discriminator: String,
+    pub username: Option<String>,
+    pub discriminator: Option<String>,
     pub avatar: Option<String>,
     pub accent_color: Option<u8>,
     pub banner: Option<String>,
     pub theme_colors: Option<Vec<u8>>,
     pub pronouns: Option<String>,
     pub bot: Option<bool>,
-    pub bio: String,
-    pub premium_type: u8,
+    pub bio: Option<String>,
+    pub premium_type: Option<u8>,
     pub premium_since: Option<DateTime<Utc>>,
     pub public_flags: Option<u16>,
 }
@@ -77,8 +77,8 @@ impl From<User> for PublicUser {
     fn from(value: User) -> Self {
         Self {
             id: value.id,
-            username: value.username,
-            discriminator: value.discriminator,
+            username: Some(value.username),
+            discriminator: Some(value.discriminator),
             avatar: value.avatar,
             accent_color: value.accent_color,
             banner: value.banner,

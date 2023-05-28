@@ -145,7 +145,9 @@ pub struct MessageACK {
     /// ?
     pub version: u16,
     pub message_id: String,
-    pub last_viewed: Option<DateTime<Utc>>,
+    /// This is an integer???
+    /// Not even unix, see '3070'???
+    pub last_viewed: Option<u64>,
     /// What flags?
     pub flags: Option<serde_json::Value>,
     pub channel_id: String,

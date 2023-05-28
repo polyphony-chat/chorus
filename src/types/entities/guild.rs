@@ -19,7 +19,7 @@ pub struct Guild {
     pub splash: Option<String>,
     pub discovery_splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub owner: bool, // True if requesting user is owner
+    pub owner: Option<bool>, // True if requesting user is owner
     pub owner_id: Option<Snowflake>,
     pub permissions: Option<String>,
     pub afk_channel_id: Option<Snowflake>,
