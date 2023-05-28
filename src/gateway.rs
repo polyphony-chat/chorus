@@ -1322,13 +1322,13 @@ impl<T: types::WebSocketEvent> GatewayEvent<T> {
     pub fn subscribe(
         &mut self,
         observable: Arc<Mutex<dyn Observer<T> + Sync + Send>>,
-    ) -> Option<ObserverError> {
+    ) -> Result<(), ObserverError> {
         if self.is_observed {
-            return Some(ObserverError::AlreadySubscribedError);
+            return Err(ObserverError::AlreadySubscribedError);
         }
         self.is_observed = true;
         self.observers.push(observable);
-        None
+        Ok(())
     }
 
     /**
