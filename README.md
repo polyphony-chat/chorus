@@ -42,7 +42,7 @@
 - [ ] [Events (Message, User, Channel, etc.)](https://github.com/polyphony-chat/chorus/issues/51)
 - [x] Channel creation
 - [x] Channel deletion
-- [ ] Channel management (name, description, icon, etc.)
+- [ ] [Channel management (name, description, icon, etc.)](https://github.com/polyphony-chat/chorus/issues/48)
 - [ ] Deleting messages
 - [ ] Message threads
 - [ ] Reactions
