@@ -48,11 +48,8 @@ async fn modify_channel() {
     };
     let result = Channel::modify(
         modify_data,
-        &bundle.user.token,
-        bundle.instance.urls.get_api(),
         &bundle.channel.id.to_string(),
-        &mut bundle.user.limits,
-        &mut bundle.instance.limits,
+        &mut bundle.user,
     )
     .await
     .unwrap();

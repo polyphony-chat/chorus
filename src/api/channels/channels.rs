@@ -98,23 +98,25 @@ impl Channel {
     /// A `Result` that contains a `Channel` object if the request was successful, or an `InstanceServerError` if an error occurred during the request.
     pub async fn modify(
         modify_data: ChannelModifySchema,
-        token: &str,
-        url_api: &str,
         channel_id: &str,
-        limits_user: &mut Limits,
-        limits_instance: &mut Limits,
+        user: &mut UserMeta,
     ) -> Result<Channel, InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
-            .patch(format!("{}/channels/{}/", url_api, channel_id))
-            .bearer_auth(token)
+            .patch(format!(
+                "{}/channels/{}/",
+                belongs_to.urls.get_api(),
+                channel_id
+            ))
+            .bearer_auth(user.token())
             .body(to_string(&modify_data).unwrap());
         let channel = match LimitedRequester::new()
             .await
             .send_request(
                 request,
                 crate::api::limits::LimitType::Channel,
-                limits_instance,
-                limits_user,
+                &mut belongs_to.limits,
+                &mut user.limits,
             )
             .await
         {
