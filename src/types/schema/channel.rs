@@ -26,7 +26,7 @@ pub struct ChannelCreateSchema {
     pub video_quality_mode: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 #[serde(rename_all = "snake_case")]
 pub struct ChannelModifySchema {
     pub name: Option<String>,
