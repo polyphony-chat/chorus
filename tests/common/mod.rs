@@ -65,9 +65,7 @@ pub async fn setup() -> TestBundle {
         video_quality_mode: None,
     };
     let mut user = instance.register_account(&reg).await.unwrap();
-    let guild = Guild::create(&mut user, urls.get_api(), guild_create_schema)
-        .await
-        .unwrap();
+    let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
     let channel = Channel::create(
         &user.token,
         urls.get_api(),

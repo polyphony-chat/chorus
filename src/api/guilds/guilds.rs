@@ -29,10 +29,8 @@ impl Guild {
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
     ) -> Result<Guild, crate::errors::InstanceServerError> {
-        let belongs_to = user.belongs_to.borrow_mut();
+        let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!("{}/guilds/", belongs_to.urls.get_api());
-        let mut limits_user = user.limits.get_as_mut();
-        let mut limits_instance = &mut user.belongs_to.borrow_mut().limits;
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone())
@@ -42,8 +40,8 @@ impl Guild {
             .send_request(
                 request,
                 crate::api::limits::LimitType::Guild,
-                limits_instance,
-                limits_user,
+                &mut belongs_to.limits,
+                &mut user.limits,
             )
             .await
         {
@@ -51,12 +49,12 @@ impl Guild {
             Err(e) => return Err(e),
         };
         let id: GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
-        let guild = Guild::get(
-            belongs_to.urls.get_api(),
+        let guild = Guild::_get(
+            belongs_to.clone().urls.get_api(),
             &id.id,
             &user.token,
-            &mut limits_user,
-            &mut limits_instance,
+            &mut user.limits,
+            &mut belongs_to.limits,
         )
         .await
         .unwrap();
@@ -210,7 +208,21 @@ impl Guild {
     /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
-    pub async fn get(
+    pub async fn get(user: &mut UserMeta, guild_id: &str) -> Result<Guild, InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        Guild::_get(
+            &format!("{}", belongs_to.urls.get_api()),
+            guild_id,
+            &user.token,
+            &mut user.limits,
+            &mut belongs_to.limits,
+        )
+        .await
+    }
+
+    /// For internal use. Does the same as the public get method, but does not require a second, mutable
+    /// borrow of `UserMeta::belongs_to`, when used in conjunction with other methods, which borrow `UserMeta::belongs_to`.
+    async fn _get(
         url_api: &str,
         guild_id: &str,
         token: &str,
