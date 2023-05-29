@@ -1,8 +1,11 @@
 use reqwest::Client;
-use serde_json::from_str;
+use serde_json::{from_str, to_string};
 
 use crate::{
-    api::limits::Limits, errors::InstanceServerError, limit::LimitedRequester, types::Channel,
+    api::limits::Limits,
+    errors::InstanceServerError,
+    limit::LimitedRequester,
+    types::{Channel, ChannelModifySchema},
 };
 
 impl Channel {
@@ -75,5 +78,47 @@ impl Channel {
             Ok(_) => None,
             Err(e) => return Some(e),
         }
+    }
+
+    /// Modifies a channel.
+    ///
+    /// # Arguments
+    ///
+    /// * `modify_data` - A `ChannelModifySchema` object that represents the modifications to be made to the channel.
+    /// * `token` - A string slice that holds the authorization token.
+    /// * `url_api` - A string slice that holds the URL of the API.
+    /// * `channel_id` - A string slice that holds the ID of the channel to be modified.
+    /// * `limits_user` - A mutable reference to a `Limits` object that represents the user's rate limits.
+    /// * `limits_instance` - A mutable reference to a `Limits` object that represents the instance's rate limits.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` that contains a `Channel` object if the request was successful, or an `InstanceServerError` if an error occurred during the request.
+    pub async fn modify(
+        modify_data: ChannelModifySchema,
+        token: &str,
+        url_api: &str,
+        channel_id: &str,
+        limits_user: &mut Limits,
+        limits_instance: &mut Limits,
+    ) -> Result<Channel, InstanceServerError> {
+        let request = Client::new()
+            .patch(format!("{}/channels/{}/", url_api, channel_id))
+            .bearer_auth(token)
+            .body(to_string(&modify_data).unwrap());
+        let channel = match LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Channel,
+                limits_instance,
+                limits_user,
+            )
+            .await
+        {
+            Ok(channel) => from_str::<Channel>(&channel.text().await.unwrap()).unwrap(),
+            Err(e) => return Err(e),
+        };
+        Ok(channel)
     }
 }
