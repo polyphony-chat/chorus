@@ -25,3 +25,26 @@ pub struct ChannelCreateSchema {
     pub default_thread_rate_limit_per_user: Option<i32>,
     pub video_quality_mode: Option<i32>,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct ChannelModifySchema {
+    name: Option<String>,
+    channel_type: Option<u8>,
+    topic: Option<String>,
+    icon: Option<String>,
+    bitrate: Option<i32>,
+    user_limit: Option<i32>,
+    rate_limit_per_user: Option<i32>,
+    position: Option<i32>,
+    permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    parent_id: Option<String>,
+    id: Option<String>,
+    nsfw: Option<bool>,
+    rtc_region: Option<String>,
+    default_auto_archive_duration: Option<i32>,
+    default_reaction_emoji: Option<String>,
+    flags: Option<i32>,
+    default_thread_rate_limit_per_user: Option<i32>,
+    video_quality_mode: Option<i32>,
+}
