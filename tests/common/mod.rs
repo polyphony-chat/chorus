@@ -66,16 +66,9 @@ pub async fn setup() -> TestBundle {
     };
     let mut user = instance.register_account(&reg).await.unwrap();
     let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
-    let channel = Channel::create(
-        &user.token,
-        urls.get_api(),
-        &guild.id.to_string(),
-        channel_create_schema,
-        &mut user.limits,
-        &mut instance.limits,
-    )
-    .await
-    .unwrap();
+    let channel = Channel::create(&mut user, &guild.id.to_string(), channel_create_schema)
+        .await
+        .unwrap();
 
     TestBundle {
         urls,

@@ -122,19 +122,17 @@ impl Guild {
     /// A `Result` containing a `reqwest::Response` if the request was successful, or an `InstanceServerError` if there was an error.
     pub async fn create_channel(
         &self,
-        url_api: &str,
-        token: &str,
+        user: &mut UserMeta,
         schema: ChannelCreateSchema,
-        limits_user: &mut Limits,
-        limits_instance: &mut Limits,
     ) -> Result<Channel, InstanceServerError> {
-        Channel::create(
-            token,
-            url_api,
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        Channel::_create(
+            &user.token,
+            &format!("{}", belongs_to.urls.get_api()),
             &self.id.to_string(),
             schema,
-            limits_user,
-            limits_instance,
+            &mut user.limits,
+            &mut belongs_to.limits,
         )
         .await
     }
@@ -261,6 +259,23 @@ impl Channel {
     ///
     /// A `Result` containing a `reqwest::Response` if the request was successful, or an `InstanceServerError` if there was an error.
     pub async fn create(
+        user: &mut UserMeta,
+        guild_id: &str,
+        schema: ChannelCreateSchema,
+    ) -> Result<Channel, InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        Channel::_create(
+            &user.token,
+            &format!("{}", belongs_to.urls.get_api()),
+            guild_id,
+            schema,
+            &mut user.limits,
+            &mut belongs_to.limits,
+        )
+        .await
+    }
+
+    async fn _create(
         token: &str,
         url_api: &str,
         guild_id: &str,
