@@ -60,11 +60,16 @@ pub trait WebSocketEvent {}
 /// Similar to [GatewayReceivePayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
 /// Also, we never need to send the event name
 pub struct GatewaySendPayload {
-    pub op: u8,
+    #[serde(rename = "op")]
+    pub op_code: u8,
+
+    #[serde(rename = "d")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub d: Option<serde_json::Value>,
+    pub event_data: Option<serde_json::Value>,
+
+    #[serde(rename = "s")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub s: Option<u64>,
+    pub sequence_number: Option<u64>,
 }
 
 impl WebSocketEvent for GatewaySendPayload {}
@@ -76,11 +81,18 @@ impl WebSocketEvent for GatewaySendPayload {}
 /// Also, we never need to sent the event name
 
 pub struct GatewayReceivePayload<'a> {
-    pub op: u8,
+    #[serde(rename = "op")]
+    pub op_code: u8,
+
     #[serde(borrow)]
-    pub d: Option<&'a serde_json::value::RawValue>,
-    pub s: Option<u64>,
-    pub t: Option<String>,
+    #[serde(rename = "d")]
+    pub event_data: Option<&'a serde_json::value::RawValue>,
+
+    #[serde(rename = "s")]
+    pub sequence_number: Option<u64>,
+
+    #[serde(rename = "t")]
+    pub event_name: Option<String>,
 }
 
 impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
