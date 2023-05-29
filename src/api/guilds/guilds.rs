@@ -85,14 +85,9 @@ impl Guild {
     ///     None => println!("Guild deleted successfully"),
     /// }
     /// ```
-    pub async fn delete(
-        user: &mut UserMeta,
-        url_api: &str,
-        guild_id: &str,
-    ) -> Option<InstanceServerError> {
-        let url = format!("{}/guilds/{}/delete/", url_api, guild_id);
-        let limits_user = user.limits.get_as_mut();
-        let limits_instance = &mut user.belongs_to.borrow_mut().limits;
+    pub async fn delete(user: &mut UserMeta, guild_id: &str) -> Option<InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        let url = format!("{}/guilds/{}/delete/", belongs_to.urls.get_api(), guild_id);
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone());
@@ -101,8 +96,8 @@ impl Guild {
             .send_request(
                 request,
                 crate::api::limits::LimitType::Guild,
-                limits_instance,
-                limits_user,
+                &mut belongs_to.limits,
+                &mut user.limits,
             )
             .await;
         if result.is_err() {

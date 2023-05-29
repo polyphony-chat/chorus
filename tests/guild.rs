@@ -19,13 +19,7 @@ async fn guild_creation_deletion() {
         .await
         .unwrap();
 
-    match Guild::delete(
-        &mut bundle.user,
-        bundle.urls.get_api(),
-        &guild.id.to_string(),
-    )
-    .await
-    {
+    match Guild::delete(&mut bundle.user, &guild.id.to_string()).await {
         None => assert!(true),
         Some(_) => assert!(false),
     }
