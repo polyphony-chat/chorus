@@ -58,23 +58,22 @@ impl Channel {
     /// # Returns
     ///
     /// An `Option` that contains an `InstanceServerError` if an error occurred during the request, or `None` if the request was successful.
-    pub async fn delete(
-        self,
-        token: &str,
-        url_api: &str,
-        limits_user: &mut Limits,
-        limits_instance: &mut Limits,
-    ) -> Option<InstanceServerError> {
+    pub async fn delete(self, user: &mut UserMeta) -> Option<InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
-            .delete(format!("{}/channels/{}/", url_api, self.id.to_string()))
-            .bearer_auth(token);
+            .delete(format!(
+                "{}/channels/{}/",
+                belongs_to.urls.get_api(),
+                self.id.to_string()
+            ))
+            .bearer_auth(user.token());
         match LimitedRequester::new()
             .await
             .send_request(
                 request,
                 crate::api::limits::LimitType::Channel,
-                limits_instance,
-                limits_user,
+                &mut belongs_to.limits,
+                &mut user.limits,
             )
             .await
         {
