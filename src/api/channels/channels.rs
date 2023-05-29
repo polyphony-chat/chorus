@@ -4,28 +4,31 @@ use serde_json::{from_str, to_string};
 use crate::{
     api::limits::Limits,
     errors::InstanceServerError,
+    instance::UserMeta,
     limit::LimitedRequester,
     types::{Channel, ChannelModifySchema},
 };
 
 impl Channel {
     pub async fn get(
-        token: &str,
-        url_api: &str,
+        user: &mut UserMeta,
         channel_id: &str,
-        limits_user: &mut Limits,
-        limits_instance: &mut Limits,
     ) -> Result<Channel, InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
-            .get(format!("{}/channels/{}/", url_api, channel_id))
-            .bearer_auth(token);
+            .get(format!(
+                "{}/channels/{}/",
+                belongs_to.urls.get_api(),
+                channel_id
+            ))
+            .bearer_auth(user.token());
         let mut requester = LimitedRequester::new().await;
         let result = match requester
             .send_request(
                 request,
                 crate::api::limits::LimitType::Guild,
-                limits_instance,
-                limits_user,
+                &mut belongs_to.limits,
+                &mut user.limits,
             )
             .await
         {
@@ -36,7 +39,7 @@ impl Channel {
         match from_str::<Channel>(&result_text) {
             Ok(object) => Ok(object),
             Err(e) => Err(InstanceServerError::RequestErrorError {
-                url: format!("{}/channels/{}/", url_api, channel_id),
+                url: format!("{}/channels/{}/", belongs_to.urls.get_api(), channel_id),
                 error: e.to_string(),
             }),
         }
