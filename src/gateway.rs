@@ -1560,17 +1560,14 @@ mod example {
         let second_consumer = Consumer;
         let arc_mut_second_consumer = Arc::new(Mutex::new(second_consumer));
 
-        match event.subscribe(arc_mut_second_consumer.clone()) {
+        match event.subscribe(arc_mut_second_consumer.clone()).err() {
             None => assert!(false),
             Some(err) => println!("You cannot subscribe twice: {}", err),
         }
 
         event.unsubscribe(arc_mut_consumer.clone());
 
-        match event.subscribe(arc_mut_second_consumer.clone()) {
-            None => assert!(true),
-            Some(_) => assert!(false),
-        }
+        event.subscribe(arc_mut_second_consumer.clone()).unwrap();
     }
 
     #[tokio::test]
