@@ -31,16 +31,7 @@ async fn get_channels() {
     let mut bundle = common::setup().await;
     println!(
         "{:?}",
-        bundle
-            .guild
-            .channels(
-                bundle.instance.urls.get_api(),
-                &bundle.user.token,
-                &mut bundle.user.limits,
-                &mut bundle.instance.limits,
-            )
-            .await
-            .unwrap()
+        bundle.guild.channels(&mut bundle.user).await.unwrap()
     );
     common::teardown(bundle).await;
 }

@@ -146,27 +146,22 @@ impl Guild {
     /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
-    pub async fn channels(
-        &self,
-        url_api: &str,
-        token: &str,
-        limits_user: &mut Limits,
-        limits_instance: &mut Limits,
-    ) -> Result<Vec<Channel>, InstanceServerError> {
+    pub async fn channels(&self, user: &mut UserMeta) -> Result<Vec<Channel>, InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
             .get(format!(
                 "{}/guilds/{}/channels/",
-                url_api,
+                belongs_to.urls.get_api(),
                 self.id.to_string()
             ))
-            .bearer_auth(token);
+            .bearer_auth(user.token());
         let result = match LimitedRequester::new()
             .await
             .send_request(
                 request,
                 crate::api::limits::LimitType::Guild,
-                limits_instance,
-                limits_user,
+                &mut belongs_to.limits,
+                &mut user.limits,
             )
             .await
         {
