@@ -20,7 +20,7 @@ pub mod messages {
         # Errors
         * [`InstanceServerError`] - If the message cannot be sent.
          */
-        pub async fn send<'a>(
+        pub async fn send(
             user: &mut UserMeta,
             channel_id: String,
             message: &mut MessageSendSchema,
