@@ -26,30 +26,7 @@ impl UserMeta {
         id: Option<&String>,
         instance_limits: &mut Limits,
     ) -> Result<User, InstanceServerError> {
-        let url: String;
-        if id.is_none() {
-            url = format!("{}/users/@me/", url_api);
-        } else {
-            url = format!("{}/users/{}", url_api, id.unwrap());
-        }
-        let request = reqwest::Client::new().get(url).bearer_auth(token);
-        let mut requester = crate::limit::LimitedRequester::new().await;
-        let mut cloned_limits = instance_limits.clone();
-        match requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Ip,
-                instance_limits,
-                &mut cloned_limits,
-            )
-            .await
-        {
-            Ok(result) => {
-                let result_text = result.text().await.unwrap();
-                Ok(serde_json::from_str::<User>(&result_text).unwrap())
-            }
-            Err(e) => Err(e),
-        }
+        User::get(token, url_api, id, instance_limits).await
     }
 
     pub async fn get_settings(
@@ -57,23 +34,7 @@ impl UserMeta {
         url_api: &String,
         instance_limits: &mut Limits,
     ) -> Result<UserSettings, InstanceServerError> {
-        let request: reqwest::RequestBuilder = Client::new()
-            .get(format!("{}/users/@me/settings/", url_api))
-            .bearer_auth(token);
-        let mut cloned_limits = instance_limits.clone();
-        let mut requester = crate::limit::LimitedRequester::new().await;
-        match requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Ip,
-                instance_limits,
-                &mut cloned_limits,
-            )
-            .await
-        {
-            Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
-            Err(e) => Err(e),
-        }
+        User::get_settings(token, url_api, instance_limits).await
     }
 
     /// Modify the current user's `UserObject`.
@@ -149,6 +110,64 @@ impl UserMeta {
         {
             Ok(_) => None,
             Err(e) => Some(e),
+        }
+    }
+}
+
+impl User {
+    pub async fn get(
+        token: &String,
+        url_api: &String,
+        id: Option<&String>,
+        instance_limits: &mut Limits,
+    ) -> Result<User, InstanceServerError> {
+        let url: String;
+        if id.is_none() {
+            url = format!("{}/users/@me/", url_api);
+        } else {
+            url = format!("{}/users/{}", url_api, id.unwrap());
+        }
+        let request = reqwest::Client::new().get(url).bearer_auth(token);
+        let mut requester = crate::limit::LimitedRequester::new().await;
+        let mut cloned_limits = instance_limits.clone();
+        match requester
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Ip,
+                instance_limits,
+                &mut cloned_limits,
+            )
+            .await
+        {
+            Ok(result) => {
+                let result_text = result.text().await.unwrap();
+                Ok(serde_json::from_str::<User>(&result_text).unwrap())
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn get_settings(
+        token: &String,
+        url_api: &String,
+        instance_limits: &mut Limits,
+    ) -> Result<UserSettings, InstanceServerError> {
+        let request: reqwest::RequestBuilder = Client::new()
+            .get(format!("{}/users/@me/settings/", url_api))
+            .bearer_auth(token);
+        let mut cloned_limits = instance_limits.clone();
+        let mut requester = crate::limit::LimitedRequester::new().await;
+        match requester
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Ip,
+                instance_limits,
+                &mut cloned_limits,
+            )
+            .await
+        {
+            Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
+            Err(e) => Err(e),
         }
     }
 }
