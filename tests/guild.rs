@@ -15,7 +15,7 @@ async fn guild_creation_deletion() {
         rules_channel_id: None,
     };
 
-    let guild = Guild::create(&mut bundle.user, bundle.urls.get_api(), guild_create_schema)
+    let guild = Guild::create(&mut bundle.user, guild_create_schema)
         .await
         .unwrap();
 

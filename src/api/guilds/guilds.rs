@@ -27,10 +27,10 @@ impl Guild {
     ///
     pub async fn create(
         user: &mut UserMeta,
-        url_api: &str,
         guild_create_schema: GuildCreateSchema,
     ) -> Result<Guild, crate::errors::InstanceServerError> {
-        let url = format!("{}/guilds/", url_api);
+        let belongs_to = user.belongs_to.borrow_mut();
+        let url = format!("{}/guilds/", belongs_to.urls.get_api());
         let mut limits_user = user.limits.get_as_mut();
         let mut limits_instance = &mut user.belongs_to.borrow_mut().limits;
         let request = reqwest::Client::new()
@@ -52,7 +52,7 @@ impl Guild {
         };
         let id: GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
         let guild = Guild::get(
-            url_api,
+            belongs_to.urls.get_api(),
             &id.id,
             &user.token,
             &mut limits_user,
