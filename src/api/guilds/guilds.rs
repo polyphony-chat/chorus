@@ -19,32 +19,20 @@ impl Guild {
     ///
     /// # Returns
     ///
-    /// A `Result<String>` containing the ID of the newly created guild, or an error if the request fails.
+    /// A `Result<Guild>` containing the object of the newly created guild, or an error if the request fails.
     ///
     /// # Errors
     ///
     /// Returns an `InstanceServerError` if the request fails.
     ///
-    /// # Examples
-    ///
-    /// ```rs
-    /// let guild_create_schema = chorus::api::schemas::GuildCreateSchema::new(insert args here);
-    ///
-    /// let result = Guild::create(&mut user, &mut instance, &guild_create_schema).await;
-    ///
-    /// match result {
-    ///     Ok(guild_id) => println!("Created guild with ID {}", guild_id),
-    ///     Err(e) => println!("Failed to create guild: {}", e),
-    /// }
-    /// ```
     pub async fn create(
         user: &mut UserMeta,
         url_api: &str,
         guild_create_schema: GuildCreateSchema,
-    ) -> Result<String, crate::errors::InstanceServerError> {
+    ) -> Result<Guild, crate::errors::InstanceServerError> {
         let url = format!("{}/guilds/", url_api);
-        let limits_user = user.limits.get_as_mut();
-        let limits_instance = &mut user.belongs_to.borrow_mut().limits;
+        let mut limits_user = user.limits.get_as_mut();
+        let mut limits_instance = &mut user.belongs_to.borrow_mut().limits;
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone())
@@ -63,7 +51,16 @@ impl Guild {
             Err(e) => return Err(e),
         };
         let id: GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
-        Ok(id.id)
+        let guild = Guild::get(
+            url_api,
+            &id.id,
+            &user.token,
+            &mut limits_user,
+            &mut limits_instance,
+        )
+        .await
+        .unwrap();
+        Ok(guild)
     }
 
     /// Deletes a guild.
@@ -93,7 +90,7 @@ impl Guild {
     pub async fn delete(
         user: &mut UserMeta,
         url_api: &str,
-        guild_id: String,
+        guild_id: &str,
     ) -> Option<InstanceServerError> {
         let url = format!("{}/guilds/{}/delete/", url_api, guild_id);
         let limits_user = user.limits.get_as_mut();
@@ -147,6 +144,97 @@ impl Guild {
             limits_instance,
         )
         .await
+    }
+
+    /// Returns a `Result` containing a vector of `Channel` structs if the request was successful, or an `InstanceServerError` if there was an error.
+    ///
+    /// # Arguments
+    ///
+    /// * `url_api` - A string slice that holds the URL of the API.
+    /// * `token` - A string slice that holds the authorization token.
+    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
+    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
+    ///
+    pub async fn channels(
+        &self,
+        url_api: &str,
+        token: &str,
+        limits_user: &mut Limits,
+        limits_instance: &mut Limits,
+    ) -> Result<Vec<Channel>, InstanceServerError> {
+        let request = Client::new()
+            .get(format!(
+                "{}/guilds/{}/channels/",
+                url_api,
+                self.id.to_string()
+            ))
+            .bearer_auth(token);
+        let result = match LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Guild,
+                limits_instance,
+                limits_user,
+            )
+            .await
+        {
+            Ok(result) => result,
+            Err(e) => return Err(e),
+        };
+        let stringed_response = match result.text().await {
+            Ok(value) => value,
+            Err(e) => {
+                return Err(InstanceServerError::InvalidResponseError {
+                    error: e.to_string(),
+                })
+            }
+        };
+        let _: Vec<Channel> = match from_str(&stringed_response) {
+            Ok(result) => return Ok(result),
+            Err(e) => {
+                return Err(InstanceServerError::InvalidResponseError {
+                    error: e.to_string(),
+                })
+            }
+        };
+    }
+
+    /// Returns a `Result` containing a `Guild` struct if the request was successful, or an `InstanceServerError` if there was an error.
+    ///
+    /// # Arguments
+    ///
+    /// * `url_api` - A string slice that holds the URL of the API.
+    /// * `guild_id` - A string slice that holds the ID of the guild.
+    /// * `token` - A string slice that holds the authorization token.
+    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
+    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
+    ///
+    pub async fn get(
+        url_api: &str,
+        guild_id: &str,
+        token: &str,
+        limits_user: &mut Limits,
+        limits_instance: &mut Limits,
+    ) -> Result<Guild, InstanceServerError> {
+        let request = Client::new()
+            .get(format!("{}/guilds/{}/", url_api, guild_id))
+            .bearer_auth(token);
+        let response = match LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Guild,
+                limits_instance,
+                limits_user,
+            )
+            .await
+        {
+            Ok(response) => response,
+            Err(e) => return Err(e),
+        };
+        let guild: Guild = from_str(&response.text().await.unwrap()).unwrap();
+        Ok(guild)
     }
 }
 

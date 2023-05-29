@@ -38,4 +38,42 @@ impl Channel {
             }),
         }
     }
+
+    /// Deletes a channel.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A string slice that holds the authorization token.
+    /// * `url_api` - A string slice that holds the URL of the API.
+    /// * `channel` - A `Channel` object that represents the channel to be deleted.
+    /// * `limits_user` - A mutable reference to a `Limits` object that represents the user's rate limits.
+    /// * `limits_instance` - A mutable reference to a `Limits` object that represents the instance's rate limits.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` that contains an `InstanceServerError` if an error occurred during the request, or `None` if the request was successful.
+    pub async fn delete(
+        self,
+        token: &str,
+        url_api: &str,
+        limits_user: &mut Limits,
+        limits_instance: &mut Limits,
+    ) -> Option<InstanceServerError> {
+        let request = Client::new()
+            .delete(format!("{}/channels/{}/", url_api, self.id.to_string()))
+            .bearer_auth(token);
+        match LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Channel,
+                limits_instance,
+                limits_user,
+            )
+            .await
+        {
+            Ok(_) => None,
+            Err(e) => return Some(e),
+        }
+    }
 }

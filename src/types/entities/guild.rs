@@ -23,21 +23,21 @@ pub struct Guild {
     pub owner_id: Option<Snowflake>,
     pub permissions: Option<String>,
     pub afk_channel_id: Option<Snowflake>,
-    pub afk_timeout: Option<u8>,
+    pub afk_timeout: Option<u32>,
     pub widget_enabled: Option<bool>,
     pub widget_channel_id: Option<Snowflake>,
     pub verification_level: Option<u8>,
     pub default_message_notifications: Option<u8>,
     pub explicit_content_filter: Option<u8>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub roles: Vec<RoleObject>,
+    pub roles: Option<Vec<RoleObject>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub emojis: Vec<Emoji>,
+    pub emojis: Option<Vec<Emoji>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub features: Option<Vec<String>>,
     pub application_id: Option<String>,
     pub system_channel_id: Option<Snowflake>,
-    pub system_channel_flags: Option<u8>,
+    pub system_channel_flags: Option<u32>,
     pub rules_channel_id: Option<Snowflake>,
     pub rules_channel: Option<String>,
     pub max_presences: Option<u64>,
@@ -49,8 +49,8 @@ pub struct Guild {
     pub premium_subscription_count: Option<u64>,
     pub preferred_locale: Option<String>,
     pub public_updates_channel_id: Option<Snowflake>,
-    pub max_video_channel_users: Option<u8>,
-    pub max_stage_video_channel_users: Option<u8>,
+    pub max_video_channel_users: Option<u32>,
+    pub max_stage_video_channel_users: Option<u32>,
     pub approximate_member_count: Option<u64>,
     pub approximate_presence_count: Option<u64>,
     #[cfg(feature = "sqlx")]
@@ -62,7 +62,7 @@ pub struct Guild {
     pub stickers: Option<Vec<Sticker>>,
     pub premium_progress_bar_enabled: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub joined_at: String,
+    pub joined_at: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub bans: Option<Vec<GuildBan>>,
     pub primary_category_id: Option<Snowflake>,

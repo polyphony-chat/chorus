@@ -19,11 +19,34 @@ async fn guild_creation_deletion() {
         .await
         .unwrap();
 
-    println!("{}", guild);
-
-    match Guild::delete(&mut bundle.user, bundle.urls.get_api(), guild).await {
+    match Guild::delete(
+        &mut bundle.user,
+        bundle.urls.get_api(),
+        &guild.id.to_string(),
+    )
+    .await
+    {
         None => assert!(true),
         Some(_) => assert!(false),
     }
     common::teardown(bundle).await
+}
+
+#[tokio::test]
+async fn get_channels() {
+    let mut bundle = common::setup().await;
+    println!(
+        "{:?}",
+        bundle
+            .guild
+            .channels(
+                bundle.instance.urls.get_api(),
+                &bundle.user.token,
+                &mut bundle.user.limits,
+                &mut bundle.instance.limits,
+            )
+            .await
+            .unwrap()
+    );
+    common::teardown(bundle).await;
 }

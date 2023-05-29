@@ -23,6 +23,7 @@ custom_error! {
     NoPermission = "You do not have the permissions needed to perform this action.",
     NotFound{error: String} = "The provided resource hasn't been found: {}",
     PasswordRequiredError = "You need to provide your current password to authenticate for this action.",
+    InvalidResponseError{error: String} = "The response is malformed and cannot be processed. Error: {}",
 }
 
 custom_error! {
