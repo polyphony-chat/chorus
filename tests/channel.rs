@@ -27,6 +27,7 @@ async fn delete_channel() {
     let mut bundle = common::setup().await;
     let result = bundle
         .channel
+        .clone()
         .delete(
             &bundle.user.token,
             bundle.instance.urls.get_api(),
@@ -35,4 +36,5 @@ async fn delete_channel() {
         )
         .await;
     assert!(result.is_none());
+    common::teardown(bundle).await
 }
