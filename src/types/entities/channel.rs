@@ -15,7 +15,7 @@ use crate::types::{
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Channel {
     pub id: Snowflake,
-    pub created_at: chrono::DateTime<Utc>,
+    pub created_at: Option<chrono::DateTime<Utc>>,
     #[serde(rename = "type")]
     pub channel_type: ChannelType,
     pub guild_id: Option<Snowflake>,

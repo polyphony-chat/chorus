@@ -21,7 +21,7 @@ pub struct Guild {
     pub splash: Option<String>,
     pub discovery_splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub owner: bool, // True if requesting user is owner
+    pub owner: Option<bool>, // True if requesting user is owner
     pub owner_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub permissions: Option<String>,
@@ -33,7 +33,7 @@ pub struct Guild {
     pub default_message_notifications: Option<i32>,
     pub explicit_content_filter: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub roles: Vec<RoleObject>,
+    pub roles: Option<Vec<RoleObject>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub emojis: Vec<Emoji>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
@@ -71,7 +71,7 @@ pub struct Guild {
     pub stickers: Option<Vec<Sticker>>,
     pub premium_progress_bar_enabled: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub joined_at: String,
+    pub joined_at: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub bans: Option<Vec<GuildBan>>,
     pub primary_category_id: Option<Snowflake>,

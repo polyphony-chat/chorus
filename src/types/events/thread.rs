@@ -35,7 +35,7 @@ pub struct ThreadListSync {
     pub guild_id: String,
     pub channel_ids: Option<Vec<String>>,
     pub threads: Vec<Channel>,
-    pub members: Vec<ThreadMember>,
+    pub members: Option<Vec<ThreadMember>>,
 }
 
 impl WebSocketEvent for ThreadListSync {}

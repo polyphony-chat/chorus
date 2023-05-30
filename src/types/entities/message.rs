@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{
     entities::{
-        Application, Attachment, Channel, Emoji, GuildMember, RoleSubscriptionData, Sticker,
-        StickerItem, User,
+        Application, Attachment, Channel, Emoji, GuildMember, PublicUser, RoleSubscriptionData,
+        Sticker, StickerItem, User,
     },
     utils::Snowflake,
 };
@@ -14,7 +14,7 @@ pub struct Message {
     pub id: Snowflake,
     pub channel_id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub author: User,
+    pub author: PublicUser,
     pub content: String,
     pub timestamp: String,
     pub edited_timestamp: Option<String>,

@@ -36,7 +36,7 @@ pub struct GatewayReadySupplemental {
     pub merged_members: Vec<Vec<GuildMember>>,
     // ?
     pub lazy_private_channels: Vec<serde_json::Value>,
-    pub guilds: Vec<SupplimentalGuild>,
+    pub guilds: Vec<SupplementalGuild>,
     // ? pomelo
     pub disclose: Vec<String>,
 }
@@ -70,7 +70,7 @@ pub struct MergedPresenceGuild {
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
-pub struct SupplimentalGuild {
+pub struct SupplementalGuild {
     pub voice_states: Option<Vec<VoiceState>>,
     pub id: String,
     pub embedded_activities: Vec<serde_json::Value>,

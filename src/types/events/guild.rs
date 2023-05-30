@@ -1,4 +1,4 @@
-use crate::types::entities::{Guild, UnavailableGuild, User};
+use crate::types::entities::{Guild, PublicUser, UnavailableGuild};
 use crate::types::events::WebSocketEvent;
 use crate::types::{AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, RoleObject, Sticker};
 use chrono::{DateTime, Utc};
@@ -32,7 +32,7 @@ impl WebSocketEvent for GuildCreate {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-add-guild-ban-add-event-fields
 pub struct GuildBanAdd {
     pub guild_id: String,
-    pub user: User,
+    pub user: PublicUser,
 }
 
 impl WebSocketEvent for GuildBanAdd {}
@@ -41,7 +41,7 @@ impl WebSocketEvent for GuildBanAdd {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-remove
 pub struct GuildBanRemove {
     pub guild_id: String,
-    pub user: User,
+    pub user: PublicUser,
 }
 
 impl WebSocketEvent for GuildBanRemove {}
@@ -113,7 +113,7 @@ impl WebSocketEvent for GuildMemberAdd {}
 /// See https://discord.com/developers/docs/topics/gateway-events#guild-member-remove
 pub struct GuildMemberRemove {
     pub guild_id: String,
-    pub user: User,
+    pub user: PublicUser,
 }
 
 impl WebSocketEvent for GuildMemberRemove {}
@@ -123,7 +123,7 @@ impl WebSocketEvent for GuildMemberRemove {}
 pub struct GuildMemberUpdate {
     pub guild_id: String,
     pub roles: Vec<String>,
-    pub user: User,
+    pub user: PublicUser,
     pub nick: Option<String>,
     pub avatar: Option<String>,
     pub joined_at: Option<DateTime<Utc>>,

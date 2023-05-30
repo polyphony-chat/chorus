@@ -78,8 +78,6 @@ pub mod messages {
                     .bearer_auth(token)
                     .multipart(form);
 
-                println!("[Request Headers: ] {:?}", message_request);
-
                 requester
                     .send_request(
                         message_request,

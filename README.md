@@ -39,10 +39,10 @@
 
 ### Messaging
 - [x] [Sending messages](https://github.com/polyphony-chat/chorus/issues/23)
-- [ ] [Events (Message, User, Channel, etc.)](https://github.com/polyphony-chat/chorus/issues/51)
+- [x] [Events (Message, User, Channel, etc.)](https://github.com/polyphony-chat/chorus/issues/51)
 - [x] Channel creation
 - [x] Channel deletion
-- [ ] Channel management (name, description, icon, etc.)
+- [x] [Channel management (name, description, icon, etc.)](https://github.com/polyphony-chat/chorus/issues/48)
 - [ ] Deleting messages
 - [ ] Message threads
 - [ ] Reactions

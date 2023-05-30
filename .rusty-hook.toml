@@ -1,5 +1,5 @@
 [hooks]
-pre-push = "cargo fmt --all -- --check --color always"
+pre-commit = "cargo fmt -p chorus && exit 0"
 
 [logging]
 verbose = true
