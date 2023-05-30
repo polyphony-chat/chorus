@@ -36,7 +36,7 @@ pub struct User {
     /// So we need to account for that
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    flags: Option<i32>,
+    pub flags: Option<i32>,
     pub premium_since: Option<DateTime<Utc>>,
     pub premium_type: Option<u8>,
     pub pronouns: Option<String>,

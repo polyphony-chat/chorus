@@ -19,6 +19,9 @@ pub struct RoleObject {
     pub permissions: String,
     pub managed: bool,
     pub mentionable: bool,
+    #[cfg(feature = "sqlx")]
+    pub tags: Option<sqlx::types::Json<RoleTags>>,
+    #[cfg(not(feature = "sqlx"))]
     pub tags: Option<RoleTags>,
 }
 
