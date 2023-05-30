@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct SMTPConfiguration {
     pub host: Option<String>,
     pub port: Option<u16>,
-    pub secure: bool,
+    pub secure: Option<bool>,
     pub username: Option<String>,
     pub password: Option<String>,
 }

@@ -1,3 +1,4 @@
+use crate::types::EndpointConfiguration;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -5,7 +6,8 @@ use serde::{Deserialize, Serialize};
 pub struct ApiConfiguration {
     pub default_version: String,
     pub active_versions: Vec<String>,
-    pub endpoint_public: Option<String>,
+    #[serde(flatten)]
+    pub endpoints: EndpointConfiguration,
 }
 
 impl Default for ApiConfiguration {
@@ -18,7 +20,7 @@ impl Default for ApiConfiguration {
                 String::from("8"),
                 String::from("9"),
             ],
-            endpoint_public: None,
+            endpoints: Default::default(),
         }
     }
 }

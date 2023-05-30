@@ -1,3 +1,4 @@
+use crate::types::EndpointConfiguration;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -7,8 +8,8 @@ pub struct CdnConfiguration {
     pub resize_width_max: u64,
     pub imagor_server_url: Option<String>,
 
-    pub endpoint_public: Option<String>,
-    pub endpoint_private: Option<String>,
+    #[serde(flatten)]
+    pub endpoints: EndpointConfiguration,
 }
 
 impl Default for CdnConfiguration {
@@ -18,8 +19,7 @@ impl Default for CdnConfiguration {
             resize_width_max: 1000,
             imagor_server_url: None,
 
-            endpoint_private: None,
-            endpoint_public: None,
+            endpoints: Default::default(),
         }
     }
 }

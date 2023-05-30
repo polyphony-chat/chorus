@@ -5,8 +5,9 @@ use crate::types::config::types::subconfigs::email::{
     smtp::SMTPConfiguration,
 };
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Default, Serialize, Deserialize)]
 pub enum EmailProvider {
+    #[default]
     Smtp,
     MailGun,
     MailJet,
