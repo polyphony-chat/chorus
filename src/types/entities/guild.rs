@@ -35,6 +35,7 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub roles: Option<Vec<RoleObject>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    #[serde(default)]
     pub emojis: Vec<Emoji>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
     pub features: GuildFeaturesList,
