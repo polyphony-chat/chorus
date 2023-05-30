@@ -5,19 +5,13 @@ use chorus::types::{self, Channel};
 async fn get_channel() {
     let mut bundle = common::setup().await;
     let bundle_channel = bundle.channel.clone();
-    let bundle_user = &mut bundle.user;
+    let mut bundle_user = &mut bundle.user;
 
     assert_eq!(
         bundle_channel,
-        Channel::get(
-            bundle_user.token.as_str(),
-            bundle.instance.urls.get_api(),
-            &bundle_channel.id.to_string(),
-            &mut bundle_user.limits,
-            &mut bundle.instance.limits
-        )
-        .await
-        .unwrap()
+        Channel::get(&mut bundle_user, &bundle_channel.id.to_string(),)
+            .await
+            .unwrap()
     );
     common::teardown(bundle).await
 }
@@ -25,16 +19,7 @@ async fn get_channel() {
 #[tokio::test]
 async fn delete_channel() {
     let mut bundle = common::setup().await;
-    let result = bundle
-        .channel
-        .clone()
-        .delete(
-            &bundle.user.token,
-            bundle.instance.urls.get_api(),
-            &mut bundle.user.limits,
-            &mut bundle.instance.limits,
-        )
-        .await;
+    let result = bundle.channel.clone().delete(&mut bundle.user).await;
     assert!(result.is_none());
     common::teardown(bundle).await
 }
@@ -63,11 +48,8 @@ async fn modify_channel() {
     };
     let result = Channel::modify(
         modify_data,
-        &bundle.user.token,
-        bundle.instance.urls.get_api(),
         &bundle.channel.id.to_string(),
-        &mut bundle.user.limits,
-        &mut bundle.instance.limits,
+        &mut bundle.user,
     )
     .await
     .unwrap();

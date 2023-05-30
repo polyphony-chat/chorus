@@ -15,17 +15,11 @@ async fn guild_creation_deletion() {
         rules_channel_id: None,
     };
 
-    let guild = Guild::create(&mut bundle.user, bundle.urls.get_api(), guild_create_schema)
+    let guild = Guild::create(&mut bundle.user, guild_create_schema)
         .await
         .unwrap();
 
-    match Guild::delete(
-        &mut bundle.user,
-        bundle.urls.get_api(),
-        &guild.id.to_string(),
-    )
-    .await
-    {
+    match Guild::delete(&mut bundle.user, &guild.id.to_string()).await {
         None => assert!(true),
         Some(_) => assert!(false),
     }
@@ -37,16 +31,7 @@ async fn get_channels() {
     let mut bundle = common::setup().await;
     println!(
         "{:?}",
-        bundle
-            .guild
-            .channels(
-                bundle.instance.urls.get_api(),
-                &bundle.user.token,
-                &mut bundle.user.limits,
-                &mut bundle.instance.limits,
-            )
-            .await
-            .unwrap()
+        bundle.guild.channels(&mut bundle.user).await.unwrap()
     );
     common::teardown(bundle).await;
 }

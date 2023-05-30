@@ -4,28 +4,31 @@ use serde_json::{from_str, to_string};
 use crate::{
     api::limits::Limits,
     errors::InstanceServerError,
+    instance::UserMeta,
     limit::LimitedRequester,
     types::{Channel, ChannelModifySchema},
 };
 
 impl Channel {
     pub async fn get(
-        token: &str,
-        url_api: &str,
+        user: &mut UserMeta,
         channel_id: &str,
-        limits_user: &mut Limits,
-        limits_instance: &mut Limits,
     ) -> Result<Channel, InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
-            .get(format!("{}/channels/{}/", url_api, channel_id))
-            .bearer_auth(token);
+            .get(format!(
+                "{}/channels/{}/",
+                belongs_to.urls.get_api(),
+                channel_id
+            ))
+            .bearer_auth(user.token());
         let mut requester = LimitedRequester::new().await;
         let result = match requester
             .send_request(
                 request,
                 crate::api::limits::LimitType::Guild,
-                limits_instance,
-                limits_user,
+                &mut belongs_to.limits,
+                &mut user.limits,
             )
             .await
         {
@@ -36,7 +39,7 @@ impl Channel {
         match from_str::<Channel>(&result_text) {
             Ok(object) => Ok(object),
             Err(e) => Err(InstanceServerError::RequestErrorError {
-                url: format!("{}/channels/{}/", url_api, channel_id),
+                url: format!("{}/channels/{}/", belongs_to.urls.get_api(), channel_id),
                 error: e.to_string(),
             }),
         }
@@ -55,23 +58,22 @@ impl Channel {
     /// # Returns
     ///
     /// An `Option` that contains an `InstanceServerError` if an error occurred during the request, or `None` if the request was successful.
-    pub async fn delete(
-        self,
-        token: &str,
-        url_api: &str,
-        limits_user: &mut Limits,
-        limits_instance: &mut Limits,
-    ) -> Option<InstanceServerError> {
+    pub async fn delete(self, user: &mut UserMeta) -> Option<InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
-            .delete(format!("{}/channels/{}/", url_api, self.id.to_string()))
-            .bearer_auth(token);
+            .delete(format!(
+                "{}/channels/{}/",
+                belongs_to.urls.get_api(),
+                self.id.to_string()
+            ))
+            .bearer_auth(user.token());
         match LimitedRequester::new()
             .await
             .send_request(
                 request,
                 crate::api::limits::LimitType::Channel,
-                limits_instance,
-                limits_user,
+                &mut belongs_to.limits,
+                &mut user.limits,
             )
             .await
         {
@@ -96,23 +98,25 @@ impl Channel {
     /// A `Result` that contains a `Channel` object if the request was successful, or an `InstanceServerError` if an error occurred during the request.
     pub async fn modify(
         modify_data: ChannelModifySchema,
-        token: &str,
-        url_api: &str,
         channel_id: &str,
-        limits_user: &mut Limits,
-        limits_instance: &mut Limits,
+        user: &mut UserMeta,
     ) -> Result<Channel, InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
-            .patch(format!("{}/channels/{}/", url_api, channel_id))
-            .bearer_auth(token)
+            .patch(format!(
+                "{}/channels/{}/",
+                belongs_to.urls.get_api(),
+                channel_id
+            ))
+            .bearer_auth(user.token())
             .body(to_string(&modify_data).unwrap());
         let channel = match LimitedRequester::new()
             .await
             .send_request(
                 request,
                 crate::api::limits::LimitType::Channel,
-                limits_instance,
-                limits_user,
+                &mut belongs_to.limits,
+                &mut user.limits,
             )
             .await
         {

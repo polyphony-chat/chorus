@@ -21,12 +21,10 @@ impl UserMeta {
     * [`InstanceServerError`] - If the request fails.
      */
     pub async fn get(
-        token: &String,
-        url_api: &String,
+        user: &mut UserMeta,
         id: Option<&String>,
-        instance_limits: &mut Limits,
     ) -> Result<User, InstanceServerError> {
-        User::get(token, url_api, id, instance_limits).await
+        User::get(user, id).await
     }
 
     pub async fn get_settings(
@@ -116,10 +114,24 @@ impl UserMeta {
 
 impl User {
     pub async fn get(
-        token: &String,
-        url_api: &String,
+        user: &mut UserMeta,
         id: Option<&String>,
-        instance_limits: &mut Limits,
+    ) -> Result<User, InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        User::_get(
+            &user.token(),
+            &format!("{}", belongs_to.urls.get_api()),
+            &mut belongs_to.limits,
+            id,
+        )
+        .await
+    }
+
+    async fn _get(
+        token: &str,
+        url_api: &str,
+        limits_instance: &mut Limits,
+        id: Option<&String>,
     ) -> Result<User, InstanceServerError> {
         let url: String;
         if id.is_none() {
@@ -129,12 +141,12 @@ impl User {
         }
         let request = reqwest::Client::new().get(url).bearer_auth(token);
         let mut requester = crate::limit::LimitedRequester::new().await;
-        let mut cloned_limits = instance_limits.clone();
+        let mut cloned_limits = limits_instance.clone();
         match requester
             .send_request(
                 request,
                 crate::api::limits::LimitType::Ip,
-                instance_limits,
+                limits_instance,
                 &mut cloned_limits,
             )
             .await
@@ -188,11 +200,11 @@ impl Instance {
         token: String,
         id: Option<&String>,
     ) -> Result<User, InstanceServerError> {
-        UserMeta::get(
+        User::_get(
             &token,
             &self.urls.get_api().to_string(),
-            id,
             &mut self.limits,
+            id,
         )
         .await
     }

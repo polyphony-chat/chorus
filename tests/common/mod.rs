@@ -65,19 +65,10 @@ pub async fn setup() -> TestBundle {
         video_quality_mode: None,
     };
     let mut user = instance.register_account(&reg).await.unwrap();
-    let guild = Guild::create(&mut user, urls.get_api(), guild_create_schema)
+    let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
+    let channel = Channel::create(&mut user, &guild.id.to_string(), channel_create_schema)
         .await
         .unwrap();
-    let channel = Channel::create(
-        &user.token,
-        urls.get_api(),
-        &guild.id.to_string(),
-        channel_create_schema,
-        &mut user.limits,
-        &mut instance.limits,
-    )
-    .await
-    .unwrap();
 
     TestBundle {
         urls,
@@ -90,11 +81,6 @@ pub async fn setup() -> TestBundle {
 
 // Teardown method to clean up after a test.
 pub async fn teardown(mut bundle: TestBundle) {
-    Guild::delete(
-        &mut bundle.user,
-        bundle.instance.urls.get_api(),
-        &bundle.guild.id.to_string(),
-    )
-    .await;
+    Guild::delete(&mut bundle.user, &bundle.guild.id.to_string()).await;
     bundle.user.delete().await;
 }
