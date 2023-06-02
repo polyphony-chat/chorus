@@ -38,7 +38,7 @@ pub struct Guild {
     #[serde(default)]
     pub emojis: Vec<Emoji>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
-    pub features: GuildFeaturesList,
+    pub features: Option<GuildFeaturesList>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub application_id: Option<String>,
     pub system_channel_id: Option<Snowflake>,
