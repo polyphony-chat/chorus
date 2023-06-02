@@ -1144,7 +1144,29 @@ impl Gateway {
                 }
             }
             // We received a heartbeat from the server
-            GATEWAY_HEARTBEAT => {}
+            // "Discord may send the app a Heartbeat (opcode 1) event, in which case the app should send a Heartbeat event immediately."
+            GATEWAY_HEARTBEAT => {
+                println!("GW: Received Heartbeat // Heartbeat Request");
+
+                if self.heartbeat_handler.is_none() {
+                    return;
+                }
+
+                // Tell the heartbeat handler it should send a heartbeat right away
+
+                let heartbeat_communication = HeartbeatThreadCommunication {
+                    sequence_number: gateway_payload.sequence_number,
+                    op_code: Some(GATEWAY_HEARTBEAT),
+                };
+
+                self.heartbeat_handler
+                    .as_mut()
+                    .unwrap()
+                    .send
+                    .send(heartbeat_communication)
+                    .await
+                    .unwrap();
+            }
             GATEWAY_RECONNECT => {
                 todo!()
             }
@@ -1177,21 +1199,20 @@ impl Gateway {
         }
 
         // If we have an active heartbeat thread and we received a seq number we should let it know
-        if gateway_payload.sequence_number.is_some() {
-            if self.heartbeat_handler.is_some() {
-                let heartbeat_communication = HeartbeatThreadCommunication {
-                    op_code: gateway_payload.op_code,
-                    sequence_number: gateway_payload.sequence_number.unwrap(),
-                };
+        if gateway_payload.sequence_number.is_some() && self.heartbeat_handler.is_some() {
+            let heartbeat_communication = HeartbeatThreadCommunication {
+                sequence_number: Some(gateway_payload.sequence_number.unwrap()),
+                // Op code is irrelevant here
+                op_code: None,
+            };
 
-                self.heartbeat_handler
-                    .as_mut()
-                    .unwrap()
-                    .send
-                    .send(heartbeat_communication)
-                    .await
-                    .unwrap();
-            }
+            self.heartbeat_handler
+                .as_mut()
+                .unwrap()
+                .send
+                .send(heartbeat_communication)
+                .await
+                .unwrap();
         }
     }
 }
@@ -1227,15 +1248,36 @@ impl HeartbeatHandler {
             let mut last_seq_number: Option<u64> = None;
 
             loop {
-                // If we received a seq number update, use that as the last seq number
+                let mut should_send;
+
+                let time_to_send =
+                    last_heartbeat_timestamp.elapsed().as_millis() >= heartbeat_interval;
+
+                should_send = time_to_send;
+
                 let received_communication: Result<HeartbeatThreadCommunication, TryRecvError> =
                     receive.try_recv();
                 if received_communication.is_ok() {
-                    last_seq_number = Some(received_communication.unwrap().sequence_number);
-                }
+                    let communication = received_communication.unwrap();
 
-                let should_send =
-                    last_heartbeat_timestamp.elapsed().as_millis() >= heartbeat_interval;
+                    // If we received a seq number update, use that as the last seq number
+                    if communication.sequence_number.is_some() {
+                        last_seq_number = Some(communication.sequence_number.unwrap());
+                    }
+
+                    if communication.op_code.is_some() {
+                        match communication.op_code.unwrap() {
+                            GATEWAY_HEARTBEAT => {
+                                // As per the api docs, if the server sends us a Heartbeat, that means we need to respond with a heartbeat immediately
+                                should_send = true;
+                            }
+                            GATEWAY_HEARTBEAT_ACK => {
+                                todo!()
+                            }
+                            _ => {}
+                        }
+                    }
+                }
 
                 if should_send {
                     println!("GW: Sending Heartbeat..");
@@ -1265,15 +1307,15 @@ impl HeartbeatHandler {
 }
 
 /**
-Used to communicate with the main thread.
-Either signifies a sequence number update or a received heartbeat ack
+Used for communications between the heartbeat and gateway thread.
+Either signifies a sequence number update, a heartbeat ACK or a Heartbeat request by the server
 */
 #[derive(Clone, Copy, Debug)]
 struct HeartbeatThreadCommunication {
-    /// The opcode for the communication we received
-    op_code: u8,
-    /// The sequence number we got from discord
-    sequence_number: u64,
+    /// The opcode for the communication we received, if relevant
+    op_code: Option<u8>,
+    /// The sequence number we got from discord, if any
+    sequence_number: Option<u64>,
 }
 
 /**
