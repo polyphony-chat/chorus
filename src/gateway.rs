@@ -1304,7 +1304,9 @@ impl HeartbeatHandler {
                 }
 
                 // If the server hasn't acknowledged our heartbeat we should resend it
-                if !last_heartbeat_acknowledged && last_heartbeat_timestamp.elapsed().as_millis() > HEARTBEAT_ACK_TIMEOUT {
+                if !last_heartbeat_acknowledged
+                    && last_heartbeat_timestamp.elapsed().as_millis() > HEARTBEAT_ACK_TIMEOUT
+                {
                     should_send = true;
                     println!("GW: Timed out waiting for a heartbeat ack, resending");
                 }
