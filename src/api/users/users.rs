@@ -21,35 +21,10 @@ impl UserMeta {
     * [`InstanceServerError`] - If the request fails.
      */
     pub async fn get(
-        token: &String,
-        url_api: &String,
+        user: &mut UserMeta,
         id: Option<&String>,
-        instance_limits: &mut Limits,
     ) -> Result<User, InstanceServerError> {
-        let url: String;
-        if id.is_none() {
-            url = format!("{}/users/@me/", url_api);
-        } else {
-            url = format!("{}/users/{}", url_api, id.unwrap());
-        }
-        let request = reqwest::Client::new().get(url).bearer_auth(token);
-        let mut requester = crate::limit::LimitedRequester::new().await;
-        let mut cloned_limits = instance_limits.clone();
-        match requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Ip,
-                instance_limits,
-                &mut cloned_limits,
-            )
-            .await
-        {
-            Ok(result) => {
-                let result_text = result.text().await.unwrap();
-                Ok(serde_json::from_str::<User>(&result_text).unwrap())
-            }
-            Err(e) => Err(e),
-        }
+        User::get(user, id).await
     }
 
     pub async fn get_settings(
@@ -57,23 +32,7 @@ impl UserMeta {
         url_api: &String,
         instance_limits: &mut Limits,
     ) -> Result<UserSettings, InstanceServerError> {
-        let request: reqwest::RequestBuilder = Client::new()
-            .get(format!("{}/users/@me/settings/", url_api))
-            .bearer_auth(token);
-        let mut cloned_limits = instance_limits.clone();
-        let mut requester = crate::limit::LimitedRequester::new().await;
-        match requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Ip,
-                instance_limits,
-                &mut cloned_limits,
-            )
-            .await
-        {
-            Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
-            Err(e) => Err(e),
-        }
+        User::get_settings(token, url_api, instance_limits).await
     }
 
     /// Modify the current user's `UserObject`.
@@ -153,6 +112,78 @@ impl UserMeta {
     }
 }
 
+impl User {
+    pub async fn get(
+        user: &mut UserMeta,
+        id: Option<&String>,
+    ) -> Result<User, InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        User::_get(
+            &user.token(),
+            &format!("{}", belongs_to.urls.get_api()),
+            &mut belongs_to.limits,
+            id,
+        )
+        .await
+    }
+
+    async fn _get(
+        token: &str,
+        url_api: &str,
+        limits_instance: &mut Limits,
+        id: Option<&String>,
+    ) -> Result<User, InstanceServerError> {
+        let url: String;
+        if id.is_none() {
+            url = format!("{}/users/@me/", url_api);
+        } else {
+            url = format!("{}/users/{}", url_api, id.unwrap());
+        }
+        let request = reqwest::Client::new().get(url).bearer_auth(token);
+        let mut requester = crate::limit::LimitedRequester::new().await;
+        let mut cloned_limits = limits_instance.clone();
+        match requester
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Ip,
+                limits_instance,
+                &mut cloned_limits,
+            )
+            .await
+        {
+            Ok(result) => {
+                let result_text = result.text().await.unwrap();
+                Ok(serde_json::from_str::<User>(&result_text).unwrap())
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn get_settings(
+        token: &String,
+        url_api: &String,
+        instance_limits: &mut Limits,
+    ) -> Result<UserSettings, InstanceServerError> {
+        let request: reqwest::RequestBuilder = Client::new()
+            .get(format!("{}/users/@me/settings/", url_api))
+            .bearer_auth(token);
+        let mut cloned_limits = instance_limits.clone();
+        let mut requester = crate::limit::LimitedRequester::new().await;
+        match requester
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Ip,
+                instance_limits,
+                &mut cloned_limits,
+            )
+            .await
+        {
+            Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
+            Err(e) => Err(e),
+        }
+    }
+}
+
 impl Instance {
     /**
     Get a user object by id, or get the current user.
@@ -169,11 +200,11 @@ impl Instance {
         token: String,
         id: Option<&String>,
     ) -> Result<User, InstanceServerError> {
-        UserMeta::get(
+        User::_get(
             &token,
             &self.urls.get_api().to_string(),
-            id,
             &mut self.limits,
+            id,
         )
         .await
     }

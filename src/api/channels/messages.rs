@@ -4,7 +4,6 @@ pub mod messages {
     use reqwest::{multipart, Client};
     use serde_json::to_string;
 
-    use crate::api::limits::Limits;
     use crate::instance::UserMeta;
     use crate::limit::LimitedRequester;
     use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment};
@@ -21,28 +20,27 @@ pub mod messages {
         # Errors
         * [`InstanceServerError`] - If the message cannot be sent.
          */
-        pub async fn send<'a>(
-            url_api: String,
+        pub async fn send(
+            user: &mut UserMeta,
             channel_id: String,
             message: &mut MessageSendSchema,
             files: Option<Vec<PartialDiscordFileAttachment>>,
-            token: String,
-            limits_user: &mut Limits,
-            limits_instance: &mut Limits,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+            let mut belongs_to = user.belongs_to.borrow_mut();
+            let url_api = belongs_to.urls.get_api();
             let mut requester = LimitedRequester::new().await;
 
             if files.is_none() {
                 let message_request = Client::new()
                     .post(format!("{}/channels/{}/messages/", url_api, channel_id))
-                    .bearer_auth(token)
+                    .bearer_auth(user.token())
                     .body(to_string(message).unwrap());
                 requester
                     .send_request(
                         message_request,
                         crate::api::limits::LimitType::Channel,
-                        limits_instance,
-                        limits_user,
+                        &mut belongs_to.limits,
+                        &mut user.limits,
                     )
                     .await
             } else {
@@ -75,17 +73,15 @@ pub mod messages {
 
                 let message_request = Client::new()
                     .post(format!("{}/channels/{}/messages/", url_api, channel_id))
-                    .bearer_auth(token)
+                    .bearer_auth(user.token())
                     .multipart(form);
-
-                println!("[Request Headers: ] {:?}", message_request);
 
                 requester
                     .send_request(
                         message_request,
                         crate::api::limits::LimitType::Channel,
-                        limits_instance,
-                        limits_user,
+                        &mut belongs_to.limits,
+                        &mut user.limits,
                     )
                     .await
             }
@@ -93,24 +89,25 @@ pub mod messages {
     }
 
     impl UserMeta {
+        /// Shorthand call for Message::send()
+        /**
+        Sends a message to the Spacebar server.
+        # Arguments
+        * `url_api` - The URL of the Spacebar server's API.
+        * `message` - The [`Message`] that will be sent to the Spacebar server.
+        * `limits_user` - The [`Limits`] of the user.
+        * `limits_instance` - The [`Limits`] of the instance.
+        * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
+        # Errors
+        * [`InstanceServerError`] - If the message cannot be sent.
+         */
         pub async fn send_message(
             &mut self,
             message: &mut MessageSendSchema,
             channel_id: String,
             files: Option<Vec<PartialDiscordFileAttachment>>,
         ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
-            let token = self.token().clone();
-            let mut belongs_to = self.belongs_to.borrow_mut();
-            Message::send(
-                belongs_to.urls.get_api().to_string(),
-                channel_id,
-                message,
-                files,
-                token,
-                &mut self.limits,
-                &mut belongs_to.limits,
-            )
-            .await
+            Message::send(self, channel_id, message, files).await
         }
     }
 }

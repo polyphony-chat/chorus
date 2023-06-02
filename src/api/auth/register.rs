@@ -48,7 +48,6 @@ pub mod register {
             let response_unwrap = response.unwrap();
             let status = response_unwrap.status();
             let response_unwrap_text = response_unwrap.text().await.unwrap();
-            println!("{}", response_unwrap_text);
             let token = from_str::<Token>(&response_unwrap_text).unwrap();
             let token = token.token;
             if status.is_client_error() {

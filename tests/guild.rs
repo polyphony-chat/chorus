@@ -15,15 +15,23 @@ async fn guild_creation_deletion() {
         rules_channel_id: None,
     };
 
-    let guild = Guild::create(&mut bundle.user, bundle.urls.get_api(), guild_create_schema)
+    let guild = Guild::create(&mut bundle.user, guild_create_schema)
         .await
         .unwrap();
 
-    println!("{}", guild);
-
-    match Guild::delete(&mut bundle.user, bundle.urls.get_api(), guild).await {
+    match Guild::delete(&mut bundle.user, &guild.id.to_string()).await {
         None => assert!(true),
         Some(_) => assert!(false),
     }
     common::teardown(bundle).await
+}
+
+#[tokio::test]
+async fn get_channels() {
+    let mut bundle = common::setup().await;
+    println!(
+        "{:?}",
+        bundle.guild.channels(&mut bundle.user).await.unwrap()
+    );
+    common::teardown(bundle).await;
 }

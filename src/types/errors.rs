@@ -14,6 +14,15 @@ pub enum Error {
 
     #[error(transparent)]
     FieldFormat(#[from] FieldFormatError),
+
+    #[error(transparent)]
+    Guild(#[from] GuildError),
+}
+
+#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+pub enum GuildError {
+    #[error("Invalid Guild Feature")]
+    InvalidGuildFeature,
 }
 
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
@@ -44,11 +53,11 @@ pub struct IntermittentError {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ErrorField {
     #[serde(default)]
-    pub _errors: Vec<APIError>,
+    pub _errors: Vec<APIErrorPayload>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct APIError {
+pub struct APIErrorPayload {
     pub message: String,
     pub code: String,
 }
