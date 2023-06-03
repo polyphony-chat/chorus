@@ -140,7 +140,7 @@ impl types::Reaction {
     This endpoint requires the READ_MESSAGE_HISTORY permission
     to be present on the current user. Additionally, if nobody else has reacted to the message using
     this emoji, this endpoint requires the ADD_REACTIONS permission to be present on the current
-    user. Returns a 204 empty response on success. Fires a Message Reaction Add Gateway event.
+    user. Fires a Message Reaction Add Gateway event.
 
      # Arguments
     * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
@@ -150,6 +150,7 @@ impl types::Reaction {
 
     # Returns
     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    Returns a 204 empty response on success.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
