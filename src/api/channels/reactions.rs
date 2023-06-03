@@ -34,4 +34,29 @@ impl ReactionMeta {
             )
             .await
     }
+
+    pub async fn get(
+        &self,
+        emoji: &str,
+        user: &mut UserMeta,
+    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        let url = format!(
+            "{}/channels/{}/messages/{}/reactions/{}/",
+            belongs_to.urls.get_api(),
+            self.channel_id,
+            self.message_id,
+            emoji
+        );
+        let request = Client::new().get(url).bearer_auth(user.token());
+        LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Channel,
+                &mut belongs_to.limits,
+                &mut user.limits,
+            )
+            .await
+    }
 }
