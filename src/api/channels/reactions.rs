@@ -23,6 +23,9 @@ impl ReactionMeta {
 
      # Returns
      A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+
+    # Reference
+    See https://discord.com/developers/docs/resources/channel#delete-all-reactions
      */
     pub async fn delete_all(
         &self,
@@ -58,6 +61,9 @@ impl ReactionMeta {
 
     # Returns
     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+
+    # Reference
+    See https://discord.com/developers/docs/resources/channel#get-reactions
     */
     pub async fn get(
         &self,
@@ -97,6 +103,9 @@ impl ReactionMeta {
 
     # Returns
     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+
+    # Reference
+    See https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji
     */
     pub async fn delete_emoji(
         &self,
