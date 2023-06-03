@@ -25,7 +25,7 @@ impl ReactionMeta {
      A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
 
     # Reference
-    See https://discord.com/developers/docs/resources/channel#delete-all-reactions
+    See [https://discord.com/developers/docs/resources/channel#delete-all-reactions](https://discord.com/developers/docs/resources/channel#delete-all-reactions)
      */
     pub async fn delete_all(
         &self,
@@ -63,7 +63,7 @@ impl ReactionMeta {
     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
 
     # Reference
-    See https://discord.com/developers/docs/resources/channel#get-reactions
+    See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
     */
     pub async fn get(
         &self,
@@ -105,7 +105,7 @@ impl ReactionMeta {
     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
 
     # Reference
-    See https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji
+    See [https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji](https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji)
     */
     pub async fn delete_emoji(
         &self,
@@ -131,8 +131,10 @@ impl ReactionMeta {
             )
             .await
     }
+}
 
-    /*
+impl types::Reaction {
+    /**
     Create a reaction for the message.
 
     This endpoint requires the READ_MESSAGE_HISTORY permission
@@ -150,8 +152,8 @@ impl ReactionMeta {
     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
 
     # Reference
-    See https://discord.com/developers/docs/resources/channel#create-reaction
-     */
+    See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
+    */
     pub async fn create(
         channel_id: &Snowflake,
         message_id: &Snowflake,
