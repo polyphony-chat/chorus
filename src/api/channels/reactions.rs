@@ -12,6 +12,14 @@ pub struct ReactionMeta {
 }
 
 impl ReactionMeta {
+    /**
+     Deletes all reactions for a message.
+    # Arguments
+     * `user` - A mutable reference to a `UserMeta` instance.
+
+     # Returns
+     A `Result` containing a `reqwest::Response` or a `crate::errors::InstanceServerError`.
+     */
     pub async fn delete_all(
         &self,
         user: &mut UserMeta,
@@ -35,6 +43,16 @@ impl ReactionMeta {
             .await
     }
 
+    /**
+    Gets a list of users that reacted with a specific emoji to a message.
+
+    # Arguments
+    * `emoji` - A string slice containing the emoji to search for.
+    * `user` - A mutable reference to a `UserMeta` instance.
+
+    # Returns
+    A `Result` containing a `reqwest::Response` or a `crate::errors::InstanceServerError`.
+    */
     pub async fn get(
         &self,
         emoji: &str,
