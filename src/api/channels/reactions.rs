@@ -176,4 +176,51 @@ impl ReactionMeta {
             )
             .await
     }
+
+    /**
+    Delete a user's reaction to a message.
+
+    This endpoint requires the MANAGE_MESSAGES permission to be present on the current user.
+
+    # Arguments
+    * `user_id` - A string slice containing the ID of the user whose reaction is to be deleted.
+    * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
+    the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
+    format name:id with the emoji name and emoji id.
+    * `user` - A mutable reference to a [`UserMeta`] instance.
+
+    # Returns
+    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    Returns a 204 empty response on success.
+    Fires a Message Reaction Remove Gateway event.
+
+    # Reference
+    See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
+    */
+    pub async fn delete_user(
+        &self,
+        user_id: &str,
+        emoji: &str,
+        user: &mut UserMeta,
+    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        let url = format!(
+            "{}/channels/{}/messages/{}/reactions/{}/{}",
+            belongs_to.urls.get_api(),
+            self.channel_id,
+            self.message_id,
+            emoji,
+            user_id
+        );
+        let request = Client::new().delete(url).bearer_auth(user.token());
+        LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Channel,
+                &mut belongs_to.limits,
+                &mut user.limits,
+            )
+            .await
+    }
 }
