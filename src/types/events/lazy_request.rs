@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::WebSocketEvent;
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented
 ///
 /// Sent to the server to signify lazy loading of a guild;

@@ -1,7 +1,7 @@
 use crate::types::events::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#request-guild-members-request-guild-members-structure
 pub struct GatewayRequestGuildMembers {
     pub guild_id: String,

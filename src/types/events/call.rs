@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{VoiceState, WebSocketEvent};
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented
 /// Is sent to a client by the server to signify a new being created
 /// {"t":"CALL_CREATE","s":2,"op":0,"d":{"voice_states":[],"ringing":[],"region":"milan","message_id":"1107187514906775613","embedded_activities":[],"channel_id":"837609115475771392"}}
@@ -18,7 +18,7 @@ pub struct CallCreate {
 }
 impl WebSocketEvent for CallCreate {}
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented
 /// Updates the status of calls
 /// {"t":"CALL_UPDATE","s":5,"op":0,"d":{"ringing":["837606544539254834"],"region":"milan","message_id":"1107191540234846308","guild_id":null,"channel_id":"837609115475771392"}}
@@ -32,7 +32,7 @@ pub struct CallUpdate {
 }
 impl WebSocketEvent for CallUpdate {}
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented
 /// Deletes a ringing call
 /// {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
@@ -41,7 +41,7 @@ pub struct CallDelete {
 }
 impl WebSocketEvent for CallDelete {}
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented
 /// See https://unofficial-discord-docs.vercel.app/gateway/op13
 /// {"op":13,"d":{"channel_id":"837609115475771392"}}

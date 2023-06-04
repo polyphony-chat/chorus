@@ -3,7 +3,7 @@ use crate::types::events::WebSocketEvent;
 use crate::types::utils::Snowflake;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#user-update
 pub struct UserUpdate {
     #[serde(flatten)]
@@ -12,7 +12,7 @@ pub struct UserUpdate {
 
 impl WebSocketEvent for UserUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Undocumented
 ///
 /// Possibly an update for muted guild / channel settings for the current user
@@ -37,7 +37,7 @@ pub struct UserGuildSettingsUpdate {
 
 impl WebSocketEvent for UserGuildSettingsUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Undocumented
 ///
 /// Received in [UserGuildSettingsUpdate]

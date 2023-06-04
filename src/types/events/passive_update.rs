@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::{ChannelUnreadUpdateObject, WebSocketEvent};
 use crate::types::{GuildMember, VoiceState};
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented
 ///
 /// Seems to be passively set to update the client on guild details (though, why not just send the update events?)

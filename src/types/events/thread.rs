@@ -2,7 +2,7 @@ use crate::types::entities::{Channel, ThreadMember};
 use crate::types::events::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-create
 pub struct ThreadCreate {
     #[serde(flatten)]
@@ -11,7 +11,7 @@ pub struct ThreadCreate {
 
 impl WebSocketEvent for ThreadCreate {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-update
 pub struct ThreadUpdate {
     #[serde(flatten)]
@@ -20,7 +20,7 @@ pub struct ThreadUpdate {
 
 impl WebSocketEvent for ThreadUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-delete
 pub struct ThreadDelete {
     #[serde(flatten)]
@@ -29,7 +29,7 @@ pub struct ThreadDelete {
 
 impl WebSocketEvent for ThreadDelete {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-list-sync
 pub struct ThreadListSync {
     pub guild_id: String,
@@ -40,7 +40,7 @@ pub struct ThreadListSync {
 
 impl WebSocketEvent for ThreadListSync {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-member-update
 /// The inner payload is a thread member object with an extra field.
 pub struct ThreadMemberUpdate {
@@ -51,7 +51,7 @@ pub struct ThreadMemberUpdate {
 
 impl WebSocketEvent for ThreadMemberUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-members-update
 pub struct ThreadMembersUpdate {
     pub id: String,

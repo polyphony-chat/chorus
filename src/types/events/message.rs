@@ -1,11 +1,10 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Emoji, GuildMember, Message, PublicUser};
 
 use super::WebSocketEvent;
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct TypingStartEvent {
     pub channel_id: String,
     pub guild_id: Option<String>,
@@ -16,7 +15,7 @@ pub struct TypingStartEvent {
 
 impl WebSocketEvent for TypingStartEvent {}
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#message-create
 pub struct MessageCreate {
     #[serde(flatten)]
@@ -26,7 +25,7 @@ pub struct MessageCreate {
     mentions: Option<Vec<MessageCreateUser>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#message-create-message-create-extra-fields
 pub struct MessageCreateUser {
     #[serde(flatten)]
@@ -36,7 +35,7 @@ pub struct MessageCreateUser {
 
 impl WebSocketEvent for MessageCreate {}
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageUpdate {
     #[serde(flatten)]
     message: Message,
@@ -47,7 +46,7 @@ pub struct MessageUpdate {
 
 impl WebSocketEvent for MessageUpdate {}
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageDelete {
     id: String,
     channel_id: String,
@@ -56,7 +55,7 @@ pub struct MessageDelete {
 
 impl WebSocketEvent for MessageDelete {}
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageDeleteBulk {
     ids: Vec<String>,
     channel_id: String,
@@ -65,7 +64,7 @@ pub struct MessageDeleteBulk {
 
 impl WebSocketEvent for MessageDeleteBulk {}
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionAdd {
     user_id: String,
     channel_id: String,
@@ -77,7 +76,7 @@ pub struct MessageReactionAdd {
 
 impl WebSocketEvent for MessageReactionAdd {}
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionRemove {
     user_id: String,
     channel_id: String,
@@ -88,7 +87,7 @@ pub struct MessageReactionRemove {
 
 impl WebSocketEvent for MessageReactionRemove {}
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionRemoveAll {
     channel_id: String,
     message_id: String,
@@ -97,7 +96,7 @@ pub struct MessageReactionRemoveAll {
 
 impl WebSocketEvent for MessageReactionRemoveAll {}
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionRemoveEmoji {
     channel_id: String,
     message_id: String,
@@ -107,7 +106,7 @@ pub struct MessageReactionRemoveEmoji {
 
 impl WebSocketEvent for MessageReactionRemoveEmoji {}
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented
 ///
 /// Not documented anywhere unofficially
