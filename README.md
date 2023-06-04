@@ -74,7 +74,7 @@
 ### Permissions and Roles
 - [ ] [Role management](https://github.com/polyphony-chat/chorus/issues/46) (creation, deletion, modification)
 - [ ] [Permission management](https://github.com/polyphony-chat/chorus/issues/46) (assigning and revoking permissions)
-- [ ] Channel-specific permissions
+- [ ] [Channel-specific permissions](https://github.com/polyphony-chat/chorus/issues/88)
 - [ ] Role-based access control
 
 ### Server Management
