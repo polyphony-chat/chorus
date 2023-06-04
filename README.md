@@ -45,7 +45,7 @@
 - [x] [Channel management (name, description, icon, etc.)](https://github.com/polyphony-chat/chorus/issues/48)
 - [ ] Deleting messages
 - [ ] Message threads
-- [ ] [Reactions](https://github.com/polyphony-chat/chorus/issues/85)
+- [x] [Reactions](https://github.com/polyphony-chat/chorus/issues/85)
 - [ ] Message Search
 - [ ] Message history
 
