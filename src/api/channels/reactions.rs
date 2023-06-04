@@ -16,16 +16,19 @@ pub struct ReactionMeta {
 
 impl ReactionMeta {
     /**
-     Deletes all reactions for a message.
-    # Arguments
-     * `user` - A mutable reference to a [`UserMeta`] instance.
+    Deletes all reactions for a message.
+    This endpoint requires the `MANAGE_MESSAGES` permission to be present on the current user.
 
-     # Returns
-     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    # Arguments
+    * `user` - A mutable reference to a [`UserMeta`] instance.
+
+    # Returns
+    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    Fires a `Message Reaction Remove All` Gateway event.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions](https://discord.com/developers/docs/resources/channel#delete-all-reactions)
-     */
+    */
     pub async fn delete_all(
         &self,
         user: &mut UserMeta,
@@ -91,8 +94,7 @@ impl ReactionMeta {
 
     /**
     Deletes all the reactions for a given `emoji` on a message. This endpoint requires the
-    MANAGE_MESSAGES permission to be present on the current user. Fires a `Message Reaction
-    Remove Emoji` Gateway event.
+    MANAGE_MESSAGES permission to be present on the current user.
 
     # Arguments
     * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
@@ -102,6 +104,7 @@ impl ReactionMeta {
 
     # Returns
     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    Fires a `Message Reaction Remove Emoji` Gateway event.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji](https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji)
@@ -137,8 +140,7 @@ impl ReactionMeta {
     This endpoint requires the READ_MESSAGE_HISTORY permission
     to be present on the current user. Additionally, if nobody else has reacted to the message using
     this emoji, this endpoint requires the ADD_REACTIONS permission to be present on the current
-    user. Fires a Message Reaction Add Gateway event.
-
+    user.
      # Arguments
     * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
     the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
@@ -148,6 +150,7 @@ impl ReactionMeta {
     # Returns
     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
     Returns a 204 empty response on success.
+    Fires a Message Reaction Add Gateway event.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
