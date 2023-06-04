@@ -193,6 +193,9 @@ impl ReactionMeta {
     A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
     Returns a 204 empty response on success.
     Fires a `Message Reaction Remove` Gateway event.
+
+    # Reference
+    See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
      */
     pub async fn remove(
         &self,
