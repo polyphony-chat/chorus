@@ -43,6 +43,8 @@
 - [x] Channel creation
 - [x] Channel deletion
 - [x] [Channel management (name, description, icon, etc.)](https://github.com/polyphony-chat/chorus/issues/48)
+- [ ] [Join and Leave Guilds](https://github.com/polyphony-chat/chorus/issues/45)
+- [ ] [Start DMs](https://github.com/polyphony-chat/chorus/issues/45)
 - [ ] Deleting messages
 - [ ] Message threads
 - [x] [Reactions](https://github.com/polyphony-chat/chorus/issues/85)
@@ -70,8 +72,8 @@
 - [ ] Video chat support
 
 ### Permissions and Roles
-- [ ] Role management (creation, deletion, modification)
-- [ ] Permission management (assigning and revoking permissions)
+- [ ] [Role management](https://github.com/polyphony-chat/chorus/issues/46) (creation, deletion, modification)
+- [ ] [Permission management](https://github.com/polyphony-chat/chorus/issues/46) (assigning and revoking permissions)
 - [ ] Channel-specific permissions
 - [ ] Role-based access control
 
