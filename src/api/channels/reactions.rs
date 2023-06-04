@@ -7,12 +7,11 @@ use crate::{
 };
 
 /**
-Extends the [`types::Reaction`] struct with useful metadata.
+Useful metadata for working with [`types::Reaction`], bundled together nicely.
  */
 pub struct ReactionMeta {
     pub message_id: types::Snowflake,
     pub channel_id: types::Snowflake,
-    pub reaction: types::Reaction,
 }
 
 impl ReactionMeta {
@@ -131,9 +130,7 @@ impl ReactionMeta {
             )
             .await
     }
-}
 
-impl types::Reaction {
     /**
     Create a reaction for the message.
 
@@ -156,8 +153,7 @@ impl types::Reaction {
     See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
     */
     pub async fn create(
-        channel_id: &Snowflake,
-        message_id: &Snowflake,
+        &self,
         emoji: &str,
         user: &mut UserMeta,
     ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
@@ -165,8 +161,8 @@ impl types::Reaction {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
             belongs_to.urls.get_api(),
-            channel_id,
-            message_id,
+            self.channel_id,
+            self.message_id,
             emoji
         );
         let request = Client::new().put(url).bearer_auth(user.token());
