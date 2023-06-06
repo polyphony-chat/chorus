@@ -52,7 +52,7 @@ pub struct RoleTags {
 }
 
 #[derive(Debug)]
-enum PermissionFlags {
+pub enum PermissionFlags {
     CreateInstantInvite = 0x0000000000000001,
     KickMembers = 0x0000000000000002,
     BanMembers = 0x0000000000000004,
