@@ -52,6 +52,7 @@ pub struct RoleTags {
 }
 
 #[derive(Debug)]
+#[repr(u64)]
 pub enum PermissionFlags {
     CreateInstantInvite = 0x0000000000000001,
     KickMembers = 0x0000000000000002,
@@ -98,4 +99,29 @@ pub enum PermissionFlags {
     UseSoundboard = 0x0000040000000000,
     UseExternalSounds = 0x0000200000000000,
     SendVoiceMessages = 0x0000400000000000,
+}
+
+impl RoleObject {
+    /// Checks if the role has a specific permission.
+    ///
+    /// # Arguments
+    ///
+    /// * `permission` - The permission to check for.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use chorus::types;
+    /// let mut role = types::RoleObject::default();
+    /// let permission = types::PermissionFlags::ModerateMembers as u64 | types::PermissionFlags::UseSoundboard as u64;
+    /// role.permissions = permission.to_string();
+    /// assert_eq!(true, role.has_permission(types::PermissionFlags::ModerateMembers));
+    /// assert_eq!(true, role.has_permission(types::PermissionFlags::UseSoundboard));
+    /// ```
+    pub fn has_permission(&self, permission: PermissionFlags) -> bool {
+        if self.permissions.parse::<u64>().unwrap() & permission as u64 != 0 {
+            return true;
+        }
+        false
+    }
 }
