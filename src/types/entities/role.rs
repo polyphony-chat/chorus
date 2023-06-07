@@ -16,8 +16,7 @@ pub struct RoleObject {
     pub unicode_emoji: Option<String>,
     pub position: u16,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub permissions: String,
+    pub permissions: PermissionFlags,
     pub managed: bool,
     pub mentionable: bool,
     #[cfg(feature = "sqlx")]
@@ -53,6 +52,7 @@ pub struct RoleTags {
 }
 
 bitflags! {
+    #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     pub struct PermissionFlags: u64 {
         const CREATE_INSTANT_INVITE = 1 << 0;
         const KICK_MEMBERS = 1 << 1;
@@ -99,5 +99,11 @@ bitflags! {
         const USE_SOUNDBOARD = 1 << 42;
         const USE_EXTERNAL_SOUNDS = 1 << 45;
         const SEND_VOICE_MESSAGES = 1 << 46;
+    }
+}
+
+impl PermissionFlags {
+    pub fn has_permission(&self, permission: PermissionFlags) -> bool {
+        self.contains(permission) || self.contains(PermissionFlags::ADMINISTRATOR)
     }
 }
