@@ -3,7 +3,7 @@ use reqwest::Client;
 use crate::{
     instance::UserMeta,
     limit::LimitedRequester,
-    types::{self, Snowflake},
+    types::{self},
 };
 
 /**

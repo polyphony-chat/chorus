@@ -2,7 +2,6 @@ use reqwest::Client;
 use serde_json::{from_str, to_string};
 
 use crate::{
-    api::limits::Limits,
     errors::InstanceServerError,
     instance::UserMeta,
     limit::LimitedRequester,
