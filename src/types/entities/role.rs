@@ -1,3 +1,4 @@
+use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::{deserialize_option_number_from_string, deserialize_string_from_number};
 
@@ -51,77 +52,52 @@ pub struct RoleTags {
     // guild_connections: bool,
 }
 
-#[derive(Debug)]
-#[repr(u64)]
-pub enum PermissionFlags {
-    CreateInstantInvite = 0x0000000000000001,
-    KickMembers = 0x0000000000000002,
-    BanMembers = 0x0000000000000004,
-    Administrator = 0x0000000000000008,
-    ManageChannels = 0x0000000000000010,
-    ManageGuild = 0x0000000000000020,
-    AddReactions = 0x0000000000000040,
-    ViewAuditLog = 0x0000000000000080,
-    PrioritySpeaker = 0x0000000000000100,
-    Stream = 0x0000000000000200,
-    ViewChannel = 0x0000000000000400,
-    SendMessages = 0x0000000000000800,
-    SendTtsMessages = 0x0000000000001000,
-    ManageMessages = 0x0000000000002000,
-    EmbedLinks = 0x0000000000004000,
-    AttachFiles = 0x0000000000008000,
-    ReadMessageHistory = 0x0000000000010000,
-    MentionEveryone = 0x0000000000020000,
-    UseExternalEmojis = 0x0000000000040000,
-    ViewGuildInsights = 0x0000000000080000,
-    Connect = 0x0000000000100000,
-    Speak = 0x0000000000200000,
-    MuteMembers = 0x0000000000400000,
-    DeafenMembers = 0x0000000000800000,
-    MoveMembers = 0x0000000001000000,
-    UseVad = 0x0000000002000000,
-    ChangeNickname = 0x0000000004000000,
-    ManageNicknames = 0x0000000008000000,
-    ManageRoles = 0x0000000010000000,
-    ManageWebhooks = 0x0000000020000000,
-    ManageGuildExpressions = 0x0000000040000000,
-    UseApplicationCommands = 0x0000000080000000,
-    RequestToSpeak = 0x0000000100000000,
-    ManageEvents = 0x0000000200000000,
-    ManageThreads = 0x0000000400000000,
-    CreatePublicThreads = 0x0000000800000000,
-    CreatePrivateThreads = 0x0000001000000000,
-    UseExternalStickers = 0x0000002000000000,
-    SendMessagesInThreads = 0x0000004000000000,
-    UseEmbeddedActivities = 0x0000008000000000,
-    ModerateMembers = 0x0000010000000000,
-    ViewCreatorMonetizationAnalytics = 0x0000020000000000,
-    UseSoundboard = 0x0000040000000000,
-    UseExternalSounds = 0x0000200000000000,
-    SendVoiceMessages = 0x0000400000000000,
-}
-
-impl RoleObject {
-    /// Checks if the role has a specific permission.
-    ///
-    /// # Arguments
-    ///
-    /// * `permission` - The permission to check for.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use chorus::types;
-    /// let mut role = types::RoleObject::default();
-    /// let permission = types::PermissionFlags::ModerateMembers as u64 | types::PermissionFlags::UseSoundboard as u64;
-    /// role.permissions = permission.to_string();
-    /// assert_eq!(true, role.has_permission(types::PermissionFlags::ModerateMembers));
-    /// assert_eq!(true, role.has_permission(types::PermissionFlags::UseSoundboard));
-    /// ```
-    pub fn has_permission(&self, permission: PermissionFlags) -> bool {
-        if self.permissions.parse::<u64>().unwrap() & permission as u64 != 0 {
-            return true;
-        }
-        false
+bitflags! {
+    pub struct PermissionFlags: u64 {
+        const CREATE_INSTANT_INVITE = 1 << 0;
+        const KICK_MEMBERS = 1 << 1;
+        const BAN_MEMBERS = 1 << 2;
+        const ADMINISTRATOR = 1 << 3;
+        const MANAGE_CHANNELS = 1 << 4;
+        const MANAGE_GUILD = 1 << 5;
+        const ADD_REACTIONS = 1 << 6;
+        const VIEW_AUDIT_LOG = 1 << 7;
+        const PRIORITY_SPEAKER = 1 << 8;
+        const STREAM = 1 << 9;
+        const VIEW_CHANNEL = 1 << 10;
+        const SEND_MESSAGES = 1 << 11;
+        const SEND_TTS_MESSAGES = 1 << 12;
+        const MANAGE_MESSAGES = 1 << 13;
+        const EMBED_LINKS = 1 << 14;
+        const ATTACH_FILES = 1 << 15;
+        const READ_MESSAGE_HISTORY = 1 << 16;
+        const MENTION_EVERYONE = 1 << 17;
+        const USE_EXTERNAL_EMOJIS = 1 << 18;
+        const VIEW_GUILD_INSIGHTS = 1 << 19;
+        const CONNECT = 1 << 20;
+        const SPEAK = 1 << 21;
+        const MUTE_MEMBERS = 1 << 22;
+        const DEAFEN_MEMBERS = 1 << 23;
+        const MOVE_MEMBERS = 1 << 24;
+        const USE_VAD = 1 << 25;
+        const CHANGE_NICKNAME = 1 << 26;
+        const MANAGE_NICKNAMES = 1 << 27;
+        const MANAGE_ROLES = 1 << 28;
+        const MANAGE_WEBHOOKS = 1 << 29;
+        const MANAGE_GUILD_EXPRESSIONS = 1 << 30;
+        const USE_APPLICATION_COMMANDS = 1 << 31;
+        const REQUEST_TO_SPEAK = 1 << 32;
+        const MANAGE_EVENTS = 1 << 33;
+        const MANAGE_THREADS = 1 << 34;
+        const CREATE_PUBLIC_THREADS = 1 << 35;
+        const CREATE_PRIVATE_THREADS = 1 << 36;
+        const USE_EXTERNAL_STICKERS = 1 << 37;
+        const SEND_MESSAGES_IN_THREADS = 1 << 38;
+        const USE_EMBEDDED_ACTIVITIES = 1 << 39;
+        const MODERATE_MEMBERS = 1 << 40;
+        const VIEW_CREATOR_MONETIZATION_ANALYTICS = 1 << 41;
+        const USE_SOUNDBOARD = 1 << 42;
+        const USE_EXTERNAL_SOUNDS = 1 << 45;
+        const SEND_VOICE_MESSAGES = 1 << 46;
     }
 }
