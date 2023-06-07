@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::{deserialize_option_number_from_string, deserialize_string_from_number};
+use serde_aux::prelude::deserialize_option_number_from_string;
 
 use crate::types::utils::Snowflake;
 
