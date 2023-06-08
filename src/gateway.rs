@@ -1820,11 +1820,4 @@ mod example {
 
         event.subscribe(arc_mut_second_consumer.clone()).unwrap();
     }
-
-    #[tokio::test]
-    async fn test_gateway_establish() {
-        let _gateway = Gateway::new("ws://localhost:3001/".to_string())
-            .await
-            .unwrap();
-    }
 }
