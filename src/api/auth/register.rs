@@ -6,7 +6,7 @@ pub mod register {
 
     use crate::{
         api::limits::LimitType,
-        errors::InstanceServerError,
+        errors::ChorusLibError,
         instance::{Instance, Token, UserMeta},
         limit::LimitedRequester,
         types::{ErrorResponse, RegisterSchema},
@@ -18,12 +18,12 @@ pub mod register {
         # Arguments
         * `register_schema` - The [`RegisterSchema`] that contains all the information that is needed to register a new user.
         # Errors
-        * [`InstanceServerError`] - If the server does not respond.
+        * [`ChorusLibError`] - If the server does not respond.
          */
         pub async fn register_account(
             &mut self,
             register_schema: &RegisterSchema,
-        ) -> Result<UserMeta, InstanceServerError> {
+        ) -> Result<UserMeta, ChorusLibError> {
             let json_schema = json!(register_schema);
             let mut limited_requester = LimitedRequester::new().await;
             let client = Client::new();
@@ -42,7 +42,7 @@ pub mod register {
                 )
                 .await;
             if response.is_err() {
-                return Err(InstanceServerError::NoResponse);
+                return Err(ChorusLibError::NoResponse);
             }
 
             let response_unwrap = response.unwrap();
@@ -59,7 +59,7 @@ pub mod register {
                         error += &(error_item.message.to_string() + " (" + &error_item.code + ")");
                     }
                 }
-                return Err(InstanceServerError::InvalidFormBodyError { error_type, error });
+                return Err(ChorusLibError::InvalidFormBodyError { error_type, error });
             }
             let user_object = self.get_user(token.clone(), None).await.unwrap();
             let settings =

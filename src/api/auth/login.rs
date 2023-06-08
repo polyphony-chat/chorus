@@ -6,7 +6,7 @@ pub mod login {
     use serde_json::{from_str, json};
 
     use crate::api::limits::LimitType;
-    use crate::errors::InstanceServerError;
+    use crate::errors::ChorusLibError;
     use crate::instance::{Instance, UserMeta};
     use crate::limit::LimitedRequester;
     use crate::types::{ErrorResponse, LoginResult, LoginSchema};
@@ -15,7 +15,7 @@ pub mod login {
         pub async fn login_account(
             &mut self,
             login_schema: &LoginSchema,
-        ) -> Result<UserMeta, InstanceServerError> {
+        ) -> Result<UserMeta, ChorusLibError> {
             let mut requester = LimitedRequester::new().await;
             let json_schema = json!(login_schema);
             let client = Client::new();
@@ -34,7 +34,7 @@ pub mod login {
                 )
                 .await;
             if response.is_err() {
-                return Err(InstanceServerError::NoResponse);
+                return Err(ChorusLibError::NoResponse);
             }
 
             let response_unwrap = response.unwrap();
@@ -49,7 +49,7 @@ pub mod login {
                         error += &(error_item.message.to_string() + " (" + &error_item.code + ")");
                     }
                 }
-                return Err(InstanceServerError::InvalidFormBodyError { error_type, error });
+                return Err(ChorusLibError::InvalidFormBodyError { error_type, error });
             }
 
             let cloned_limits = self.limits.clone();

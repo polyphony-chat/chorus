@@ -11,7 +11,7 @@ custom_error! {
 
 custom_error! {
     #[derive(PartialEq, Eq)]
-    pub InstanceServerError
+    pub ChorusLibError
     NoResponse = "Did not receive a response from the Server.",
     RequestErrorError{url:String, error:String} = "An error occured while trying to GET from {url}: {error}",
     ReceivedErrorCodeError{error_code:String} = "Received the following error code while requesting from the route: {error_code}",

@@ -1,17 +1,17 @@
 use reqwest::Client;
-use serde_json::from_str;
+use serde_json::{from_str, to_string};
 
 use crate::{
     instance::UserMeta,
     limit::LimitedRequester,
-    types::{self, RoleObject},
+    types::{self, RoleCreateModifySchema, RoleObject},
 };
 
 impl types::RoleObject {
     pub async fn get_all(
         user: &mut UserMeta,
         guild_id: &str,
-    ) -> Result<Option<Vec<RoleObject>>, crate::errors::InstanceServerError> {
+    ) -> Result<Option<Vec<RoleObject>>, crate::errors::ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
         let request = Client::new().get(url).bearer_auth(user.token());
@@ -35,5 +35,19 @@ impl types::RoleObject {
         }
 
         Ok(Some(roles))
+    }
+
+    pub async fn create(
+        user: &mut UserMeta,
+        guild_id: &str,
+        role_create_schema: RoleCreateModifySchema,
+    ) {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
+        let body = match to_string::<RoleCreateModifySchema>(&role_create_schema) {
+            Ok(string) => string,
+            Err(e) => 
+        };
+        let request = Client::new().post(url).bearer_auth(user.token()).body()
     }
 }
