@@ -19,6 +19,7 @@ custom_error! {
     InvalidFormBodyError{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
     RateLimited{bucket:String} = "Ratelimited on Bucket {bucket}",
     MultipartCreationError{error: String} = "Got an error whilst creating the form: {}",
+    FormCreationError{error: String} = "Got an error whilst creating the form: {}",
     TokenExpired = "Token expired, invalid or not found.",
     NoPermission = "You do not have the permissions needed to perform this action.",
     NotFound{error: String} = "The provided resource hasn't been found: {}",
