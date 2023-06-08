@@ -43,44 +43,46 @@
 - [x] Channel creation
 - [x] Channel deletion
 - [x] [Channel management (name, description, icon, etc.)](https://github.com/polyphony-chat/chorus/issues/48)
-- [ ] Deleting messages
-- [ ] Message threads
-- [ ] [Reactions](https://github.com/polyphony-chat/chorus/issues/85)
+- [ ] [Join and Leave Guilds](https://github.com/polyphony-chat/chorus/issues/45)
+- [ ] [Start DMs](https://github.com/polyphony-chat/chorus/issues/45)
+- [ ] [Group DM creation, deletion and member management](https://github.com/polyphony-chat/chorus/issues/89)
+- [ ] [Deleting messages](https://github.com/polyphony-chat/chorus/issues/91)
+- [ ] [Message threads](https://github.com/polyphony-chat/chorus/issues/90)
+- [x] [Reactions](https://github.com/polyphony-chat/chorus/issues/85)
 - [ ] Message Search
 - [ ] Message history
+- [ ] Emoji
+- [ ] Stickers
+- [ ] [Forum channels](https://github.com/polyphony-chat/chorus/issues/90)
 
 ### User Management
-- [ ] User profile customization
+- [ ] [User profile customization](https://github.com/polyphony-chat/chorus/issues/41)
 - [x] Gettings users and user profiles
-- [ ] Friend requests
-- [ ] Blocking users
+- [ ] [Friend requests](https://github.com/polyphony-chat/chorus/issues/92)
+- [ ] [Blocking users](https://github.com/polyphony-chat/chorus/issues/92)
 - [ ] User presence (online, offline, idle, etc.)
 - [ ] User status (custom status, etc.)
 - [x] Account deletion
 
 ### Additional Features
-- [ ] Emoji
-- [ ] Stickers
-- [ ] Forum channels
 - [ ] Server discovery
 - [ ] Server templates
 
 ### Voice and Video
-- [ ] Voice chat support
-- [ ] Video chat support
+- [ ] [Voice chat support](https://github.com/polyphony-chat/chorus/issues/49)
+- [ ] [Video chat support](https://github.com/polyphony-chat/chorus/issues/49)
 
 ### Permissions and Roles
-- [ ] Role management (creation, deletion, modification)
-- [ ] Permission management (assigning and revoking permissions)
-- [ ] Channel-specific permissions
+- [ ] [Role management](https://github.com/polyphony-chat/chorus/issues/46) (creation, deletion, modification)
+- [ ] [Permission management](https://github.com/polyphony-chat/chorus/issues/46) (assigning and revoking permissions)
+- [ ] [Channel-specific permissions](https://github.com/polyphony-chat/chorus/issues/88)
 - [ ] Role-based access control
 
-### Server Management
-- [x] Server creation
-- [x] Server deletion
-- [ ] Server settings management (name, description, icon, etc.)
-- [ ] Member management (adding, removing, banning, unbanning)
-- [ ] Server invites
+### Guild Management
+- [x] Guild creation
+- [x] Guild deletion
+- [ ] [Guild settings (name, description, icon, etc.)](https://github.com/polyphony-chat/chorus/issues/43)
+- [ ] Guild invites
 
 ### Moderation
 - [ ] Channel moderation (slow mode, etc.)
