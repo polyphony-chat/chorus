@@ -23,4 +23,5 @@ pub struct RoleCreateSchema {
     pub icon: Option<Vec<u8>>,
     pub unicode_emoji: Option<String>,
     pub mentionable: Option<bool>,
+    pub position: Option<i32>,
 }
