@@ -15,7 +15,7 @@ pub struct GuildCreateSchema {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
-pub struct RoleCreateSchema {
+pub struct RoleCreateModifySchema {
     pub name: Option<String>,
     pub permissions: Option<String>,
     pub color: Option<u32>,
