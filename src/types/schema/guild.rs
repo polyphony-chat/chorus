@@ -1,4 +1,4 @@
-use crate::types::entities::Channel;
+use crate::types::{entities::Channel, Snowflake};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -24,4 +24,11 @@ pub struct RoleCreateModifySchema {
     pub unicode_emoji: Option<String>,
     pub mentionable: Option<bool>,
     pub position: Option<i32>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct RolePositionUpdateSchema {
+    pub id: Snowflake,
+    pub position: i32,
 }
