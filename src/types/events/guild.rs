@@ -7,8 +7,9 @@ use serde::{Deserialize, Serialize};
 use super::PresenceUpdate;
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-create
-/// This one is particularly painful, it can be a Guild object with an extra field or an unavailable guild object
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-create;
+/// Received to give data about a guild;
+// This one is particularly painful, it can be a Guild object with an extra field or an unavailable guild object
 pub struct GuildCreate {
     #[serde(flatten)]
     pub d: GuildCreateDataOption,
@@ -29,7 +30,8 @@ impl Default for GuildCreateDataOption {
 impl WebSocketEvent for GuildCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-add-guild-ban-add-event-fields
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-add-guild-ban-add-event-fields;
+/// Received to give info about a user being banned from a guild;
 pub struct GuildBanAdd {
     pub guild_id: String,
     pub user: PublicUser,
@@ -38,7 +40,8 @@ pub struct GuildBanAdd {
 impl WebSocketEvent for GuildBanAdd {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-remove
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-remove;
+/// Received to give info about a user being unbanned from a guild;
 pub struct GuildBanRemove {
     pub guild_id: String,
     pub user: PublicUser,
@@ -47,7 +50,8 @@ pub struct GuildBanRemove {
 impl WebSocketEvent for GuildBanRemove {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-update
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-update;
+/// Received to give info about a guild being updated;
 pub struct GuildUpdate {
     #[serde(flatten)]
     pub guild: Guild,
@@ -56,7 +60,8 @@ pub struct GuildUpdate {
 impl WebSocketEvent for GuildUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-delete
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-delete;
+/// Received to tell the client about a guild being deleted;
 pub struct GuildDelete {
     #[serde(flatten)]
     pub guild: UnavailableGuild,
@@ -65,7 +70,8 @@ pub struct GuildDelete {
 impl WebSocketEvent for GuildDelete {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-audit-log-entry-create
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-audit-log-entry-create;
+/// Received to the client about an audit log entry being added;
 pub struct GuildAuditLogEntryCreate {
     #[serde(flatten)]
     pub entry: AuditLogEntry,
@@ -74,7 +80,8 @@ pub struct GuildAuditLogEntryCreate {
 impl WebSocketEvent for GuildAuditLogEntryCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-emojis-update
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-emojis-update;
+/// Received to tell the client about a change to a guild's emoji list;
 pub struct GuildEmojisUpdate {
     pub guild_id: String,
     pub emojis: Vec<Emoji>,
@@ -83,7 +90,8 @@ pub struct GuildEmojisUpdate {
 impl WebSocketEvent for GuildEmojisUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-stickers-update
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-stickers-update;
+/// Received to tell the client about a change to a guild's sticker list;
 pub struct GuildStickersUpdate {
     pub guild_id: String,
     pub stickers: Vec<Sticker>,
@@ -100,7 +108,8 @@ pub struct GuildIntegrationsUpdate {
 impl WebSocketEvent for GuildIntegrationsUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-add
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-add;
+/// Received to tell the client about a user joining a guild;
 pub struct GuildMemberAdd {
     #[serde(flatten)]
     pub member: GuildMember,
@@ -110,7 +119,8 @@ pub struct GuildMemberAdd {
 impl WebSocketEvent for GuildMemberAdd {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-remove
+/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-remove;
+/// Received to tell the client about a user leaving a guild;
 pub struct GuildMemberRemove {
     pub guild_id: String,
     pub user: PublicUser,

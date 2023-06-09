@@ -101,7 +101,7 @@ impl GatewayMessage {
             "unknown opcode" | "4001" => {
                 return Some(GatewayError::UnknownOpcodeError);
             }
-            "decode error" | "4002" => {
+            "decode error" | "error while decoding payload" | "4002" => {
                 return Some(GatewayError::DecodeError);
             }
             "not authenticated" | "4003" => {
@@ -281,8 +281,10 @@ impl GatewayHandle {
             .await;
     }
 
-    /// Closes the websocket connection and stops all gateway tasks
-    pub async fn close(&mut self) {
+    /// Closes the websocket connection and stops all gateway tasks;
+    ///
+    /// Esentially pulls the plug on the gateway, leaving it possible to resume;
+    pub async fn close(&self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();
     }
@@ -408,6 +410,14 @@ impl Gateway {
     /// This handles a message as a websocket event and updates its events along with the events' observers
     pub async fn handle_event(&mut self, msg: GatewayMessage) {
         if msg.is_empty() {
+            return;
+        }
+
+        if !msg.is_error() && !msg.is_payload() {
+            println!(
+                "Message unrecognised: {:?}, please open an issue on the chorus github",
+                msg.message.to_string()
+            );
             return;
         }
 
