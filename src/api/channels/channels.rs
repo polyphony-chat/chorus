@@ -2,18 +2,14 @@ use reqwest::Client;
 use serde_json::{from_str, to_string};
 
 use crate::{
-    api::limits::Limits,
-    errors::InstanceServerError,
+    errors::ChorusLibError,
     instance::UserMeta,
     limit::LimitedRequester,
     types::{Channel, ChannelModifySchema},
 };
 
 impl Channel {
-    pub async fn get(
-        user: &mut UserMeta,
-        channel_id: &str,
-    ) -> Result<Channel, InstanceServerError> {
+    pub async fn get(user: &mut UserMeta, channel_id: &str) -> Result<Channel, ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
             .get(format!(
@@ -38,7 +34,7 @@ impl Channel {
         let result_text = result.text().await.unwrap();
         match from_str::<Channel>(&result_text) {
             Ok(object) => Ok(object),
-            Err(e) => Err(InstanceServerError::RequestErrorError {
+            Err(e) => Err(ChorusLibError::RequestErrorError {
                 url: format!("{}/channels/{}/", belongs_to.urls.get_api(), channel_id),
                 error: e.to_string(),
             }),
@@ -57,8 +53,8 @@ impl Channel {
     ///
     /// # Returns
     ///
-    /// An `Option` that contains an `InstanceServerError` if an error occurred during the request, or `None` if the request was successful.
-    pub async fn delete(self, user: &mut UserMeta) -> Option<InstanceServerError> {
+    /// An `Option` that contains an `ChorusLibError` if an error occurred during the request, or `None` if the request was successful.
+    pub async fn delete(self, user: &mut UserMeta) -> Option<ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
             .delete(format!(
@@ -95,12 +91,12 @@ impl Channel {
     ///
     /// # Returns
     ///
-    /// A `Result` that contains a `Channel` object if the request was successful, or an `InstanceServerError` if an error occurred during the request.
+    /// A `Result` that contains a `Channel` object if the request was successful, or an `ChorusLibError` if an error occurred during the request.
     pub async fn modify(
         modify_data: ChannelModifySchema,
         channel_id: &str,
         user: &mut UserMeta,
-    ) -> Result<Channel, InstanceServerError> {
+    ) -> Result<Channel, ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
             .patch(format!(

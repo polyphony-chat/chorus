@@ -1,6 +1,6 @@
 use crate::{
     api::limits::{Limit, LimitType, Limits, LimitsMutRef},
-    errors::InstanceServerError,
+    errors::ChorusLibError,
 };
 
 use reqwest::{Client, RequestBuilder, Response};
@@ -71,12 +71,12 @@ impl LimitedRequester {
         limit_type: LimitType,
         instance_rate_limits: &mut Limits,
         user_rate_limits: &mut Limits,
-    ) -> Result<Response, InstanceServerError> {
+    ) -> Result<Response, ChorusLibError> {
         if self.can_send_request(limit_type, instance_rate_limits, user_rate_limits) {
             let built_request = match request.build() {
                 Ok(request) => request,
                 Err(e) => {
-                    return Err(InstanceServerError::RequestErrorError {
+                    return Err(ChorusLibError::RequestErrorError {
                         url: "".to_string(),
                         error: e.to_string(),
                     })
@@ -86,7 +86,7 @@ impl LimitedRequester {
             let response = match result {
                 Ok(is_response) => is_response,
                 Err(e) => {
-                    return Err(InstanceServerError::ReceivedErrorCodeError {
+                    return Err(ChorusLibError::ReceivedErrorCodeError {
                         error_code: e.to_string(),
                     })
                 }
@@ -99,10 +99,10 @@ impl LimitedRequester {
             );
             if !response.status().is_success() {
                 match response.status().as_u16() {
-                    401 => return Err(InstanceServerError::TokenExpired),
-                    403 => return Err(InstanceServerError::TokenExpired),
+                    401 => return Err(ChorusLibError::TokenExpired),
+                    403 => return Err(ChorusLibError::TokenExpired),
                     _ => {
-                        return Err(InstanceServerError::ReceivedErrorCodeError {
+                        return Err(ChorusLibError::ReceivedErrorCodeError {
                             error_code: response.status().as_str().to_string(),
                         })
                     }
@@ -115,7 +115,7 @@ impl LimitedRequester {
                 request,
                 limit_type,
             });
-            Err(InstanceServerError::RateLimited {
+            Err(ChorusLibError::RateLimited {
                 bucket: limit_type.to_string(),
             })
         }
@@ -302,7 +302,7 @@ mod rate_limit {
             String::from("http://localhost:3001/cdn"),
         );
         let mut requester = LimitedRequester::new().await;
-        let mut request: Option<Result<Response, InstanceServerError>> = None;
+        let mut request: Option<Result<Response, ChorusLibError>> = None;
         let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
 
