@@ -1,4 +1,4 @@
-use crate::types::{entities::Channel, Snowflake};
+use crate::types::entities::Channel;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
