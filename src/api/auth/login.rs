@@ -63,7 +63,7 @@ pub mod login {
                 login_result.token,
                 cloned_limits,
                 login_result.settings,
-                Some(object),
+                object,
             );
 
             Ok(user)
