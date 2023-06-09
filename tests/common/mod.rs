@@ -1,6 +1,9 @@
 use chorus::{
     instance::{Instance, UserMeta},
-    types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema},
+    types::{
+        Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
+        RoleCreateModifySchema, RoleObject,
+    },
     URLBundle,
 };
 
@@ -10,6 +13,7 @@ pub struct TestBundle {
     pub user: UserMeta,
     pub instance: Instance,
     pub guild: Guild,
+    pub role: RoleObject,
     pub channel: Channel,
 }
 
@@ -70,11 +74,27 @@ pub async fn setup() -> TestBundle {
         .await
         .unwrap();
 
+    let role_create_schema: chorus::types::RoleCreateModifySchema = RoleCreateModifySchema {
+        name: Some("Bundle role".to_string()),
+        permissions: Some("8".to_string()), // Administrator permissions
+        hoist: Some(true),
+        icon: None,
+        unicode_emoji: Some("".to_string()),
+        mentionable: Some(true),
+        position: None,
+        color: None,
+    };
+    let guild_id = guild.id.clone().to_string();
+    let role = chorus::types::RoleObject::create(&mut user, &guild_id, role_create_schema)
+        .await
+        .unwrap();
+
     TestBundle {
         urls,
         user,
         instance,
         guild,
+        role,
         channel,
     }
 }
