@@ -17,7 +17,7 @@ pub struct ExampleObserver {}
 // One struct can be an observer of multiple websocketevents, if needed
 impl Observer<GatewayReady> for ExampleObserver {
     // After we subscribe to an event this function is called every time we receive it
-    fn update(&self, data: &GatewayReady) {
+    fn update(&self, _data: &GatewayReady) {
         println!("Observed Ready!");
     }
 }
