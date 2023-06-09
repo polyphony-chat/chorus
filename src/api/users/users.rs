@@ -3,7 +3,7 @@ use serde_json::{from_str, to_string};
 
 use crate::{
     api::limits::Limits,
-    errors::InstanceServerError,
+    errors::ChorusLibError,
     instance::{Instance, UserMeta},
     limit::LimitedRequester,
     types::{User, UserModifySchema, UserSettings},
@@ -18,12 +18,9 @@ impl UserMeta {
     * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
     * `instance_limits` - The [`Limits`] of the instance.
     # Errors
-    * [`InstanceServerError`] - If the request fails.
+    * [`ChorusLibError`] - If the request fails.
      */
-    pub async fn get(
-        user: &mut UserMeta,
-        id: Option<&String>,
-    ) -> Result<User, InstanceServerError> {
+    pub async fn get(user: &mut UserMeta, id: Option<&String>) -> Result<User, ChorusLibError> {
         User::get(user, id).await
     }
 
@@ -31,7 +28,7 @@ impl UserMeta {
         token: &String,
         url_api: &String,
         instance_limits: &mut Limits,
-    ) -> Result<UserSettings, InstanceServerError> {
+    ) -> Result<UserSettings, ChorusLibError> {
         User::get_settings(token, url_api, instance_limits).await
     }
 
@@ -43,16 +40,16 @@ impl UserMeta {
     ///
     /// # Errors
     ///
-    /// Returns an `InstanceServerError` if the request fails or if a password is required but not provided.
+    /// Returns an `ChorusLibError` if the request fails or if a password is required but not provided.
     pub async fn modify(
         &mut self,
         modify_schema: UserModifySchema,
-    ) -> Result<User, InstanceServerError> {
+    ) -> Result<User, ChorusLibError> {
         if modify_schema.new_password.is_some()
             || modify_schema.email.is_some()
             || modify_schema.code.is_some()
         {
-            return Err(InstanceServerError::PasswordRequiredError);
+            return Err(ChorusLibError::PasswordRequiredError);
         }
         let request = Client::new()
             .patch(format!(
@@ -90,8 +87,8 @@ impl UserMeta {
     ///
     /// # Returns
     ///
-    /// Returns `None` if the user was successfully deleted, or an `InstanceServerError` if an error occurred.
-    pub async fn delete(mut self) -> Option<InstanceServerError> {
+    /// Returns `None` if the user was successfully deleted, or an `ChorusLibError` if an error occurred.
+    pub async fn delete(mut self) -> Option<ChorusLibError> {
         let mut belongs_to = self.belongs_to.borrow_mut();
         let request = Client::new()
             .post(format!("{}/users/@me/delete/", belongs_to.urls.get_api()))
@@ -113,10 +110,7 @@ impl UserMeta {
 }
 
 impl User {
-    pub async fn get(
-        user: &mut UserMeta,
-        id: Option<&String>,
-    ) -> Result<User, InstanceServerError> {
+    pub async fn get(user: &mut UserMeta, id: Option<&String>) -> Result<User, ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         User::_get(
             &user.token(),
@@ -132,7 +126,7 @@ impl User {
         url_api: &str,
         limits_instance: &mut Limits,
         id: Option<&String>,
-    ) -> Result<User, InstanceServerError> {
+    ) -> Result<User, ChorusLibError> {
         let url: String;
         if id.is_none() {
             url = format!("{}/users/@me/", url_api);
@@ -163,7 +157,7 @@ impl User {
         token: &String,
         url_api: &String,
         instance_limits: &mut Limits,
-    ) -> Result<UserSettings, InstanceServerError> {
+    ) -> Result<UserSettings, ChorusLibError> {
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings/", url_api))
             .bearer_auth(token);
@@ -191,7 +185,7 @@ impl Instance {
     * `token` - A valid access token for the API.
     * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
     # Errors
-    * [`InstanceServerError`] - If the request fails.
+    * [`ChorusLibError`] - If the request fails.
     # Notes
     This function is a wrapper around [`User::get`].
      */
@@ -199,7 +193,7 @@ impl Instance {
         &mut self,
         token: String,
         id: Option<&String>,
-    ) -> Result<User, InstanceServerError> {
+    ) -> Result<User, ChorusLibError> {
         User::_get(
             &token,
             &self.urls.get_api().to_string(),

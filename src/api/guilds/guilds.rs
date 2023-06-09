@@ -3,7 +3,7 @@ use serde_json::from_str;
 use serde_json::to_string;
 
 use crate::api::limits::Limits;
-use crate::errors::InstanceServerError;
+use crate::errors::ChorusLibError;
 use crate::instance::UserMeta;
 use crate::limit::LimitedRequester;
 use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateResponse, GuildCreateSchema};
@@ -23,12 +23,12 @@ impl Guild {
     ///
     /// # Errors
     ///
-    /// Returns an `InstanceServerError` if the request fails.
+    /// Returns an `ChorusLibError` if the request fails.
     ///
     pub async fn create(
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
-    ) -> Result<Guild, crate::errors::InstanceServerError> {
+    ) -> Result<Guild, crate::errors::ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!("{}/guilds/", belongs_to.urls.get_api());
         let request = reqwest::Client::new()
@@ -71,7 +71,7 @@ impl Guild {
     ///
     /// # Returns
     ///
-    /// An `Option` containing an `InstanceServerError` if an error occurred during the request, otherwise `None`.
+    /// An `Option` containing an `ChorusLibError` if an error occurred during the request, otherwise `None`.
     ///
     /// # Example
     ///
@@ -85,7 +85,7 @@ impl Guild {
     ///     None => println!("Guild deleted successfully"),
     /// }
     /// ```
-    pub async fn delete(user: &mut UserMeta, guild_id: &str) -> Option<InstanceServerError> {
+    pub async fn delete(user: &mut UserMeta, guild_id: &str) -> Option<ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!("{}/guilds/{}/delete/", belongs_to.urls.get_api(), guild_id);
         let request = reqwest::Client::new()
@@ -119,12 +119,12 @@ impl Guild {
     ///
     /// # Returns
     ///
-    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `InstanceServerError` if there was an error.
+    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `ChorusLibError` if there was an error.
     pub async fn create_channel(
         &self,
         user: &mut UserMeta,
         schema: ChannelCreateSchema,
-    ) -> Result<Channel, InstanceServerError> {
+    ) -> Result<Channel, ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Channel::_create(
             &user.token,
@@ -137,7 +137,7 @@ impl Guild {
         .await
     }
 
-    /// Returns a `Result` containing a vector of `Channel` structs if the request was successful, or an `InstanceServerError` if there was an error.
+    /// Returns a `Result` containing a vector of `Channel` structs if the request was successful, or an `ChorusLibError` if there was an error.
     ///
     /// # Arguments
     ///
@@ -146,7 +146,7 @@ impl Guild {
     /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
-    pub async fn channels(&self, user: &mut UserMeta) -> Result<Vec<Channel>, InstanceServerError> {
+    pub async fn channels(&self, user: &mut UserMeta) -> Result<Vec<Channel>, ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
             .get(format!(
@@ -171,7 +171,7 @@ impl Guild {
         let stringed_response = match result.text().await {
             Ok(value) => value,
             Err(e) => {
-                return Err(InstanceServerError::InvalidResponseError {
+                return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
                 })
             }
@@ -179,14 +179,14 @@ impl Guild {
         let _: Vec<Channel> = match from_str(&stringed_response) {
             Ok(result) => return Ok(result),
             Err(e) => {
-                return Err(InstanceServerError::InvalidResponseError {
+                return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
                 })
             }
         };
     }
 
-    /// Returns a `Result` containing a `Guild` struct if the request was successful, or an `InstanceServerError` if there was an error.
+    /// Returns a `Result` containing a `Guild` struct if the request was successful, or an `ChorusLibError` if there was an error.
     ///
     /// # Arguments
     ///
@@ -196,7 +196,7 @@ impl Guild {
     /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
-    pub async fn get(user: &mut UserMeta, guild_id: &str) -> Result<Guild, InstanceServerError> {
+    pub async fn get(user: &mut UserMeta, guild_id: &str) -> Result<Guild, ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Guild::_get(
             &format!("{}", belongs_to.urls.get_api()),
@@ -216,7 +216,7 @@ impl Guild {
         token: &str,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
-    ) -> Result<Guild, InstanceServerError> {
+    ) -> Result<Guild, ChorusLibError> {
         let request = Client::new()
             .get(format!("{}/guilds/{}/", url_api, guild_id))
             .bearer_auth(token);
@@ -252,12 +252,12 @@ impl Channel {
     ///
     /// # Returns
     ///
-    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `InstanceServerError` if there was an error.
+    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `ChorusLibError` if there was an error.
     pub async fn create(
         user: &mut UserMeta,
         guild_id: &str,
         schema: ChannelCreateSchema,
-    ) -> Result<Channel, InstanceServerError> {
+    ) -> Result<Channel, ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Channel::_create(
             &user.token,
@@ -277,7 +277,7 @@ impl Channel {
         schema: ChannelCreateSchema,
         limits_user: &mut Limits,
         limits_instance: &mut Limits,
-    ) -> Result<Channel, InstanceServerError> {
+    ) -> Result<Channel, ChorusLibError> {
         let request = Client::new()
             .post(format!("{}/guilds/{}/channels/", url_api, guild_id))
             .bearer_auth(token)
@@ -297,7 +297,7 @@ impl Channel {
         };
         match from_str::<Channel>(&result.text().await.unwrap()) {
             Ok(object) => Ok(object),
-            Err(e) => Err(InstanceServerError::RequestErrorError {
+            Err(e) => Err(ChorusLibError::RequestErrorError {
                 url: format!("{}/guilds/{}/channels/", url_api, guild_id),
                 error: e.to_string(),
             }),

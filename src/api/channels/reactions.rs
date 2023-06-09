@@ -3,7 +3,7 @@ use reqwest::Client;
 use crate::{
     instance::UserMeta,
     limit::LimitedRequester,
-    types::{self, Snowflake},
+    types::{self},
 };
 
 /**
@@ -23,7 +23,7 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
     Fires a `Message Reaction Remove All` Gateway event.
 
     # Reference
@@ -32,7 +32,7 @@ impl ReactionMeta {
     pub async fn delete_all(
         &self,
         user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/",
@@ -62,7 +62,7 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
@@ -71,7 +71,7 @@ impl ReactionMeta {
         &self,
         emoji: &str,
         user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
@@ -103,7 +103,7 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
     Fires a `Message Reaction Remove Emoji` Gateway event.
 
     # Reference
@@ -113,7 +113,7 @@ impl ReactionMeta {
         &self,
         emoji: &str,
         user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
@@ -148,7 +148,7 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
     Returns a 204 empty response on success.
     Fires a Message Reaction Add Gateway event.
 
@@ -159,7 +159,7 @@ impl ReactionMeta {
         &self,
         emoji: &str,
         user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
@@ -190,7 +190,7 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
     Returns a 204 empty response on success.
     Fires a `Message Reaction Remove` Gateway event.
 
@@ -201,7 +201,7 @@ impl ReactionMeta {
         &self,
         emoji: &str,
         user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
@@ -235,7 +235,7 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::InstanceServerError`].
+    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
     Returns a 204 empty response on success.
     Fires a Message Reaction Remove Gateway event.
 
@@ -247,7 +247,7 @@ impl ReactionMeta {
         user_id: &str,
         emoji: &str,
         user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/{}",

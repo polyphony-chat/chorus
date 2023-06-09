@@ -17,14 +17,14 @@ impl Message {
     * `limits_instance` - The [`Limits`] of the instance.
     * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
     # Errors
-    * [`InstanceServerError`] - If the message cannot be sent.
+    * [`ChorusLibError`] - If the message cannot be sent.
      */
     pub async fn send(
         user: &mut UserMeta,
         channel_id: String,
         message: &mut MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url_api = belongs_to.urls.get_api();
         let mut requester = LimitedRequester::new().await;
@@ -98,14 +98,14 @@ impl UserMeta {
     * `limits_instance` - The [`Limits`] of the instance.
     * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
     # Errors
-    * [`InstanceServerError`] - If the message cannot be sent.
+    * [`ChorusLibError`] - If the message cannot be sent.
      */
     pub async fn send_message(
         &mut self,
         message: &mut MessageSendSchema,
         channel_id: String,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<reqwest::Response, crate::errors::InstanceServerError> {
+    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
         Message::send(self, channel_id, message, files).await
     }
 }

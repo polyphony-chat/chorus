@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Emoji, GuildMember, Message, PublicUser};
