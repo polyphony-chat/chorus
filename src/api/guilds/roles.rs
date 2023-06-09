@@ -106,4 +106,59 @@ impl types::RoleObject {
         };
         Ok(role)
     }
+
+    /// Updates the position of a role in the guild's hierarchy.
+    ///
+    /// # Arguments
+    ///
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// * `guild_id` - The ID of the guild to update the role position in.
+    /// * `role_position_update_schema` - A [`RolePositionUpdateSchema`] instance containing the new position of the role.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the updated [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    pub async fn position_update(
+        user: &mut UserMeta,
+        guild_id: &str,
+        role_position_update_schema: types::RolePositionUpdateSchema,
+    ) -> Result<RoleObject, ChorusLibError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
+        let body = match to_string(&role_position_update_schema) {
+            Ok(body) => body,
+            Err(e) => {
+                return Err(ChorusLibError::FormCreationError {
+                    error: e.to_string(),
+                })
+            }
+        };
+        let request = Client::new()
+            .patch(url)
+            .bearer_auth(user.token())
+            .body(body);
+        let response = LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Guild,
+                &mut belongs_to.limits,
+                &mut user.limits,
+            )
+            .await
+            .unwrap();
+        let role: RoleObject = match from_str(&response.text().await.unwrap()) {
+            Ok(role) => role,
+            Err(e) => {
+                return Err(ChorusLibError::InvalidResponseError {
+                    error: e.to_string(),
+                })
+            }
+        };
+        Ok(role)
+    }
 }
