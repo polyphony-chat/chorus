@@ -90,7 +90,7 @@ pub struct UserMeta {
     pub token: String,
     pub limits: Limits,
     pub settings: UserSettings,
-    pub object: Option<User>,
+    pub object: User,
 }
 
 impl UserMeta {
@@ -107,7 +107,7 @@ impl UserMeta {
         token: String,
         limits: Limits,
         settings: UserSettings,
-        object: Option<User>,
+        object: User,
     ) -> UserMeta {
         UserMeta {
             belongs_to,

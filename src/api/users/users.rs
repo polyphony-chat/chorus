@@ -72,10 +72,7 @@ impl UserMeta {
             Err(e) => return Err(e),
         };
         let user_updated: User = from_str(&result.text().await.unwrap()).unwrap();
-        let _ = std::mem::replace(
-            &mut self.object.as_mut().unwrap(),
-            &mut user_updated.clone(),
-        );
+        let _ = std::mem::replace(&mut self.object, user_updated.clone());
         Ok(user_updated)
     }
 
