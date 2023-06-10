@@ -107,4 +107,30 @@ impl PermissionFlags {
     pub fn has_permission(&self, permission: PermissionFlags) -> bool {
         self.contains(permission) || self.contains(PermissionFlags::ADMINISTRATOR)
     }
+
+    pub fn to_string(&self) -> String {
+        self.bits().to_string()
+    }
+
+    /// Creates a String of Permissions from a given [`Vec`] of [`PermissionFlags`].
+    /// # Example:
+    /// ```
+    /// use chorus::types::{PermissionFlags};
+    ///
+    /// let mut vector: Vec<PermissionFlags> = Vec::new();
+    /// vector.push(PermissionFlags::MUTE_MEMBERS);
+    /// vector.push(PermissionFlags::DEAFEN_MEMBERS);
+    ///
+    /// let permissions: String = PermissionFlags::from_vec(vector);
+    ///
+    /// println!("The permissions string is {}.", permissions);
+    /// assert_eq!(permissions, "12582912".to_string());
+    /// ```
+    pub fn from_vec(flags: Vec<PermissionFlags>) -> String {
+        let mut permissions: PermissionFlags = Default::default();
+        for flag in flags.iter() {
+            permissions = permissions | flag.clone();
+        }
+        permissions.to_string()
+    }
 }

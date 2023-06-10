@@ -5,9 +5,11 @@ use chorus::types::{self, RoleCreateModifySchema};
 #[tokio::test]
 async fn create_and_get_roles() {
     let mut bundle = common::setup().await;
+    let permissions = types::PermissionFlags::CONNECT | types::PermissionFlags::MANAGE_EVENTS;
+    let permissions = Some(permissions.to_string());
     let role_create_schema: types::RoleCreateModifySchema = RoleCreateModifySchema {
         name: Some("cool person".to_string()),
-        permissions: Some("2251804225".to_string()),
+        permissions,
         hoist: Some(true),
         icon: None,
         unicode_emoji: Some("".to_string()),
@@ -25,7 +27,7 @@ async fn create_and_get_roles() {
         .unwrap()
         .unwrap()
         .iter()
-        .nth(1)
+        .nth(2)
         .unwrap()
         .clone();
 

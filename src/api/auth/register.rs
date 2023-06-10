@@ -71,7 +71,7 @@ pub mod register {
                 token.clone(),
                 cloned_limits,
                 settings,
-                Some(user_object),
+                user_object,
             );
             Ok(user)
         }
