@@ -53,4 +53,43 @@ impl types::Channel {
             .unwrap();
         None
     }
+
+    /// Deletes a permission overwrite for a channel.
+    ///
+    /// # Arguments
+    ///
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// * `channel_id` - A string slice representing the ID of the channel.
+    /// * `overwrite_id` - A string slice representing the ID of the permission overwrite to delete.
+    ///
+    /// # Returns
+    ///
+    /// This function returns [`None`] if the request is successful, otherwise it returns a [`ChorusLibError`] instance.
+    pub async fn delete_permission(
+        user: &mut UserMeta,
+        channel_id: &str,
+        overwrite_id: &str,
+    ) -> Option<ChorusLibError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        let url = format!(
+            "{}/channels/{}/permissions/{}",
+            belongs_to.urls.get_api(),
+            channel_id,
+            overwrite_id
+        );
+        let request = Client::new().delete(url).bearer_auth(user.token());
+        let response = LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Channel,
+                &mut belongs_to.limits,
+                &mut user.limits,
+            )
+            .await;
+        if response.is_err() {
+            return Some(response.err().unwrap());
+        }
+        None
+    }
 }
