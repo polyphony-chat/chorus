@@ -73,7 +73,7 @@
 - [ ] [Video chat support](https://github.com/polyphony-chat/chorus/issues/49)
 
 ### Permissions and Roles
-- [ ] [Role management](https://github.com/polyphony-chat/chorus/issues/46) (creation, deletion, modification)
+- [x] [Role management](https://github.com/polyphony-chat/chorus/issues/46) (creation, deletion, modification)
 - [ ] [Permission management](https://github.com/polyphony-chat/chorus/issues/46) (assigning and revoking permissions)
 - [ ] [Channel-specific permissions](https://github.com/polyphony-chat/chorus/issues/88)
 - [ ] Role-based access control
