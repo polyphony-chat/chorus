@@ -2,11 +2,13 @@ use crate::errors::GatewayError;
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 use crate::types;
+use crate::types::WebSocketEvent;
 use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use native_tls::TlsConnector;
+use serde_json::value::RawValue;
 use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::error::TryRecvError;
@@ -388,7 +390,7 @@ impl Gateway {
             if msg.as_ref().is_some() {
                 if msg.as_ref().unwrap().is_ok() {
                     let msg_unwrapped = msg.unwrap().unwrap();
-                    self.handle_event(GatewayMessage::from_tungstenite_message(msg_unwrapped))
+                    self.handle_message(GatewayMessage::from_tungstenite_message(msg_unwrapped))
                         .await;
 
                     continue;
@@ -407,8 +409,24 @@ impl Gateway {
         self.websocket_send.lock().await.close().await.unwrap();
     }
 
+    /// Deserializes and updates a dispatched event, when we already know its type;
+    /// (Called for every event in handle_message)
+    async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
+        data: &'a str,
+        event: &mut GatewayEvent<T>,
+    ) -> Result<(), serde_json::Error> {
+        let data_deserialize_result: Result<T, serde_json::Error> = serde_json::from_str(data);
+
+        if data_deserialize_result.is_err() {
+            return Err(data_deserialize_result.err().unwrap());
+        }
+
+        event.update_data(data_deserialize_result.unwrap()).await;
+        return Ok(());
+    }
+
     /// This handles a message as a websocket event and updates its events along with the events' observers
-    pub async fn handle_event(&mut self, msg: GatewayMessage) {
+    pub async fn handle_message(&mut self, msg: GatewayMessage) {
         if msg.is_empty() {
             return;
         }
@@ -451,858 +469,1012 @@ impl Gateway {
                 // "Some" of these are undocumented
                 match gateway_payload_t.as_str() {
                     "READY" => {
-                        let new_data: types::GatewayReady =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .session
-                            .ready
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.session.ready;
+
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "READY_SUPPLEMENTAL" => {
-                        let new_data: types::GatewayReadySupplemental =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .session
-                            .ready_supplemental
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.session.ready_supplemental;
+
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "RESUMED" => {}
                     "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {
-                        let new_data: types::ApplicationCommandPermissionsUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
+                        let event = &mut self
+                            .events
                             .lock()
                             .await
                             .application
-                            .command_permissions_update
-                            .update_data(new_data)
-                            .await;
+                            .command_permissions_update;
+
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "AUTO_MODERATION_RULE_CREATE" => {
-                        let new_data: types::AutoModerationRuleCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .auto_moderation
-                            .rule_create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.auto_moderation.rule_create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "AUTO_MODERATION_RULE_UPDATE" => {
-                        let new_data: types::AutoModerationRuleUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .auto_moderation
-                            .rule_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.auto_moderation.rule_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "AUTO_MODERATION_RULE_DELETE" => {
-                        let new_data: types::AutoModerationRuleDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .auto_moderation
-                            .rule_delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.auto_moderation.rule_delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "AUTO_MODERATION_ACTION_EXECUTION" => {
-                        let new_data: types::AutoModerationActionExecution =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .auto_moderation
-                            .action_execution
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.auto_moderation.action_execution;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "CHANNEL_CREATE" => {
-                        let new_data: types::ChannelCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .channel
-                            .create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.channel.create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "CHANNEL_UPDATE" => {
-                        let new_data: types::ChannelUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .channel
-                            .update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.channel.update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "CHANNEL_UNREAD_UPDATE" => {
-                        let new_data: types::ChannelUnreadUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .channel
-                            .unread_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.channel.unread_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "CHANNEL_DELETE" => {
-                        let new_data: types::ChannelDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .channel
-                            .delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.channel.delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "CHANNEL_PINS_UPDATE" => {
-                        let new_data: types::ChannelPinsUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .channel
-                            .pins_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.channel.pins_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "CALL_CREATE" => {
-                        let new_data: types::CallCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .call
-                            .create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.call.create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "CALL_UPDATE" => {
-                        let new_data: types::CallUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .call
-                            .update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.call.update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "CALL_DELETE" => {
-                        let new_data: types::CallDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .call
-                            .delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.call.delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "THREAD_CREATE" => {
-                        let new_data: types::ThreadCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .thread
-                            .create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.thread.create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "THREAD_UPDATE" => {
-                        let new_data: types::ThreadUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .thread
-                            .update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.thread.update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "THREAD_DELETE" => {
-                        let new_data: types::ThreadDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .thread
-                            .delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.thread.delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "THREAD_LIST_SYNC" => {
-                        let new_data: types::ThreadListSync =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .thread
-                            .list_sync
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.thread.list_sync;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "THREAD_MEMBER_UPDATE" => {
-                        let new_data: types::ThreadMemberUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .thread
-                            .member_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.thread.member_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "THREAD_MEMBERS_UPDATE" => {
-                        let new_data: types::ThreadMembersUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .thread
-                            .members_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.thread.members_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_CREATE" => {
-                        let new_data: types::GuildCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_UPDATE" => {
-                        let new_data: types::GuildUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_DELETE" => {
-                        let new_data: types::GuildDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => {
-                        let new_data: types::GuildAuditLogEntryCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .audit_log_entry_create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.audit_log_entry_create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_BAN_ADD" => {
-                        let new_data: types::GuildBanAdd =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .ban_add
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.ban_add;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_BAN_REMOVE" => {
-                        let new_data: types::GuildBanRemove =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .ban_remove
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.ban_remove;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_EMOJIS_UPDATE" => {
-                        let new_data: types::GuildEmojisUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .emojis_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.emojis_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_STICKERS_UPDATE" => {
-                        let new_data: types::GuildStickersUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .stickers_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.stickers_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_INTEGRATIONS_UPDATE" => {
-                        let new_data: types::GuildIntegrationsUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .integrations_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.integrations_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_MEMBER_ADD" => {
-                        let new_data: types::GuildMemberAdd =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .member_add
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.member_add;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_MEMBER_REMOVE" => {
-                        let new_data: types::GuildMemberRemove =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .member_remove
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.member_remove;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_MEMBER_UPDATE" => {
-                        let new_data: types::GuildMemberUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .member_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.member_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_MEMBERS_CHUNK" => {
-                        let new_data: types::GuildMembersChunk =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .members_chunk
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.members_chunk;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_ROLE_CREATE" => {
-                        let new_data: types::GuildRoleCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .role_create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.role_create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_ROLE_UPDATE" => {
-                        let new_data: types::GuildRoleUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .role_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.role_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_ROLE_DELETE" => {
-                        let new_data: types::GuildRoleDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .role_delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.role_delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_SCHEDULED_EVENT_CREATE" => {
-                        let new_data: types::GuildScheduledEventCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .role_scheduled_event_create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.role_scheduled_event_create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_SCHEDULED_EVENT_UPDATE" => {
-                        let new_data: types::GuildScheduledEventUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .role_scheduled_event_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.role_scheduled_event_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_SCHEDULED_EVENT_DELETE" => {
-                        let new_data: types::GuildScheduledEventDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .role_scheduled_event_delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.role_scheduled_event_delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_SCHEDULED_EVENT_USER_ADD" => {
-                        let new_data: types::GuildScheduledEventUserAdd =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .role_scheduled_event_user_add
-                            .update_data(new_data)
-                            .await;
+                        let event =
+                            &mut self.events.lock().await.guild.role_scheduled_event_user_add;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "GUILD_SCHEDULED_EVENT_USER_REMOVE" => {
-                        let new_data: types::GuildScheduledEventUserRemove =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
+                        let event = &mut self
+                            .events
                             .lock()
                             .await
                             .guild
-                            .role_scheduled_event_user_remove
-                            .update_data(new_data)
-                            .await;
+                            .role_scheduled_event_user_remove;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "PASSIVE_UPDATE_V1" => {
-                        let new_data: types::PassiveUpdateV1 =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .guild
-                            .passive_update_v1
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.guild.passive_update_v1;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "INTEGRATION_CREATE" => {
-                        let new_data: types::IntegrationCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .integration
-                            .create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.integration.create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "INTEGRATION_UPDATE" => {
-                        let new_data: types::IntegrationUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .integration
-                            .update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.integration.update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "INTEGRATION_DELETE" => {
-                        let new_data: types::IntegrationDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .integration
-                            .delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.integration.delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "INTERACTION_CREATE" => {
-                        let new_data: types::InteractionCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .interaction
-                            .create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.interaction.create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "INVITE_CREATE" => {
-                        let new_data: types::InviteCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .invite
-                            .create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.invite.create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "INVITE_DELETE" => {
-                        let new_data: types::InviteDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .invite
-                            .delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.invite.delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "MESSAGE_CREATE" => {
-                        let new_data: types::MessageCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .message
-                            .create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.message.create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "MESSAGE_UPDATE" => {
-                        let new_data: types::MessageUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .message
-                            .update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.message.update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "MESSAGE_DELETE" => {
-                        let new_data: types::MessageDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .message
-                            .delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.message.delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "MESSAGE_DELETE_BULK" => {
-                        let new_data: types::MessageDeleteBulk =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .message
-                            .delete_bulk
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.message.delete_bulk;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "MESSAGE_REACTION_ADD" => {
-                        let new_data: types::MessageReactionAdd =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .message
-                            .reaction_add
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.message.reaction_add;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "MESSAGE_REACTION_REMOVE" => {
-                        let new_data: types::MessageReactionRemove =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .message
-                            .reaction_remove
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.message.reaction_remove;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "MESSAGE_REACTION_REMOVE_ALL" => {
-                        let new_data: types::MessageReactionRemoveAll =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .message
-                            .reaction_remove_all
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.message.reaction_remove_all;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "MESSAGE_REACTION_REMOVE_EMOJI" => {
-                        let new_data: types::MessageReactionRemoveEmoji =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .message
-                            .reaction_remove_emoji
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.message.reaction_remove_emoji;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "MESSAGE_ACK" => {
-                        let new_data: types::MessageACK =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .message
-                            .ack
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.message.ack;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "PRESENCE_UPDATE" => {
-                        let new_data: types::PresenceUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .user
-                            .presence_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.user.presence_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "RELATIONSHIP_ADD" => {
-                        let new_data: types::RelationshipAdd =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .relationship
-                            .add
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.relationship.add;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "RELATIONSHIP_REMOVE" => {
-                        let new_data: types::RelationshipRemove =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .relationship
-                            .remove
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.relationship.remove;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "STAGE_INSTANCE_CREATE" => {
-                        let new_data: types::StageInstanceCreate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .stage_instance
-                            .create
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.stage_instance.create;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "STAGE_INSTANCE_UPDATE" => {
-                        let new_data: types::StageInstanceUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .stage_instance
-                            .update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.stage_instance.update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "STAGE_INSTANCE_DELETE" => {
-                        let new_data: types::StageInstanceDelete =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .stage_instance
-                            .delete
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.stage_instance.delete;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "SESSIONS_REPLACE" => {
-                        let sessions: Vec<types::Session> =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        let new_data = types::SessionsReplace { sessions };
+                        let result: Result<Vec<types::Session>, serde_json::Error> =
+                            serde_json::from_str(gateway_payload.event_data.unwrap().get());
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
+
+                        let data = types::SessionsReplace {
+                            sessions: result.unwrap(),
+                        };
+
                         self.events
                             .lock()
                             .await
                             .session
                             .replace
-                            .update_data(new_data)
-                            .await;
-                    }
-                    "TYPING_START" => {
-                        let new_data: types::TypingStartEvent =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .user
-                            .typing_start_event
-                            .update_data(new_data)
+                            .update_data(data)
                             .await;
                     }
                     "USER_UPDATE" => {
-                        let new_data: types::UserUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .user
-                            .update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.user.update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "USER_GUILD_SETTINGS_UPDATE" => {
-                        let new_data: types::UserGuildSettingsUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .user
-                            .guild_settings_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.user.guild_settings_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "VOICE_STATE_UPDATE" => {
-                        let new_data: types::VoiceStateUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .voice
-                            .state_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.voice.state_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "VOICE_SERVER_UPDATE" => {
-                        let new_data: types::VoiceServerUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .voice
-                            .server_update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.voice.server_update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     "WEBHOOKS_UPDATE" => {
-                        let new_data: types::WebhooksUpdate =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get())
-                                .unwrap();
-                        self.events
-                            .lock()
-                            .await
-                            .webhooks
-                            .update
-                            .update_data(new_data)
-                            .await;
+                        let event = &mut self.events.lock().await.webhooks.update;
+                        let result =
+                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                .await;
+                        if result.is_err() {
+                            println!(
+                                "Failed to parse gateway event {} ({})",
+                                gateway_payload_t,
+                                result.err().unwrap()
+                            );
+                            return;
+                        }
                     }
                     _ => {
                         println!("Received unrecognized gateway event ({})! Please open an issue on the chorus github so we can implement it", &gateway_payload_t);
@@ -1812,7 +1984,7 @@ mod example {
         let consumer = Consumer;
         let arc_mut_consumer = Arc::new(Mutex::new(consumer));
 
-        event.subscribe(arc_mut_consumer.clone());
+        event.subscribe(arc_mut_consumer.clone()).unwrap();
 
         event.notify().await;
 
