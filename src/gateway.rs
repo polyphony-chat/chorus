@@ -351,8 +351,11 @@ impl Gateway {
         let gateway_hello: types::HelloData =
             serde_json::from_str(gateway_payload.event_data.unwrap().get()).unwrap();
 
+        let events = Events::default();
+        let shared_events = Arc::new(Mutex::new(events));
+
         let mut gateway = Gateway {
-            events: Arc::new(Mutex::new(Events::default())),
+            events: shared_events.clone(),
             heartbeat_handler: HeartbeatHandler::new(
                 gateway_hello.heartbeat_interval,
                 shared_websocket_send.clone(),
@@ -362,8 +365,6 @@ impl Gateway {
             websocket_receive,
             kill_send: kill_send.clone(),
         };
-
-        let shared_events = gateway.events.clone();
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
         let handle: JoinHandle<()> = task::spawn(async move {
@@ -1715,7 +1716,7 @@ an Observable. The Observer is notified when the Observable's data changes.
 In this case, the Observable is a [`GatewayEvent`], which is a wrapper around a WebSocketEvent.
  */
 pub trait Observer<T: types::WebSocketEvent>: std::fmt::Debug {
-    fn update(&self, data: &T);
+    fn update(&mut self, data: &T);
 }
 
 /** GatewayEvent is a wrapper around a WebSocketEvent. It is used to notify the observers of a
@@ -1790,7 +1791,9 @@ impl<T: types::WebSocketEvent> GatewayEvent<T> {
     */
     async fn notify(&self) {
         for observer in &self.observers {
-            observer.lock().await.update(&self.event_data);
+            let mut observer_lock = observer.lock().await;
+            observer_lock.update(&self.event_data);
+            drop(observer_lock);
         }
     }
 }
@@ -1962,7 +1965,7 @@ mod example {
     #[derive(Debug)]
     struct Consumer;
     impl Observer<types::GatewayResume> for Consumer {
-        fn update(&self, data: &types::GatewayResume) {
+        fn update(&mut self, data: &types::GatewayResume) {
             println!("{}", data.token)
         }
     }
