@@ -161,4 +161,69 @@ impl types::RoleObject {
         };
         Ok(role)
     }
+
+    /// Updates a role in a guild.
+    ///
+    /// # Arguments
+    ///
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// * `guild_id` - The ID of the guild to update the role in.
+    /// * `role_id` - The ID of the role to update.
+    /// * `role_create_schema` - A [`RoleCreateModifySchema`] instance containing the new properties of the role.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the updated [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    pub async fn update(
+        user: &mut UserMeta,
+        guild_id: &str,
+        role_id: &str,
+        role_create_schema: RoleCreateModifySchema,
+    ) -> Result<RoleObject, ChorusLibError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        let url = format!(
+            "{}/guilds/{}/roles/{}",
+            belongs_to.urls.get_api(),
+            guild_id,
+            role_id
+        );
+        let body = match to_string::<RoleCreateModifySchema>(&role_create_schema) {
+            Ok(string) => string,
+            Err(e) => {
+                return Err(ChorusLibError::FormCreationError {
+                    error: e.to_string(),
+                })
+            }
+        };
+        let request = Client::new()
+            .patch(url)
+            .bearer_auth(user.token())
+            .body(body);
+        let result = match LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Guild,
+                &mut belongs_to.limits,
+                &mut user.limits,
+            )
+            .await
+        {
+            Ok(request) => request,
+            Err(e) => return Err(e),
+        };
+        let role: RoleObject = match from_str(&result.text().await.unwrap()) {
+            Ok(role) => role,
+            Err(e) => {
+                return Err(ChorusLibError::InvalidResponseError {
+                    error: e.to_string(),
+                })
+            }
+        };
+        Ok(role)
+    }
 }
