@@ -52,6 +52,52 @@ impl types::RoleObject {
         Ok(Some(roles))
     }
 
+    /// Retrieves a single role for a given guild.
+    ///
+    /// # Arguments
+    ///
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// * `guild_id` - The ID of the guild to retrieve the role from.
+    /// * `role_id` - The ID of the role to retrieve.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the retrieved [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    pub async fn get(
+        user: &mut UserMeta,
+        guild_id: &str,
+        role_id: &str,
+    ) -> Result<RoleObject, crate::errors::ChorusLibError> {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        let url = format!(
+            "{}/guilds/{}/roles/{}/",
+            belongs_to.urls.get_api(),
+            guild_id,
+            role_id
+        );
+        let request = Client::new().get(url).bearer_auth(user.token());
+        let requester = match LimitedRequester::new()
+            .await
+            .send_request(
+                request,
+                crate::api::limits::LimitType::Guild,
+                &mut belongs_to.limits,
+                &mut user.limits,
+            )
+            .await
+        {
+            Ok(request) => request,
+            Err(e) => return Err(e),
+        };
+        let role: RoleObject = from_str(&requester.text().await.unwrap()).unwrap();
+
+        Ok(role)
+    }
+
     /// Creates a new role for a given guild.
     ///
     /// # Arguments
