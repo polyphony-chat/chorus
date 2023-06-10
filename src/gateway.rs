@@ -235,10 +235,10 @@ impl GatewayHandle {
     }
 
     /// Sends an update presence event to the gateway
-    pub async fn send_update_presence(&self, to_send: types::PresenceUpdate) {
+    pub async fn send_update_presence(&self, to_send: types::UpdatePresence) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        println!("GW: Sending Presence Update..");
+        println!("GW: Sending Update Presence..");
 
         self.send_json_event(GATEWAY_UPDATE_PRESENCE, to_send_value)
             .await;
