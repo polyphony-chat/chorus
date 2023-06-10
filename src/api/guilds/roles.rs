@@ -30,7 +30,7 @@ impl types::RoleObject {
         let mut belongs_to = user.belongs_to.borrow_mut();
         let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
         let request = Client::new().get(url).bearer_auth(user.token());
-        let requester = match LimitedRequester::new()
+        let result = match LimitedRequester::new()
             .await
             .send_request(
                 request,
@@ -43,7 +43,14 @@ impl types::RoleObject {
             Ok(request) => request,
             Err(e) => return Err(e),
         };
-        let roles: Vec<RoleObject> = from_str(&requester.text().await.unwrap()).unwrap();
+        let roles: Vec<RoleObject> = match from_str(&result.text().await.unwrap()) {
+            Ok(roles) => roles,
+            Err(e) => {
+                return Err(ChorusLibError::InvalidResponseError {
+                    error: e.to_string(),
+                })
+            }
+        };
 
         if roles.is_empty() {
             return Ok(None);
@@ -80,7 +87,7 @@ impl types::RoleObject {
             role_id
         );
         let request = Client::new().get(url).bearer_auth(user.token());
-        let requester = match LimitedRequester::new()
+        let result = match LimitedRequester::new()
             .await
             .send_request(
                 request,
@@ -93,7 +100,14 @@ impl types::RoleObject {
             Ok(request) => request,
             Err(e) => return Err(e),
         };
-        let role: RoleObject = from_str(&requester.text().await.unwrap()).unwrap();
+        let role: RoleObject = match from_str(&result.text().await.unwrap()) {
+            Ok(role) => role,
+            Err(e) => {
+                return Err(ChorusLibError::InvalidResponseError {
+                    error: e.to_string(),
+                })
+            }
+        };
 
         Ok(role)
     }
