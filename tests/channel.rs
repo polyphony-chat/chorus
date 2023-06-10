@@ -1,5 +1,5 @@
 mod common;
-use chorus::types::{self, Channel};
+use chorus::types::{self, Channel, PermissionFlags, PermissionOverwrite};
 
 #[tokio::test]
 async fn get_channel() {
@@ -54,5 +54,31 @@ async fn modify_channel() {
     .await
     .unwrap();
     assert_eq!(result.name, Some("beepboop".to_string()));
+
+    let permission_override = PermissionFlags::from_vec(Vec::from([
+        PermissionFlags::MANAGE_CHANNELS,
+        PermissionFlags::MANAGE_MESSAGES,
+    ]));
+    let permission_override = PermissionOverwrite {
+        id: bundle.user.object.id.to_string(),
+        overwrite_type: "1".to_string(),
+        allow: permission_override,
+        deny: "0".to_string(),
+    };
+
+    Channel::edit_permissions(
+        &mut bundle.user,
+        bundle.channel.id.to_string().as_str(),
+        permission_override.clone(),
+    )
+    .await;
+
+    Channel::delete_permission(
+        &mut bundle.user,
+        bundle.channel.id.to_string().as_str(),
+        &permission_override.id,
+    )
+    .await;
+
     common::teardown(bundle).await
 }
