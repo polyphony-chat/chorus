@@ -21,6 +21,6 @@ pub struct RoleCreateModifySchema {
 /// Represents the schema which needs to be sent to update a roles' position.
 /// See: [https://docs.spacebar.chat/routes/#cmp--schemas-rolepositionupdateschema](https://docs.spacebar.chat/routes/#cmp--schemas-rolepositionupdateschema)
 pub struct RolePositionUpdateSchema {
-    pub id: Snowflake,
-    pub position: i32,
+    pub id: String,
+    pub position: u16,
 }
