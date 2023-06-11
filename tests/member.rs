@@ -7,7 +7,7 @@ async fn add_remove_role() {
     let role_id = &bundle.role.id.to_string();
     let user_id = &bundle.user.object.id.to_string();
     chorus::types::GuildMember::add_role(&mut bundle.user, guild_id, user_id, role_id).await;
-    let member = chorus::types::GuildMember::get(&mut bundle.user, &guild_id, &user_id)
+    let member = chorus::types::GuildMember::get(&mut bundle.user, guild_id, user_id)
         .await
         .unwrap();
     let mut role_found = false;
@@ -21,7 +21,7 @@ async fn add_remove_role() {
         assert!(false)
     }
     chorus::types::GuildMember::remove_role(&mut bundle.user, guild_id, user_id, role_id).await;
-    let member = chorus::types::GuildMember::get(&mut bundle.user, &guild_id, &user_id)
+    let member = chorus::types::GuildMember::get(&mut bundle.user, guild_id, user_id)
         .await
         .unwrap();
     for role in member.roles.iter() {

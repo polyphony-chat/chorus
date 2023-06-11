@@ -10,7 +10,7 @@ async fn get_channel() {
 
     assert_eq!(
         bundle_channel,
-        Channel::get(&mut bundle_user, &bundle_channel.id.to_string())
+        Channel::get(bundle_user, &bundle_channel.id.to_string())
             .await
             .unwrap()
     );
