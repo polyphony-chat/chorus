@@ -1,11 +1,3 @@
-mod apierror;
-mod auth;
-mod channel;
-mod guild;
-mod message;
-mod role;
-mod user;
-
 pub use apierror::*;
 pub use auth::*;
 pub use channel::*;
@@ -14,10 +6,19 @@ pub use message::*;
 pub use role::*;
 pub use user::*;
 
+mod apierror;
+mod auth;
+mod channel;
+mod guild;
+mod message;
+mod role;
+mod user;
+
 #[cfg(test)]
 mod schemas_tests {
-    use super::*;
     use crate::errors::FieldFormatError;
+
+    use super::*;
 
     #[test]
     fn password_too_short() {

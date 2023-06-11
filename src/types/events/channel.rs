@@ -3,7 +3,7 @@ use crate::types::events::WebSocketEvent;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-pins-update
 pub struct ChannelPinsUpdate {
     pub guild_id: Option<String>,

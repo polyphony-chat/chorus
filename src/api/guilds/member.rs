@@ -43,7 +43,7 @@ impl types::GuildMember {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         let member = from_str::<types::GuildMember>(&response_text);

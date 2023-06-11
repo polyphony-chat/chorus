@@ -1,5 +1,6 @@
-mod common;
 use chorus::types;
+
+mod common;
 
 #[tokio::test]
 async fn test_registration() {

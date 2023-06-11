@@ -1,8 +1,8 @@
-use crate::types::events::WebSocketEvent;
+use crate::types::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Received on gateway init, tells the client how often to send heartbeats;
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayHello {
     pub op: i32,
     pub d: HelloData,

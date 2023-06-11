@@ -24,4 +24,5 @@ pub struct LazyRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub channels: Option<HashMap<String, Vec<Vec<u64>>>>,
 }
+
 impl WebSocketEvent for LazyRequest {}
