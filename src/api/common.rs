@@ -4,18 +4,21 @@ use serde_json::from_str;
 
 use crate::{errors::ChorusLibError, instance::UserMeta, limit::LimitedRequester};
 
+use super::limits::LimitType;
+
 /// Sends a request to wherever it needs to go and performs some basic error
 /// handling.
 pub async fn handle_request(
     request: RequestBuilder,
     user: &mut UserMeta,
+    limit_type: LimitType,
 ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
     let mut belongs_to = user.belongs_to.borrow_mut();
     match LimitedRequester::new()
         .await
         .send_request(
             request,
-            crate::api::limits::LimitType::Channel,
+            limit_type,
             &mut belongs_to.limits,
             &mut user.limits,
         )
@@ -29,8 +32,9 @@ pub async fn handle_request(
 pub async fn deserialize_response<T: for<'a> Deserialize<'a>>(
     request: RequestBuilder,
     user: &mut UserMeta,
+    limit_type: LimitType,
 ) -> Result<T, ChorusLibError> {
-    let response = handle_request(request, user).await.unwrap();
+    let response = handle_request(request, user, limit_type).await.unwrap();
     let response_text = match response.text().await {
         Ok(string) => string,
         Err(e) => {
