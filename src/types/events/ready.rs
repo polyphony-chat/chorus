@@ -5,10 +5,10 @@ use crate::types::events::{Session, WebSocketEvent};
 use crate::types::interfaces::ClientStatusObject;
 use crate::types::{Activity, GuildMember, PresenceUpdate, VoiceState};
 
-#[derive(Debug, Deserialize, Serialize, Default)]
-/// Sort of documented, though most fields are left out
-/// For a full example see https://gist.github.com/kozabrada123/a347002b1fb8825a5727e40746d4e199
-/// to:do add all undocumented fields
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+/// 1/2 half documented;
+/// Received after identifying, provides initial user info;
+/// See https://discord.com/developers/docs/topics/gateway-events#ready;
 pub struct GatewayReady {
     pub analytics_token: Option<String>,
     pub auth_session_id_hash: Option<String>,
@@ -28,10 +28,9 @@ pub struct GatewayReady {
 
 impl WebSocketEvent for GatewayReady {}
 
-#[derive(Debug, Deserialize, Serialize, Default)]
-/// Officially Undocumented
-/// Sent after the READY event when a client is a user
-/// {"t":"READY_SUPPLEMENTAL","s":2,"op":0,"d":{"merged_presences":{"guilds":[[{"user_id":"463640391196082177","status":"online","game":null,"client_status":{"web":"online"},"activities":[]}]],"friends":[{"user_id":"463640391196082177","status":"online","last_modified":1684053508443,"client_status":{"web":"online"},"activities":[]}]},"merged_members":[[{"user_id":"463640391196082177","roles":[],"premium_since":null,"pending":false,"nick":"pog","mute":false,"joined_at":"2021-05-30T15:24:08.763000+00:00","flags":0,"deaf":false,"communication_disabled_until":null,"avatar":null}]],"lazy_private_channels":[],"guilds":[{"voice_states":[],"id":"848582562217590824","embedded_activities":[]}],"disclose":["pomelo"]}}
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+/// Officially Undocumented;
+/// Sent after the READY event when a client is a user, seems to somehow add onto the ready event;
 pub struct GatewayReadySupplemental {
     pub merged_presences: MergedPresences,
     pub merged_members: Vec<Vec<GuildMember>>,
@@ -44,13 +43,13 @@ pub struct GatewayReadySupplemental {
 
 impl WebSocketEvent for GatewayReadySupplemental {}
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct MergedPresences {
     pub guilds: Vec<Vec<MergedPresenceGuild>>,
     pub friends: Vec<MergedPresenceFriend>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct MergedPresenceFriend {
     pub user_id: String,
     pub status: String,
@@ -60,7 +59,7 @@ pub struct MergedPresenceFriend {
     pub activities: Vec<Activity>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct MergedPresenceGuild {
     pub user_id: String,
     pub status: String,
@@ -70,7 +69,7 @@ pub struct MergedPresenceGuild {
     pub activities: Vec<Activity>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct SupplementalGuild {
     pub voice_states: Option<Vec<VoiceState>>,
     pub id: String,

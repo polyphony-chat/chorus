@@ -15,10 +15,10 @@ pub struct Message {
     pub channel_id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub author: PublicUser,
-    pub content: String,
+    pub content: Option<String>,
     pub timestamp: String,
     pub edited_timestamp: Option<String>,
-    pub tts: bool,
+    pub tts: Option<bool>,
     pub mention_everyone: bool,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub mentions: Option<Vec<User>>,

@@ -1,7 +1,6 @@
+use crate::types::events::{PresenceUpdate, WebSocketEvent};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-
-use crate::types::events::{PresenceUpdate, WebSocketEvent};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GatewayIdentifyPayload {
@@ -67,7 +66,7 @@ impl GatewayIdentifyPayload {
 
 impl WebSocketEvent for GatewayIdentifyPayload {}
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde_as]
 pub struct GatewayIdentifyConnectionProps {
     /// Almost always sent

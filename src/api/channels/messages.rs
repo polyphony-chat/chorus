@@ -3,8 +3,8 @@ use http::HeaderMap;
 use reqwest::{multipart, Client};
 use serde_json::to_string;
 
+use crate::api::deserialize_response;
 use crate::instance::UserMeta;
-use crate::limit::LimitedRequester;
 use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment};
 
 impl Message {
@@ -24,23 +24,17 @@ impl Message {
         channel_id: String,
         message: &mut MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
-        let url_api = belongs_to.urls.get_api();
-        let mut requester = LimitedRequester::new().await;
+    ) -> Result<Message, crate::errors::ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow_mut();
+        let url_api = belongs_to.urls.get_api().to_string();
+        drop(belongs_to);
 
         if files.is_none() {
-            let message_request = Client::new()
+            let request = Client::new()
                 .post(format!("{}/channels/{}/messages/", url_api, channel_id))
                 .bearer_auth(user.token())
                 .body(to_string(message).unwrap());
-            requester
-                .send_request(
-                    message_request,
-                    crate::api::limits::LimitType::Channel,
-                    &mut belongs_to.limits,
-                    &mut user.limits,
-                )
+            deserialize_response::<Message>(request, user, crate::api::limits::LimitType::Channel)
                 .await
         } else {
             for (index, attachment) in message.attachments.iter_mut().enumerate() {
@@ -70,18 +64,12 @@ impl Message {
                 form = form.part(part_name, part);
             }
 
-            let message_request = Client::new()
+            let request = Client::new()
                 .post(format!("{}/channels/{}/messages/", url_api, channel_id))
                 .bearer_auth(user.token())
                 .multipart(form);
 
-            requester
-                .send_request(
-                    message_request,
-                    crate::api::limits::LimitType::Channel,
-                    &mut belongs_to.limits,
-                    &mut user.limits,
-                )
+            deserialize_response::<Message>(request, user, crate::api::limits::LimitType::Channel)
                 .await
         }
     }
@@ -105,7 +93,7 @@ impl UserMeta {
         message: &mut MessageSendSchema,
         channel_id: String,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
+    ) -> Result<Message, crate::errors::ChorusLibError> {
         Message::send(self, channel_id, message, files).await
     }
 }

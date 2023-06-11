@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
-
 use crate::types::events::WebSocketEvent;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GatewayHeartbeat {
@@ -10,7 +9,7 @@ pub struct GatewayHeartbeat {
 
 impl WebSocketEvent for GatewayHeartbeat {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 pub struct GatewayHeartbeatAck {
     pub op: i32,
 }

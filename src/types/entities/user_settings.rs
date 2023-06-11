@@ -13,6 +13,12 @@ pub enum UserStatus {
     Invisible,
 }
 
+impl std::fmt::Display for UserStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", serde_json::to_string(self).unwrap())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
