@@ -34,7 +34,7 @@ pub struct Guild {
     pub emojis: Vec<Emoji>,
     pub explicit_content_filter: Option<i32>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
-    pub features: GuildFeaturesList,
+    pub features: Option<GuildFeaturesList>,
     pub icon: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub icon_hash: Option<String>,

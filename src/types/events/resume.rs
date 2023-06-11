@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
-
 use crate::types::events::WebSocketEvent;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct GatewayResume {

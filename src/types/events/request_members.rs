@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
-
 use crate::types::events::WebSocketEvent;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://discord.com/developers/docs/topics/gateway-events#request-guild-members-request-guild-members-structure

@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{GuildMember, VoiceState};
-
 use super::{ChannelUnreadUpdateObject, WebSocketEvent};
+use crate::types::{GuildMember, VoiceState};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
