@@ -2,6 +2,7 @@ use reqwest::Client;
 use serde_json::{from_str, to_string};
 
 use crate::{
+    api::deserialize_response,
     errors::ChorusLibError,
     instance::UserMeta,
     limit::LimitedRequester,
@@ -26,36 +27,21 @@ impl types::RoleObject {
     pub async fn get_all(
         user: &mut UserMeta,
         guild_id: &str,
-    ) -> Result<Option<Vec<RoleObject>>, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+    ) -> Result<Option<Vec<RoleObject>>, ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow();
         let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
+        drop(belongs_to);
         let request = Client::new().get(url).bearer_auth(user.token());
-        let result = match LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-        {
-            Ok(request) => request,
-            Err(e) => return Err(e),
-        };
-        let roles: Vec<RoleObject> = match from_str(&result.text().await.unwrap()) {
-            Ok(roles) => roles,
-            Err(e) => {
-                return Err(ChorusLibError::InvalidResponseError {
-                    error: e.to_string(),
-                });
-            }
-        };
-
+        let roles = deserialize_response::<Vec<RoleObject>>(
+            request,
+            user,
+            crate::api::limits::LimitType::Guild,
+        )
+        .await
+        .unwrap();
         if roles.is_empty() {
             return Ok(None);
         }
-
         Ok(Some(roles))
     }
 
@@ -78,38 +64,17 @@ impl types::RoleObject {
         user: &mut UserMeta,
         guild_id: &str,
         role_id: &str,
-    ) -> Result<RoleObject, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+    ) -> Result<RoleObject, ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/guilds/{}/roles/{}/",
             belongs_to.urls.get_api(),
             guild_id,
             role_id
         );
+        drop(belongs_to);
         let request = Client::new().get(url).bearer_auth(user.token());
-        let result = match LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-        {
-            Ok(request) => request,
-            Err(e) => return Err(e),
-        };
-        let role: RoleObject = match from_str(&result.text().await.unwrap()) {
-            Ok(role) => role,
-            Err(e) => {
-                return Err(ChorusLibError::InvalidResponseError {
-                    error: e.to_string(),
-                });
-            }
-        };
-
-        Ok(role)
+        deserialize_response(request, user, crate::api::limits::LimitType::Guild).await
     }
 
     /// Creates a new role for a given guild.
@@ -132,8 +97,9 @@ impl types::RoleObject {
         guild_id: &str,
         role_create_schema: RoleCreateModifySchema,
     ) -> Result<RoleObject, ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let belongs_to = user.belongs_to.borrow();
         let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
+        drop(belongs_to);
         let body = match to_string::<RoleCreateModifySchema>(&role_create_schema) {
             Ok(string) => string,
             Err(e) => {
@@ -143,28 +109,7 @@ impl types::RoleObject {
             }
         };
         let request = Client::new().post(url).bearer_auth(user.token()).body(body);
-        let result = match LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-        {
-            Ok(request) => request,
-            Err(e) => return Err(e),
-        };
-        let role: RoleObject = match from_str(&result.text().await.unwrap()) {
-            Ok(role) => role,
-            Err(e) => {
-                return Err(ChorusLibError::InvalidResponseError {
-                    error: e.to_string(),
-                });
-            }
-        };
-        Ok(role)
+        deserialize_response(request, user, crate::api::limits::LimitType::Guild).await
     }
 
     /// Updates the position of a role in the guild's hierarchy.
@@ -187,7 +132,7 @@ impl types::RoleObject {
         guild_id: &str,
         role_position_update_schema: types::RolePositionUpdateSchema,
     ) -> Result<RoleObject, ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let belongs_to = user.belongs_to.borrow();
         let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
         let body = match to_string(&role_position_update_schema) {
             Ok(body) => body,
@@ -197,29 +142,13 @@ impl types::RoleObject {
                 });
             }
         };
+        drop(belongs_to);
         let request = Client::new()
             .patch(url)
             .bearer_auth(user.token())
             .body(body);
-        let response = LimitedRequester::new()
+        deserialize_response::<RoleObject>(request, user, crate::api::limits::LimitType::Guild)
             .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-            .unwrap();
-        let role: RoleObject = match from_str(&response.text().await.unwrap()) {
-            Ok(role) => role,
-            Err(e) => {
-                return Err(ChorusLibError::InvalidResponseError {
-                    error: e.to_string(),
-                });
-            }
-        };
-        Ok(role)
     }
 
     /// Updates a role in a guild.
@@ -244,13 +173,14 @@ impl types::RoleObject {
         role_id: &str,
         role_create_schema: RoleCreateModifySchema,
     ) -> Result<RoleObject, ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/guilds/{}/roles/{}",
             belongs_to.urls.get_api(),
             guild_id,
             role_id
         );
+        drop(belongs_to);
         let body = match to_string::<RoleCreateModifySchema>(&role_create_schema) {
             Ok(string) => string,
             Err(e) => {
@@ -263,27 +193,7 @@ impl types::RoleObject {
             .patch(url)
             .bearer_auth(user.token())
             .body(body);
-        let result = match LimitedRequester::new()
+        deserialize_response::<RoleObject>(request, user, crate::api::limits::LimitType::Guild)
             .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-        {
-            Ok(request) => request,
-            Err(e) => return Err(e),
-        };
-        let role: RoleObject = match from_str(&result.text().await.unwrap()) {
-            Ok(role) => role,
-            Err(e) => {
-                return Err(ChorusLibError::InvalidResponseError {
-                    error: e.to_string(),
-                });
-            }
-        };
-        Ok(role)
     }
 }
