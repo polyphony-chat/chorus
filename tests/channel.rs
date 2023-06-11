@@ -6,7 +6,7 @@ mod common;
 async fn get_channel() {
     let mut bundle = common::setup().await;
     let bundle_channel = bundle.channel.clone();
-    let mut bundle_user = &mut bundle.user;
+    let bundle_user = &mut bundle.user;
 
     assert_eq!(
         bundle_channel,

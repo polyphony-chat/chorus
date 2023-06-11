@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::Snowflake;
+
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
