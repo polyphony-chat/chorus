@@ -9,7 +9,7 @@ pub struct GatewayHeartbeat {
 
 impl WebSocketEvent for GatewayHeartbeat {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 pub struct GatewayHeartbeatAck {
     pub op: i32,
 }

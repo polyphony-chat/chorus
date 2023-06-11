@@ -1,7 +1,8 @@
-use crate::types::entities::{AllowedMention, Embed};
-use crate::types::utils::Snowflake;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+use crate::types::entities::{AllowedMention, Embed};
+use crate::types::utils::Snowflake;
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Interaction {

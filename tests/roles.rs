@@ -1,6 +1,6 @@
-mod common;
-
 use chorus::types::{self, RoleCreateModifySchema};
+
+mod common;
 
 #[tokio::test]
 async fn create_and_get_roles() {

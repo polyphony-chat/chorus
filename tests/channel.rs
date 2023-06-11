@@ -1,15 +1,16 @@
-mod common;
 use chorus::types::{self, Channel, PermissionFlags, PermissionOverwrite};
+
+mod common;
 
 #[tokio::test]
 async fn get_channel() {
     let mut bundle = common::setup().await;
     let bundle_channel = bundle.channel.clone();
-    let mut bundle_user = &mut bundle.user;
+    let bundle_user = &mut bundle.user;
 
     assert_eq!(
         bundle_channel,
-        Channel::get(&mut bundle_user, &bundle_channel.id.to_string(),)
+        Channel::get(bundle_user, &bundle_channel.id.to_string())
             .await
             .unwrap()
     );

@@ -30,7 +30,7 @@
 
 </div>
 
-## Roadmap
+## Progress Tracker/Roadmap:
 ### Core Functionality
 - [x] Rate Limiter (hint: couldn't be fully tested due to [an Issue with the Spacebar Server](https://github.com/spacebarchat/server/issues/1022))
 - [x] [Login (the conventional way)](https://github.com/polyphony-chat/chorus/issues/1)

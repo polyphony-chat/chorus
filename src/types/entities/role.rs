@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::deserialize_option_number_from_string;
+use serde_aux::prelude::{deserialize_option_number_from_string, deserialize_string_from_number};
 
 use crate::types::utils::Snowflake;
 
@@ -16,6 +16,7 @@ pub struct RoleObject {
     pub unicode_emoji: Option<String>,
     pub position: u16,
     #[serde(default)]
+    #[serde(deserialize_with = "deserialize_string_from_number")]
     pub permissions: String,
     pub managed: bool,
     pub mentionable: bool,

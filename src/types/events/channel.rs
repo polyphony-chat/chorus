@@ -13,7 +13,7 @@ pub struct ChannelPinsUpdate {
 
 impl WebSocketEvent for ChannelPinsUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-create
 pub struct ChannelCreate {
     #[serde(flatten)]
@@ -22,7 +22,7 @@ pub struct ChannelCreate {
 
 impl WebSocketEvent for ChannelCreate {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-update
 pub struct ChannelUpdate {
     #[serde(flatten)]
@@ -31,7 +31,7 @@ pub struct ChannelUpdate {
 
 impl WebSocketEvent for ChannelUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Officially undocumented.
 /// Sends updates to client about a new message with its id
 /// {"channel_unread_updates": [{"id": "816412869766938648", "last_message_id": "1085892012085104680"}}
@@ -40,7 +40,7 @@ pub struct ChannelUnreadUpdate {
     pub guild_id: String,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Contains very few fields from [Channel]
 /// See also [ChannelUnreadUpdates]
 pub struct ChannelUnreadUpdateObject {
@@ -51,7 +51,7 @@ pub struct ChannelUnreadUpdateObject {
 
 impl WebSocketEvent for ChannelUnreadUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-delete
 pub struct ChannelDelete {
     #[serde(flatten)]

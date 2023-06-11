@@ -9,7 +9,8 @@ pub struct GatewayIdentifyPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub compress: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub large_threshold: Option<i16>, //default: 50
+    pub large_threshold: Option<i16>,
+    //default: 50
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shard: Option<Vec<(i32, i32)>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -65,7 +66,7 @@ impl GatewayIdentifyPayload {
 
 impl WebSocketEvent for GatewayIdentifyPayload {}
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde_as]
 pub struct GatewayIdentifyConnectionProps {
     /// Almost always sent
