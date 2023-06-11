@@ -1,7 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use crate::types::entities::PublicUser;
 use crate::types::events::WebSocketEvent;
 use crate::types::utils::Snowflake;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#user-update

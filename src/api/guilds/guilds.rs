@@ -173,7 +173,7 @@ impl Guild {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         let _: Vec<Channel> = match from_str(&stringed_response) {
@@ -181,7 +181,7 @@ impl Guild {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
     }

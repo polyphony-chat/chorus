@@ -28,7 +28,7 @@ impl ReactionMeta {
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions](https://discord.com/developers/docs/resources/channel#delete-all-reactions)
-    */
+     */
     pub async fn delete_all(
         &self,
         user: &mut UserMeta,
@@ -66,7 +66,7 @@ impl ReactionMeta {
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
-    */
+     */
     pub async fn get(
         &self,
         emoji: &str,
@@ -108,7 +108,7 @@ impl ReactionMeta {
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji](https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji)
-    */
+     */
     pub async fn delete_emoji(
         &self,
         emoji: &str,
@@ -154,7 +154,7 @@ impl ReactionMeta {
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
-    */
+     */
     pub async fn create(
         &self,
         emoji: &str,
@@ -241,7 +241,7 @@ impl ReactionMeta {
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
-    */
+     */
     pub async fn delete_user(
         &self,
         user_id: &str,

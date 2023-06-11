@@ -21,7 +21,8 @@ pub struct GuildTemplate {
     pub updated_at: DateTime<Utc>,
     pub source_guild_id: String,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub source_guild: Vec<Guild>, // Unsure how a {recursive: Guild} looks like, might be a Vec?
+    pub source_guild: Vec<Guild>,
+    // Unsure how a {recursive: Guild} looks like, might be a Vec?
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub serialized_source_guild: Vec<Guild>,
 }

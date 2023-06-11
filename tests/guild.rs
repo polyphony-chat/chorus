@@ -1,5 +1,6 @@
-mod common;
 use chorus::types::{Guild, GuildCreateSchema};
+
+mod common;
 
 #[tokio::test]
 async fn guild_creation_deletion() {

@@ -10,12 +10,14 @@ pub struct CallCreate {
     pub voice_states: Vec<VoiceState>,
     /// Seems like a vec of channel ids
     pub ringing: Vec<String>,
-    pub region: String, // milan
+    pub region: String,
+    // milan
     pub message_id: String,
     /// What is this?
     pub embedded_activities: Vec<serde_json::Value>,
     pub channel_id: String,
 }
+
 impl WebSocketEvent for CallCreate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -25,11 +27,13 @@ impl WebSocketEvent for CallCreate {}
 pub struct CallUpdate {
     /// Seems like a vec of channel ids
     pub ringing: Vec<String>,
-    pub region: String, // milan
+    pub region: String,
+    // milan
     pub message_id: String,
     pub guild_id: Option<String>,
     pub channel_id: String,
 }
+
 impl WebSocketEvent for CallUpdate {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -39,6 +43,7 @@ impl WebSocketEvent for CallUpdate {}
 pub struct CallDelete {
     pub channel_id: String,
 }
+
 impl WebSocketEvent for CallDelete {}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -48,4 +53,5 @@ impl WebSocketEvent for CallDelete {}
 pub struct CallSync {
     pub channel_id: String,
 }
+
 impl WebSocketEvent for CallSync {}

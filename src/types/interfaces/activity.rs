@@ -1,5 +1,6 @@
-use crate::types::entities::Emoji;
 use serde::{Deserialize, Serialize};
+
+use crate::types::entities::Emoji;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Activity {
