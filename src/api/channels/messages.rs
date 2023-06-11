@@ -5,7 +5,6 @@ use serde_json::to_string;
 
 use crate::api::deserialize_response;
 use crate::instance::UserMeta;
-use crate::limit::LimitedRequester;
 use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment};
 
 impl Message {
