@@ -2,7 +2,7 @@ use reqwest::Client;
 use serde_json::{from_str, to_string};
 
 use crate::{
-    api::limits::Limits,
+    api::{deserialize_response, handle_request_as_option, limits::Limits},
     errors::ChorusLibError,
     instance::{Instance, UserMeta},
     limit::LimitedRequester,
@@ -58,20 +58,10 @@ impl UserMeta {
             ))
             .body(to_string(&modify_schema).unwrap())
             .bearer_auth(self.token());
-        let result = match LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Global,
-                &mut self.belongs_to.borrow_mut().limits,
-                &mut self.limits,
-            )
-            .await
-        {
-            Ok(response) => response,
-            Err(e) => return Err(e),
-        };
-        let user_updated: User = from_str(&result.text().await.unwrap()).unwrap();
+        let user_updated =
+            deserialize_response::<User>(request, self, crate::api::limits::LimitType::Ip)
+                .await
+                .unwrap();
         let _ = std::mem::replace(&mut self.object, user_updated.clone());
         Ok(user_updated)
     }
@@ -86,23 +76,12 @@ impl UserMeta {
     ///
     /// Returns `None` if the user was successfully deleted, or an `ChorusLibError` if an error occurred.
     pub async fn delete(mut self) -> Option<ChorusLibError> {
-        let mut belongs_to = self.belongs_to.borrow_mut();
+        let belongs_to = self.belongs_to.borrow();
         let request = Client::new()
             .post(format!("{}/users/@me/delete/", belongs_to.urls.get_api()))
-            .bearer_auth(self.token);
-        match LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Global,
-                &mut belongs_to.limits,
-                &mut self.limits,
-            )
-            .await
-        {
-            Ok(_) => None,
-            Err(e) => Some(e),
-        }
+            .bearer_auth(self.token());
+        drop(belongs_to);
+        handle_request_as_option(request, &mut self, crate::api::limits::LimitType::Ip).await
     }
 }
 

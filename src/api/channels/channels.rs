@@ -1,44 +1,35 @@
 use reqwest::Client;
-use serde_json::{from_str, to_string};
+use serde_json::to_string;
 
 use crate::{
+    api::common,
     errors::ChorusLibError,
     instance::UserMeta,
-    limit::LimitedRequester,
     types::{Channel, ChannelModifySchema},
 };
 
 impl Channel {
     pub async fn get(user: &mut UserMeta, channel_id: &str) -> Result<Channel, ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let belongs_to = user.belongs_to.borrow_mut();
+        let url = belongs_to.urls.get_api().to_string();
+        drop(belongs_to);
         let request = Client::new()
-            .get(format!(
-                "{}/channels/{}/",
-                belongs_to.urls.get_api(),
-                channel_id
-            ))
+            .get(format!("{}/channels/{}/", url, channel_id))
             .bearer_auth(user.token());
-        let mut requester = LimitedRequester::new().await;
-        let result = match requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-        {
-            Ok(result) => result,
-            Err(e) => return Err(e),
-        };
-        let result_text = result.text().await.unwrap();
-        match from_str::<Channel>(&result_text) {
-            Ok(object) => Ok(object),
-            Err(e) => Err(ChorusLibError::RequestErrorError {
-                url: format!("{}/channels/{}/", belongs_to.urls.get_api(), channel_id),
-                error: e.to_string(),
-            }),
+
+        let result = common::deserialize_response::<Channel>(
+            request,
+            user,
+            crate::api::limits::LimitType::Channel,
+        )
+        .await;
+        if result.is_err() {
+            return Err(ChorusLibError::RequestErrorError {
+                url: format!("{}/channels/{}/", url, channel_id),
+                error: result.err().unwrap().to_string(),
+            });
         }
+        Ok(result.unwrap())
     }
 
     /// Deletes a channel.
@@ -55,7 +46,7 @@ impl Channel {
     ///
     /// An `Option` that contains an `ChorusLibError` if an error occurred during the request, or `None` if the request was successful.
     pub async fn delete(self, user: &mut UserMeta) -> Option<ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
             .delete(format!(
                 "{}/channels/{}/",
@@ -63,18 +54,13 @@ impl Channel {
                 self.id.to_string()
             ))
             .bearer_auth(user.token());
-        match LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Channel,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-        {
-            Ok(_) => None,
-            Err(e) => return Some(e),
+        drop(belongs_to);
+        let response =
+            common::handle_request(request, user, crate::api::limits::LimitType::Channel).await;
+        if response.is_err() {
+            return Some(response.err().unwrap());
+        } else {
+            return None;
         }
     }
 
@@ -97,7 +83,7 @@ impl Channel {
         channel_id: &str,
         user: &mut UserMeta,
     ) -> Result<Channel, ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let belongs_to = user.belongs_to.borrow();
         let request = Client::new()
             .patch(format!(
                 "{}/channels/{}/",
@@ -106,19 +92,14 @@ impl Channel {
             ))
             .bearer_auth(user.token())
             .body(to_string(&modify_data).unwrap());
-        let channel = match LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Channel,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-        {
-            Ok(channel) => from_str::<Channel>(&channel.text().await.unwrap()).unwrap(),
-            Err(e) => return Err(e),
-        };
+        drop(belongs_to);
+        let channel = common::deserialize_response::<Channel>(
+            request,
+            user,
+            crate::api::limits::LimitType::Channel,
+        )
+        .await
+        .unwrap();
         Ok(channel)
     }
 }

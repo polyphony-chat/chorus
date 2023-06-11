@@ -1,9 +1,10 @@
 use reqwest::Client;
 
 use crate::{
+    api::{handle_request, handle_request_as_option},
+    errors::ChorusLibError,
     instance::UserMeta,
-    limit::LimitedRequester,
-    types::{self},
+    types,
 };
 
 /**
@@ -23,33 +24,28 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
+    An `Option` [`crate::errors::ChorusLibError`] if something went wrong.
     Fires a `Message Reaction Remove All` Gateway event.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions](https://discord.com/developers/docs/resources/channel#delete-all-reactions)
      */
-    pub async fn delete_all(
-        &self,
-        user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+    pub async fn delete_all(&self, user: &mut UserMeta) -> Option<ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/",
             belongs_to.urls.get_api(),
             self.channel_id,
             self.message_id
         );
+        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Channel,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
+        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
+            Ok(_) => None,
+            Err(e) => Some(ChorusLibError::InvalidResponseError {
+                error: e.to_string(),
+            }),
+        }
     }
 
     /**
@@ -62,17 +58,13 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
+    A [`crate::errors::ChorusLibError`] if something went wrong.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
      */
-    pub async fn get(
-        &self,
-        emoji: &str,
-        user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+    pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> Option<ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
             belongs_to.urls.get_api(),
@@ -80,16 +72,14 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
+        drop(belongs_to);
         let request = Client::new().get(url).bearer_auth(user.token());
-        LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Channel,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
+        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
+            Ok(_) => None,
+            Err(e) => Some(ChorusLibError::InvalidResponseError {
+                error: e.to_string(),
+            }),
+        }
     }
 
     /**
@@ -103,18 +93,14 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
+    A [`crate::errors::ChorusLibError`] if something went wrong.
     Fires a `Message Reaction Remove Emoji` Gateway event.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji](https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji)
      */
-    pub async fn delete_emoji(
-        &self,
-        emoji: &str,
-        user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+    pub async fn delete_emoji(&self, emoji: &str, user: &mut UserMeta) -> Option<ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
             belongs_to.urls.get_api(),
@@ -122,16 +108,14 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
+        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Channel,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
+        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
+            Ok(_) => None,
+            Err(e) => Some(ChorusLibError::InvalidResponseError {
+                error: e.to_string(),
+            }),
+        }
     }
 
     /**
@@ -155,12 +139,8 @@ impl ReactionMeta {
     # Reference
     See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
      */
-    pub async fn create(
-        &self,
-        emoji: &str,
-        user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+    pub async fn create(&self, emoji: &str, user: &mut UserMeta) -> Option<ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
             belongs_to.urls.get_api(),
@@ -168,16 +148,9 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
+        drop(belongs_to);
         let request = Client::new().put(url).bearer_auth(user.token());
-        LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Channel,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
+        handle_request_as_option(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /**
@@ -197,12 +170,8 @@ impl ReactionMeta {
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
      */
-    pub async fn remove(
-        &self,
-        emoji: &str,
-        user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+    pub async fn remove(&self, emoji: &str, user: &mut UserMeta) -> Option<ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
             belongs_to.urls.get_api(),
@@ -210,16 +179,9 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
+        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Channel,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
+        handle_request_as_option(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /**
@@ -247,8 +209,8 @@ impl ReactionMeta {
         user_id: &str,
         emoji: &str,
         user: &mut UserMeta,
-    ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+    ) -> Option<ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/{}",
             belongs_to.urls.get_api(),
@@ -257,15 +219,8 @@ impl ReactionMeta {
             emoji,
             user_id
         );
+        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Channel,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
+        handle_request_as_option(request, user, crate::api::limits::LimitType::Channel).await
     }
 }

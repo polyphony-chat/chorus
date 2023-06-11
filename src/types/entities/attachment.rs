@@ -19,7 +19,7 @@ pub struct Attachment {
     pub waveform: Option<String>,
     #[serde(skip_serializing)]
     #[cfg_attr(feature = "sqlx", sqlx(default))]
-    pub content: Vec<u8>,
+    pub content: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
