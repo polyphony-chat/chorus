@@ -6,8 +6,7 @@ use crate::{errors::ChorusLibError, instance::UserMeta, limit::LimitedRequester}
 
 use super::limits::LimitType;
 
-/// Sends a request to wherever it needs to go and performs some basic error
-/// handling.
+/// Sends a request to wherever it needs to go and performs some basic error handling.
 pub async fn handle_request(
     request: RequestBuilder,
     user: &mut UserMeta,
@@ -26,6 +25,21 @@ pub async fn handle_request(
     {
         Ok(response) => return Ok(response),
         Err(e) => return Err(e),
+    }
+}
+
+/// Sends a request to wherever it needs to go. Returns [`None`] on success and
+/// [`Some(ChorusLibError)`] on failure.
+pub async fn handle_request_as_option(
+    request: RequestBuilder,
+    user: &mut UserMeta,
+    limit_type: LimitType,
+) -> Option<ChorusLibError> {
+    match handle_request(request, user, limit_type).await {
+        Ok(_) => None,
+        Err(e) => Some(ChorusLibError::InvalidResponseError {
+            error: e.to_string(),
+        }),
     }
 }
 
