@@ -1,6 +1,11 @@
 use reqwest::Client;
 
-use crate::{api::handle_request, errors::ChorusLibError, instance::UserMeta, types};
+use crate::{
+    api::{handle_request, handle_request_as_option},
+    errors::ChorusLibError,
+    instance::UserMeta,
+    types,
+};
 
 /**
 Useful metadata for working with [`types::Reaction`], bundled together nicely.
@@ -145,12 +150,7 @@ impl ReactionMeta {
         );
         drop(belongs_to);
         let request = Client::new().put(url).bearer_auth(user.token());
-        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
-            Ok(_) => None,
-            Err(e) => Some(ChorusLibError::InvalidResponseError {
-                error: e.to_string(),
-            }),
-        }
+        handle_request_as_option(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /**
@@ -181,12 +181,7 @@ impl ReactionMeta {
         );
         drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
-            Ok(_) => None,
-            Err(e) => Some(ChorusLibError::InvalidResponseError {
-                error: e.to_string(),
-            }),
-        }
+        handle_request_as_option(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /**
@@ -226,11 +221,6 @@ impl ReactionMeta {
         );
         drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
-            Ok(_) => None,
-            Err(e) => Some(ChorusLibError::InvalidResponseError {
-                error: e.to_string(),
-            }),
-        }
+        handle_request_as_option(request, user, crate::api::limits::LimitType::Channel).await
     }
 }
