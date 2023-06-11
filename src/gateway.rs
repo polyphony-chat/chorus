@@ -1,11 +1,9 @@
-use crate::errors::ObserverError;
-use crate::gateway::events::Events;
-use crate::types;
-use futures_util::stream::SplitSink;
+use std::sync::Arc;
+
 use futures_util::SinkExt;
+use futures_util::stream::SplitSink;
 use futures_util::StreamExt;
 use native_tls::TlsConnector;
-use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::error::TryRecvError;
@@ -15,8 +13,12 @@ use tokio::task;
 use tokio::task::JoinHandle;
 use tokio::time;
 use tokio::time::Instant;
-use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
+use tokio_tungstenite::MaybeTlsStream;
+
+use crate::errors::ObserverError;
+use crate::gateway::events::Events;
+use crate::types;
 
 // Gateway opcodes
 /// Opcode received when the server dispatches a [crate::types::WebSocketEvent]
@@ -72,7 +74,7 @@ Represents a handle to a Gateway connection. A Gateway connection will create ob
 [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
 implemented [Types] with the trait [`WebSocketEvent`]
 Using this handle you can also send Gateway Events directly.
-*/
+ */
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
@@ -201,7 +203,7 @@ impl Gateway {
                 TlsConnector::builder().build().unwrap(),
             )),
         )
-        .await
+            .await
         {
             Ok(websocket_stream) => websocket_stream,
             Err(e) => return Err(e),
@@ -1198,7 +1200,7 @@ impl Gateway {
 
 /**
 Handles sending heartbeats to the gateway in another thread
-*/
+ */
 struct HeartbeatHandler {
     /// The heartbeat interval in milliseconds
     pub heartbeat_interval: u128,
@@ -1267,7 +1269,7 @@ impl HeartbeatHandler {
 /**
 Used to communicate with the main thread.
 Either signifies a sequence number update or a received heartbeat ack
-*/
+ */
 #[derive(Clone, Copy, Debug)]
 struct HeartbeatThreadCommunication {
     /// The opcode for the communication we received
@@ -1287,8 +1289,7 @@ pub trait Observer<T: types::WebSocketEvent>: std::fmt::Debug {
 
 /** GatewayEvent is a wrapper around a WebSocketEvent. It is used to notify the observers of a
 change in the WebSocketEvent. GatewayEvents are observable.
-*/
-
+ */
 #[derive(Default, Debug)]
 pub struct GatewayEvent<T: types::WebSocketEvent> {
     observers: Vec<Arc<Mutex<dyn Observer<T> + Sync + Send>>>,
@@ -1307,7 +1308,7 @@ impl<T: types::WebSocketEvent> GatewayEvent<T> {
 
     /**
     Returns true if the GatewayEvent is observed by at least one Observer.
-    */
+     */
     pub fn is_observed(&self) -> bool {
         self.is_observed
     }
@@ -1318,7 +1319,7 @@ impl<T: types::WebSocketEvent> GatewayEvent<T> {
     # Errors
     Returns an error if the GatewayEvent is already observed.
     Error type: [`ObserverError::AlreadySubscribedError`]
-    */
+     */
     pub fn subscribe(
         &mut self,
         observable: Arc<Mutex<dyn Observer<T> + Sync + Send>>,
@@ -1333,7 +1334,7 @@ impl<T: types::WebSocketEvent> GatewayEvent<T> {
 
     /**
     Unsubscribes an Observer from the GatewayEvent.
-    */
+     */
     pub fn unsubscribe(&mut self, observable: Arc<Mutex<dyn Observer<T> + Sync + Send>>) {
         // .retain()'s closure retains only those elements of the vector, which have a different
         // pointer value than observable.
@@ -1346,7 +1347,7 @@ impl<T: types::WebSocketEvent> GatewayEvent<T> {
 
     /**
     Updates the GatewayEvent's data and notifies the observers.
-    */
+     */
     async fn update_data(&mut self, new_event_data: T) {
         self.event_data = new_event_data;
         self.notify().await;
@@ -1354,7 +1355,7 @@ impl<T: types::WebSocketEvent> GatewayEvent<T> {
 
     /**
     Notifies the observers of the GatewayEvent.
-    */
+     */
     async fn notify(&self) {
         for observer in &self.observers {
             observer.lock().await.update(&self.event_data);
@@ -1364,6 +1365,7 @@ impl<T: types::WebSocketEvent> GatewayEvent<T> {
 
 mod events {
     use super::*;
+
     #[derive(Default, Debug)]
     pub struct Events {
         pub application: Application,
@@ -1528,6 +1530,7 @@ mod example {
 
     #[derive(Debug)]
     struct Consumer;
+
     impl Observer<types::GatewayResume> for Consumer {
         fn update(&self, data: &types::GatewayResume) {
             println!("{}", data.token)

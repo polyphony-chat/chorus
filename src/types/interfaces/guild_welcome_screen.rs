@@ -1,5 +1,6 @@
-use crate::types::utils::Snowflake;
 use serde::{Deserialize, Serialize};
+
+use crate::types::utils::Snowflake;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct WelcomeScreenObject {

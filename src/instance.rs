@@ -1,13 +1,13 @@
+use std::cell::RefCell;
+use std::fmt;
+use std::rc::Rc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::api::limits::Limits;
 use crate::errors::{ChorusLibError, FieldFormatError};
 use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::URLBundle;
-
-use std::cell::RefCell;
-use std::fmt;
-use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 /**
@@ -47,7 +47,7 @@ impl Instance {
             Err(e) => {
                 return Err(ChorusLibError::CantGetInfoError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         Ok(instance)

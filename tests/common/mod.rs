@@ -38,7 +38,7 @@ pub async fn setup() -> TestBundle {
         None,
         None,
     )
-    .unwrap();
+        .unwrap();
     let guild_create_schema = GuildCreateSchema {
         name: Some("Test-Guild!".to_string()),
         region: None,

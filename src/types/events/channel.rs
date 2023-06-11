@@ -1,7 +1,8 @@
-use crate::types::entities::Channel;
-use crate::types::events::WebSocketEvent;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+use crate::types::entities::Channel;
+use crate::types::events::WebSocketEvent;
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-pins-update

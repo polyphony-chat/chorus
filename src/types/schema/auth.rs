@@ -1,6 +1,7 @@
-use crate::errors::FieldFormatError;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+
+use crate::errors::FieldFormatError;
 
 /**
 A struct that represents a well-formed email address.
@@ -100,7 +101,6 @@ You will receive a [`FieldFormatError`], if:
 - The username is not between 2 and 32 characters.
 - The password is not between 1 and 72 characters.
  */
-
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub struct RegisterSchema {

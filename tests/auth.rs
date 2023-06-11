@@ -1,5 +1,6 @@
-mod common;
 use chorus::types;
+
+mod common;
 
 #[tokio::test]
 async fn test_registration() {
@@ -16,7 +17,7 @@ async fn test_registration() {
         None,
         None,
     )
-    .unwrap();
+        .unwrap();
     bundle.instance.register_account(&reg).await.unwrap();
     common::teardown(bundle).await;
 }

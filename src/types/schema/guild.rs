@@ -1,5 +1,6 @@
-use crate::types::entities::Channel;
 use serde::{Deserialize, Serialize};
+
+use crate::types::entities::Channel;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]

@@ -1,10 +1,11 @@
-use crate::{
-    api::limits::{Limit, LimitType, Limits, LimitsMutRef},
-    errors::ChorusLibError,
-};
+use std::collections::VecDeque;
 
 use reqwest::{Client, RequestBuilder, Response};
-use std::collections::VecDeque;
+
+use crate::{
+    api::limits::{Limit, Limits, LimitsMutRef, LimitType},
+    errors::ChorusLibError,
+};
 
 // Note: There seem to be some overlapping request limiters. We need to make sure that sending a
 // request checks for all the request limiters that apply, and blocks if any of the limiters are 0
@@ -64,7 +65,7 @@ impl LimitedRequester {
     - There has been an error with processing (unwrapping) the [`Response`](`reqwest::Response`)
     - The call to [`update_limits`](`crate::limits::update_limits`) yielded errors. Read the
     methods' Errors section for more information.
-    */
+     */
     pub async fn send_request(
         &mut self,
         request: RequestBuilder,
@@ -79,7 +80,7 @@ impl LimitedRequester {
                     return Err(ChorusLibError::RequestErrorError {
                         url: "".to_string(),
                         error: e.to_string(),
-                    })
+                    });
                 }
             };
             let result = self.http.execute(built_request).await;
@@ -88,7 +89,7 @@ impl LimitedRequester {
                 Err(e) => {
                     return Err(ChorusLibError::ReceivedErrorCodeError {
                         error_code: e.to_string(),
-                    })
+                    });
                 }
             };
             self.update_limits(
@@ -104,7 +105,7 @@ impl LimitedRequester {
                     _ => {
                         return Err(ChorusLibError::ReceivedErrorCodeError {
                             error_code: response.status().as_str().to_string(),
-                        })
+                        });
                     }
                 }
             } else {
@@ -148,7 +149,7 @@ impl LimitedRequester {
             &LimitType::Ip,
             &limit_type,
         ]
-        .to_vec();
+            .to_vec();
         for limit in constant_limits.iter() {
             match rate_limits.to_hash_map().get(limit) {
                 Some(limit) => {
@@ -158,21 +159,21 @@ impl LimitedRequester {
                     // AbsoluteRegister and AuthRegister can cancel each other out.
                     if limit.bucket == LimitType::AbsoluteRegister
                         && rate_limits
-                            .to_hash_map()
-                            .get(&LimitType::AuthRegister)
-                            .unwrap()
-                            .remaining
-                            == 0
+                        .to_hash_map()
+                        .get(&LimitType::AuthRegister)
+                        .unwrap()
+                        .remaining
+                        == 0
                     {
                         return false;
                     }
                     if limit.bucket == LimitType::AuthRegister
                         && rate_limits
-                            .to_hash_map()
-                            .get(&LimitType::AbsoluteRegister)
-                            .unwrap()
-                            .remaining
-                            == 0
+                        .to_hash_map()
+                        .get(&LimitType::AbsoluteRegister)
+                        .unwrap()
+                        .remaining
+                        == 0
                     {
                         return false;
                     }
@@ -281,10 +282,11 @@ impl LimitedRequester {
 mod rate_limit {
     use serde_json::from_str;
 
-    use super::*;
     use crate::{api::limits::Config, URLBundle};
-    #[tokio::test]
 
+    use super::*;
+
+    #[tokio::test]
     async fn create_limited_requester() {
         let _urls = URLBundle::new(
             String::from("http://localhost:3001/api/"),

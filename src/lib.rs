@@ -1,3 +1,5 @@
+use url::{ParseError, Url};
+
 #[cfg(feature = "client")]
 pub mod api;
 pub mod errors;
@@ -11,9 +13,7 @@ pub mod types;
 #[cfg(feature = "client")]
 pub mod voice;
 
-use url::{ParseError, Url};
 #[derive(Clone, Default, Debug, PartialEq, Eq)]
-
 /// A URLBundle is a struct which bundles together the API-, Gateway- and CDN-URLs of a Spacebar
 /// instance.
 pub struct URLBundle {

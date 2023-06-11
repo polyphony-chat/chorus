@@ -56,8 +56,8 @@ impl Guild {
             &mut user.limits,
             &mut belongs_to.limits,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         Ok(guild)
     }
 
@@ -134,7 +134,7 @@ impl Guild {
             &mut user.limits,
             &mut belongs_to.limits,
         )
-        .await
+            .await
     }
 
     /// Returns a `Result` containing a vector of `Channel` structs if the request was successful, or an `ChorusLibError` if there was an error.
@@ -173,7 +173,7 @@ impl Guild {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         let _: Vec<Channel> = match from_str(&stringed_response) {
@@ -181,7 +181,7 @@ impl Guild {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
     }
@@ -205,7 +205,7 @@ impl Guild {
             &mut user.limits,
             &mut belongs_to.limits,
         )
-        .await
+            .await
     }
 
     /// For internal use. Does the same as the public get method, but does not require a second, mutable
@@ -267,7 +267,7 @@ impl Channel {
             &mut user.limits,
             &mut belongs_to.limits,
         )
-        .await
+            .await
     }
 
     async fn _create(

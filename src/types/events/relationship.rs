@@ -1,5 +1,6 @@
-use crate::types::{events::WebSocketEvent, Relationship, RelationshipType, Snowflake};
 use serde::{Deserialize, Serialize};
+
+use crate::types::{events::WebSocketEvent, Relationship, RelationshipType, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://github.com/spacebarchat/server/issues/204

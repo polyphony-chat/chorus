@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::config::types::subconfigs::limits::ratelimits::{
-    route::RouteRateLimit, RateLimitOptions,
+    RateLimitOptions, route::RouteRateLimit,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

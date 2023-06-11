@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 use crate::types::entities::{Channel, ThreadMember};
 use crate::types::events::WebSocketEvent;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-create

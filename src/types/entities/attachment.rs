@@ -23,7 +23,6 @@ pub struct Attachment {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-
 pub struct PartialDiscordFileAttachment {
     pub id: Option<i16>,
     pub filename: String,
