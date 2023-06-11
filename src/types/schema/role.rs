@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
-
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 /// Represents the schema which needs to be sent to create or modify a Role.
