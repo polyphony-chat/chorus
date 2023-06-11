@@ -2,11 +2,14 @@ use reqwest::Client;
 use serde_json::from_str;
 use serde_json::to_string;
 
+use crate::api::deserialize_response;
+use crate::api::handle_request;
+use crate::api::handle_request_as_option;
 use crate::api::limits::Limits;
 use crate::errors::ChorusLibError;
 use crate::instance::UserMeta;
 use crate::limit::LimitedRequester;
-use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateResponse, GuildCreateSchema};
+use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema};
 
 impl Guild {
     /// Creates a new guild with the given parameters.
@@ -28,37 +31,15 @@ impl Guild {
     pub async fn create(
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
-    ) -> Result<Guild, crate::errors::ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+    ) -> Result<Guild, ChorusLibError> {
+        let belongs_to = user.belongs_to.borrow();
         let url = format!("{}/guilds/", belongs_to.urls.get_api());
+        drop(belongs_to);
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone())
             .body(to_string(&guild_create_schema).unwrap());
-        let mut requester = crate::limit::LimitedRequester::new().await;
-        let result = match requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-        {
-            Ok(result) => result,
-            Err(e) => return Err(e),
-        };
-        let id: GuildCreateResponse = from_str(&result.text().await.unwrap()).unwrap();
-        let guild = Guild::_get(
-            belongs_to.clone().urls.get_api(),
-            &id.id,
-            &user.token,
-            &mut user.limits,
-            &mut belongs_to.limits,
-        )
-        .await
-        .unwrap();
-        Ok(guild)
+        deserialize_response::<Guild>(request, user, crate::api::limits::LimitType::Guild).await
     }
 
     /// Deletes a guild.
@@ -86,25 +67,13 @@ impl Guild {
     /// }
     /// ```
     pub async fn delete(user: &mut UserMeta, guild_id: &str) -> Option<ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let belongs_to = user.belongs_to.borrow();
         let url = format!("{}/guilds/{}/delete/", belongs_to.urls.get_api(), guild_id);
+        drop(belongs_to);
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone());
-        let mut requester = crate::limit::LimitedRequester::new().await;
-        let result = requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await;
-        if result.is_err() {
-            Some(result.err().unwrap())
-        } else {
-            None
-        }
+        handle_request_as_option(request, user, crate::api::limits::LimitType::Guild).await
     }
 
     /// Sends a request to create a new channel in the guild.
@@ -147,7 +116,7 @@ impl Guild {
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
     pub async fn channels(&self, user: &mut UserMeta) -> Result<Vec<Channel>, ChorusLibError> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let belongs_to = user.belongs_to.borrow();
         let request = Client::new()
             .get(format!(
                 "{}/guilds/{}/channels/",
@@ -155,19 +124,10 @@ impl Guild {
                 self.id.to_string()
             ))
             .bearer_auth(user.token());
-        let result = match LimitedRequester::new()
+        drop(belongs_to);
+        let result = handle_request(request, user, crate::api::limits::LimitType::Channel)
             .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                &mut belongs_to.limits,
-                &mut user.limits,
-            )
-            .await
-        {
-            Ok(result) => result,
-            Err(e) => return Err(e),
-        };
+            .unwrap();
         let stringed_response = match result.text().await {
             Ok(value) => value,
             Err(e) => {
