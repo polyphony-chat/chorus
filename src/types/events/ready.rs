@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{Activity, GuildMember, PresenceUpdate, VoiceState};
 use crate::types::entities::{Guild, User};
 use crate::types::events::{Session, WebSocketEvent};
 use crate::types::interfaces::ClientStatusObject;
+use crate::types::{Activity, GuildMember, PresenceUpdate, VoiceState};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Sort of documented, though most fields are left out

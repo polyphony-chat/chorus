@@ -2,12 +2,12 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+use crate::types::types::guild_configuration::GuildFeaturesList;
 use crate::types::{
     entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
     interfaces::WelcomeScreenObject,
     utils::Snowflake,
 };
-use crate::types::types::guild_configuration::GuildFeaturesList;
 
 /// See https://discord.com/developers/docs/resources/guild
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]

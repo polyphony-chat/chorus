@@ -7,15 +7,15 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "sqlx")]
 use sqlx::{
     database::{HasArguments, HasValueRef},
-    Decode,
-    Encode,
-    encode::IsNull, error::BoxDynError, MySql,
+    encode::IsNull,
+    error::BoxDynError,
+    Decode, Encode, MySql,
 };
 
-use crate::types::{Error, GuildError};
 use crate::types::config::types::subconfigs::guild::{
     autojoin::AutoJoinConfiguration, discovery::DiscoverConfiguration,
 };
+use crate::types::{Error, GuildError};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]

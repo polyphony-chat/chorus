@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use futures_util::SinkExt;
 use futures_util::stream::SplitSink;
+use futures_util::SinkExt;
 use futures_util::StreamExt;
 use native_tls::TlsConnector;
 use tokio::net::TcpStream;
@@ -13,8 +13,8 @@ use tokio::task;
 use tokio::task::JoinHandle;
 use tokio::time;
 use tokio::time::Instant;
-use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 use tokio_tungstenite::MaybeTlsStream;
+use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
@@ -203,7 +203,7 @@ impl Gateway {
                 TlsConnector::builder().build().unwrap(),
             )),
         )
-            .await
+        .await
         {
             Ok(websocket_stream) => websocket_stream,
             Err(e) => return Err(e),

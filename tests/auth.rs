@@ -17,7 +17,7 @@ async fn test_registration() {
         None,
         None,
     )
-        .unwrap();
+    .unwrap();
     bundle.instance.register_account(&reg).await.unwrap();
     common::teardown(bundle).await;
 }

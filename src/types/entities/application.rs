@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::types::{Team, User};
 use crate::types::utils::Snowflake;
+use crate::types::{Team, User};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]

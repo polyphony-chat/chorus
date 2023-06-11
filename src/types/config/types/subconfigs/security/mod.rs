@@ -3,4 +3,3 @@ pub use twofactor::TwoFactorConfiguration;
 
 mod captcha;
 mod twofactor;
-

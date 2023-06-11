@@ -61,8 +61,8 @@ impl poem::error::ResponseError for APIError {
     }
 
     fn as_response(&self) -> Response
-        where
-            Self: std::error::Error + Send + Sync + 'static,
+    where
+        Self: std::error::Error + Send + Sync + 'static,
     {
         Response::builder()
             .status(self.status())

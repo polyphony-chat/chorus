@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, RoleObject, Sticker};
 use crate::types::entities::{Guild, PublicUser, UnavailableGuild};
 use crate::types::events::WebSocketEvent;
+use crate::types::{AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, RoleObject, Sticker};
 
 use super::PresenceUpdate;
 

@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use reqwest::{Client, RequestBuilder, Response};
 
 use crate::{
-    api::limits::{Limit, Limits, LimitsMutRef, LimitType},
+    api::limits::{Limit, LimitType, Limits, LimitsMutRef},
     errors::ChorusLibError,
 };
 
@@ -149,7 +149,7 @@ impl LimitedRequester {
             &LimitType::Ip,
             &limit_type,
         ]
-            .to_vec();
+        .to_vec();
         for limit in constant_limits.iter() {
             match rate_limits.to_hash_map().get(limit) {
                 Some(limit) => {
@@ -159,21 +159,21 @@ impl LimitedRequester {
                     // AbsoluteRegister and AuthRegister can cancel each other out.
                     if limit.bucket == LimitType::AbsoluteRegister
                         && rate_limits
-                        .to_hash_map()
-                        .get(&LimitType::AuthRegister)
-                        .unwrap()
-                        .remaining
-                        == 0
+                            .to_hash_map()
+                            .get(&LimitType::AuthRegister)
+                            .unwrap()
+                            .remaining
+                            == 0
                     {
                         return false;
                     }
                     if limit.bucket == LimitType::AuthRegister
                         && rate_limits
-                        .to_hash_map()
-                        .get(&LimitType::AbsoluteRegister)
-                        .unwrap()
-                        .remaining
-                        == 0
+                            .to_hash_map()
+                            .get(&LimitType::AbsoluteRegister)
+                            .unwrap()
+                            .remaining
+                            == 0
                     {
                         return false;
                     }

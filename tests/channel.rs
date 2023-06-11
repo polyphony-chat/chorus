@@ -52,8 +52,8 @@ async fn modify_channel() {
         &bundle.channel.id.to_string(),
         &mut bundle.user,
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
     assert_eq!(result.name, Some("beepboop".to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([
@@ -72,14 +72,14 @@ async fn modify_channel() {
         bundle.channel.id.to_string().as_str(),
         permission_override.clone(),
     )
-        .await;
+    .await;
 
     Channel::delete_permission(
         &mut bundle.user,
         bundle.channel.id.to_string().as_str(),
         &permission_override.id,
     )
-        .await;
+    .await;
 
     common::teardown(bundle).await
 }

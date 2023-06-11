@@ -1,6 +1,6 @@
 use http::header::CONTENT_DISPOSITION;
 use http::HeaderMap;
-use reqwest::{Client, multipart};
+use reqwest::{multipart, Client};
 use serde_json::to_string;
 
 use crate::instance::UserMeta;

@@ -172,7 +172,7 @@ fn insert_into(value: &mut Value, path: &[&str], new_value: Value) {
 
 #[cfg(test)]
 mod test {
-    use crate::types::config::{ConfigValue, generate_pairs, pairs_to_config};
+    use crate::types::config::{generate_pairs, pairs_to_config, ConfigValue};
 
     #[test]
     fn test_pairs() {
