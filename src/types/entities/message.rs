@@ -170,7 +170,6 @@ pub struct EmbedAuthor {
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-
 pub struct EmbedField {
     name: String,
     value: String,

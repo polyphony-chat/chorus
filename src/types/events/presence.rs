@@ -1,6 +1,5 @@
-use crate::types::interfaces::Activity;
 use crate::types::{events::WebSocketEvent, UserStatus};
-use crate::types::{PublicUser, Snowflake};
+use crate::types::{Activity, PublicUser, Snowflake};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]

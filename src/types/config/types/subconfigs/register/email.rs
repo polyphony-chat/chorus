@@ -9,6 +9,7 @@ pub struct RegistrationEmailConfiguration {
     #[serde(default)]
     pub domains: Vec<String>,
 }
+
 impl Default for RegistrationEmailConfiguration {
     fn default() -> Self {
         Self {

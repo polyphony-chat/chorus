@@ -1,31 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-mod application;
-mod auto_moderation;
-mod call;
-mod channel;
-mod guild;
-mod heartbeat;
-mod hello;
-mod identify;
-mod integration;
-mod interaction;
-mod invite;
-mod lazy_request;
-mod message;
-mod passive_update;
-mod presence;
-mod ready;
-mod relationship;
-mod request_members;
-mod resume;
-mod session;
-mod stage_instance;
-mod thread;
-mod user;
-mod voice;
-mod webhooks;
-
 pub use application::*;
 pub use auto_moderation::*;
 pub use call::*;
@@ -51,6 +25,32 @@ pub use thread::*;
 pub use user::*;
 pub use voice::*;
 pub use webhooks::*;
+
+mod application;
+mod auto_moderation;
+mod call;
+mod channel;
+mod guild;
+mod heartbeat;
+mod hello;
+mod identify;
+mod integration;
+mod interaction;
+mod invite;
+mod lazy_request;
+mod message;
+mod passive_update;
+mod presence;
+mod ready;
+mod relationship;
+mod request_members;
+mod resume;
+mod session;
+mod stage_instance;
+mod thread;
+mod user;
+mod voice;
+mod webhooks;
 
 pub trait WebSocketEvent {}
 
@@ -79,7 +79,6 @@ impl WebSocketEvent for GatewaySendPayload {}
 ///
 /// Similar to [GatewaySendPayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
 /// Also, we never need to sent the event name
-
 pub struct GatewayReceivePayload<'a> {
     #[serde(rename = "op")]
     pub op_code: u8,

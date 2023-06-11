@@ -1,8 +1,7 @@
 use crate::types::{events::WebSocketEvent, VoiceState};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#update-voice-state;
+#[derive(Debug, Deserialize, Serialize, Default)]
 ///
 /// Sent to the server to indicate an update of the voice state (leave voice channel, join voice channel, mute, deafen);
 ///

@@ -2,14 +2,15 @@ use crate::types::events::{PresenceUpdate, WebSocketEvent};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct GatewayIdentifyPayload {
     pub token: String,
     pub properties: GatewayIdentifyConnectionProps,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub compress: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub large_threshold: Option<i16>, //default: 50
+    pub large_threshold: Option<i16>,
+    //default: 50
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shard: Option<Vec<(i32, i32)>>,
     #[serde(skip_serializing_if = "Option::is_none")]

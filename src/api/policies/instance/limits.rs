@@ -47,7 +47,6 @@ pub mod limits {
 
     #[derive(Debug, Deserialize, Serialize)]
     #[allow(non_snake_case)]
-
     pub struct Guild {
         pub maxRoles: u64,
         pub maxEmojis: u64,
@@ -58,7 +57,6 @@ pub mod limits {
 
     #[derive(Debug, Deserialize, Serialize)]
     #[allow(non_snake_case)]
-
     pub struct Message {
         pub maxCharacters: u64,
         pub maxTTSCharacters: u64,
@@ -70,7 +68,6 @@ pub mod limits {
 
     #[derive(Debug, Deserialize, Serialize)]
     #[allow(non_snake_case)]
-
     pub struct Channel {
         pub maxPins: u64,
         pub maxTopic: u64,
@@ -102,7 +99,6 @@ pub mod limits {
 
     #[derive(Debug, Deserialize, Serialize)]
     #[allow(non_snake_case)]
-
     pub struct AuthRoutes {
         pub login: Window,
         pub register: Window,
@@ -110,7 +106,6 @@ pub mod limits {
 
     #[derive(Debug, Deserialize, Serialize)]
     #[allow(non_snake_case)]
-
     pub struct AbsoluteRate {
         pub register: AbsoluteWindow,
         pub sendMessage: AbsoluteWindow,
@@ -125,7 +120,6 @@ pub mod limits {
 
     #[derive(Debug, Deserialize, Serialize)]
     #[allow(non_snake_case)]
-
     pub struct Config {
         pub user: User,
         pub guild: Guild,

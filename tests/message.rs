@@ -1,8 +1,9 @@
-mod common;
-
-use chorus::types;
 use std::fs::File;
 use std::io::{BufReader, Read};
+
+use chorus::types;
+
+mod common;
 
 #[tokio::test]
 async fn send_message() {

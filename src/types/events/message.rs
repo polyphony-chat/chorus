@@ -126,4 +126,5 @@ pub struct MessageACK {
     pub flags: Option<serde_json::Value>,
     pub channel_id: String,
 }
+
 impl WebSocketEvent for MessageACK {}

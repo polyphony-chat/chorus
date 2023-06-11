@@ -1,7 +1,7 @@
 use crate::types::{events::WebSocketEvent, Relationship, RelationshipType, Snowflake};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 /// See https://github.com/spacebarchat/server/issues/204
 pub struct RelationshipAdd {
     #[serde(flatten)]

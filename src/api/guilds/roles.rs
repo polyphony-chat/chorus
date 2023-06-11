@@ -48,7 +48,7 @@ impl types::RoleObject {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
 
@@ -105,7 +105,7 @@ impl types::RoleObject {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
 
@@ -139,7 +139,7 @@ impl types::RoleObject {
             Err(e) => {
                 return Err(ChorusLibError::FormCreationError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         let request = Client::new().post(url).bearer_auth(user.token()).body(body);
@@ -161,7 +161,7 @@ impl types::RoleObject {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         Ok(role)
@@ -194,7 +194,7 @@ impl types::RoleObject {
             Err(e) => {
                 return Err(ChorusLibError::FormCreationError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         let request = Client::new()
@@ -216,7 +216,7 @@ impl types::RoleObject {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         Ok(role)
@@ -256,7 +256,7 @@ impl types::RoleObject {
             Err(e) => {
                 return Err(ChorusLibError::FormCreationError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         let request = Client::new()
@@ -281,7 +281,7 @@ impl types::RoleObject {
             Err(e) => {
                 return Err(ChorusLibError::InvalidResponseError {
                     error: e.to_string(),
-                })
+                });
             }
         };
         Ok(role)

@@ -1,3 +1,8 @@
+use std::fmt::{Display, Formatter};
+use std::io::Write;
+use std::ops::{Deref, DerefMut};
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "sqlx")]
 use sqlx::{
@@ -6,10 +11,6 @@ use sqlx::{
     error::BoxDynError,
     Decode, Encode, MySql,
 };
-use std::fmt::{Display, Formatter};
-use std::io::Write;
-use std::ops::{Deref, DerefMut};
-use std::str::FromStr;
 
 use crate::types::config::types::subconfigs::guild::{
     autojoin::AutoJoinConfiguration, discovery::DiscoverConfiguration,
