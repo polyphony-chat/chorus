@@ -1,6 +1,5 @@
 use chorus::{self, gateway::Gateway, types::GatewayIdentifyPayload};
 
-
 /// This example creates a simple gateway connection and a session with an Identify event
 #[tokio::main]
 async fn main() {
