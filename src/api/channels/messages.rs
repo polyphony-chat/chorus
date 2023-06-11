@@ -70,7 +70,8 @@ impl Message {
                 .bearer_auth(user.token())
                 .multipart(form);
 
-            deserialize_response(request, user, crate::api::limits::LimitType::Channel).await
+            deserialize_response::<Message>(request, user, crate::api::limits::LimitType::Channel)
+                .await
         }
     }
 }
