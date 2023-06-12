@@ -15,7 +15,6 @@ impl Instance {
         &mut self,
         login_schema: &LoginSchema,
     ) -> Result<UserMeta, ChorusLibError> {
-        let mut requester = LimitedRequester;
         let json_schema = json!(login_schema);
         let client = Client::new();
         let endpoint_url = self.urls.get_api().to_string() + "/auth/login";
