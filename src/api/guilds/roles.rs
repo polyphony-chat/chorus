@@ -1,11 +1,10 @@
 use reqwest::Client;
-use serde_json::{from_str, to_string};
+use serde_json::{to_string};
 
 use crate::{
     api::deserialize_response,
     errors::ChorusLibError,
     instance::UserMeta,
-    limit::LimitedRequester,
     types::{self, RoleCreateModifySchema, RoleObject},
 };
 

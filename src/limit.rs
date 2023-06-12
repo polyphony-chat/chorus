@@ -305,7 +305,7 @@ mod rate_limit {
         );
         let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
-        let mut requester = LimitedRequester;
+        let _requester = LimitedRequester;
         let request_path = urls.api.clone() + "/policies/instance/limits";
         let request_builder = Client::new().get(request_path);
         let request = LimitedRequester::send_request(

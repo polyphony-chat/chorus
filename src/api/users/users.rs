@@ -1,5 +1,5 @@
 use reqwest::Client;
-use serde_json::{from_str, to_string};
+use serde_json::{to_string};
 
 use crate::{
     api::{deserialize_response, handle_request_as_option, limits::Limits},
