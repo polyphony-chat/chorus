@@ -180,15 +180,13 @@ impl Guild {
         let request = Client::new()
             .get(format!("{}/guilds/{}/", url_api, guild_id))
             .bearer_auth(token);
-        let response = match LimitedRequester::new()
-            .await
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                limits_instance,
-                limits_user,
-            )
-            .await
+        let response = match LimitedRequester::send_request(
+            request,
+            crate::api::limits::LimitType::Guild,
+            limits_instance,
+            limits_user,
+        )
+        .await
         {
             Ok(response) => response,
             Err(e) => return Err(e),
@@ -242,15 +240,13 @@ impl Channel {
             .post(format!("{}/guilds/{}/channels/", url_api, guild_id))
             .bearer_auth(token)
             .body(to_string(&schema).unwrap());
-        let mut requester = LimitedRequester::new().await;
-        let result = match requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Guild,
-                limits_instance,
-                limits_user,
-            )
-            .await
+        let result = match LimitedRequester::send_request(
+            request,
+            crate::api::limits::LimitType::Guild,
+            limits_instance,
+            limits_user,
+        )
+        .await
         {
             Ok(result) => result,
             Err(e) => return Err(e),

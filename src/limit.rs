@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use reqwest::{Client, RequestBuilder, Response};
 
 use crate::{
@@ -18,24 +16,9 @@ pub struct TypedRequest {
 }
 
 #[derive(Debug)]
-pub struct LimitedRequester {
-    http: Client,
-    requests: VecDeque<TypedRequest>,
-}
+pub struct LimitedRequester;
 
 impl LimitedRequester {
-    /// Create a new `LimitedRequester`. `LimitedRequester`s use a `VecDeque` to store requests and
-    /// send them to the server using a `Client`. It keeps track of the remaining requests that can
-    /// be send within the `Limit` of an external API Ratelimiter, and looks at the returned request
-    /// headers to see if it can find Ratelimit info to update itself.
-    #[allow(dead_code)]
-    pub async fn new() -> Self {
-        LimitedRequester {
-            http: Client::new(),
-            requests: VecDeque::new(),
-        }
-    }
-
     /**
     # send_request
     Checks, if a request can be sent without hitting API rate limits and sends it, if true.
@@ -67,13 +50,12 @@ impl LimitedRequester {
     methods' Errors section for more information.
      */
     pub async fn send_request(
-        &mut self,
         request: RequestBuilder,
         limit_type: LimitType,
         instance_rate_limits: &mut Limits,
         user_rate_limits: &mut Limits,
     ) -> Result<Response, ChorusLibError> {
-        if self.can_send_request(limit_type, instance_rate_limits, user_rate_limits) {
+        if LimitedRequester::can_send_request(limit_type, instance_rate_limits, user_rate_limits) {
             let built_request = match request.build() {
                 Ok(request) => request,
                 Err(e) => {
@@ -83,7 +65,7 @@ impl LimitedRequester {
                     });
                 }
             };
-            let result = self.http.execute(built_request).await;
+            let result = Client::new().execute(built_request).await;
             let response = match result {
                 Ok(is_response) => is_response,
                 Err(e) => {
@@ -92,7 +74,7 @@ impl LimitedRequester {
                     });
                 }
             };
-            self.update_limits(
+            LimitedRequester::update_limits(
                 &response,
                 limit_type,
                 instance_rate_limits,
@@ -112,10 +94,6 @@ impl LimitedRequester {
                 Ok(response)
             }
         } else {
-            self.requests.push_back(TypedRequest {
-                request,
-                limit_type,
-            });
             Err(ChorusLibError::RateLimited {
                 bucket: limit_type.to_string(),
             })
@@ -134,7 +112,6 @@ impl LimitedRequester {
     }
 
     fn can_send_request(
-        &mut self,
         limit_type: LimitType,
         instance_rate_limits: &Limits,
         user_rate_limits: &Limits,
@@ -185,7 +162,6 @@ impl LimitedRequester {
     }
 
     fn update_limits(
-        &mut self,
         response: &Response,
         limit_type: LimitType,
         instance_rate_limits: &mut Limits,
@@ -287,39 +263,27 @@ mod rate_limit {
     use super::*;
 
     #[tokio::test]
-    async fn create_limited_requester() {
-        let _urls = URLBundle::new(
-            String::from("http://localhost:3001/api/"),
-            String::from("wss://localhost:3001/"),
-            String::from("http://localhost:3001/cdn"),
-        );
-        let _requester = LimitedRequester::new().await;
-    }
-
-    #[tokio::test]
     async fn run_into_limit() {
         let urls = URLBundle::new(
             String::from("http://localhost:3001/api/"),
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
         );
-        let mut requester = LimitedRequester::new().await;
         let mut request: Option<Result<Response, ChorusLibError>> = None;
         let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
 
         for _ in 0..=50 {
             let request_path = urls.api.clone() + "/some/random/nonexisting/path";
-            let request_builder = requester.http.get(request_path);
+            let request_builder = Client::new().get(request_path);
             request = Some(
-                requester
-                    .send_request(
-                        request_builder,
-                        LimitType::Channel,
-                        &mut instance_rate_limits,
-                        &mut user_rate_limits,
-                    )
-                    .await,
+                LimitedRequester::send_request(
+                    request_builder,
+                    LimitType::Channel,
+                    &mut instance_rate_limits,
+                    &mut user_rate_limits,
+                )
+                .await,
             );
         }
         if request.is_some() {
@@ -341,17 +305,16 @@ mod rate_limit {
         );
         let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
-        let mut requester = LimitedRequester::new().await;
+        let mut requester = LimitedRequester;
         let request_path = urls.api.clone() + "/policies/instance/limits";
-        let request_builder = requester.http.get(request_path);
-        let request = requester
-            .send_request(
-                request_builder,
-                LimitType::Channel,
-                &mut instance_rate_limits,
-                &mut user_rate_limits,
-            )
-            .await;
+        let request_builder = Client::new().get(request_path);
+        let request = LimitedRequester::send_request(
+            request_builder,
+            LimitType::Channel,
+            &mut instance_rate_limits,
+            &mut user_rate_limits,
+        )
+        .await;
         let result = match request {
             Ok(result) => result,
             Err(_) => panic!("Request failed"),
