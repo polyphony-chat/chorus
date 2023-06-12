@@ -15,7 +15,6 @@ impl Instance {
         &mut self,
         login_schema: &LoginSchema,
     ) -> Result<UserMeta, ChorusLibError> {
-        let mut requester = LimitedRequester::new().await;
         let json_schema = json!(login_schema);
         let client = Client::new();
         let endpoint_url = self.urls.get_api().to_string() + "/auth/login";
@@ -24,14 +23,13 @@ impl Instance {
         // request (since login is an instance wide limit), which is why we are just cloning the
         // instances' limits to pass them on as user_rate_limits later.
         let mut cloned_limits = self.limits.clone();
-        let response = requester
-            .send_request(
-                request_builder,
-                LimitType::AuthRegister,
-                &mut self.limits,
-                &mut cloned_limits,
-            )
-            .await;
+        let response = LimitedRequester::send_request(
+            request_builder,
+            LimitType::AuthRegister,
+            &mut self.limits,
+            &mut cloned_limits,
+        )
+        .await;
         if response.is_err() {
             return Err(ChorusLibError::NoResponse);
         }

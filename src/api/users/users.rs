@@ -1,5 +1,5 @@
 use reqwest::Client;
-use serde_json::{from_str, to_string};
+use serde_json::to_string;
 
 use crate::{
     api::{deserialize_response, handle_request_as_option, limits::Limits},
@@ -110,16 +110,14 @@ impl User {
             url = format!("{}/users/{}", url_api, id.unwrap());
         }
         let request = reqwest::Client::new().get(url).bearer_auth(token);
-        let mut requester = crate::limit::LimitedRequester::new().await;
         let mut cloned_limits = limits_instance.clone();
-        match requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Ip,
-                limits_instance,
-                &mut cloned_limits,
-            )
-            .await
+        match LimitedRequester::send_request(
+            request,
+            crate::api::limits::LimitType::Ip,
+            limits_instance,
+            &mut cloned_limits,
+        )
+        .await
         {
             Ok(result) => {
                 let result_text = result.text().await.unwrap();
@@ -138,15 +136,13 @@ impl User {
             .get(format!("{}/users/@me/settings/", url_api))
             .bearer_auth(token);
         let mut cloned_limits = instance_limits.clone();
-        let mut requester = crate::limit::LimitedRequester::new().await;
-        match requester
-            .send_request(
-                request,
-                crate::api::limits::LimitType::Ip,
-                instance_limits,
-                &mut cloned_limits,
-            )
-            .await
+        match LimitedRequester::send_request(
+            request,
+            crate::api::limits::LimitType::Ip,
+            instance_limits,
+            &mut cloned_limits,
+        )
+        .await
         {
             Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
             Err(e) => Err(e),

@@ -24,7 +24,6 @@ impl Instance {
         register_schema: &RegisterSchema,
     ) -> Result<UserMeta, ChorusLibError> {
         let json_schema = json!(register_schema);
-        let mut limited_requester = LimitedRequester::new().await;
         let client = Client::new();
         let endpoint_url = self.urls.get_api().to_string() + "/auth/register";
         let request_builder = client.post(endpoint_url).body(json_schema.to_string());
@@ -32,14 +31,13 @@ impl Instance {
         // request (since register is an instance wide limit), which is why we are just cloning
         // the instances' limits to pass them on as user_rate_limits later.
         let mut cloned_limits = self.limits.clone();
-        let response = limited_requester
-            .send_request(
-                request_builder,
-                LimitType::AuthRegister,
-                &mut self.limits,
-                &mut cloned_limits,
-            )
-            .await;
+        let response = LimitedRequester::send_request(
+            request_builder,
+            LimitType::AuthRegister,
+            &mut self.limits,
+            &mut cloned_limits,
+        )
+        .await;
         if response.is_err() {
             return Err(ChorusLibError::NoResponse);
         }

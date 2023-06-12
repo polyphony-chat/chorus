@@ -5,7 +5,6 @@ use crate::{
     api::handle_request,
     errors::ChorusLibError,
     instance::UserMeta,
-    limit::LimitedRequester,
     types::{self, PermissionOverwrite},
 };
 
