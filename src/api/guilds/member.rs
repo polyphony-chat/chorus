@@ -1,6 +1,5 @@
 use reqwest::Client;
 
-
 use crate::{
     api::{deserialize_response, handle_request_as_option},
     errors::ChorusLibError,
