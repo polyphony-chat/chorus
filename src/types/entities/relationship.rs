@@ -7,7 +7,7 @@ use crate::types::Snowflake;
 use super::PublicUser;
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
-/// See https://docs.spacebar.chat/routes/#get-/users/@me/relationships/
+/// See https://discord-userdoccers.vercel.app/resources/user#relationship-structure
 pub struct Relationship {
     pub id: Snowflake,
     #[serde(rename = "type")]
