@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
@@ -6,22 +7,26 @@ use crate::types::Snowflake;
 use super::PublicUser;
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
-/// See https://docs.spacebar.chat/routes/#get-/users/@me/relationships/
+/// See https://discord-userdoccers.vercel.app/resources/user#relationship-structure
 pub struct Relationship {
     pub id: Snowflake,
     #[serde(rename = "type")]
     pub relationship_type: RelationshipType,
     pub nickname: Option<String>,
     pub user: PublicUser,
+    pub since: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
 #[repr(u8)]
-/// See https://github.com/spacebarchat/server/blob/60394d8c43904ff17935d6edbbfb09ecd479570a/src/util/entities/Relationship.ts#L30
+/// See https://discord-userdoccers.vercel.app/resources/user#relationship-type
 pub enum RelationshipType {
+    Suggestion = 6,
+    Implicit = 5,
     Outgoing = 4,
     Incoming = 3,
     Blocked = 2,
     #[default]
     Friends = 1,
+    None = 0,
 }
