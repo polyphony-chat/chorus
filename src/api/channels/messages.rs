@@ -25,7 +25,7 @@ impl Message {
         message: &mut MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
     ) -> Result<Message, crate::errors::ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow_mut();
+        let belongs_to = user.belongs_to.borrow();
         let url_api = belongs_to.urls.get_api().to_string();
         drop(belongs_to);
 
