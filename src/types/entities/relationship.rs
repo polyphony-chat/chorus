@@ -30,3 +30,9 @@ pub enum RelationshipType {
     Friends = 1,
     None = 0,
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct FriendRequestSendSchema {
+    pub username: String,
+    pub discriminator: Option<String>,
+}
