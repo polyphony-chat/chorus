@@ -93,9 +93,6 @@
 - [x] Sending rich content in messages (links, images, videos)
 - [ ] Customizing embed appearance (title, description, color, fields)
 
-### Notifications and Push Notifications
-- [ ] Notification settings management
-
 ### Webhooks
 - [ ] Webhook creation and management
 - [ ] Handling incoming webhook events
