@@ -37,6 +37,19 @@ impl UserMeta {
         .await
     }
 
+    pub async fn get_relationships(&mut self) -> Result<Vec<types::Relationship>, ChorusLibError> {
+        let belongs_to = self.belongs_to.borrow();
+        let url = format!("{}/users/@me/relationships/", belongs_to.urls.get_api(),);
+        drop(belongs_to);
+        let request = Client::new().get(url).bearer_auth(self.token());
+        deserialize_response::<Vec<types::Relationship>>(
+            request,
+            self,
+            crate::api::limits::LimitType::Global,
+        )
+        .await
+    }
+
     /// Sends a friend request to a user.
     ///
     /// # Arguments
