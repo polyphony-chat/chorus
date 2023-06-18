@@ -16,11 +16,11 @@ impl UserMeta {
     /// * `user_id` - A string slice that holds the ID of the user to retrieve the mutual relationships with.
     ///
     /// # Returns
-    /// This function returns a [`Option<Vec<Result<PublicUser, ChorusLibError>>>`].
+    /// This function returns a [`Result<Vec<PublicUser>, ChorusLibError>`].
     pub async fn get_mutual_relationships(
         &mut self,
         user_id: &str,
-    ) -> Result<Option<Vec<types::PublicUser>>, ChorusLibError> {
+    ) -> Result<Vec<types::PublicUser>, ChorusLibError> {
         let belongs_to = self.belongs_to.borrow();
         let url = format!(
             "{}/users/{}/relationships/",
@@ -29,7 +29,7 @@ impl UserMeta {
         );
         drop(belongs_to);
         let request = Client::new().get(url).bearer_auth(self.token());
-        deserialize_response::<Option<Vec<types::PublicUser>>>(
+        deserialize_response::<Vec<types::PublicUser>>(
             request,
             self,
             crate::api::limits::LimitType::Global,
@@ -37,6 +37,10 @@ impl UserMeta {
         .await
     }
 
+    /// Retrieves the authenticated user's relationships.
+    ///
+    /// # Returns
+    /// This function returns a [`Result<Vec<types::Relationship>, ChorusLibError>`].
     pub async fn get_relationships(&mut self) -> Result<Vec<types::Relationship>, ChorusLibError> {
         let belongs_to = self.belongs_to.borrow();
         let url = format!("{}/users/@me/relationships/", belongs_to.urls.get_api(),);
