@@ -1,4 +1,4 @@
-use reqwest::{Client, RequestBuilder};
+use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
