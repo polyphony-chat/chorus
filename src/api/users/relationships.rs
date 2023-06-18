@@ -130,4 +130,24 @@ impl UserMeta {
             RelationshipType::Suggestion | RelationshipType::Implicit => None,
         }
     }
+
+    /// Removes the relationship between the authenticated user and the specified user.
+    ///
+    /// # Arguments
+    ///
+    /// * `user_id` - A string slice that holds the ID of the user to remove the relationship with.
+    ///
+    /// # Returns
+    /// This function returns an [`Option`] that holds a [`ChorusLibError`] if the request fails.
+    pub async fn remove_relationship(&mut self, user_id: &str) -> Option<ChorusLibError> {
+        let belongs_to = self.belongs_to.borrow();
+        let url = format!(
+            "{}/users/@me/relationships/{}/",
+            belongs_to.urls.get_api(),
+            user_id
+        );
+        drop(belongs_to);
+        let request = Client::new().post(url).bearer_auth(self.token());
+        handle_request_as_option(request, self, crate::api::limits::LimitType::Global).await
+    }
 }
