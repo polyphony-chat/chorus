@@ -12,11 +12,10 @@ pub async fn handle_request(
     user: &mut UserMeta,
     limit_type: LimitType,
 ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-    let mut belongs_to = user.belongs_to.borrow_mut();
     LimitedRequester::send_request(
         request,
         limit_type,
-        &mut belongs_to.limits,
+        &mut user.belongs_to.borrow_mut().limits,
         &mut user.limits,
     )
     .await
