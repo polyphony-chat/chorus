@@ -105,3 +105,40 @@ async fn test_modify_relationship_friends() {
     );
     common::teardown(bundle).await
 }
+
+#[tokio::test]
+async fn test_modify_relationship_block() {
+    let register_schema = RegisterSchemaOptions {
+        date_of_birth: Some("2000-01-01".to_string()),
+        ..RegisterSchema::builder("integrationtestuser2", true)
+    }
+    .build()
+    .unwrap();
+
+    let mut bundle = common::setup().await;
+    let belongs_to = &mut bundle.instance;
+    let user = &mut bundle.user;
+    let mut other_user = belongs_to.register_account(&register_schema).await.unwrap();
+    other_user
+        .modify_user_relationship(
+            &user.object.id.to_string(),
+            types::RelationshipType::Blocked,
+        )
+        .await;
+    let relationships = user.get_relationships().await.unwrap();
+    assert_eq!(relationships, Vec::<Relationship>::new());
+    let relationships = other_user.get_relationships().await.unwrap();
+    assert_eq!(relationships.get(0).unwrap().id, user.object.id);
+    assert_eq!(
+        relationships.get(0).unwrap().relationship_type,
+        RelationshipType::Blocked
+    );
+    other_user
+        .remove_relationship(user.object.id.to_string().as_str())
+        .await;
+    assert_eq!(
+        other_user.get_relationships().await.unwrap(),
+        Vec::<Relationship>::new()
+    );
+    common::teardown(bundle).await
+}
