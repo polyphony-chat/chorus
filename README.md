@@ -58,8 +58,8 @@
 ### User Management
 - [ ] [User profile customization](https://github.com/polyphony-chat/chorus/issues/41)
 - [x] Gettings users and user profiles
-- [ ] [Friend requests](https://github.com/polyphony-chat/chorus/issues/92)
-- [ ] [Blocking users](https://github.com/polyphony-chat/chorus/issues/92)
+- [x] [Friend requests](https://github.com/polyphony-chat/chorus/issues/92)
+- [x] [Blocking users](https://github.com/polyphony-chat/chorus/issues/92)
 - [ ] User presence (online, offline, idle, etc.)
 - [ ] User status (custom status, etc.)
 - [x] Account deletion
