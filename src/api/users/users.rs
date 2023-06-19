@@ -54,7 +54,7 @@ impl UserMeta {
         let request = Client::new()
             .patch(format!(
                 "{}/users/@me/",
-                self.belongs_to.borrow_mut().urls.get_api()
+                self.belongs_to.borrow().urls.get_api()
             ))
             .body(to_string(&modify_schema).unwrap())
             .bearer_auth(self.token());
@@ -103,12 +103,11 @@ impl User {
         limits_instance: &mut Limits,
         id: Option<&String>,
     ) -> Result<User, ChorusLibError> {
-        let url: String;
-        if id.is_none() {
-            url = format!("{}/users/@me/", url_api);
+        let url = if id.is_none() {
+            format!("{}/users/@me/", url_api)
         } else {
-            url = format!("{}/users/{}", url_api, id.unwrap());
-        }
+            format!("{}/users/{}", url_api, id.unwrap())
+        };
         let request = reqwest::Client::new().get(url).bearer_auth(token);
         let mut cloned_limits = limits_instance.clone();
         match LimitedRequester::send_request(
@@ -166,12 +165,6 @@ impl Instance {
         token: String,
         id: Option<&String>,
     ) -> Result<User, ChorusLibError> {
-        User::_get(
-            &token,
-            &self.urls.get_api().to_string(),
-            &mut self.limits,
-            id,
-        )
-        .await
+        User::_get(&token, self.urls.get_api(), &mut self.limits, id).await
     }
 }

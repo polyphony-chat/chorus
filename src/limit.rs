@@ -82,13 +82,11 @@ impl LimitedRequester {
             );
             if !response.status().is_success() {
                 match response.status().as_u16() {
-                    401 => return Err(ChorusLibError::TokenExpired),
-                    403 => return Err(ChorusLibError::TokenExpired),
-                    _ => {
-                        return Err(ChorusLibError::ReceivedErrorCodeError {
-                            error_code: response.status().as_str().to_string(),
-                        });
-                    }
+                    401 => Err(ChorusLibError::TokenExpired),
+                    403 => Err(ChorusLibError::TokenExpired),
+                    _ => Err(ChorusLibError::ReceivedErrorCodeError {
+                        error_code: response.status().as_str().to_string(),
+                    }),
                 }
             } else {
                 Ok(response)
@@ -286,14 +284,7 @@ mod rate_limit {
                 .await,
             );
         }
-        if request.is_some() {
-            match request.unwrap() {
-                Ok(_) => assert!(false),
-                Err(_) => assert!(true),
-            }
-        } else {
-            assert!(false)
-        }
+        assert!(matches!(request, Some(Err(_))));
     }
 
     #[tokio::test]

@@ -1,21 +1,14 @@
-use chorus::types;
+use chorus::types::{self, RegisterSchema, RegisterSchemaOptions};
 
 mod common;
 
 #[tokio::test]
 async fn test_get_mutual_relationships() {
-    let register_schema = types::RegisterSchema::new(
-        "integrationtestuser2".to_string(),
-        None,
-        true,
-        None,
-        None,
-        None,
-        Some("2000-01-01".to_string()),
-        None,
-        None,
-        None,
-    )
+    let register_schema = RegisterSchemaOptions {
+        date_of_birth: Some("2000-01-01".to_string()),
+        ..RegisterSchema::builder("integrationtestuser2", true)
+    }
+    .build()
     .unwrap();
 
     let mut bundle = common::setup().await;
@@ -37,18 +30,11 @@ async fn test_get_mutual_relationships() {
 
 #[tokio::test]
 async fn test_get_relationships() {
-    let register_schema = types::RegisterSchema::new(
-        "integrationtestuser2".to_string(),
-        None,
-        true,
-        None,
-        None,
-        None,
-        Some("2000-01-01".to_string()),
-        None,
-        None,
-        None,
-    )
+    let register_schema = RegisterSchemaOptions {
+        date_of_birth: Some("2000-01-01".to_string()),
+        ..RegisterSchema::builder("integrationtestuser2", true)
+    }
+    .build()
     .unwrap();
 
     let mut bundle = common::setup().await;

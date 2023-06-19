@@ -1,4 +1,7 @@
+use std::time::Duration;
+
 use chorus::{self, gateway::Gateway, types::GatewayIdentifyPayload};
+use tokio::time::sleep;
 
 /// This example creates a simple gateway connection and a session with an Identify event
 #[tokio::main]
@@ -26,5 +29,7 @@ async fn main() {
     gateway.send_identify(identify).await;
 
     // Do something on the main thread so we don't quit
-    loop {}
+    loop {
+        sleep(Duration::MAX).await;
+    }
 }

@@ -20,10 +20,9 @@ async fn guild_creation_deletion() {
         .await
         .unwrap();
 
-    match Guild::delete(&mut bundle.user, &guild.id.to_string()).await {
-        None => assert!(true),
-        Some(_) => assert!(false),
-    }
+    assert!(Guild::delete(&mut bundle.user, &guild.id.to_string())
+        .await
+        .is_none());
     common::teardown(bundle).await
 }
 

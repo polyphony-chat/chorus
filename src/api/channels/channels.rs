@@ -57,11 +57,7 @@ impl Channel {
         drop(belongs_to);
         let response =
             common::handle_request(request, user, crate::api::limits::LimitType::Channel).await;
-        if response.is_err() {
-            return Some(response.err().unwrap());
-        } else {
-            return None;
-        }
+        response.err()
     }
 
     /// Modifies a channel.
