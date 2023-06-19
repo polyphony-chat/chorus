@@ -8,42 +8,14 @@ use crate::types::entities::{
 #[serde(rename_all = "snake_case")]
 pub struct MessageSendSchema {
     #[serde(rename = "type")]
-    message_type: Option<i32>,
-    content: Option<String>,
-    nonce: Option<String>,
-    tts: Option<bool>,
-    embeds: Option<Vec<Embed>>,
-    allowed_mentions: Option<AllowedMention>,
-    message_reference: Option<MessageReference>,
-    components: Option<Vec<Component>>,
-    sticker_ids: Option<Vec<String>>,
+    pub message_type: Option<i32>,
+    pub content: Option<String>,
+    pub nonce: Option<String>,
+    pub tts: Option<bool>,
+    pub embeds: Option<Vec<Embed>>,
+    pub allowed_mentions: Option<AllowedMention>,
+    pub message_reference: Option<MessageReference>,
+    pub components: Option<Vec<Component>>,
+    pub sticker_ids: Option<Vec<String>>,
     pub attachments: Option<Vec<PartialDiscordFileAttachment>>,
-}
-
-impl MessageSendSchema {
-    pub fn new(
-        message_type: Option<i32>,
-        content: Option<String>,
-        nonce: Option<String>,
-        tts: Option<bool>,
-        embeds: Option<Vec<Embed>>,
-        allowed_mentions: Option<AllowedMention>,
-        message_reference: Option<MessageReference>,
-        components: Option<Vec<Component>>,
-        sticker_ids: Option<Vec<String>>,
-        attachments: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> MessageSendSchema {
-        MessageSendSchema {
-            message_type,
-            content,
-            nonce,
-            tts,
-            embeds,
-            allowed_mentions,
-            message_reference,
-            components,
-            sticker_ids,
-            attachments,
-        }
-    }
 }

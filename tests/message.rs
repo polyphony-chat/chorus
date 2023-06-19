@@ -8,18 +8,10 @@ mod common;
 #[tokio::test]
 async fn send_message() {
     let mut bundle = common::setup().await;
-    let mut message = types::MessageSendSchema::new(
-        None,
-        Some("A Message!".to_string()),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-    );
+    let mut message = types::MessageSendSchema {
+        content: Some("A Message!".to_string()),
+        ..Default::default()
+    };
     let _ = bundle
         .user
         .send_message(&mut message, bundle.channel.id.to_string(), None)
@@ -53,18 +45,11 @@ async fn send_message_attachment() {
         content: buffer,
     };
 
-    let mut message = types::MessageSendSchema::new(
-        None,
-        Some("trans rights now".to_string()),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        Some(vec![attachment.clone()]),
-    );
+    let mut message = types::MessageSendSchema {
+        content: Some("trans rights now".to_string()),
+        attachments: Some(vec![attachment.clone()]),
+        ..Default::default()
+    };
 
     let vec_attach = vec![attachment.clone()];
     let _arg = Some(&vec_attach);
