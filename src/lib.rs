@@ -1,3 +1,5 @@
+#![allow(clippy::module_inception)]
+
 use url::{ParseError, Url};
 
 #[cfg(feature = "client")]

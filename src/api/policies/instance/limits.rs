@@ -195,31 +195,31 @@ pub mod limits {
 
         pub fn get_limit_ref(&self, limit_type: &LimitType) -> &Limit {
             match limit_type {
-                &LimitType::AbsoluteMessage => self.limit_absolute_messages,
-                &LimitType::AbsoluteRegister => self.limit_absolute_register,
-                &LimitType::AuthLogin => self.limit_auth_login,
-                &LimitType::AuthRegister => self.limit_auth_register,
-                &LimitType::Channel => self.limit_channel,
-                &LimitType::Error => self.limit_error,
-                &LimitType::Global => self.limit_global,
-                &LimitType::Guild => self.limit_guild,
-                &LimitType::Ip => self.limit_ip,
-                &LimitType::Webhook => self.limit_webhook,
+                LimitType::AbsoluteMessage => self.limit_absolute_messages,
+                LimitType::AbsoluteRegister => self.limit_absolute_register,
+                LimitType::AuthLogin => self.limit_auth_login,
+                LimitType::AuthRegister => self.limit_auth_register,
+                LimitType::Channel => self.limit_channel,
+                LimitType::Error => self.limit_error,
+                LimitType::Global => self.limit_global,
+                LimitType::Guild => self.limit_guild,
+                LimitType::Ip => self.limit_ip,
+                LimitType::Webhook => self.limit_webhook,
             }
         }
 
         pub fn get_limit_mut_ref(&mut self, limit_type: &LimitType) -> &mut Limit {
             match limit_type {
-                &LimitType::AbsoluteMessage => self.limit_absolute_messages,
-                &LimitType::AbsoluteRegister => self.limit_absolute_register,
-                &LimitType::AuthLogin => self.limit_auth_login,
-                &LimitType::AuthRegister => self.limit_auth_register,
-                &LimitType::Channel => self.limit_channel,
-                &LimitType::Error => self.limit_error,
-                &LimitType::Global => self.limit_global,
-                &LimitType::Guild => self.limit_guild,
-                &LimitType::Ip => self.limit_ip,
-                &LimitType::Webhook => self.limit_webhook,
+                LimitType::AbsoluteMessage => self.limit_absolute_messages,
+                LimitType::AbsoluteRegister => self.limit_absolute_register,
+                LimitType::AuthLogin => self.limit_auth_login,
+                LimitType::AuthRegister => self.limit_auth_register,
+                LimitType::Channel => self.limit_channel,
+                LimitType::Error => self.limit_error,
+                LimitType::Global => self.limit_global,
+                LimitType::Guild => self.limit_guild,
+                LimitType::Ip => self.limit_ip,
+                LimitType::Webhook => self.limit_webhook,
             }
         }
     }
@@ -256,31 +256,31 @@ pub mod limits {
 
         pub fn get_limit_ref(&self, limit_type: &LimitType) -> &Limit {
             match limit_type {
-                &LimitType::AbsoluteMessage => &self.limit_absolute_messages,
-                &LimitType::AbsoluteRegister => &self.limit_absolute_register,
-                &LimitType::AuthLogin => &self.limit_auth_login,
-                &LimitType::AuthRegister => &self.limit_auth_register,
-                &LimitType::Channel => &self.limit_channel,
-                &LimitType::Error => &self.limit_error,
-                &LimitType::Global => &self.limit_global,
-                &LimitType::Guild => &self.limit_guild,
-                &LimitType::Ip => &self.limit_ip,
-                &LimitType::Webhook => &self.limit_webhook,
+                LimitType::AbsoluteMessage => &self.limit_absolute_messages,
+                LimitType::AbsoluteRegister => &self.limit_absolute_register,
+                LimitType::AuthLogin => &self.limit_auth_login,
+                LimitType::AuthRegister => &self.limit_auth_register,
+                LimitType::Channel => &self.limit_channel,
+                LimitType::Error => &self.limit_error,
+                LimitType::Global => &self.limit_global,
+                LimitType::Guild => &self.limit_guild,
+                LimitType::Ip => &self.limit_ip,
+                LimitType::Webhook => &self.limit_webhook,
             }
         }
 
         pub fn get_limit_mut_ref(&mut self, limit_type: &LimitType) -> &mut Limit {
             match limit_type {
-                &LimitType::AbsoluteMessage => &mut self.limit_absolute_messages,
-                &LimitType::AbsoluteRegister => &mut self.limit_absolute_register,
-                &LimitType::AuthLogin => &mut self.limit_auth_login,
-                &LimitType::AuthRegister => &mut self.limit_auth_register,
-                &LimitType::Channel => &mut self.limit_channel,
-                &LimitType::Error => &mut self.limit_error,
-                &LimitType::Global => &mut self.limit_global,
-                &LimitType::Guild => &mut self.limit_guild,
-                &LimitType::Ip => &mut self.limit_ip,
-                &LimitType::Webhook => &mut self.limit_webhook,
+                LimitType::AbsoluteMessage => &mut self.limit_absolute_messages,
+                LimitType::AbsoluteRegister => &mut self.limit_absolute_register,
+                LimitType::AuthLogin => &mut self.limit_auth_login,
+                LimitType::AuthRegister => &mut self.limit_auth_register,
+                LimitType::Channel => &mut self.limit_channel,
+                LimitType::Error => &mut self.limit_error,
+                LimitType::Global => &mut self.limit_global,
+                LimitType::Guild => &mut self.limit_guild,
+                LimitType::Ip => &mut self.limit_ip,
+                LimitType::Webhook => &mut self.limit_webhook,
             }
         }
 

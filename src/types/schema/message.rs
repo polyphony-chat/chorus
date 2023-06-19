@@ -20,7 +20,6 @@ pub struct MessageSendSchema {
     pub attachments: Option<Vec<PartialDiscordFileAttachment>>,
 }
 
-// make a new() method for MessageSendSchema
 impl MessageSendSchema {
     pub fn new(
         message_type: Option<i32>,

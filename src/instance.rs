@@ -29,17 +29,8 @@ impl Instance {
     pub async fn new(urls: URLBundle) -> Result<Instance, ChorusLibError> {
         let mut instance = Instance {
             urls: urls.clone(),
-            instance_info: GeneralConfiguration::new(
-                // This is okay, because the instance_info will be overwritten by the instance_policies_schema() function.
-                "".to_string(),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ),
+            // Will be overwritten in the next step
+            instance_info: GeneralConfiguration::default(),
             limits: Limits::check_limits(urls.api).await,
         };
         instance.instance_info = match instance.general_configuration_schema().await {

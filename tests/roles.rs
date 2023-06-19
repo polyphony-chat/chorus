@@ -25,10 +25,7 @@ async fn create_and_get_roles() {
     let expected = types::RoleObject::get_all(&mut bundle.user, &guild_id)
         .await
         .unwrap()
-        .unwrap()
-        .iter()
-        .nth(2)
-        .unwrap()
+        .unwrap()[2]
         .clone();
 
     assert_eq!(role, expected);

@@ -94,60 +94,36 @@ impl GatewayMessage {
         let content = self.message.to_string();
 
         // Some error strings have dots on the end, which we don't care about
-        let processed_content = content.clone().to_lowercase().replace(".", "");
+        let processed_content = content.to_lowercase().replace('.', "");
 
         match processed_content.as_str() {
-            "unknown error" | "4000" => {
-                return Some(GatewayError::UnknownError);
-            }
-            "unknown opcode" | "4001" => {
-                return Some(GatewayError::UnknownOpcodeError);
-            }
+            "unknown error" | "4000" => Some(GatewayError::UnknownError),
+            "unknown opcode" | "4001" => Some(GatewayError::UnknownOpcodeError),
             "decode error" | "error while decoding payload" | "4002" => {
-                return Some(GatewayError::DecodeError);
+                Some(GatewayError::DecodeError)
             }
-            "not authenticated" | "4003" => {
-                return Some(GatewayError::NotAuthenticatedError);
-            }
-            "authentication failed" | "4004" => {
-                return Some(GatewayError::AuthenticationFailedError);
-            }
-            "already authenticated" | "4005" => {
-                return Some(GatewayError::AlreadyAuthenticatedError);
-            }
-            "invalid seq" | "4007" => {
-                return Some(GatewayError::InvalidSequenceNumberError);
-            }
-            "rate limited" | "4008" => {
-                return Some(GatewayError::RateLimitedError);
-            }
-            "session timed out" | "4009" => {
-                return Some(GatewayError::SessionTimedOutError);
-            }
-            "invalid shard" | "4010" => {
-                return Some(GatewayError::InvalidShardError);
-            }
-            "sharding required" | "4011" => {
-                return Some(GatewayError::ShardingRequiredError);
-            }
-            "invalid api version" | "4012" => {
-                return Some(GatewayError::InvalidAPIVersionError);
-            }
+            "not authenticated" | "4003" => Some(GatewayError::NotAuthenticatedError),
+            "authentication failed" | "4004" => Some(GatewayError::AuthenticationFailedError),
+            "already authenticated" | "4005" => Some(GatewayError::AlreadyAuthenticatedError),
+            "invalid seq" | "4007" => Some(GatewayError::InvalidSequenceNumberError),
+            "rate limited" | "4008" => Some(GatewayError::RateLimitedError),
+            "session timed out" | "4009" => Some(GatewayError::SessionTimedOutError),
+            "invalid shard" | "4010" => Some(GatewayError::InvalidShardError),
+            "sharding required" | "4011" => Some(GatewayError::ShardingRequiredError),
+            "invalid api version" | "4012" => Some(GatewayError::InvalidAPIVersionError),
             "invalid intent(s)" | "invalid intent" | "4013" => {
-                return Some(GatewayError::InvalidIntentsError);
+                Some(GatewayError::InvalidIntentsError)
             }
             "disallowed intent(s)" | "disallowed intents" | "4014" => {
-                return Some(GatewayError::DisallowedIntentsError);
+                Some(GatewayError::DisallowedIntentsError)
             }
-            _ => {
-                return None;
-            }
+            _ => None,
         }
     }
 
     /// Returns whether or not the message is an error
     pub fn is_error(&self) -> bool {
-        return self.error().is_some();
+        self.error().is_some()
     }
 
     /// Parses the message as a payload;
@@ -168,7 +144,7 @@ impl GatewayMessage {
 
     /// Returns whether or not the message is empty
     pub fn is_empty(&self) -> bool {
-        return self.message.is_empty();
+        self.message.is_empty()
     }
 }
 
@@ -308,6 +284,7 @@ pub struct Gateway {
 }
 
 impl Gateway {
+    #[allow(clippy::new_ret_no_self)]
     pub async fn new(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
         let (websocket_stream, _) = match connect_async_tls_with_config(
             &websocket_url,
@@ -371,13 +348,13 @@ impl Gateway {
             gateway.gateway_listen_task().await;
         });
 
-        return Ok(GatewayHandle {
+        Ok(GatewayHandle {
             url: websocket_url.clone(),
             events: shared_events,
             websocket_send: shared_websocket_send.clone(),
             handle,
             kill_send: kill_send.clone(),
-        });
+        })
     }
 
     /// The main gateway listener task;
@@ -388,14 +365,10 @@ impl Gateway {
             let msg = self.websocket_receive.next().await;
 
             // This if chain can be much better but if let is unstable on stable rust
-            if msg.as_ref().is_some() {
-                if msg.as_ref().unwrap().is_ok() {
-                    let msg_unwrapped = msg.unwrap().unwrap();
-                    self.handle_message(GatewayMessage::from_tungstenite_message(msg_unwrapped))
-                        .await;
-
-                    continue;
-                }
+            if let Some(Ok(message)) = msg {
+                self.handle_message(GatewayMessage::from_tungstenite_message(message))
+                    .await;
+                continue;
             }
 
             // We couldn't receive the next message or it was an error, something is wrong with the websocket, close
@@ -423,7 +396,7 @@ impl Gateway {
         }
 
         event.update_data(data_deserialize_result.unwrap()).await;
-        return Ok(());
+        Ok(())
     }
 
     /// This handles a message as a websocket event and updates its events along with the events' observers
@@ -1773,7 +1746,7 @@ impl<T: types::WebSocketEvent> GatewayEvent<T> {
         // The usage of the debug format to compare the generic T of observers is quite stupid, but the only thing to compare between them is T and if T == T they are the same
         // anddd there is no way to do that without using format
         self.observers
-            .retain(|obs| !(format!("{:?}", obs) == format!("{:?}", &observable)));
+            .retain(|obs| format!("{:?}", obs) != format!("{:?}", &observable));
         self.is_observed = !self.observers.is_empty();
     }
 
@@ -1998,12 +1971,12 @@ mod example {
         let arc_mut_second_consumer = Arc::new(Mutex::new(second_consumer));
 
         match event.subscribe(arc_mut_second_consumer.clone()).err() {
-            None => assert!(false),
+            None => panic!(),
             Some(err) => println!("You cannot subscribe twice: {}", err),
         }
 
         event.unsubscribe(arc_mut_consumer.clone());
 
-        event.subscribe(arc_mut_second_consumer.clone()).unwrap();
+        event.subscribe(arc_mut_second_consumer).unwrap();
     }
 }
