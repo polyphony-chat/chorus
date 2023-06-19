@@ -4,7 +4,7 @@ use crate::types::entities::{
     AllowedMention, Component, Embed, MessageReference, PartialDiscordFileAttachment,
 };
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub struct MessageSendSchema {
     #[serde(rename = "type")]
