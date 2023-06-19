@@ -2,7 +2,7 @@ use chorus::{
     instance::{Instance, UserMeta},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
-        RoleCreateModifySchema, RoleObject,
+        RegisterSchemaOptions, RoleCreateModifySchema, RoleObject,
     },
     URLBundle,
 };
@@ -26,18 +26,11 @@ pub async fn setup() -> TestBundle {
     );
     let mut instance = Instance::new(urls.clone()).await.unwrap();
     // Requires the existance of the below user.
-    let reg = RegisterSchema::new(
-        "integrationtestuser".to_string(),
-        None,
-        true,
-        None,
-        None,
-        None,
-        Some("2000-01-01".to_string()),
-        None,
-        None,
-        None,
-    )
+    let reg = RegisterSchemaOptions {
+        date_of_birth: Some("2000-01-01".to_string()),
+        ..RegisterSchema::builder("integrationtestuser", true)
+    }
+    .build()
     .unwrap();
     let guild_create_schema = GuildCreateSchema {
         name: Some("Test-Guild!".to_string()),

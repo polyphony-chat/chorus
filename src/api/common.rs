@@ -13,17 +13,13 @@ pub async fn handle_request(
     limit_type: LimitType,
 ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
     let mut belongs_to = user.belongs_to.borrow_mut();
-    match LimitedRequester::send_request(
+    LimitedRequester::send_request(
         request,
         limit_type,
         &mut belongs_to.limits,
         &mut user.limits,
     )
     .await
-    {
-        Ok(response) => return Ok(response),
-        Err(e) => return Err(e),
-    }
 }
 
 /// Sends a request to wherever it needs to go. Returns [`None`] on success and

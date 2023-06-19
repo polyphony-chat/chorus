@@ -51,16 +51,18 @@ impl GatewayIdentifyPayload {
 impl GatewayIdentifyPayload {
     /// Creates an identify payload with the same default capabilities as the official client
     pub fn default_w_client_capabilities() -> Self {
-        let mut def = Self::default();
-        def.capabilities = Some(8189); // Default capabilities for a client
-        def
+        Self {
+            capabilities: Some(8189), // Default capabilities for a client
+            ..Self::default()
+        }
     }
 
     /// Creates an identify payload with all possible capabilities
     pub fn default_w_all_capabilities() -> Self {
-        let mut def = Self::default();
-        def.capabilities = Some(i32::MAX); // Since discord uses bitwise for capabilities, this has almost every bit as 1, so all capabilities
-        def
+        Self {
+            capabilities: Some(i32::MAX), // Since discord uses bitwise for capabilities, this has almost every bit as 1, so all capabilities
+            ..Self::default()
+        }
     }
 }
 
@@ -148,22 +150,18 @@ impl GatewayIdentifyConnectionProps {
 
     /// Returns the most common connection props so we can't be tracked
     pub fn common() -> Self {
-        let mut default = Self::minimal();
-
-        // See https://www.useragents.me/#most-common-desktop-useragents
-        // 25% of the web
-        //default.browser_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36".to_string();
-        default.browser = String::from("Chrome");
-        default.browser_version = String::from("113.0.0.0");
-
-        default.system_locale = String::from("en-US");
-
-        default.os = String::from("Windows");
-        default.os_version = Some(String::from("10"));
-
-        default.client_build_number = 199933;
-        default.release_channel = String::from("stable");
-
-        return default;
+        Self {
+            // See https://www.useragents.me/#most-common-desktop-useragents
+            // 25% of the web
+            //default.browser_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36".to_string();
+            browser: String::from("Chrome"),
+            browser_version: String::from("113.0.0.0"),
+            system_locale: String::from("en-US"),
+            os: String::from("Windows"),
+            os_version: Some(String::from("10")),
+            client_build_number: 199933,
+            release_channel: String::from("stable"),
+            ..Self::minimal()
+        }
     }
 }

@@ -3,8 +3,8 @@ use chorus::{
     gateway::{Gateway, Observer},
     types::{GatewayIdentifyPayload, GatewayReady},
 };
-use std::sync::Arc;
-use tokio::{self, sync::Mutex};
+use std::{sync::Arc, time::Duration};
+use tokio::{self, sync::Mutex, time::sleep};
 
 // This example creates a simple gateway connection and a basic observer struct
 
@@ -54,5 +54,7 @@ async fn main() {
     gateway.send_identify(identify).await;
 
     // Do something on the main thread so we don't quit
-    loop {}
+    loop {
+        sleep(Duration::MAX).await;
+    }
 }
