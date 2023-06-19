@@ -25,14 +25,14 @@ impl types::Channel {
         channel_id: &str,
         overwrite: PermissionOverwrite,
     ) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow_mut();
-        let url = format!(
-            "{}/channels/{}/permissions/{}",
-            belongs_to.urls.get_api(),
-            channel_id,
-            overwrite.id
-        );
-        drop(belongs_to);
+        let url = {
+            format!(
+                "{}/channels/{}/permissions/{}",
+                user.belongs_to.borrow_mut().urls.get_api(),
+                channel_id,
+                overwrite.id
+            )
+        };
         let body = match to_string(&overwrite) {
             Ok(string) => string,
             Err(e) => {
@@ -66,14 +66,12 @@ impl types::Channel {
         channel_id: &str,
         overwrite_id: &str,
     ) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow_mut();
         let url = format!(
             "{}/channels/{}/permissions/{}",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow_mut().urls.get_api(),
             channel_id,
             overwrite_id
         );
-        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
         match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
             Ok(_) => None,

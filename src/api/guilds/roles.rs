@@ -27,9 +27,11 @@ impl types::RoleObject {
         user: &mut UserMeta,
         guild_id: &str,
     ) -> Result<Option<Vec<RoleObject>>, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
-        let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
-        drop(belongs_to);
+        let url = format!(
+            "{}/guilds/{}/roles/",
+            user.belongs_to.borrow().urls.get_api(),
+            guild_id
+        );
         let request = Client::new().get(url).bearer_auth(user.token());
         let roles = deserialize_response::<Vec<RoleObject>>(
             request,
@@ -64,14 +66,12 @@ impl types::RoleObject {
         guild_id: &str,
         role_id: &str,
     ) -> Result<RoleObject, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/guilds/{}/roles/{}/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.get_api(),
             guild_id,
             role_id
         );
-        drop(belongs_to);
         let request = Client::new().get(url).bearer_auth(user.token());
         deserialize_response(request, user, crate::api::limits::LimitType::Guild).await
     }
@@ -96,17 +96,16 @@ impl types::RoleObject {
         guild_id: &str,
         role_create_schema: RoleCreateModifySchema,
     ) -> Result<RoleObject, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
-        let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
-        drop(belongs_to);
-        let body = match to_string::<RoleCreateModifySchema>(&role_create_schema) {
-            Ok(string) => string,
-            Err(e) => {
-                return Err(ChorusLibError::FormCreationError {
-                    error: e.to_string(),
-                });
+        let url = format!(
+            "{}/guilds/{}/roles/",
+            user.belongs_to.borrow().urls.get_api(),
+            guild_id
+        );
+        let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
+            ChorusLibError::FormCreationError {
+                error: e.to_string(),
             }
-        };
+        })?;
         let request = Client::new().post(url).bearer_auth(user.token()).body(body);
         deserialize_response(request, user, crate::api::limits::LimitType::Guild).await
     }
@@ -131,17 +130,16 @@ impl types::RoleObject {
         guild_id: &str,
         role_position_update_schema: types::RolePositionUpdateSchema,
     ) -> Result<RoleObject, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
-        let url = format!("{}/guilds/{}/roles/", belongs_to.urls.get_api(), guild_id);
-        let body = match to_string(&role_position_update_schema) {
-            Ok(body) => body,
-            Err(e) => {
-                return Err(ChorusLibError::FormCreationError {
-                    error: e.to_string(),
-                });
+        let url = format!(
+            "{}/guilds/{}/roles/",
+            user.belongs_to.borrow().urls.get_api(),
+            guild_id
+        );
+        let body = to_string(&role_position_update_schema).map_err(|e| {
+            ChorusLibError::FormCreationError {
+                error: e.to_string(),
             }
-        };
-        drop(belongs_to);
+        })?;
         let request = Client::new()
             .patch(url)
             .bearer_auth(user.token())
@@ -172,22 +170,17 @@ impl types::RoleObject {
         role_id: &str,
         role_create_schema: RoleCreateModifySchema,
     ) -> Result<RoleObject, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/guilds/{}/roles/{}",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.get_api(),
             guild_id,
             role_id
         );
-        drop(belongs_to);
-        let body = match to_string::<RoleCreateModifySchema>(&role_create_schema) {
-            Ok(string) => string,
-            Err(e) => {
-                return Err(ChorusLibError::FormCreationError {
-                    error: e.to_string(),
-                });
+        let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
+            ChorusLibError::FormCreationError {
+                error: e.to_string(),
             }
-        };
+        })?;
         let request = Client::new()
             .patch(url)
             .bearer_auth(user.token())
