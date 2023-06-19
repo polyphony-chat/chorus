@@ -143,7 +143,7 @@ impl UserMeta {
             self.belongs_to.borrow().urls.get_api(),
             user_id
         );
-        let request = Client::new().post(url).bearer_auth(self.token());
+        let request = Client::new().delete(url).bearer_auth(self.token());
         handle_request_as_option(request, self, crate::api::limits::LimitType::Global).await
     }
 }
