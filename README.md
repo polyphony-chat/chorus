@@ -104,8 +104,10 @@
 
 [Rust]: https://img.shields.io/badge/Rust-orange?style=plastic&logo=rust
 [Rust-url]: https://www.rust-lang.org/
-[build-shield]: https://img.shields.io/github/actions/workflow/status/polyphony-chat/chorus/rust.yml?style=flat
-[build-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/rust.yml
+[build-shield]: https://img.shields.io/github/actions/workflow/status/polyphony-chat/chorus/build_and_test.yml?style=flat
+[build-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/build_and_test.yml
+[clippy-shield]: https://img.shields.io/github/actions/workflow/status/polyphony-chat/chorus/clippy.yml?style=flat
+[clippy-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/clippy.yml
 [contributors-shield]: https://img.shields.io/github/contributors/polyphony-chat/chorus.svg?style=flat
 [contributors-url]: https://github.com/polyphony-chat/chorus/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/polyphony-chat/chorus.svg?style=flat
