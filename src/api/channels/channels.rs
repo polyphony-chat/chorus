@@ -48,7 +48,7 @@ impl Channel {
             .delete(format!(
                 "{}/channels/{}/",
                 user.belongs_to.borrow_mut().urls.get_api(),
-                self.id.to_string()
+                self.id
             ))
             .bearer_auth(user.token());
         let response =

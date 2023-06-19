@@ -48,7 +48,7 @@ pub async fn deserialize_response<T: for<'a> Deserialize<'a>>(
             return Err(ChorusLibError::InvalidResponseError {
                 error: format!(
                     "Error while trying to process the HTTP response into a String: {}",
-                    e.to_string()
+                    e
                 ),
             });
         }
@@ -59,7 +59,7 @@ pub async fn deserialize_response<T: for<'a> Deserialize<'a>>(
             return Err(ChorusLibError::InvalidResponseError {
                 error: format!(
                     "Error while trying to deserialize the JSON response into T: {}",
-                    e.to_string()
+                    e
                 ),
             })
         }
