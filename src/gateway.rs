@@ -417,11 +417,9 @@ impl Gateway {
         if msg.is_error() {
             println!("GW: Received error, connection will close..");
 
-            let error = msg.error();
+            let _error = msg.error();
 
-            match error {
-                _ => {}
-            }
+            {}
 
             self.close().await;
             return;

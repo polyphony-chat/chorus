@@ -120,7 +120,7 @@ impl Guild {
             .get(format!(
                 "{}/guilds/{}/channels/",
                 user.belongs_to.borrow().urls.get_api(),
-                self.id.to_string()
+                self.id
             ))
             .bearer_auth(user.token());
         let result = handle_request(request, user, crate::api::limits::LimitType::Channel)

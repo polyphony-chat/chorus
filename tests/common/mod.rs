@@ -93,6 +93,7 @@ pub async fn setup() -> TestBundle {
 }
 
 // Teardown method to clean up after a test.
+#[allow(dead_code)]
 pub async fn teardown(mut bundle: TestBundle) {
     Guild::delete(&mut bundle.user, &bundle.guild.id.to_string()).await;
     bundle.user.delete().await;
