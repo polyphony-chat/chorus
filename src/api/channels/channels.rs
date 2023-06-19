@@ -10,9 +10,7 @@ use crate::{
 
 impl Channel {
     pub async fn get(user: &mut UserMeta, channel_id: &str) -> Result<Channel, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow_mut();
-        let url = belongs_to.urls.get_api().to_string();
-        drop(belongs_to);
+        let url = user.belongs_to.borrow_mut().urls.get_api().to_string();
         let request = Client::new()
             .get(format!("{}/channels/{}/", url, channel_id))
             .bearer_auth(user.token());
@@ -46,15 +44,13 @@ impl Channel {
     ///
     /// An `Option` that contains an `ChorusLibError` if an error occurred during the request, or `None` if the request was successful.
     pub async fn delete(self, user: &mut UserMeta) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow_mut();
         let request = Client::new()
             .delete(format!(
                 "{}/channels/{}/",
-                belongs_to.urls.get_api(),
+                user.belongs_to.borrow_mut().urls.get_api(),
                 self.id.to_string()
             ))
             .bearer_auth(user.token());
-        drop(belongs_to);
         let response =
             common::handle_request(request, user, crate::api::limits::LimitType::Channel).await;
         response.err()
@@ -79,16 +75,14 @@ impl Channel {
         channel_id: &str,
         user: &mut UserMeta,
     ) -> Result<Channel, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
         let request = Client::new()
             .patch(format!(
                 "{}/channels/{}/",
-                belongs_to.urls.get_api(),
+                user.belongs_to.borrow().urls.get_api(),
                 channel_id
             ))
             .bearer_auth(user.token())
             .body(to_string(&modify_data).unwrap());
-        drop(belongs_to);
         let channel = common::deserialize_response::<Channel>(
             request,
             user,

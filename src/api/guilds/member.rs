@@ -24,14 +24,12 @@ impl types::GuildMember {
         guild_id: &str,
         member_id: &str,
     ) -> Result<types::GuildMember, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/guilds/{}/members/{}/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.get_api(),
             guild_id,
             member_id
         );
-        drop(belongs_to);
         let request = Client::new().get(url).bearer_auth(user.token());
         deserialize_response::<types::GuildMember>(
             request,
@@ -59,15 +57,13 @@ impl types::GuildMember {
         member_id: &str,
         role_id: &str,
     ) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.get_api(),
             guild_id,
             member_id,
             role_id
         );
-        drop(belongs_to);
         let request = Client::new().put(url).bearer_auth(user.token());
         handle_request_as_option(request, user, crate::api::limits::LimitType::Guild).await
     }
@@ -90,15 +86,13 @@ impl types::GuildMember {
         member_id: &str,
         role_id: &str,
     ) -> Option<crate::errors::ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.get_api(),
             guild_id,
             member_id,
             role_id
         );
-        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
         handle_request_as_option(request, user, crate::api::limits::LimitType::Guild).await
     }

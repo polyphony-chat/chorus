@@ -21,13 +21,11 @@ impl UserMeta {
         &mut self,
         user_id: &str,
     ) -> Result<Vec<types::PublicUser>, ChorusLibError> {
-        let belongs_to = self.belongs_to.borrow();
         let url = format!(
             "{}/users/{}/relationships/",
-            belongs_to.urls.get_api(),
+            self.belongs_to.borrow().urls.get_api(),
             user_id
         );
-        drop(belongs_to);
         let request = Client::new().get(url).bearer_auth(self.token());
         deserialize_response::<Vec<types::PublicUser>>(
             request,
@@ -42,9 +40,10 @@ impl UserMeta {
     /// # Returns
     /// This function returns a [`Result<Vec<types::Relationship>, ChorusLibError>`].
     pub async fn get_relationships(&mut self) -> Result<Vec<types::Relationship>, ChorusLibError> {
-        let belongs_to = self.belongs_to.borrow();
-        let url = format!("{}/users/@me/relationships/", belongs_to.urls.get_api(),);
-        drop(belongs_to);
+        let url = format!(
+            "{}/users/@me/relationships/",
+            self.belongs_to.borrow().urls.get_api()
+        );
         let request = Client::new().get(url).bearer_auth(self.token());
         deserialize_response::<Vec<types::Relationship>>(
             request,
@@ -66,9 +65,10 @@ impl UserMeta {
         &mut self,
         schema: types::FriendRequestSendSchema,
     ) -> Option<ChorusLibError> {
-        let belongs_to = self.belongs_to.borrow();
-        let url = format!("{}/users/@me/relationships/", belongs_to.urls.get_api());
-        drop(belongs_to);
+        let url = format!(
+            "{}/users/@me/relationships/",
+            self.belongs_to.borrow().urls.get_api()
+        );
         let body = to_string(&schema).unwrap();
         let request = Client::new().post(url).bearer_auth(self.token()).body(body);
         handle_request_as_option(request, self, crate::api::limits::LimitType::Global).await
@@ -93,9 +93,7 @@ impl UserMeta {
         user_id: &str,
         relationship_type: RelationshipType,
     ) -> Option<ChorusLibError> {
-        let belongs_to = self.belongs_to.borrow();
-        let api_url = belongs_to.urls.api.clone();
-        drop(belongs_to);
+        let api_url = self.belongs_to.borrow().urls.api.clone();
         match relationship_type {
             RelationshipType::None => {
                 let request = Client::new()
@@ -140,13 +138,11 @@ impl UserMeta {
     /// # Returns
     /// This function returns an [`Option`] that holds a [`ChorusLibError`] if the request fails.
     pub async fn remove_relationship(&mut self, user_id: &str) -> Option<ChorusLibError> {
-        let belongs_to = self.belongs_to.borrow();
         let url = format!(
             "{}/users/@me/relationships/{}/",
-            belongs_to.urls.get_api(),
+            self.belongs_to.borrow().urls.get_api(),
             user_id
         );
-        drop(belongs_to);
         let request = Client::new().post(url).bearer_auth(self.token());
         handle_request_as_option(request, self, crate::api::limits::LimitType::Global).await
     }

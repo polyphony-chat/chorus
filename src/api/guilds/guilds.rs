@@ -32,9 +32,7 @@ impl Guild {
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
     ) -> Result<Guild, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
-        let url = format!("{}/guilds/", belongs_to.urls.get_api());
-        drop(belongs_to);
+        let url = format!("{}/guilds/", user.belongs_to.borrow().urls.get_api());
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone())
@@ -67,9 +65,11 @@ impl Guild {
     /// }
     /// ```
     pub async fn delete(user: &mut UserMeta, guild_id: &str) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
-        let url = format!("{}/guilds/{}/delete/", belongs_to.urls.get_api(), guild_id);
-        drop(belongs_to);
+        let url = format!(
+            "{}/guilds/{}/delete/",
+            user.belongs_to.borrow().urls.get_api(),
+            guild_id
+        );
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone());
@@ -116,15 +116,13 @@ impl Guild {
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
     pub async fn channels(&self, user: &mut UserMeta) -> Result<Vec<Channel>, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
         let request = Client::new()
             .get(format!(
                 "{}/guilds/{}/channels/",
-                belongs_to.urls.get_api(),
+                user.belongs_to.borrow().urls.get_api(),
                 self.id.to_string()
             ))
             .bearer_auth(user.token());
-        drop(belongs_to);
         let result = handle_request(request, user, crate::api::limits::LimitType::Channel)
             .await
             .unwrap();
