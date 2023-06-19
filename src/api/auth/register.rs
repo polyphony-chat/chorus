@@ -63,7 +63,7 @@ impl Instance {
             UserMeta::get_settings(&token, &self.urls.get_api().to_string(), &mut self.limits)
                 .await
                 .unwrap();
-        let user: UserMeta = UserMeta::new(
+        let user = UserMeta::new(
             Rc::new(RefCell::new(self.clone())),
             token.clone(),
             cloned_limits,

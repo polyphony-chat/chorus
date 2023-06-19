@@ -76,11 +76,12 @@ impl UserMeta {
     ///
     /// Returns `None` if the user was successfully deleted, or an `ChorusLibError` if an error occurred.
     pub async fn delete(mut self) -> Option<ChorusLibError> {
-        let belongs_to = self.belongs_to.borrow();
         let request = Client::new()
-            .post(format!("{}/users/@me/delete/", belongs_to.urls.get_api()))
+            .post(format!(
+                "{}/users/@me/delete/",
+                self.belongs_to.borrow().urls.get_api()
+            ))
             .bearer_auth(self.token());
-        drop(belongs_to);
         handle_request_as_option(request, &mut self, crate::api::limits::LimitType::Ip).await
     }
 }
