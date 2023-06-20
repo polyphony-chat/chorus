@@ -18,18 +18,18 @@ pub mod voice;
 #[derive(Clone, Default, Debug, PartialEq, Eq)]
 /// A URLBundle is a struct which bundles together the API-, Gateway- and CDN-URLs of a Spacebar
 /// instance.
-pub struct URLBundle {
+pub struct UrlBundle {
     pub api: String,
     pub wss: String,
     pub cdn: String,
 }
 
-impl URLBundle {
+impl UrlBundle {
     pub fn new(api: String, wss: String, cdn: String) -> Self {
         Self {
-            api: URLBundle::parse_url(api),
-            wss: URLBundle::parse_url(wss),
-            cdn: URLBundle::parse_url(cdn),
+            api: UrlBundle::parse_url(api),
+            wss: UrlBundle::parse_url(wss),
+            cdn: UrlBundle::parse_url(cdn),
         }
     }
 
@@ -44,13 +44,13 @@ impl URLBundle {
         let url = match Url::parse(&url) {
             Ok(url) => {
                 if url.scheme() == "localhost" {
-                    return URLBundle::parse_url(format!("http://{}", url));
+                    return UrlBundle::parse_url(format!("http://{}", url));
                 }
                 url
             }
             Err(ParseError::RelativeUrlWithoutBase) => {
                 let url_fmt = format!("http://{}", url);
-                return URLBundle::parse_url(url_fmt);
+                return UrlBundle::parse_url(url_fmt);
             }
             Err(_) => panic!("Invalid URL"),
         };
@@ -61,18 +61,6 @@ impl URLBundle {
         }
         url_string
     }
-
-    pub fn get_api(&self) -> &str {
-        &self.api
-    }
-
-    pub fn get_cdn(&self) -> &str {
-        &self.cdn
-    }
-
-    pub fn get_wss(&self) -> &str {
-        &self.wss
-    }
 }
 
 #[cfg(test)]
@@ -81,13 +69,13 @@ mod lib {
 
     #[test]
     fn test_parse_url() {
-        let mut result = URLBundle::parse_url(String::from("localhost:3000/"));
+        let mut result = UrlBundle::parse_url(String::from("localhost:3000/"));
         assert_eq!(result, String::from("http://localhost:3000"));
-        result = URLBundle::parse_url(String::from("https://some.url.com/"));
+        result = UrlBundle::parse_url(String::from("https://some.url.com/"));
         assert_eq!(result, String::from("https://some.url.com"));
-        result = URLBundle::parse_url(String::from("https://some.url.com/"));
+        result = UrlBundle::parse_url(String::from("https://some.url.com/"));
         assert_eq!(result, String::from("https://some.url.com"));
-        result = URLBundle::parse_url(String::from("https://some.url.com"));
+        result = UrlBundle::parse_url(String::from("https://some.url.com"));
         assert_eq!(result, String::from("https://some.url.com"));
     }
 }

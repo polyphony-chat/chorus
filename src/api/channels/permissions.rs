@@ -28,7 +28,7 @@ impl types::Channel {
         let url = {
             format!(
                 "{}/channels/{}/permissions/{}",
-                user.belongs_to.borrow_mut().urls.get_api(),
+                user.belongs_to.borrow_mut().urls.api,
                 channel_id,
                 overwrite.id
             )
@@ -68,7 +68,7 @@ impl types::Channel {
     ) -> Option<ChorusLibError> {
         let url = format!(
             "{}/channels/{}/permissions/{}",
-            user.belongs_to.borrow_mut().urls.get_api(),
+            user.belongs_to.borrow_mut().urls.api,
             channel_id,
             overwrite_id
         );

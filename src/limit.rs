@@ -256,13 +256,13 @@ impl LimitedRequester {
 mod rate_limit {
     use serde_json::from_str;
 
-    use crate::{api::limits::Config, URLBundle};
+    use crate::{api::limits::Config, UrlBundle};
 
     use super::*;
 
     #[tokio::test]
     async fn run_into_limit() {
-        let urls = URLBundle::new(
+        let urls = UrlBundle::new(
             String::from("http://localhost:3001/api/"),
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
@@ -289,7 +289,7 @@ mod rate_limit {
 
     #[tokio::test]
     async fn test_send_request() {
-        let urls = URLBundle::new(
+        let urls = UrlBundle::new(
             String::from("http://localhost:3001/api/"),
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),

@@ -7,14 +7,14 @@ use serde::{Deserialize, Serialize};
 use crate::api::limits::Limits;
 use crate::errors::{ChorusLibError, FieldFormatError};
 use crate::types::{GeneralConfiguration, User, UserSettings};
-use crate::URLBundle;
+use crate::UrlBundle;
 
 #[derive(Debug, Clone)]
 /**
 The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
  */
 pub struct Instance {
-    pub urls: URLBundle,
+    pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
     pub limits: Limits,
 }
@@ -26,7 +26,7 @@ impl Instance {
     /// * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
     /// # Errors
     /// * [`InstanceError`] - If the instance cannot be created.
-    pub async fn new(urls: URLBundle) -> Result<Instance, ChorusLibError> {
+    pub async fn new(urls: UrlBundle) -> Result<Instance, ChorusLibError> {
         let mut instance = Instance {
             urls: urls.clone(),
             // Will be overwritten in the next step

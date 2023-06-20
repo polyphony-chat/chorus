@@ -23,7 +23,7 @@ impl UserMeta {
     ) -> Result<Vec<types::PublicUser>, ChorusLibError> {
         let url = format!(
             "{}/users/{}/relationships/",
-            self.belongs_to.borrow().urls.get_api(),
+            self.belongs_to.borrow().urls.api,
             user_id
         );
         let request = Client::new().get(url).bearer_auth(self.token());
@@ -42,7 +42,7 @@ impl UserMeta {
     pub async fn get_relationships(&mut self) -> Result<Vec<types::Relationship>, ChorusLibError> {
         let url = format!(
             "{}/users/@me/relationships/",
-            self.belongs_to.borrow().urls.get_api()
+            self.belongs_to.borrow().urls.api
         );
         let request = Client::new().get(url).bearer_auth(self.token());
         deserialize_response::<Vec<types::Relationship>>(
@@ -67,7 +67,7 @@ impl UserMeta {
     ) -> Option<ChorusLibError> {
         let url = format!(
             "{}/users/@me/relationships/",
-            self.belongs_to.borrow().urls.get_api()
+            self.belongs_to.borrow().urls.api
         );
         let body = to_string(&schema).unwrap();
         let request = Client::new().post(url).bearer_auth(self.token()).body(body);
@@ -140,7 +140,7 @@ impl UserMeta {
     pub async fn remove_relationship(&mut self, user_id: &str) -> Option<ChorusLibError> {
         let url = format!(
             "{}/users/@me/relationships/{}/",
-            self.belongs_to.borrow().urls.get_api(),
+            self.belongs_to.borrow().urls.api,
             user_id
         );
         let request = Client::new().delete(url).bearer_auth(self.token());

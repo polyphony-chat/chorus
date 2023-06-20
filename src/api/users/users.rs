@@ -52,10 +52,7 @@ impl UserMeta {
             return Err(ChorusLibError::PasswordRequiredError);
         }
         let request = Client::new()
-            .patch(format!(
-                "{}/users/@me/",
-                self.belongs_to.borrow().urls.get_api()
-            ))
+            .patch(format!("{}/users/@me/", self.belongs_to.borrow().urls.api))
             .body(to_string(&modify_schema).unwrap())
             .bearer_auth(self.token());
         let user_updated =
@@ -79,7 +76,7 @@ impl UserMeta {
         let request = Client::new()
             .post(format!(
                 "{}/users/@me/delete/",
-                self.belongs_to.borrow().urls.get_api()
+                self.belongs_to.borrow().urls.api
             ))
             .bearer_auth(self.token());
         handle_request_as_option(request, &mut self, crate::api::limits::LimitType::Ip).await
@@ -91,7 +88,7 @@ impl User {
         let mut belongs_to = user.belongs_to.borrow_mut();
         User::_get(
             &user.token(),
-            &format!("{}", belongs_to.urls.get_api()),
+            &format!("{}", belongs_to.urls.api),
             &mut belongs_to.limits,
             id,
         )
@@ -166,6 +163,6 @@ impl Instance {
         token: String,
         id: Option<&String>,
     ) -> Result<User, ChorusLibError> {
-        User::_get(&token, self.urls.get_api(), &mut self.limits, id).await
+        User::_get(&token, &self.urls.api, &mut self.limits, id).await
     }
 }
