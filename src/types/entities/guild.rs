@@ -16,7 +16,7 @@ pub struct Guild {
     pub afk_channel_id: Option<Snowflake>,
     pub afk_timeout: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub application_id: Option<String>,
+    pub application_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub approximate_member_count: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
@@ -110,13 +110,13 @@ pub struct GuildInvite {
     pub max_age: Option<i32>,
     pub created_at: DateTime<Utc>,
     pub expires_at: Option<DateTime<Utc>>,
-    pub guild_id: String,
+    pub guild_id: Snowflake,
     pub guild: Option<Guild>,
-    pub channel_id: String,
+    pub channel_id: Snowflake,
     pub channel: Option<Channel>,
-    pub inviter_id: Option<String>,
+    pub inviter_id: Option<Snowflake>,
     pub inviter: Option<User>,
-    pub target_user_id: Option<String>,
+    pub target_user_id: Option<Snowflake>,
     pub target_user: Option<String>,
     pub target_user_type: Option<i32>,
     pub vanity_url: Option<bool>,
@@ -124,22 +124,22 @@ pub struct GuildInvite {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct UnavailableGuild {
-    id: String,
+    id: Snowflake,
     unavailable: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct GuildCreateResponse {
-    pub id: String,
+    pub id: Snowflake,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 /// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object
 pub struct GuildScheduledEvent {
-    pub id: String,
-    pub guild_id: String,
-    pub channel_id: Option<String>,
-    pub creator_id: Option<String>,
+    pub id: Snowflake,
+    pub guild_id: Snowflake,
+    pub channel_id: Option<Snowflake>,
+    pub creator_id: Option<Snowflake>,
     pub name: String,
     pub description: String,
     pub scheduled_start_time: DateTime<Utc>,
@@ -147,7 +147,7 @@ pub struct GuildScheduledEvent {
     pub privacy_level: GuildScheduledEventPrivacyLevel,
     pub status: GuildScheduledEventStatus,
     pub entity_type: GuildScheduledEventEntityType,
-    pub entity_id: Option<String>,
+    pub entity_id: Option<Snowflake>,
     pub entity_metadata: Option<GuildScheduledEventEntityMetadata>,
     pub creator: Option<User>,
     pub user_count: Option<u64>,

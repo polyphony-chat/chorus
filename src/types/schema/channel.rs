@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::entities::PermissionOverwrite;
+use crate::types::{entities::PermissionOverwrite, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -15,8 +15,8 @@ pub struct ChannelCreateSchema {
     pub rate_limit_per_user: Option<i32>,
     pub position: Option<i32>,
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
-    pub parent_id: Option<String>,
-    pub id: Option<String>,
+    pub parent_id: Option<Snowflake>,
+    pub id: Option<Snowflake>,
     pub nsfw: Option<bool>,
     pub rtc_region: Option<String>,
     pub default_auto_archive_duration: Option<i32>,
@@ -38,7 +38,7 @@ pub struct ChannelModifySchema {
     pub rate_limit_per_user: Option<i32>,
     pub position: Option<i32>,
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
-    pub parent_id: Option<String>,
+    pub parent_id: Option<Snowflake>,
     pub nsfw: Option<bool>,
     pub rtc_region: Option<String>,
     pub default_auto_archive_duration: Option<i32>,
