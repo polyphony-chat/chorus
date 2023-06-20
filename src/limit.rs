@@ -82,13 +82,11 @@ impl LimitedRequester {
             );
             if !response.status().is_success() {
                 match response.status().as_u16() {
-                    401 => return Err(ChorusLibError::TokenExpired),
-                    403 => return Err(ChorusLibError::TokenExpired),
-                    _ => {
-                        return Err(ChorusLibError::ReceivedErrorCodeError {
-                            error_code: response.status().as_str().to_string(),
-                        });
-                    }
+                    401 => Err(ChorusLibError::TokenExpired),
+                    403 => Err(ChorusLibError::TokenExpired),
+                    _ => Err(ChorusLibError::ReceivedErrorCodeError {
+                        error_code: response.status().as_str().to_string(),
+                    }),
                 }
             } else {
                 Ok(response)
@@ -258,13 +256,13 @@ impl LimitedRequester {
 mod rate_limit {
     use serde_json::from_str;
 
-    use crate::{api::limits::Config, URLBundle};
+    use crate::{api::limits::Config, UrlBundle};
 
     use super::*;
 
     #[tokio::test]
     async fn run_into_limit() {
-        let urls = URLBundle::new(
+        let urls = UrlBundle::new(
             String::from("http://localhost:3001/api/"),
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
@@ -286,19 +284,12 @@ mod rate_limit {
                 .await,
             );
         }
-        if request.is_some() {
-            match request.unwrap() {
-                Ok(_) => assert!(false),
-                Err(_) => assert!(true),
-            }
-        } else {
-            assert!(false)
-        }
+        assert!(matches!(request, Some(Err(_))));
     }
 
     #[tokio::test]
     async fn test_send_request() {
-        let urls = URLBundle::new(
+        let urls = UrlBundle::new(
             String::from("http://localhost:3001/api/"),
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),

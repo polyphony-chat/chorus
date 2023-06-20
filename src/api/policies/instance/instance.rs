@@ -15,7 +15,7 @@ impl Instance {
         &self,
     ) -> Result<GeneralConfiguration, ChorusLibError> {
         let client = Client::new();
-        let endpoint_url = self.urls.get_api().to_string() + "/policies/instance/";
+        let endpoint_url = self.urls.api.clone() + "/policies/instance/";
         let request = match client.get(&endpoint_url).send().await {
             Ok(result) => result,
             Err(e) => {
@@ -33,7 +33,6 @@ impl Instance {
         }
 
         let body = request.text().await.unwrap();
-        let instance_policies_schema: GeneralConfiguration = from_str(&body).unwrap();
-        Ok(instance_policies_schema)
+        Ok(from_str::<GeneralConfiguration>(&body).unwrap())
     }
 }

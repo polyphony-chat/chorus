@@ -1,7 +1,7 @@
 use reqwest::Client;
 
 use crate::{
-    api::{handle_request, handle_request_as_option},
+    api::{handle_request, handle_request_as_result},
     errors::ChorusLibError,
     instance::UserMeta,
     types,
@@ -24,28 +24,21 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    An `Option` [`crate::errors::ChorusLibError`] if something went wrong.
+    A `Result` [`()`] [`crate::errors::ChorusLibError`] if something went wrong.
     Fires a `Message Reaction Remove All` Gateway event.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions](https://discord.com/developers/docs/resources/channel#delete-all-reactions)
      */
-    pub async fn delete_all(&self, user: &mut UserMeta) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
+    pub async fn delete_all(&self, user: &mut UserMeta) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id
         );
-        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
-            Ok(_) => None,
-            Err(e) => Some(ChorusLibError::InvalidResponseError {
-                error: e.to_string(),
-            }),
-        }
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /**
@@ -58,28 +51,21 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A [`crate::errors::ChorusLibError`] if something went wrong.
+    A Result that is [`Err(crate::errors::ChorusLibError)`] if something went wrong.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
      */
-    pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
+    pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id,
             emoji
         );
-        drop(belongs_to);
         let request = Client::new().get(url).bearer_auth(user.token());
-        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
-            Ok(_) => None,
-            Err(e) => Some(ChorusLibError::InvalidResponseError {
-                error: e.to_string(),
-            }),
-        }
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /**
@@ -93,29 +79,26 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A [`crate::errors::ChorusLibError`] if something went wrong.
+    A Result that is [`Err(crate::errors::ChorusLibError)`] if something went wrong.
     Fires a `Message Reaction Remove Emoji` Gateway event.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji](https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji)
      */
-    pub async fn delete_emoji(&self, emoji: &str, user: &mut UserMeta) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
+    pub async fn delete_emoji(
+        &self,
+        emoji: &str,
+        user: &mut UserMeta,
+    ) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id,
             emoji
         );
-        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
-            Ok(_) => None,
-            Err(e) => Some(ChorusLibError::InvalidResponseError {
-                error: e.to_string(),
-            }),
-        }
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /**
@@ -132,25 +115,21 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
-    Returns a 204 empty response on success.
-    Fires a Message Reaction Add Gateway event.
+    A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
      */
-    pub async fn create(&self, emoji: &str, user: &mut UserMeta) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
+    pub async fn create(&self, emoji: &str, user: &mut UserMeta) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id,
             emoji
         );
-        drop(belongs_to);
         let request = Client::new().put(url).bearer_auth(user.token());
-        handle_request_as_option(request, user, crate::api::limits::LimitType::Channel).await
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /**
@@ -163,25 +142,22 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
-    Returns a 204 empty response on success.
+    A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
     Fires a `Message Reaction Remove` Gateway event.
 
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
      */
-    pub async fn remove(&self, emoji: &str, user: &mut UserMeta) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
+    pub async fn remove(&self, emoji: &str, user: &mut UserMeta) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id,
             emoji
         );
-        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_option(request, user, crate::api::limits::LimitType::Channel).await
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /**
@@ -197,8 +173,7 @@ impl ReactionMeta {
     * `user` - A mutable reference to a [`UserMeta`] instance.
 
     # Returns
-    A `Result` containing a [`reqwest::Response`] or a [`crate::errors::ChorusLibError`].
-    Returns a 204 empty response on success.
+    A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
     Fires a Message Reaction Remove Gateway event.
 
     # Reference
@@ -209,18 +184,16 @@ impl ReactionMeta {
         user_id: &str,
         emoji: &str,
         user: &mut UserMeta,
-    ) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
+    ) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/{}",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id,
             emoji,
             user_id
         );
-        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_option(request, user, crate::api::limits::LimitType::Channel).await
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
     }
 }

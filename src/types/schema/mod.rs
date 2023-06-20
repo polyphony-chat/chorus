@@ -65,18 +65,7 @@ mod schemas_tests {
     #[test]
     fn consent_false() {
         assert_eq!(
-            RegisterSchema::new(
-                "Test".to_string(),
-                None,
-                false,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ),
+            RegisterSchema::builder("Test", false).build(),
             Err(FieldFormatError::ConsentError)
         );
     }
@@ -91,18 +80,11 @@ mod schemas_tests {
 
     #[test]
     fn valid_email() {
-        let reg = RegisterSchema::new(
-            "Testy".to_string(),
-            None,
-            true,
-            Some("me@mail.de".to_string()),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-        );
+        let reg = RegisterSchemaOptions {
+            email: Some("me@mail.de".to_string()),
+            ..RegisterSchema::builder("Testy", true)
+        }
+        .build();
         assert_ne!(reg, Err(FieldFormatError::EmailError));
     }
 }

@@ -2,7 +2,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::{deserialize_response, handle_request_as_option, limits::Limits},
+    api::{deserialize_response, handle_request_as_result, limits::Limits},
     errors::ChorusLibError,
     instance::{Instance, UserMeta},
     limit::LimitedRequester,
@@ -52,10 +52,7 @@ impl UserMeta {
             return Err(ChorusLibError::PasswordRequiredError);
         }
         let request = Client::new()
-            .patch(format!(
-                "{}/users/@me/",
-                self.belongs_to.borrow_mut().urls.get_api()
-            ))
+            .patch(format!("{}/users/@me/", self.belongs_to.borrow().urls.api))
             .body(to_string(&modify_schema).unwrap())
             .bearer_auth(self.token());
         let user_updated =
@@ -74,14 +71,15 @@ impl UserMeta {
     ///
     /// # Returns
     ///
-    /// Returns `None` if the user was successfully deleted, or an `ChorusLibError` if an error occurred.
-    pub async fn delete(mut self) -> Option<ChorusLibError> {
-        let belongs_to = self.belongs_to.borrow();
+    /// Returns `()` if the user was successfully deleted, or a `ChorusLibError` if an error occurred.
+    pub async fn delete(mut self) -> Result<(), ChorusLibError> {
         let request = Client::new()
-            .post(format!("{}/users/@me/delete/", belongs_to.urls.get_api()))
+            .post(format!(
+                "{}/users/@me/delete/",
+                self.belongs_to.borrow().urls.api
+            ))
             .bearer_auth(self.token());
-        drop(belongs_to);
-        handle_request_as_option(request, &mut self, crate::api::limits::LimitType::Ip).await
+        handle_request_as_result(request, &mut self, crate::api::limits::LimitType::Ip).await
     }
 }
 
@@ -90,7 +88,7 @@ impl User {
         let mut belongs_to = user.belongs_to.borrow_mut();
         User::_get(
             &user.token(),
-            &format!("{}", belongs_to.urls.get_api()),
+            &format!("{}", belongs_to.urls.api),
             &mut belongs_to.limits,
             id,
         )
@@ -103,12 +101,11 @@ impl User {
         limits_instance: &mut Limits,
         id: Option<&String>,
     ) -> Result<User, ChorusLibError> {
-        let url: String;
-        if id.is_none() {
-            url = format!("{}/users/@me/", url_api);
+        let url = if id.is_none() {
+            format!("{}/users/@me/", url_api)
         } else {
-            url = format!("{}/users/{}", url_api, id.unwrap());
-        }
+            format!("{}/users/{}", url_api, id.unwrap())
+        };
         let request = reqwest::Client::new().get(url).bearer_auth(token);
         let mut cloned_limits = limits_instance.clone();
         match LimitedRequester::send_request(
@@ -166,12 +163,6 @@ impl Instance {
         token: String,
         id: Option<&String>,
     ) -> Result<User, ChorusLibError> {
-        User::_get(
-            &token,
-            &self.urls.get_api().to_string(),
-            &mut self.limits,
-            id,
-        )
-        .await
+        User::_get(&token, &self.urls.api, &mut self.limits, id).await
     }
 }

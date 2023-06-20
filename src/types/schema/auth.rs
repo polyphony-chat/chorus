@@ -116,9 +116,39 @@ pub struct RegisterSchema {
     promotional_email_opt_in: Option<bool>,
 }
 
+pub struct RegisterSchemaOptions {
+    pub username: String,
+    pub password: Option<String>,
+    pub consent: bool,
+    pub email: Option<String>,
+    pub fingerprint: Option<String>,
+    pub invite: Option<String>,
+    pub date_of_birth: Option<String>,
+    pub gift_code_sku_id: Option<String>,
+    pub captcha_key: Option<String>,
+    pub promotional_email_opt_in: Option<bool>,
+}
+
 impl RegisterSchema {
+    pub fn builder(username: impl Into<String>, consent: bool) -> RegisterSchemaOptions {
+        RegisterSchemaOptions {
+            username: username.into(),
+            password: None,
+            consent,
+            email: None,
+            fingerprint: None,
+            invite: None,
+            date_of_birth: None,
+            gift_code_sku_id: None,
+            captcha_key: None,
+            promotional_email_opt_in: None,
+        }
+    }
+}
+
+impl RegisterSchemaOptions {
     /**
-    Returns a new [`Result<RegisterSchema, FieldFormatError>`].
+    Create a new [`RegisterSchema`].
     ## Arguments
     All but "String::username" and "bool::consent" are optional.
 
@@ -129,47 +159,36 @@ impl RegisterSchema {
 
     These constraints have been defined [in the Spacebar-API](https://docs.spacebar.chat/routes/)
      */
-    pub fn new(
-        username: String,
-        password: Option<String>,
-        consent: bool,
-        email: Option<String>,
-        fingerprint: Option<String>,
-        invite: Option<String>,
-        date_of_birth: Option<String>,
-        gift_code_sku_id: Option<String>,
-        captcha_key: Option<String>,
-        promotional_email_opt_in: Option<bool>,
-    ) -> Result<RegisterSchema, FieldFormatError> {
-        let username = AuthUsername::new(username)?.username;
+    pub fn build(self) -> Result<RegisterSchema, FieldFormatError> {
+        let username = AuthUsername::new(self.username)?.username;
 
-        let email = if let Some(email) = email {
+        let email = if let Some(email) = self.email {
             Some(AuthEmail::new(email)?.email)
         } else {
             None
         };
 
-        let password = if let Some(password) = password {
+        let password = if let Some(password) = self.password {
             Some(AuthPassword::new(password)?.password)
         } else {
             None
         };
 
-        if !consent {
+        if !self.consent {
             return Err(FieldFormatError::ConsentError);
         }
 
         Ok(RegisterSchema {
             username,
             password,
-            consent,
+            consent: self.consent,
             email,
-            fingerprint,
-            invite,
-            date_of_birth,
-            gift_code_sku_id,
-            captcha_key,
-            promotional_email_opt_in,
+            fingerprint: self.fingerprint,
+            invite: self.invite,
+            date_of_birth: self.date_of_birth,
+            gift_code_sku_id: self.gift_code_sku_id,
+            captcha_key: self.captcha_key,
+            promotional_email_opt_in: self.promotional_email_opt_in,
         })
     }
 }

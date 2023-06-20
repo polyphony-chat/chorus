@@ -3,6 +3,7 @@ use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 use crate::types;
 use crate::types::WebSocketEvent;
+use std::any::Any;
 use std::sync::Arc;
 
 use futures_util::stream::SplitSink;
@@ -72,11 +73,9 @@ const GATEWAY_LAZY_REQUEST: u8 = 14;
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
 const HEARTBEAT_ACK_TIMEOUT: u128 = 2000;
 
+/// Represents a messsage received from the gateway. This will be either a [GatewayReceivePayload], containing events, or a [GatewayError].
+/// This struct is used internally when handling messages.
 #[derive(Clone, Debug)]
-/**
-Represents a messsage received from the gateway. This will be either a [GatewayReceivePayload], containing events, or a [GatewayError].
-This struct is used internally when handling messages.
-*/
 pub struct GatewayMessage {
     /// The message we received from the server
     message: tokio_tungstenite::tungstenite::Message,
@@ -94,60 +93,36 @@ impl GatewayMessage {
         let content = self.message.to_string();
 
         // Some error strings have dots on the end, which we don't care about
-        let processed_content = content.clone().to_lowercase().replace(".", "");
+        let processed_content = content.to_lowercase().replace('.', "");
 
         match processed_content.as_str() {
-            "unknown error" | "4000" => {
-                return Some(GatewayError::UnknownError);
-            }
-            "unknown opcode" | "4001" => {
-                return Some(GatewayError::UnknownOpcodeError);
-            }
+            "unknown error" | "4000" => Some(GatewayError::UnknownError),
+            "unknown opcode" | "4001" => Some(GatewayError::UnknownOpcodeError),
             "decode error" | "error while decoding payload" | "4002" => {
-                return Some(GatewayError::DecodeError);
+                Some(GatewayError::DecodeError)
             }
-            "not authenticated" | "4003" => {
-                return Some(GatewayError::NotAuthenticatedError);
-            }
-            "authentication failed" | "4004" => {
-                return Some(GatewayError::AuthenticationFailedError);
-            }
-            "already authenticated" | "4005" => {
-                return Some(GatewayError::AlreadyAuthenticatedError);
-            }
-            "invalid seq" | "4007" => {
-                return Some(GatewayError::InvalidSequenceNumberError);
-            }
-            "rate limited" | "4008" => {
-                return Some(GatewayError::RateLimitedError);
-            }
-            "session timed out" | "4009" => {
-                return Some(GatewayError::SessionTimedOutError);
-            }
-            "invalid shard" | "4010" => {
-                return Some(GatewayError::InvalidShardError);
-            }
-            "sharding required" | "4011" => {
-                return Some(GatewayError::ShardingRequiredError);
-            }
-            "invalid api version" | "4012" => {
-                return Some(GatewayError::InvalidAPIVersionError);
-            }
+            "not authenticated" | "4003" => Some(GatewayError::NotAuthenticatedError),
+            "authentication failed" | "4004" => Some(GatewayError::AuthenticationFailedError),
+            "already authenticated" | "4005" => Some(GatewayError::AlreadyAuthenticatedError),
+            "invalid seq" | "4007" => Some(GatewayError::InvalidSequenceNumberError),
+            "rate limited" | "4008" => Some(GatewayError::RateLimitedError),
+            "session timed out" | "4009" => Some(GatewayError::SessionTimedOutError),
+            "invalid shard" | "4010" => Some(GatewayError::InvalidShardError),
+            "sharding required" | "4011" => Some(GatewayError::ShardingRequiredError),
+            "invalid api version" | "4012" => Some(GatewayError::InvalidAPIVersionError),
             "invalid intent(s)" | "invalid intent" | "4013" => {
-                return Some(GatewayError::InvalidIntentsError);
+                Some(GatewayError::InvalidIntentsError)
             }
             "disallowed intent(s)" | "disallowed intents" | "4014" => {
-                return Some(GatewayError::DisallowedIntentsError);
+                Some(GatewayError::DisallowedIntentsError)
             }
-            _ => {
-                return None;
-            }
+            _ => None,
         }
     }
 
     /// Returns whether or not the message is an error
     pub fn is_error(&self) -> bool {
-        return self.error().is_some();
+        self.error().is_some()
     }
 
     /// Parses the message as a payload;
@@ -168,17 +143,15 @@ impl GatewayMessage {
 
     /// Returns whether or not the message is empty
     pub fn is_empty(&self) -> bool {
-        return self.message.is_empty();
+        self.message.is_empty()
     }
 }
 
+/// Represents a handle to a Gateway connection. A Gateway connection will create observable
+/// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
+/// implemented [Types] with the trait [`WebSocketEvent`]
+/// Using this handle you can also send Gateway Events directly.
 #[derive(Debug)]
-/**
-Represents a handle to a Gateway connection. A Gateway connection will create observable
-[`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
-implemented [Types] with the trait [`WebSocketEvent`]
-Using this handle you can also send Gateway Events directly.
- */
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
@@ -308,6 +281,7 @@ pub struct Gateway {
 }
 
 impl Gateway {
+    #[allow(clippy::new_ret_no_self)]
     pub async fn new(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
         let (websocket_stream, _) = match connect_async_tls_with_config(
             &websocket_url,
@@ -371,13 +345,13 @@ impl Gateway {
             gateway.gateway_listen_task().await;
         });
 
-        return Ok(GatewayHandle {
+        Ok(GatewayHandle {
             url: websocket_url.clone(),
             events: shared_events,
             websocket_send: shared_websocket_send.clone(),
             handle,
             kill_send: kill_send.clone(),
-        });
+        })
     }
 
     /// The main gateway listener task;
@@ -388,14 +362,10 @@ impl Gateway {
             let msg = self.websocket_receive.next().await;
 
             // This if chain can be much better but if let is unstable on stable rust
-            if msg.as_ref().is_some() {
-                if msg.as_ref().unwrap().is_ok() {
-                    let msg_unwrapped = msg.unwrap().unwrap();
-                    self.handle_message(GatewayMessage::from_tungstenite_message(msg_unwrapped))
-                        .await;
-
-                    continue;
-                }
+            if let Some(Ok(message)) = msg {
+                self.handle_message(GatewayMessage::from_tungstenite_message(message))
+                    .await;
+                continue;
             }
 
             // We couldn't receive the next message or it was an error, something is wrong with the websocket, close
@@ -422,8 +392,8 @@ impl Gateway {
             return Err(data_deserialize_result.err().unwrap());
         }
 
-        event.update_data(data_deserialize_result.unwrap()).await;
-        return Ok(());
+        event.notify(data_deserialize_result.unwrap()).await;
+        Ok(())
     }
 
     /// This handles a message as a websocket event and updates its events along with the events' observers
@@ -444,11 +414,9 @@ impl Gateway {
         if msg.is_error() {
             println!("GW: Received error, connection will close..");
 
-            let error = msg.error();
+            let _error = msg.error();
 
-            match error {
-                _ => {}
-            }
+            {}
 
             self.close().await;
             return;
@@ -1399,13 +1367,7 @@ impl Gateway {
                             sessions: result.unwrap(),
                         };
 
-                        self.events
-                            .lock()
-                            .await
-                            .session
-                            .replace
-                            .update_data(data)
-                            .await;
+                        self.events.lock().await.session.replace.notify(data).await;
                     }
                     "USER_UPDATE" => {
                         let event = &mut self.events.lock().await.user.update;
@@ -1561,9 +1523,7 @@ impl Gateway {
     }
 }
 
-/**
-Handles sending heartbeats to the gateway in another thread
- */
+/// Handles sending heartbeats to the gateway in another thread
 struct HeartbeatHandler {
     /// The heartbeat interval in milliseconds
     pub heartbeat_interval: u128,
@@ -1698,10 +1658,8 @@ impl HeartbeatHandler {
     }
 }
 
-/**
-Used for communications between the heartbeat and gateway thread.
-Either signifies a sequence number update, a heartbeat ACK or a Heartbeat request by the server
-*/
+/// Used for communications between the heartbeat and gateway thread.
+/// Either signifies a sequence number update, a heartbeat ACK or a Heartbeat request by the server
 #[derive(Clone, Copy, Debug)]
 struct HeartbeatThreadCommunication {
     /// The opcode for the communication we received, if relevant
@@ -1710,89 +1668,47 @@ struct HeartbeatThreadCommunication {
     sequence_number: Option<u64>,
 }
 
-/**
-Trait which defines the behavior of an Observer. An Observer is an object which is subscribed to
-an Observable. The Observer is notified when the Observable's data changes.
-In this case, the Observable is a [`GatewayEvent`], which is a wrapper around a WebSocketEvent.
- */
-pub trait Observer<T: types::WebSocketEvent>: std::fmt::Debug {
-    fn update(&mut self, data: &T);
+/// Trait which defines the behavior of an Observer. An Observer is an object which is subscribed to
+/// an Observable. The Observer is notified when the Observable's data changes.
+/// In this case, the Observable is a [`GatewayEvent`], which is a wrapper around a WebSocketEvent.
+/// Note that `Debug` is used to tell `Observer`s apart when unsubscribing.
+pub trait Observer<T>: Sync + Send + std::fmt::Debug {
+    fn update(&self, data: &T);
 }
 
-/** GatewayEvent is a wrapper around a WebSocketEvent. It is used to notify the observers of a
-change in the WebSocketEvent. GatewayEvents are observable.
- */
+/// GatewayEvent is a wrapper around a WebSocketEvent. It is used to notify the observers of a
+/// change in the WebSocketEvent. GatewayEvents are observable.
 #[derive(Default, Debug)]
-pub struct GatewayEvent<T: types::WebSocketEvent> {
-    observers: Vec<Arc<Mutex<dyn Observer<T> + Sync + Send>>>,
-    pub event_data: T,
-    pub is_observed: bool,
+pub struct GatewayEvent<T: WebSocketEvent> {
+    observers: Vec<Arc<dyn Observer<T>>>,
 }
 
-impl<T: types::WebSocketEvent> GatewayEvent<T> {
-    fn new(event_data: T) -> Self {
-        Self {
-            is_observed: false,
-            observers: Vec::new(),
-            event_data,
-        }
-    }
-
-    /**
-    Returns true if the GatewayEvent is observed by at least one Observer.
-     */
+impl<T: WebSocketEvent> GatewayEvent<T> {
+    /// Returns true if the GatewayEvent is observed by at least one Observer.
     pub fn is_observed(&self) -> bool {
-        self.is_observed
+        !self.observers.is_empty()
     }
 
-    /**
-    Subscribes an Observer to the GatewayEvent. Returns an error if the GatewayEvent is already
-    observed.
-    # Errors
-    Returns an error if the GatewayEvent is already observed.
-    Error type: [`ObserverError::AlreadySubscribedError`]
-     */
-    pub fn subscribe(
-        &mut self,
-        observable: Arc<Mutex<dyn Observer<T> + Sync + Send>>,
-    ) -> Result<(), ObserverError> {
-        if self.is_observed {
-            return Err(ObserverError::AlreadySubscribedError);
-        }
-        self.is_observed = true;
+    /// Subscribes an Observer to the GatewayEvent.
+    pub fn subscribe(&mut self, observable: Arc<dyn Observer<T>>) {
         self.observers.push(observable);
-        Ok(())
     }
 
-    /**
-    Unsubscribes an Observer from the GatewayEvent.
-     */
-    pub fn unsubscribe(&mut self, observable: Arc<Mutex<dyn Observer<T> + Sync + Send>>) {
+    /// Unsubscribes an Observer from the GatewayEvent.
+    pub fn unsubscribe(&mut self, observable: &dyn Observer<T>) {
         // .retain()'s closure retains only those elements of the vector, which have a different
         // pointer value than observable.
         // The usage of the debug format to compare the generic T of observers is quite stupid, but the only thing to compare between them is T and if T == T they are the same
         // anddd there is no way to do that without using format
+        let to_remove = format!("{:?}", observable);
         self.observers
-            .retain(|obs| !(format!("{:?}", obs) == format!("{:?}", &observable)));
-        self.is_observed = !self.observers.is_empty();
+            .retain(|obs| format!("{:?}", obs) != to_remove);
     }
 
-    /**
-    Updates the GatewayEvent's data and notifies the observers.
-     */
-    async fn update_data(&mut self, new_event_data: T) {
-        self.event_data = new_event_data;
-        self.notify().await;
-    }
-
-    /**
-    Notifies the observers of the GatewayEvent.
-     */
-    async fn notify(&self) {
+    /// Notifies the observers of the GatewayEvent.
+    async fn notify(&self, new_event_data: T) {
         for observer in &self.observers {
-            let mut observer_lock = observer.lock().await;
-            observer_lock.update(&self.event_data);
-            drop(observer_lock);
+            observer.update(&new_event_data);
         }
     }
 }
@@ -1961,23 +1877,23 @@ mod events {
 #[cfg(test)]
 mod example {
     use super::*;
+    use std::sync::atomic::{AtomicI32, Ordering::Relaxed};
 
     #[derive(Debug)]
-    struct Consumer;
+    struct Consumer {
+        name: String,
+        events_received: AtomicI32,
+    }
 
     impl Observer<types::GatewayResume> for Consumer {
-        fn update(&mut self, data: &types::GatewayResume) {
-            println!("{}", data.token)
+        fn update(&self, _data: &types::GatewayResume) {
+            self.events_received.fetch_add(1, Relaxed);
         }
     }
 
     #[tokio::test]
     async fn test_observer_behavior() {
-        let mut event = GatewayEvent::new(types::GatewayResume {
-            token: "start".to_string(),
-            session_id: "start".to_string(),
-            seq: "start".to_string(),
-        });
+        let mut event = GatewayEvent::default();
 
         let new_data = types::GatewayResume {
             token: "token_3276ha37am3".to_string(),
@@ -1985,25 +1901,23 @@ mod example {
             seq: "3".to_string(),
         };
 
-        let consumer = Consumer;
-        let arc_mut_consumer = Arc::new(Mutex::new(consumer));
+        let consumer = Arc::new(Consumer {
+            name: "first".into(),
+            events_received: 0.into(),
+        });
+        event.subscribe(consumer.clone());
 
-        event.subscribe(arc_mut_consumer.clone()).unwrap();
+        let second_consumer = Arc::new(Consumer {
+            name: "second".into(),
+            events_received: 0.into(),
+        });
+        event.subscribe(second_consumer.clone());
 
-        event.notify().await;
+        event.notify(new_data.clone()).await;
+        event.unsubscribe(&*consumer);
+        event.notify(new_data).await;
 
-        event.update_data(new_data).await;
-
-        let second_consumer = Consumer;
-        let arc_mut_second_consumer = Arc::new(Mutex::new(second_consumer));
-
-        match event.subscribe(arc_mut_second_consumer.clone()).err() {
-            None => assert!(false),
-            Some(err) => println!("You cannot subscribe twice: {}", err),
-        }
-
-        event.unsubscribe(arc_mut_consumer.clone());
-
-        event.subscribe(arc_mut_second_consumer.clone()).unwrap();
+        assert_eq!(consumer.events_received.load(Relaxed), 1);
+        assert_eq!(second_consumer.events_received.load(Relaxed), 2);
     }
 }

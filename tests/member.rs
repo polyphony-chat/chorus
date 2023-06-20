@@ -18,7 +18,7 @@ async fn add_remove_role() {
         }
     }
     if !role_found {
-        assert!(false)
+        panic!()
     }
     chorus::types::GuildMember::remove_role(&mut bundle.user, guild_id, user_id, role_id).await;
     let member = chorus::types::GuildMember::get(&mut bundle.user, guild_id, user_id)
@@ -28,11 +28,11 @@ async fn add_remove_role() {
         if role != role_id {
             role_found = false;
         } else {
-            assert!(false);
+            panic!();
         }
     }
     if role_found {
-        assert!(false)
+        panic!()
     }
     common::teardown(bundle).await
 }

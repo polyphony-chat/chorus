@@ -29,9 +29,6 @@ openssl = "0.10.52"
 base64 = "0.21.2"
 hostname = "0.3.1"
 bitflags = { version = "2.2.1", features = ["serde"] }
-atomic = "0.5.3"
-bigdecimal = "0.3.1"
-num-bigint = "0.4.3"
 lazy_static = "1.4.0"
 poem = { version = "1.3.55", optional = true }
 sqlx = { git = "https://github.com/zert3x/sqlx", branch="feature/skip", features = ["mysql", "sqlite", "json", "chrono", "ipnetwork", "runtime-tokio-native-tls", "any"], optional = true }

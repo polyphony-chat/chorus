@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+#[cfg(feature = "sqlx")]
 use std::io::Write;
 use std::ops::{Deref, DerefMut};
 use std::str::FromStr;

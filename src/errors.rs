@@ -18,13 +18,14 @@ custom_error! {
     CantGetInfoError{error:String} = "Something seems to be wrong with the instance. Cannot get information about the instance: {error}",
     InvalidFormBodyError{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
     RateLimited{bucket:String} = "Ratelimited on Bucket {bucket}",
-    MultipartCreationError{error: String} = "Got an error whilst creating the form: {}",
-    FormCreationError{error: String} = "Got an error whilst creating the form: {}",
+    MultipartCreationError{error: String} = "Got an error whilst creating the form: {error}",
+    FormCreationError{error: String} = "Got an error whilst creating the form: {error}",
     TokenExpired = "Token expired, invalid or not found.",
     NoPermission = "You do not have the permissions needed to perform this action.",
-    NotFound{error: String} = "The provided resource hasn't been found: {}",
+    NotFound{error: String} = "The provided resource hasn't been found: {error}",
     PasswordRequiredError = "You need to provide your current password to authenticate for this action.",
-    InvalidResponseError{error: String} = "The response is malformed and cannot be processed. Error: {}",
+    InvalidResponseError{error: String} = "The response is malformed and cannot be processed. Error: {error}",
+    InvalidArgumentsError{error: String} = "Invalid arguments were provided. Error: {error}"
 }
 
 custom_error! {

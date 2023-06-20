@@ -6,7 +6,7 @@ use crate::types::Snowflake;
 
 use super::PublicUser;
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialEq, Eq)]
 /// See https://discord-userdoccers.vercel.app/resources/user#relationship-structure
 pub struct Relationship {
     pub id: Snowflake,
@@ -17,7 +17,7 @@ pub struct Relationship {
     pub since: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default, Eq, PartialEq)]
 #[repr(u8)]
 /// See https://discord-userdoccers.vercel.app/resources/user#relationship-type
 pub enum RelationshipType {

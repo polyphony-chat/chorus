@@ -1,7 +1,7 @@
 use reqwest::Client;
 
 use crate::{
-    api::{deserialize_response, handle_request_as_option},
+    api::{deserialize_response, handle_request_as_result},
     errors::ChorusLibError,
     instance::UserMeta,
     types,
@@ -24,14 +24,12 @@ impl types::GuildMember {
         guild_id: &str,
         member_id: &str,
     ) -> Result<types::GuildMember, ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
         let url = format!(
             "{}/guilds/{}/members/{}/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id,
             member_id
         );
-        drop(belongs_to);
         let request = Client::new().get(url).bearer_auth(user.token());
         deserialize_response::<types::GuildMember>(
             request,
@@ -52,24 +50,22 @@ impl types::GuildMember {
     ///
     /// # Returns
     ///
-    /// An `Option` containing a `ChorusLibError` if the request fails, or `None` if the request succeeds.
+    /// An `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
     pub async fn add_role(
         user: &mut UserMeta,
         guild_id: &str,
         member_id: &str,
         role_id: &str,
-    ) -> Option<ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
+    ) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id,
             member_id,
             role_id
         );
-        drop(belongs_to);
         let request = Client::new().put(url).bearer_auth(user.token());
-        handle_request_as_option(request, user, crate::api::limits::LimitType::Guild).await
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await
     }
 
     /// Removes a role from a guild member.
@@ -83,23 +79,21 @@ impl types::GuildMember {
     ///
     /// # Returns
     ///
-    /// An `Option` containing a `ChorusLibError` if the request fails, or `None` if the request succeeds.
+    /// A `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
     pub async fn remove_role(
         user: &mut UserMeta,
         guild_id: &str,
         member_id: &str,
         role_id: &str,
-    ) -> Option<crate::errors::ChorusLibError> {
-        let belongs_to = user.belongs_to.borrow();
+    ) -> Result<(), crate::errors::ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
-            belongs_to.urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id,
             member_id,
             role_id
         );
-        drop(belongs_to);
         let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_option(request, user, crate::api::limits::LimitType::Guild).await
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await
     }
 }
