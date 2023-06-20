@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::api::limits::Limits;
@@ -17,6 +18,7 @@ pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
     pub limits: Limits,
+    pub client: Client,
 }
 
 impl Instance {
@@ -32,6 +34,7 @@ impl Instance {
             // Will be overwritten in the next step
             instance_info: GeneralConfiguration::default(),
             limits: Limits::check_limits(urls.api).await,
+            client: Client::new(),
         };
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
