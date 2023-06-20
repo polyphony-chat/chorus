@@ -26,6 +26,8 @@ pub use user::*;
 pub use voice::*;
 pub use webhooks::*;
 
+pub use webrtc::*;
+
 mod application;
 mod auto_moderation;
 mod call;
@@ -51,6 +53,8 @@ mod thread;
 mod user;
 mod voice;
 mod webhooks;
+
+mod webrtc;
 
 pub trait WebSocketEvent {}
 
