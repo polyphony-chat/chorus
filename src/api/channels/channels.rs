@@ -10,7 +10,7 @@ use crate::{
 
 impl Channel {
     pub async fn get(user: &mut UserMeta, channel_id: &str) -> Result<Channel, ChorusLibError> {
-        let url = user.belongs_to.borrow_mut().urls.get_api().to_string();
+        let url = user.belongs_to.borrow_mut().urls.api.clone();
         let request = Client::new()
             .get(format!("{}/channels/{}/", url, channel_id))
             .bearer_auth(user.token());
@@ -47,7 +47,7 @@ impl Channel {
         let request = Client::new()
             .delete(format!(
                 "{}/channels/{}/",
-                user.belongs_to.borrow_mut().urls.get_api(),
+                user.belongs_to.borrow_mut().urls.api,
                 self.id
             ))
             .bearer_auth(user.token());
@@ -78,7 +78,7 @@ impl Channel {
         let request = Client::new()
             .patch(format!(
                 "{}/channels/{}/",
-                user.belongs_to.borrow().urls.get_api(),
+                user.belongs_to.borrow().urls.api,
                 channel_id
             ))
             .bearer_auth(user.token())

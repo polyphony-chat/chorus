@@ -29,7 +29,7 @@ impl types::RoleObject {
     ) -> Result<Option<Vec<RoleObject>>, ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/roles/",
-            user.belongs_to.borrow().urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id
         );
         let request = Client::new().get(url).bearer_auth(user.token());
@@ -68,7 +68,7 @@ impl types::RoleObject {
     ) -> Result<RoleObject, ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/roles/{}/",
-            user.belongs_to.borrow().urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id,
             role_id
         );
@@ -98,7 +98,7 @@ impl types::RoleObject {
     ) -> Result<RoleObject, ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/roles/",
-            user.belongs_to.borrow().urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id
         );
         let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
@@ -132,7 +132,7 @@ impl types::RoleObject {
     ) -> Result<RoleObject, ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/roles/",
-            user.belongs_to.borrow().urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id
         );
         let body = to_string(&role_position_update_schema).map_err(|e| {
@@ -172,7 +172,7 @@ impl types::RoleObject {
     ) -> Result<RoleObject, ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/roles/{}",
-            user.belongs_to.borrow().urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id,
             role_id
         );

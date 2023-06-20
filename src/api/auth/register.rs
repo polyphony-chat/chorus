@@ -25,7 +25,7 @@ impl Instance {
     ) -> Result<UserMeta, ChorusLibError> {
         let json_schema = json!(register_schema);
         let client = Client::new();
-        let endpoint_url = self.urls.get_api().to_string() + "/auth/register";
+        let endpoint_url = self.urls.api.clone() + "/auth/register";
         let request_builder = client.post(endpoint_url).body(json_schema.to_string());
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since register is an instance wide limit), which is why we are just cloning
@@ -59,10 +59,9 @@ impl Instance {
             return Err(ChorusLibError::InvalidFormBodyError { error_type, error });
         }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
-        let settings =
-            UserMeta::get_settings(&token, &self.urls.get_api().to_string(), &mut self.limits)
-                .await
-                .unwrap();
+        let settings = UserMeta::get_settings(&token, &self.urls.api, &mut self.limits)
+            .await
+            .unwrap();
         let user = UserMeta::new(
             Rc::new(RefCell::new(self.clone())),
             token.clone(),

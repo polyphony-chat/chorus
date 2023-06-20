@@ -311,7 +311,7 @@ pub mod limits {
         /// TODO: Change this to return a Result and handle the errors properly.
         pub async fn check_limits(api_url: String) -> Limits {
             let client = Client::new();
-            let url_parsed = crate::URLBundle::parse_url(api_url) + "/policies/instance/limits";
+            let url_parsed = crate::UrlBundle::parse_url(api_url) + "/policies/instance/limits";
             let result = client
                 .get(url_parsed)
                 .send()
