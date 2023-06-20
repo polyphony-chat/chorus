@@ -2,7 +2,6 @@ use crate::errors::GatewayError;
 use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 use crate::types;
-use crate::types::WebSocketEvent;
 use std::sync::Arc;
 
 use futures_util::stream::SplitSink;
@@ -385,7 +384,7 @@ impl Gateway {
 
     /// Deserializes and updates a dispatched event, when we already know its type;
     /// (Called for every event in handle_message)
-    async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
+    async fn handle_event<'a, T: serde::Deserialize<'a>>(
         data: &'a str,
         event: &mut GatewayEvent<T>,
     ) -> Result<(), serde_json::Error> {
@@ -1686,7 +1685,7 @@ Trait which defines the behavior of an Observer. An Observer is an object which 
 an Observable. The Observer is notified when the Observable's data changes.
 In this case, the Observable is a [`GatewayEvent`], which is a wrapper around a WebSocketEvent.
  */
-pub trait Observer<T: types::WebSocketEvent>: std::fmt::Debug {
+pub trait Observer<T>: std::fmt::Debug {
     fn update(&mut self, data: &T);
 }
 
@@ -1694,13 +1693,13 @@ pub trait Observer<T: types::WebSocketEvent>: std::fmt::Debug {
 change in the WebSocketEvent. GatewayEvents are observable.
  */
 #[derive(Default, Debug)]
-pub struct GatewayEvent<T: types::WebSocketEvent> {
+pub struct GatewayEvent<T> {
     observers: Vec<Arc<Mutex<dyn Observer<T> + Sync + Send>>>,
     pub event_data: T,
     pub is_observed: bool,
 }
 
-impl<T: types::WebSocketEvent> GatewayEvent<T> {
+impl<T> GatewayEvent<T> {
     fn new(event_data: T) -> Self {
         Self {
             is_observed: false,

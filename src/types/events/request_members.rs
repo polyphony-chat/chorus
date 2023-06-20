@@ -1,4 +1,3 @@
-use crate::types::events::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -11,5 +10,3 @@ pub struct GatewayRequestGuildMembers {
     pub user_ids: Option<String>,
     pub nonce: Option<String>,
 }
-
-impl WebSocketEvent for GatewayRequestGuildMembers {}

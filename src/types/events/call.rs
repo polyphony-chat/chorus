@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{VoiceState, WebSocketEvent};
+use crate::types::VoiceState;
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented;
@@ -19,8 +19,6 @@ pub struct CallCreate {
     pub channel_id: String,
 }
 
-impl WebSocketEvent for CallCreate {}
-
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented;
 /// Updates the client on which calls are ringing, along with a specific call?;
@@ -36,8 +34,6 @@ pub struct CallUpdate {
     pub channel_id: String,
 }
 
-impl WebSocketEvent for CallUpdate {}
-
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented;
 /// Deletes a ringing call;
@@ -45,8 +41,6 @@ impl WebSocketEvent for CallUpdate {}
 pub struct CallDelete {
     pub channel_id: String,
 }
-
-impl WebSocketEvent for CallDelete {}
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented;
@@ -56,5 +50,3 @@ impl WebSocketEvent for CallDelete {}
 pub struct CallSync {
     pub channel_id: String,
 }
-
-impl WebSocketEvent for CallSync {}

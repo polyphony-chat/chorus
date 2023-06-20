@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Channel, ThreadMember};
-use crate::types::events::WebSocketEvent;
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-create
@@ -10,8 +9,6 @@ pub struct ThreadCreate {
     pub thread: Channel,
 }
 
-impl WebSocketEvent for ThreadCreate {}
-
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-update
 pub struct ThreadUpdate {
@@ -19,16 +16,12 @@ pub struct ThreadUpdate {
     pub thread: Channel,
 }
 
-impl WebSocketEvent for ThreadUpdate {}
-
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-delete
 pub struct ThreadDelete {
     #[serde(flatten)]
     pub thread: Channel,
 }
-
-impl WebSocketEvent for ThreadDelete {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-list-sync
@@ -39,8 +32,6 @@ pub struct ThreadListSync {
     pub members: Option<Vec<ThreadMember>>,
 }
 
-impl WebSocketEvent for ThreadListSync {}
-
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-member-update
 /// The inner payload is a thread member object with an extra field.
@@ -49,8 +40,6 @@ pub struct ThreadMemberUpdate {
     pub member: ThreadMember,
     pub guild_id: String,
 }
-
-impl WebSocketEvent for ThreadMemberUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#thread-members-update
@@ -62,5 +51,3 @@ pub struct ThreadMembersUpdate {
     pub added_members: Option<Vec<ThreadMember>>,
     pub removed_members: Option<Vec<String>>,
 }
-
-impl WebSocketEvent for ThreadMembersUpdate {}

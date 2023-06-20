@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{ChannelUnreadUpdateObject, WebSocketEvent};
+use super::ChannelUnreadUpdateObject;
 use crate::types::{GuildMember, VoiceState};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -13,5 +13,3 @@ pub struct PassiveUpdateV1 {
     pub guild_id: String,
     pub channels: Vec<ChannelUnreadUpdateObject>,
 }
-
-impl WebSocketEvent for PassiveUpdateV1 {}

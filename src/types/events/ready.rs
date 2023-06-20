@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Guild, User};
-use crate::types::events::{Session, WebSocketEvent};
+use crate::types::events::Session;
 use crate::types::interfaces::ClientStatusObject;
 use crate::types::{Activity, GuildMember, PresenceUpdate, VoiceState};
 
@@ -26,8 +26,6 @@ pub struct GatewayReady {
     pub shard: Option<(u64, u64)>,
 }
 
-impl WebSocketEvent for GatewayReady {}
-
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented;
 /// Sent after the READY event when a client is a user, seems to somehow add onto the ready event;
@@ -40,8 +38,6 @@ pub struct GatewayReadySupplemental {
     // ? pomelo
     pub disclose: Vec<String>,
 }
-
-impl WebSocketEvent for GatewayReadySupplemental {}
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct MergedPresences {

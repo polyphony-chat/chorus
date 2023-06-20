@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{Activity, WebSocketEvent};
+use crate::types::Activity;
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented
@@ -28,5 +28,3 @@ pub struct ClientInfo {
     pub os: String,
     pub version: u8,
 }
-
-impl WebSocketEvent for SessionsReplace {}
