@@ -4,12 +4,12 @@ use chorus::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
         RegisterSchemaOptions, RoleCreateModifySchema, RoleObject,
     },
-    URLBundle,
+    UrlBundle,
 };
 
 #[derive(Debug)]
 pub struct TestBundle {
-    pub urls: URLBundle,
+    pub urls: UrlBundle,
     pub user: UserMeta,
     pub instance: Instance,
     pub guild: Guild,
@@ -19,7 +19,7 @@ pub struct TestBundle {
 
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 pub async fn setup() -> TestBundle {
-    let urls = URLBundle::new(
+    let urls = UrlBundle::new(
         "http://localhost:3001/api".to_string(),
         "ws://localhost:3001".to_string(),
         "http://localhost:3001".to_string(),

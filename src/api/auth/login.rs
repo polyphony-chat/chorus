@@ -17,7 +17,7 @@ impl Instance {
     ) -> Result<UserMeta, ChorusLibError> {
         let json_schema = json!(login_schema);
         let client = Client::new();
-        let endpoint_url = self.urls.get_api().to_string() + "/auth/login";
+        let endpoint_url = self.urls.api.clone() + "/auth/login";
         let request_builder = client.post(endpoint_url).body(json_schema.to_string());
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since login is an instance wide limit), which is why we are just cloning the

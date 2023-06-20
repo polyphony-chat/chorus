@@ -26,7 +26,7 @@ impl types::GuildMember {
     ) -> Result<types::GuildMember, ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/members/{}/",
-            user.belongs_to.borrow().urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id,
             member_id
         );
@@ -59,7 +59,7 @@ impl types::GuildMember {
     ) -> Option<ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
-            user.belongs_to.borrow().urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id,
             member_id,
             role_id
@@ -88,7 +88,7 @@ impl types::GuildMember {
     ) -> Option<crate::errors::ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
-            user.belongs_to.borrow().urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id,
             member_id,
             role_id

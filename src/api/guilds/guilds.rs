@@ -32,7 +32,7 @@ impl Guild {
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
     ) -> Result<Guild, ChorusLibError> {
-        let url = format!("{}/guilds/", user.belongs_to.borrow().urls.get_api());
+        let url = format!("{}/guilds/", user.belongs_to.borrow().urls.api);
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone())
@@ -67,7 +67,7 @@ impl Guild {
     pub async fn delete(user: &mut UserMeta, guild_id: &str) -> Option<ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/delete/",
-            user.belongs_to.borrow().urls.get_api(),
+            user.belongs_to.borrow().urls.api,
             guild_id
         );
         let request = reqwest::Client::new()
@@ -97,7 +97,7 @@ impl Guild {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Channel::_create(
             &user.token,
-            &format!("{}", belongs_to.urls.get_api()),
+            &format!("{}", belongs_to.urls.api),
             &self.id.to_string(),
             schema,
             &mut user.limits,
@@ -119,7 +119,7 @@ impl Guild {
         let request = Client::new()
             .get(format!(
                 "{}/guilds/{}/channels/",
-                user.belongs_to.borrow().urls.get_api(),
+                user.belongs_to.borrow().urls.api,
                 self.id
             ))
             .bearer_auth(user.token());
@@ -157,7 +157,7 @@ impl Guild {
     pub async fn get(user: &mut UserMeta, guild_id: &str) -> Result<Guild, ChorusLibError> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Guild::_get(
-            &format!("{}", belongs_to.urls.get_api()),
+            &format!("{}", belongs_to.urls.api),
             guild_id,
             &user.token,
             &mut user.limits,
@@ -217,7 +217,7 @@ impl Channel {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Channel::_create(
             &user.token,
-            &format!("{}", belongs_to.urls.get_api()),
+            &format!("{}", belongs_to.urls.api),
             guild_id,
             schema,
             &mut user.limits,
