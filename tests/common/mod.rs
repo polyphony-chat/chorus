@@ -2,14 +2,14 @@ use chorus::{
     instance::{Instance, UserMeta},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
-        RoleCreateModifySchema, RoleObject,
+        RegisterSchemaOptions, RoleCreateModifySchema, RoleObject,
     },
-    URLBundle,
+    UrlBundle,
 };
 
 #[derive(Debug)]
 pub struct TestBundle {
-    pub urls: URLBundle,
+    pub urls: UrlBundle,
     pub user: UserMeta,
     pub instance: Instance,
     pub guild: Guild,
@@ -19,25 +19,18 @@ pub struct TestBundle {
 
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 pub async fn setup() -> TestBundle {
-    let urls = URLBundle::new(
+    let urls = UrlBundle::new(
         "http://localhost:3001/api".to_string(),
         "ws://localhost:3001".to_string(),
         "http://localhost:3001".to_string(),
     );
     let mut instance = Instance::new(urls.clone()).await.unwrap();
     // Requires the existance of the below user.
-    let reg = RegisterSchema::new(
-        "integrationtestuser".to_string(),
-        None,
-        true,
-        None,
-        None,
-        None,
-        Some("2000-01-01".to_string()),
-        None,
-        None,
-        None,
-    )
+    let reg = RegisterSchemaOptions {
+        date_of_birth: Some("2000-01-01".to_string()),
+        ..RegisterSchema::builder("integrationtestuser", true)
+    }
+    .build()
     .unwrap();
     let guild_create_schema = GuildCreateSchema {
         name: Some("Test-Guild!".to_string()),
@@ -100,6 +93,7 @@ pub async fn setup() -> TestBundle {
 }
 
 // Teardown method to clean up after a test.
+#[allow(dead_code)]
 pub async fn teardown(mut bundle: TestBundle) {
     Guild::delete(&mut bundle.user, &bundle.guild.id.to_string()).await;
     bundle.user.delete().await;

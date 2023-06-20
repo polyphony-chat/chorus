@@ -108,6 +108,7 @@ impl PermissionFlags {
         self.contains(permission) || self.contains(PermissionFlags::ADMINISTRATOR)
     }
 
+    #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.bits().to_string()
     }
@@ -129,7 +130,7 @@ impl PermissionFlags {
     pub fn from_vec(flags: Vec<PermissionFlags>) -> String {
         let mut permissions: PermissionFlags = Default::default();
         for flag in flags.iter() {
-            permissions = permissions | flag.clone();
+            permissions |= flag.clone();
         }
         permissions.to_string()
     }
