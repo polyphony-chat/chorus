@@ -1,4 +1,4 @@
-use crate::types::{events::WebSocketEvent, VoiceState};
+use crate::types::VoiceState;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -13,8 +13,6 @@ pub struct UpdateVoiceState {
     pub self_deaf: bool,
 }
 
-impl WebSocketEvent for UpdateVoiceState {}
-
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#voice-state-update;
 ///
@@ -26,8 +24,6 @@ pub struct VoiceStateUpdate {
     pub state: VoiceState,
 }
 
-impl WebSocketEvent for VoiceStateUpdate {}
-
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#voice-server-update;
 ///
@@ -37,5 +33,3 @@ pub struct VoiceServerUpdate {
     pub guild_id: String,
     pub endpoint: Option<String>,
 }
-
-impl WebSocketEvent for VoiceServerUpdate {}

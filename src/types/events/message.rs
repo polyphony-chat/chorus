@@ -2,8 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Emoji, GuildMember, Message, PublicUser};
 
-use super::WebSocketEvent;
-
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct TypingStartEvent {
     pub channel_id: String,
@@ -12,8 +10,6 @@ pub struct TypingStartEvent {
     pub timestamp: i64,
     pub member: Option<GuildMember>,
 }
-
-impl WebSocketEvent for TypingStartEvent {}
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#message-create
@@ -33,8 +29,6 @@ pub struct MessageCreateUser {
     member: Option<GuildMember>,
 }
 
-impl WebSocketEvent for MessageCreate {}
-
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageUpdate {
     #[serde(flatten)]
@@ -44,8 +38,6 @@ pub struct MessageUpdate {
     mentions: Option<Vec<MessageCreateUser>>,
 }
 
-impl WebSocketEvent for MessageUpdate {}
-
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageDelete {
     id: String,
@@ -53,16 +45,12 @@ pub struct MessageDelete {
     guild_id: Option<String>,
 }
 
-impl WebSocketEvent for MessageDelete {}
-
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageDeleteBulk {
     ids: Vec<String>,
     channel_id: String,
     guild_id: Option<String>,
 }
-
-impl WebSocketEvent for MessageDeleteBulk {}
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionAdd {
@@ -74,8 +62,6 @@ pub struct MessageReactionAdd {
     emoji: Emoji,
 }
 
-impl WebSocketEvent for MessageReactionAdd {}
-
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionRemove {
     user_id: String,
@@ -85,16 +71,12 @@ pub struct MessageReactionRemove {
     emoji: Emoji,
 }
 
-impl WebSocketEvent for MessageReactionRemove {}
-
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionRemoveAll {
     channel_id: String,
     message_id: String,
     guild_id: Option<String>,
 }
-
-impl WebSocketEvent for MessageReactionRemoveAll {}
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionRemoveEmoji {
@@ -103,8 +85,6 @@ pub struct MessageReactionRemoveEmoji {
     guild_id: Option<String>,
     emoji: Emoji,
 }
-
-impl WebSocketEvent for MessageReactionRemoveEmoji {}
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented
@@ -126,5 +106,3 @@ pub struct MessageACK {
     pub flags: Option<serde_json::Value>,
     pub channel_id: String,
 }
-
-impl WebSocketEvent for MessageACK {}

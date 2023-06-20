@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{Integration, WebSocketEvent};
+use crate::types::Integration;
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#integration-create
@@ -10,8 +10,6 @@ pub struct IntegrationCreate {
     pub guild_id: String,
 }
 
-impl WebSocketEvent for IntegrationCreate {}
-
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#integration-update
 pub struct IntegrationUpdate {
@@ -20,8 +18,6 @@ pub struct IntegrationUpdate {
     pub guild_id: String,
 }
 
-impl WebSocketEvent for IntegrationUpdate {}
-
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#integration-delete
 pub struct IntegrationDelete {
@@ -29,5 +25,3 @@ pub struct IntegrationDelete {
     pub guild_id: String,
     pub application_id: Option<String>,
 }
-
-impl WebSocketEvent for IntegrationDelete {}

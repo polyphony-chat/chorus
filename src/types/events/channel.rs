@@ -1,5 +1,4 @@
 use crate::types::entities::Channel;
-use crate::types::events::WebSocketEvent;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -11,8 +10,6 @@ pub struct ChannelPinsUpdate {
     pub last_pin_timestamp: Option<DateTime<Utc>>,
 }
 
-impl WebSocketEvent for ChannelPinsUpdate {}
-
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-create
 pub struct ChannelCreate {
@@ -20,16 +17,12 @@ pub struct ChannelCreate {
     pub channel: Channel,
 }
 
-impl WebSocketEvent for ChannelCreate {}
-
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-update
 pub struct ChannelUpdate {
     #[serde(flatten)]
     pub channel: Channel,
 }
-
-impl WebSocketEvent for ChannelUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Officially undocumented.
@@ -49,13 +42,9 @@ pub struct ChannelUnreadUpdateObject {
     pub last_pin_timestamp: Option<String>,
 }
 
-impl WebSocketEvent for ChannelUnreadUpdate {}
-
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-delete
 pub struct ChannelDelete {
     #[serde(flatten)]
     pub channel: Channel,
 }
-
-impl WebSocketEvent for ChannelDelete {}

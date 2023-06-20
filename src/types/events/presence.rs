@@ -1,4 +1,4 @@
-use crate::types::{events::WebSocketEvent, UserStatus};
+use crate::types::UserStatus;
 use crate::types::{Activity, ClientStatusObject, PublicUser, Snowflake};
 use serde::{Deserialize, Serialize};
 
@@ -25,5 +25,3 @@ pub struct PresenceUpdate {
     pub activities: Vec<Activity>,
     pub client_status: ClientStatusObject,
 }
-
-impl WebSocketEvent for PresenceUpdate {}

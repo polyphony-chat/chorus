@@ -52,8 +52,6 @@ mod user;
 mod voice;
 mod webhooks;
 
-pub trait WebSocketEvent {}
-
 #[derive(Debug, Default, Serialize, Clone)]
 /// The payload used for sending events to the gateway
 ///
@@ -71,8 +69,6 @@ pub struct GatewaySendPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sequence_number: Option<u64>,
 }
-
-impl WebSocketEvent for GatewaySendPayload {}
 
 #[derive(Debug, Default, Deserialize, Clone)]
 /// The payload used for receiving events from the gateway
@@ -93,5 +89,3 @@ pub struct GatewayReceivePayload<'a> {
     #[serde(rename = "t")]
     pub event_name: Option<String>,
 }
-
-impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}

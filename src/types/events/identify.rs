@@ -1,4 +1,4 @@
-use crate::types::events::{PresenceUpdate, WebSocketEvent};
+use crate::types::events::PresenceUpdate;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
@@ -65,8 +65,6 @@ impl GatewayIdentifyPayload {
         }
     }
 }
-
-impl WebSocketEvent for GatewayIdentifyPayload {}
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde_as]

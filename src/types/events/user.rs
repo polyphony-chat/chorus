@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::PublicUser;
-use crate::types::events::WebSocketEvent;
 use crate::types::utils::Snowflake;
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
@@ -11,8 +10,6 @@ pub struct UserUpdate {
     #[serde(flatten)]
     pub user: PublicUser,
 }
-
-impl WebSocketEvent for UserUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Undocumented;
@@ -36,8 +33,6 @@ pub struct UserGuildSettingsUpdate {
     pub flags: i32,
     pub channel_overrides: Vec<UserGuildSettingsChannelOverride>,
 }
-
-impl WebSocketEvent for UserGuildSettingsUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Undocumented;
