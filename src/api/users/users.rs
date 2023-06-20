@@ -10,16 +10,18 @@ use crate::{
 };
 
 impl UserMeta {
-    /**
-    Get a user object by id, or get the current user.
-    # Arguments
-    * `token` - A valid access token for the API.
-    * `url_api` - The URL to the API.
-    * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
-    * `instance_limits` - The [`Limits`] of the instance.
-    # Errors
-    * [`ChorusLibError`] - If the request fails.
-     */
+    /// Get a user object by id, or get the current user.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A valid access token for the API.
+    /// * `url_api` - The URL to the API.
+    /// * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
+    /// * `instance_limits` - The [`Limits`] of the instance.
+    ///
+    /// # Errors
+    ///
+    /// * [`ChorusLibError`] - If the request fails.
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> Result<User, ChorusLibError> {
         User::get(user, id).await
     }
