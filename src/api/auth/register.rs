@@ -36,7 +36,7 @@ impl Instance {
         let response = LimitedRequester::send_request(
             request_builder,
             LimitType::AuthRegister,
-            &mut self.limits,
+            self,
             &mut cloned_limits,
         )
         .await;
@@ -61,7 +61,7 @@ impl Instance {
             return Err(ChorusLibError::InvalidFormBodyError { error_type, error });
         }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
-        let settings = UserMeta::get_settings(&token, &self.urls.api, &mut self.limits)
+        let settings = UserMeta::get_settings(&token, &self.urls.api.clone(), self)
             .await
             .unwrap();
         let user = UserMeta::new(
