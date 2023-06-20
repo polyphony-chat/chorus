@@ -89,15 +89,15 @@ fn generate_pairs(obj: &Value, key: &str) -> Vec<ConfigEntity> {
 fn pairs_to_config(pairs: Vec<ConfigEntity>) -> ConfigValue {
     let mut value = Value::Object(Map::new());
 
-    for p in pairs {
-        let keys: Vec<&str> = p.key.split('_').collect();
+    for pair in pairs {
+        let keys: Vec<&str> = pair.key.split('_').collect();
         let mut path = vec![];
 
         for (i, &key) in keys.iter().enumerate() {
             path.push(key);
 
             if i == keys.len() - 1 {
-                insert_into(&mut value, &path, p.value.clone().unwrap_or(Value::Null));
+                insert_into(&mut value, &path, pair.value.clone().unwrap_or(Value::Null));
             } else if keys[i + 1].parse::<usize>().is_ok() {
                 if !path_exists(&value, &path) {
                     insert_into(&mut value, &path, Value::Array(Vec::new()));
@@ -182,6 +182,7 @@ mod test {
         let pairs = generate_pairs(&v, "");
 
         let cfg = pairs_to_config(pairs);
+
         assert_eq!(cfg, c)
     }
 }
