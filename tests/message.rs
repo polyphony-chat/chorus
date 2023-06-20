@@ -64,3 +64,20 @@ async fn send_message_attachment() {
         .unwrap();
     common::teardown(bundle).await
 }
+
+#[tokio::test]
+async fn read_messages() {
+    let mut bundle = common::setup().await;
+
+    // First create some messages to read
+    let mut message = types::MessageSendSchema {
+        content: Some("A Message!".to_string()),
+        ..Default::default()
+    };
+    let _ = bundle
+        .user
+        .send_message(&mut message, bundle.channel.id.to_string(), None)
+        .await
+        .unwrap();
+    common::teardown(bundle).await
+}
