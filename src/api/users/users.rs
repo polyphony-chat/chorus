@@ -2,7 +2,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::{deserialize_response, handle_request_as_option, limits::Limits},
+    api::{deserialize_response, handle_request_as_result, limits::Limits},
     errors::ChorusLibError,
     instance::{Instance, UserMeta},
     limit::LimitedRequester,
@@ -71,15 +71,15 @@ impl UserMeta {
     ///
     /// # Returns
     ///
-    /// Returns `None` if the user was successfully deleted, or an `ChorusLibError` if an error occurred.
-    pub async fn delete(mut self) -> Option<ChorusLibError> {
+    /// Returns `()` if the user was successfully deleted, or a `ChorusLibError` if an error occurred.
+    pub async fn delete(mut self) -> Result<(), ChorusLibError> {
         let request = Client::new()
             .post(format!(
                 "{}/users/@me/delete/",
                 self.belongs_to.borrow().urls.api
             ))
             .bearer_auth(self.token());
-        handle_request_as_option(request, &mut self, crate::api::limits::LimitType::Ip).await
+        handle_request_as_result(request, &mut self, crate::api::limits::LimitType::Ip).await
     }
 }
 

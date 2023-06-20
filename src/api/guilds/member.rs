@@ -1,7 +1,7 @@
 use reqwest::Client;
 
 use crate::{
-    api::{deserialize_response, handle_request_as_option},
+    api::{deserialize_response, handle_request_as_result},
     errors::ChorusLibError,
     instance::UserMeta,
     types,
@@ -50,13 +50,13 @@ impl types::GuildMember {
     ///
     /// # Returns
     ///
-    /// An `Option` containing a `ChorusLibError` if the request fails, or `None` if the request succeeds.
+    /// An `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
     pub async fn add_role(
         user: &mut UserMeta,
         guild_id: &str,
         member_id: &str,
         role_id: &str,
-    ) -> Option<ChorusLibError> {
+    ) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
             user.belongs_to.borrow().urls.api,
@@ -65,7 +65,7 @@ impl types::GuildMember {
             role_id
         );
         let request = Client::new().put(url).bearer_auth(user.token());
-        handle_request_as_option(request, user, crate::api::limits::LimitType::Guild).await
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await
     }
 
     /// Removes a role from a guild member.
@@ -79,13 +79,13 @@ impl types::GuildMember {
     ///
     /// # Returns
     ///
-    /// An `Option` containing a `ChorusLibError` if the request fails, or `None` if the request succeeds.
+    /// A `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
     pub async fn remove_role(
         user: &mut UserMeta,
         guild_id: &str,
         member_id: &str,
         role_id: &str,
-    ) -> Option<crate::errors::ChorusLibError> {
+    ) -> Result<(), crate::errors::ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
             user.belongs_to.borrow().urls.api,
@@ -94,6 +94,6 @@ impl types::GuildMember {
             role_id
         );
         let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_option(request, user, crate::api::limits::LimitType::Guild).await
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await
     }
 }

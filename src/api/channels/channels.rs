@@ -42,8 +42,8 @@ impl Channel {
     ///
     /// # Returns
     ///
-    /// An `Option` that contains an `ChorusLibError` if an error occurred during the request, or `None` if the request was successful.
-    pub async fn delete(self, user: &mut UserMeta) -> Option<ChorusLibError> {
+    /// A `Result` that contains a `ChorusLibError` if an error occurred during the request, or `()` if the request was successful.
+    pub async fn delete(self, user: &mut UserMeta) -> Result<(), ChorusLibError> {
         let request = Client::new()
             .delete(format!(
                 "{}/channels/{}/",
@@ -52,8 +52,9 @@ impl Channel {
             ))
             .bearer_auth(user.token());
         let response =
-            common::handle_request(request, user, crate::api::limits::LimitType::Channel).await;
-        response.err()
+            common::handle_request_as_result(request, user, crate::api::limits::LimitType::Channel)
+                .await;
+        response
     }
 
     /// Modifies a channel.
