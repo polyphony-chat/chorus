@@ -26,7 +26,7 @@ impl Instance {
         let response = LimitedRequester::send_request(
             request_builder,
             LimitType::AuthRegister,
-            &mut self.limits,
+            self,
             &mut cloned_limits,
         )
         .await;
