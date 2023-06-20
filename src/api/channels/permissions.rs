@@ -2,7 +2,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::handle_request,
+    api::{handle_request, handle_request_as_result},
     errors::ChorusLibError,
     instance::UserMeta,
     types::{self, PermissionOverwrite},
@@ -19,12 +19,12 @@ impl types::Channel {
     ///
     /// # Returns
     ///
-    /// This function returns [`None`] if the request is successful, otherwise it returns a [`ChorusLibError`] instance.
+    /// This function returns a result that is either [`Ok(())`] if the request is successful, or an [`Err(ChorusLibError)`].
     pub async fn edit_permissions(
         user: &mut UserMeta,
         channel_id: &str,
         overwrite: PermissionOverwrite,
-    ) -> Option<ChorusLibError> {
+    ) -> Result<(), ChorusLibError> {
         let url = {
             format!(
                 "{}/channels/{}/permissions/{}",
@@ -36,18 +36,13 @@ impl types::Channel {
         let body = match to_string(&overwrite) {
             Ok(string) => string,
             Err(e) => {
-                return Some(ChorusLibError::FormCreationError {
+                return Err(ChorusLibError::FormCreationError {
                     error: e.to_string(),
                 });
             }
         };
         let request = Client::new().put(url).bearer_auth(user.token()).body(body);
-        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
-            Ok(_) => None,
-            Err(e) => Some(ChorusLibError::InvalidResponseError {
-                error: e.to_string(),
-            }),
-        }
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
     }
 
     /// Deletes a permission overwrite for a channel.
@@ -60,12 +55,12 @@ impl types::Channel {
     ///
     /// # Returns
     ///
-    /// This function returns [`None`] if the request is successful, otherwise it returns a [`ChorusLibError`] instance.
+    /// This function returns a Result that is either [`Ok(())`] if the request is successfulm or an [`Err(ChorusLibError)`].
     pub async fn delete_permission(
         user: &mut UserMeta,
         channel_id: &str,
         overwrite_id: &str,
-    ) -> Option<ChorusLibError> {
+    ) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/channels/{}/permissions/{}",
             user.belongs_to.borrow_mut().urls.api,
@@ -73,11 +68,6 @@ impl types::Channel {
             overwrite_id
         );
         let request = Client::new().delete(url).bearer_auth(user.token());
-        match handle_request(request, user, crate::api::limits::LimitType::Channel).await {
-            Ok(_) => None,
-            Err(e) => Some(ChorusLibError::InvalidResponseError {
-                error: e.to_string(),
-            }),
-        }
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
     }
 }

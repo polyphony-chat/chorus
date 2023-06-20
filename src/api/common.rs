@@ -21,16 +21,16 @@ pub async fn handle_request(
     .await
 }
 
-/// Sends a request to wherever it needs to go. Returns [`None`] on success and
-/// [`Some(ChorusLibError)`] on failure.
-pub async fn handle_request_as_option(
+/// Sends a request to wherever it needs to go. Returns [`Ok(())`] on success and
+/// [`Err(ChorusLibError)`] on failure.
+pub async fn handle_request_as_result(
     request: RequestBuilder,
     user: &mut UserMeta,
     limit_type: LimitType,
-) -> Option<ChorusLibError> {
+) -> Result<(), ChorusLibError> {
     match handle_request(request, user, limit_type).await {
-        Ok(_) => None,
-        Err(e) => Some(ChorusLibError::InvalidResponseError {
+        Ok(_) => Ok(()),
+        Err(e) => Err(ChorusLibError::InvalidResponseError {
             error: e.to_string(),
         }),
     }

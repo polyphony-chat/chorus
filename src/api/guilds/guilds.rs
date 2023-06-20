@@ -4,7 +4,7 @@ use serde_json::to_string;
 
 use crate::api::deserialize_response;
 use crate::api::handle_request;
-use crate::api::handle_request_as_option;
+use crate::api::handle_request_as_result;
 use crate::api::limits::Limits;
 use crate::errors::ChorusLibError;
 use crate::instance::UserMeta;
@@ -50,7 +50,7 @@ impl Guild {
     ///
     /// # Returns
     ///
-    /// An `Option` containing an `ChorusLibError` if an error occurred during the request, otherwise `None`.
+    /// An `Result` containing an `ChorusLibError` if an error occurred during the request, otherwise `()`.
     ///
     /// # Example
     ///
@@ -64,7 +64,7 @@ impl Guild {
     ///     None => println!("Guild deleted successfully"),
     /// }
     /// ```
-    pub async fn delete(user: &mut UserMeta, guild_id: &str) -> Option<ChorusLibError> {
+    pub async fn delete(user: &mut UserMeta, guild_id: &str) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/delete/",
             user.belongs_to.borrow().urls.api,
@@ -73,7 +73,7 @@ impl Guild {
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone());
-        handle_request_as_option(request, user, crate::api::limits::LimitType::Guild).await
+        handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await
     }
 
     /// Sends a request to create a new channel in the guild.

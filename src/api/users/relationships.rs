@@ -2,7 +2,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::{deserialize_response, handle_request_as_option},
+    api::{deserialize_response, handle_request_as_result},
     errors::ChorusLibError,
     instance::UserMeta,
     types::{self, CreateUserRelationshipSchema, RelationshipType},
@@ -60,18 +60,18 @@ impl UserMeta {
     /// * `schema` - A [`FriendRequestSendSchema`] struct that holds the information about the friend request to be sent.
     ///
     /// # Returns
-    /// This function returns an [`Option`] that holds a [`ChorusLibError`] if the request fails.
+    /// This function returns a [`Result`] that holds a [`ChorusLibError`] if the request fails.
     pub async fn send_friend_request(
         &mut self,
         schema: types::FriendRequestSendSchema,
-    ) -> Option<ChorusLibError> {
+    ) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/users/@me/relationships/",
             self.belongs_to.borrow().urls.api
         );
         let body = to_string(&schema).unwrap();
         let request = Client::new().post(url).bearer_auth(self.token()).body(body);
-        handle_request_as_option(request, self, crate::api::limits::LimitType::Global).await
+        handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
     }
 
     /// Modifies the relationship between the authenticated user and the specified user.
@@ -87,19 +87,19 @@ impl UserMeta {
     ///     * [`RelationshipType::Blocked`]: Blocks the specified user_id.
     ///
     /// # Returns
-    /// This function returns an [`Option`] that holds a [`ChorusLibError`] if the request fails.
+    /// This function returns an [`Result`] that holds a [`ChorusLibError`] if the request fails.
     pub async fn modify_user_relationship(
         &mut self,
         user_id: &str,
         relationship_type: RelationshipType,
-    ) -> Option<ChorusLibError> {
+    ) -> Result<(), ChorusLibError> {
         let api_url = self.belongs_to.borrow().urls.api.clone();
         match relationship_type {
             RelationshipType::None => {
                 let request = Client::new()
                     .delete(format!("{}/users/@me/relationships/{}/", api_url, user_id))
                     .bearer_auth(self.token());
-                handle_request_as_option(request, self, crate::api::limits::LimitType::Global).await
+                handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
             }
             RelationshipType::Friends | RelationshipType::Incoming | RelationshipType::Outgoing => {
                 let body = CreateUserRelationshipSchema {
@@ -111,7 +111,7 @@ impl UserMeta {
                     .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
                     .bearer_auth(self.token())
                     .body(to_string(&body).unwrap());
-                handle_request_as_option(request, self, crate::api::limits::LimitType::Global).await
+                handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
             }
             RelationshipType::Blocked => {
                 let body = CreateUserRelationshipSchema {
@@ -123,9 +123,9 @@ impl UserMeta {
                     .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
                     .bearer_auth(self.token())
                     .body(to_string(&body).unwrap());
-                handle_request_as_option(request, self, crate::api::limits::LimitType::Global).await
+                handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
             }
-            RelationshipType::Suggestion | RelationshipType::Implicit => None,
+            RelationshipType::Suggestion | RelationshipType::Implicit => Ok(()),
         }
     }
 
@@ -136,14 +136,14 @@ impl UserMeta {
     /// * `user_id` - A string slice that holds the ID of the user to remove the relationship with.
     ///
     /// # Returns
-    /// This function returns an [`Option`] that holds a [`ChorusLibError`] if the request fails.
-    pub async fn remove_relationship(&mut self, user_id: &str) -> Option<ChorusLibError> {
+    /// This function returns a [`Result`] that holds a [`ChorusLibError`] if the request fails.
+    pub async fn remove_relationship(&mut self, user_id: &str) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/users/@me/relationships/{}/",
             self.belongs_to.borrow().urls.api,
             user_id
         );
         let request = Client::new().delete(url).bearer_auth(self.token());
-        handle_request_as_option(request, self, crate::api::limits::LimitType::Global).await
+        handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
     }
 }
