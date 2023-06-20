@@ -21,7 +21,7 @@ async fn get_channel() {
 async fn delete_channel() {
     let mut bundle = common::setup().await;
     let result = bundle.channel.clone().delete(&mut bundle.user).await;
-    assert!(result.is_none());
+    assert!(result.is_ok());
     common::teardown(bundle).await
 }
 
@@ -72,14 +72,16 @@ async fn modify_channel() {
         bundle.channel.id.to_string().as_str(),
         permission_override.clone(),
     )
-    .await;
+    .await
+    .unwrap();
 
     Channel::delete_permission(
         &mut bundle.user,
         bundle.channel.id.to_string().as_str(),
         &permission_override.id,
     )
-    .await;
+    .await
+    .unwrap();
 
     common::teardown(bundle).await
 }
