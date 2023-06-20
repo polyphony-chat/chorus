@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::{ChannelUnreadUpdateObject, WebSocketEvent};
-use crate::types::{GuildMember, VoiceState};
+use crate::types::{GuildMember, Snowflake, VoiceState};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 /// Officially Undocumented
@@ -10,7 +10,7 @@ use crate::types::{GuildMember, VoiceState};
 pub struct PassiveUpdateV1 {
     pub voice_states: Vec<VoiceState>,
     pub members: Option<Vec<GuildMember>>,
-    pub guild_id: String,
+    pub guild_id: Snowflake,
     pub channels: Vec<ChannelUnreadUpdateObject>,
 }
 

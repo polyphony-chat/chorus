@@ -1,11 +1,6 @@
 use reqwest::Client;
 
-use crate::{
-    api::{handle_request, handle_request_as_result},
-    errors::ChorusLibError,
-    instance::UserMeta,
-    types,
-};
+use crate::{api::handle_request_as_result, errors::ChorusLibError, instance::UserMeta, types};
 
 /**
 Useful metadata for working with [`types::Reaction`], bundled together nicely.
