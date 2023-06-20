@@ -7,7 +7,7 @@ use crate::types::utils::Snowflake;
 pub struct AuditLogEntry {
     pub target_id: Option<String>,
     pub changes: Option<Vec<AuditLogChange>>,
-    pub user_id: Option<String>,
+    pub user_id: Option<Snowflake>,
     pub id: Snowflake,
     // to:do implement an enum for these types
     pub action_type: u8,

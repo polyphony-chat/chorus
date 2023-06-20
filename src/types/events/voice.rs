@@ -1,4 +1,4 @@
-use crate::types::{events::WebSocketEvent, VoiceState};
+use crate::types::{events::WebSocketEvent, Snowflake, VoiceState};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// Not to be confused with [VoiceStateUpdate];
 pub struct UpdateVoiceState {
-    pub guild_id: Option<String>,
-    pub channel_id: Option<String>,
+    pub guild_id: Option<Snowflake>,
+    pub channel_id: Option<Snowflake>,
     pub self_mute: bool,
     pub self_deaf: bool,
 }
@@ -34,7 +34,7 @@ impl WebSocketEvent for VoiceStateUpdate {}
 /// Received to indicate which voice endpoint, token and guild_id to use;
 pub struct VoiceServerUpdate {
     pub token: String,
-    pub guild_id: String,
+    pub guild_id: Snowflake,
     pub endpoint: Option<String>,
 }
 

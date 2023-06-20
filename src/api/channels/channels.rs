@@ -5,7 +5,7 @@ use crate::{
     api::common,
     errors::ChorusLibError,
     instance::UserMeta,
-    types::{Channel, ChannelModifySchema},
+    types::{Channel, ChannelModifySchema, Message, Snowflake},
 };
 
 impl Channel {
@@ -51,10 +51,8 @@ impl Channel {
                 self.id
             ))
             .bearer_auth(user.token());
-        let response =
-            common::handle_request_as_result(request, user, crate::api::limits::LimitType::Channel)
-                .await;
-        response
+        common::handle_request_as_result(request, user, crate::api::limits::LimitType::Channel)
+            .await
     }
 
     /// Modifies a channel.
@@ -73,7 +71,7 @@ impl Channel {
     /// A `Result` that contains a `Channel` object if the request was successful, or an `ChorusLibError` if an error occurred during the request.
     pub async fn modify(
         modify_data: ChannelModifySchema,
-        channel_id: &str,
+        channel_id: Snowflake,
         user: &mut UserMeta,
     ) -> Result<Channel, ChorusLibError> {
         let request = Client::new()
@@ -84,13 +82,11 @@ impl Channel {
             ))
             .bearer_auth(user.token())
             .body(to_string(&modify_data).unwrap());
-        let channel = common::deserialize_response::<Channel>(
+        common::deserialize_response::<Channel>(
             request,
             user,
             crate::api::limits::LimitType::Channel,
         )
         .await
-        .unwrap();
-        Ok(channel)
     }
 }

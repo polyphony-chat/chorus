@@ -5,16 +5,6 @@ use crate::{
     errors::ChorusLibError,
 };
 
-// Note: There seem to be some overlapping request limiters. We need to make sure that sending a
-// request checks for all the request limiters that apply, and blocks if any of the limiters are 0
-
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct TypedRequest {
-    request: RequestBuilder,
-    limit_type: LimitType,
-}
-
 #[derive(Debug)]
 pub struct LimitedRequester;
 
