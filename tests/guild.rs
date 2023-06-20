@@ -22,7 +22,7 @@ async fn guild_creation_deletion() {
 
     assert!(Guild::delete(&mut bundle.user, &guild.id.to_string())
         .await
-        .is_none());
+        .is_ok());
     common::teardown(bundle).await
 }
 
