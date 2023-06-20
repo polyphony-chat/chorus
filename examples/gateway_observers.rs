@@ -4,7 +4,7 @@ use chorus::{
     types::{GatewayIdentifyPayload, GatewayReady},
 };
 use std::{sync::Arc, time::Duration};
-use tokio::{self, sync::Mutex, time::sleep};
+use tokio::{self, time::sleep};
 
 // This example creates a simple gateway connection and a basic observer struct
 
@@ -17,7 +17,7 @@ pub struct ExampleObserver {}
 // One struct can be an observer of multiple websocketevents, if needed
 impl Observer<GatewayReady> for ExampleObserver {
     // After we subscribe to an event this function is called every time we receive it
-    fn update(&mut self, _data: &GatewayReady) {
+    fn update(&self, _data: &GatewayReady) {
         println!("Observed Ready!");
     }
 }
@@ -33,8 +33,8 @@ async fn main() {
     // Create an instance of our observer
     let observer = ExampleObserver {};
 
-    // Because observers have to reside in between the main and gateway thread, (they have to be shared between both) we need to put them in an Arc<Mutex>
-    let shared_observer = Arc::new(Mutex::new(observer));
+    // Share ownership of the observer with the gateway
+    let shared_observer = Arc::new(observer);
 
     // Subscribe our observer to the Ready event on this gateway
     // From now on observer.update(data) will be called every time we receive the Ready event
@@ -44,8 +44,7 @@ async fn main() {
         .await
         .session
         .ready
-        .subscribe(shared_observer)
-        .unwrap();
+        .subscribe(shared_observer);
 
     // Authenticate so we will receive any events
     let token = "SecretToken".to_string();
