@@ -69,7 +69,7 @@ const GATEWAY_CALL_SYNC: u8 = 13;
 const GATEWAY_LAZY_REQUEST: u8 = 14;
 
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
-const HEARTBEAT_ACK_TIMEOUT: u128 = 2000;
+pub const HEARTBEAT_ACK_TIMEOUT: u128 = 2000;
 
 /// Represents a messsage received from the gateway. This will be either a [GatewayReceivePayload], containing events, or a [GatewayError].
 /// This struct is used internally when handling messages.
@@ -1704,7 +1704,7 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 
     /// Notifies the observers of the GatewayEvent.
-    async fn notify(&self, new_event_data: T) {
+    pub async fn notify(&self, new_event_data: T) {
         for observer in &self.observers {
             observer.update(&new_event_data);
         }

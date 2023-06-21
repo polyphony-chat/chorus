@@ -40,7 +40,7 @@ custom_error! {
     /// Supposed to be sent as numbers, though they are sent as string most of the time?
     ///
     /// Also includes errors when initiating a connection and unexpected opcodes
-    #[derive(PartialEq, Eq)]
+    #[derive(Clone, PartialEq, Eq)]
     pub GatewayError
     // Errors we have received from the gateway
     UnknownError = "We're not sure what went wrong. Try reconnecting?",
@@ -64,4 +64,32 @@ custom_error! {
 
     // Other misc errors
     UnexpectedOpcodeReceivedError{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
+}
+
+custom_error! {
+    // Like GatewayError for webrtc errors
+    // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice;
+    // Also supposed to be sent by numbers, but discord is asdfghgfjkkjldf when it comes to their errors
+    #[derive(Clone, PartialEq, Eq)]
+    pub VoiceGatewayError
+    // Errors we receive
+    UnknownOpcodeError = "You sent an invalid opcode",
+    FailedToDecodePayloadError = "You sent an invalid payload in your identifying to the (Webrtc) Gateway",
+    NotAuthenticatedError = "You sent a payload before identifying with the (Webrtc) Gateway",
+    AuthenticationFailedError = "The token you sent in your identify payload is incorrect",
+    AlreadyAuthenticatedError = "You sent more than one identify payload",
+    SessionNoLongerValidError = "Your session is no longer valid",
+    SessionTimeoutError = "Your session has timed out",
+    ServerNotFoundError = "We can't find the server you're trying to connect to",
+    UnknownProtocolError = "We didn't recognize the protocol you sent",
+    DisconnectedError = "Channel was deleted, you were kicked, voice server changed, or the main gateway session was dropped. Should not reconnect.",
+    VoiceServerCrashedError = "The server crashed, try resuming",
+    UnknownEncryptionModeError = "Server failed to decrypt data",
+
+    // Errors when initiating a gateway connection
+    CannotConnectError{error: String} = "Cannot connect due to a tungstenite error: {error}",
+    NonHelloOnInitiateError{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
+
+    // Other misc errors
+    UnexpectedOpcodeReceivedError{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}"
 }
