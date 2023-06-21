@@ -5,7 +5,7 @@ use crate::{
     api::common,
     errors::ChorusLibError,
     instance::UserMeta,
-    types::{Channel, ChannelModifySchema, Message, Snowflake},
+    types::{Channel, ChannelModifySchema, GetChannelMessagesSchema, Message, Snowflake},
 };
 
 impl Channel {
@@ -88,5 +88,22 @@ impl Channel {
             crate::api::limits::LimitType::Channel,
         )
         .await
+    }
+
+    pub async fn messages(
+        range: GetChannelMessagesSchema,
+        channel_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> Result<Vec<Message>, ChorusLibError> {
+        let request = Client::new()
+            .get(format!(
+                "{}/channels/{}/messages",
+                user.belongs_to.borrow().urls.api,
+                channel_id
+            ))
+            .bearer_auth(user.token())
+            .query(&range);
+
+        common::deserialize_response::<Vec<Message>>(request, user, Default::default()).await
     }
 }
