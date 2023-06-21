@@ -2,8 +2,8 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::{deserialize_response, handle_request_as_result, limits::Limits},
-    errors::ChorusLibError,
+    api::{deserialize_response, handle_request_as_result},
+    errors::{ChorusLibError, ChorusResult},
     instance::{Instance, UserMeta},
     limit::LimitedRequester,
     types::{User, UserModifySchema, UserSettings},
@@ -22,7 +22,7 @@ impl UserMeta {
     /// # Errors
     ///
     /// * [`ChorusLibError`] - If the request fails.
-    pub async fn get(user: &mut UserMeta, id: Option<&String>) -> Result<User, ChorusLibError> {
+    pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         User::get(user, id).await
     }
 
@@ -30,7 +30,7 @@ impl UserMeta {
         token: &String,
         url_api: &String,
         instance: &mut Instance,
-    ) -> Result<UserSettings, ChorusLibError> {
+    ) -> ChorusResult<UserSettings> {
         User::get_settings(token, url_api, instance).await
     }
 
@@ -43,10 +43,7 @@ impl UserMeta {
     /// # Errors
     ///
     /// Returns an `ChorusLibError` if the request fails or if a password is required but not provided.
-    pub async fn modify(
-        &mut self,
-        modify_schema: UserModifySchema,
-    ) -> Result<User, ChorusLibError> {
+    pub async fn modify(&mut self, modify_schema: UserModifySchema) -> ChorusResult<User> {
         if modify_schema.new_password.is_some()
             || modify_schema.email.is_some()
             || modify_schema.code.is_some()
@@ -74,7 +71,7 @@ impl UserMeta {
     /// # Returns
     ///
     /// Returns `()` if the user was successfully deleted, or a `ChorusLibError` if an error occurred.
-    pub async fn delete(mut self) -> Result<(), ChorusLibError> {
+    pub async fn delete(mut self) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
                 "{}/users/@me/delete/",
@@ -86,7 +83,7 @@ impl UserMeta {
 }
 
 impl User {
-    pub async fn get(user: &mut UserMeta, id: Option<&String>) -> Result<User, ChorusLibError> {
+    pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         User::_get(
             &user.token(),
@@ -102,7 +99,7 @@ impl User {
         url_api: &str,
         instance: &mut Instance,
         id: Option<&String>,
-    ) -> Result<User, ChorusLibError> {
+    ) -> ChorusResult<User> {
         let url = if id.is_none() {
             format!("{}/users/@me/", url_api)
         } else {
@@ -130,7 +127,7 @@ impl User {
         token: &String,
         url_api: &String,
         instance: &mut Instance,
-    ) -> Result<UserSettings, ChorusLibError> {
+    ) -> ChorusResult<UserSettings> {
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings/", url_api))
             .bearer_auth(token);
@@ -160,11 +157,7 @@ impl Instance {
     # Notes
     This function is a wrapper around [`User::get`].
      */
-    pub async fn get_user(
-        &mut self,
-        token: String,
-        id: Option<&String>,
-    ) -> Result<User, ChorusLibError> {
+    pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
         User::_get(&token, &self.urls.api.clone(), self, id).await
     }
 }
