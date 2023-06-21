@@ -10,16 +10,18 @@ use crate::{
 };
 
 impl UserMeta {
-    /**
-    Get a user object by id, or get the current user.
-    # Arguments
-    * `token` - A valid access token for the API.
-    * `url_api` - The URL to the API.
-    * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
-    * `instance_limits` - The [`Limits`] of the instance.
-    # Errors
-    * [`ChorusLibError`] - If the request fails.
-     */
+    /// Get a user object by id, or get the current user.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A valid access token for the API.
+    /// * `url_api` - The URL to the API.
+    /// * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
+    /// * `instance_limits` - The [`Limits`] of the instance.
+    ///
+    /// # Errors
+    ///
+    /// * [`ChorusLibError`] - If the request fails.
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> Result<User, ChorusLibError> {
         User::get(user, id).await
     }
@@ -27,9 +29,9 @@ impl UserMeta {
     pub async fn get_settings(
         token: &String,
         url_api: &String,
-        instance_limits: &mut Limits,
+        instance: &mut Instance,
     ) -> Result<UserSettings, ChorusLibError> {
-        User::get_settings(token, url_api, instance_limits).await
+        User::get_settings(token, url_api, instance).await
     }
 
     /// Modify the current user's `UserObject`.
@@ -89,7 +91,7 @@ impl User {
         User::_get(
             &user.token(),
             &format!("{}", belongs_to.urls.api),
-            &mut belongs_to.limits,
+            &mut belongs_to,
             id,
         )
         .await
@@ -98,7 +100,7 @@ impl User {
     async fn _get(
         token: &str,
         url_api: &str,
-        limits_instance: &mut Limits,
+        instance: &mut Instance,
         id: Option<&String>,
     ) -> Result<User, ChorusLibError> {
         let url = if id.is_none() {
@@ -107,11 +109,11 @@ impl User {
             format!("{}/users/{}", url_api, id.unwrap())
         };
         let request = reqwest::Client::new().get(url).bearer_auth(token);
-        let mut cloned_limits = limits_instance.clone();
+        let mut cloned_limits = instance.limits.clone();
         match LimitedRequester::send_request(
             request,
             crate::api::limits::LimitType::Ip,
-            limits_instance,
+            instance,
             &mut cloned_limits,
         )
         .await
@@ -127,16 +129,16 @@ impl User {
     pub async fn get_settings(
         token: &String,
         url_api: &String,
-        instance_limits: &mut Limits,
+        instance: &mut Instance,
     ) -> Result<UserSettings, ChorusLibError> {
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings/", url_api))
             .bearer_auth(token);
-        let mut cloned_limits = instance_limits.clone();
+        let mut cloned_limits = instance.limits.clone();
         match LimitedRequester::send_request(
             request,
             crate::api::limits::LimitType::Ip,
-            instance_limits,
+            instance,
             &mut cloned_limits,
         )
         .await
@@ -163,6 +165,6 @@ impl Instance {
         token: String,
         id: Option<&String>,
     ) -> Result<User, ChorusLibError> {
-        User::_get(&token, &self.urls.api, &mut self.limits, id).await
+        User::_get(&token, &self.urls.api.clone(), self, id).await
     }
 }

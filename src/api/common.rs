@@ -15,7 +15,7 @@ pub async fn handle_request(
     LimitedRequester::send_request(
         request,
         limit_type,
-        &mut user.belongs_to.borrow_mut().limits,
+        &mut user.belongs_to.borrow_mut(),
         &mut user.limits,
     )
     .await
