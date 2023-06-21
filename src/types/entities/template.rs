@@ -19,7 +19,7 @@ pub struct GuildTemplate {
     pub creator: User,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-    pub source_guild_id: String,
+    pub source_guild_id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub source_guild: Vec<Guild>,
     // Unsure how a {recursive: Guild} looks like, might be a Vec?

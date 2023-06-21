@@ -5,7 +5,7 @@ use serde_json::to_string;
 
 use crate::api::deserialize_response;
 use crate::instance::UserMeta;
-use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment};
+use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment, Snowflake};
 
 impl Message {
     /**
@@ -21,7 +21,7 @@ impl Message {
      */
     pub async fn send(
         user: &mut UserMeta,
-        channel_id: String,
+        channel_id: Snowflake,
         message: &mut MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
     ) -> Result<Message, crate::errors::ChorusLibError> {
@@ -89,7 +89,7 @@ impl UserMeta {
     pub async fn send_message(
         &mut self,
         message: &mut MessageSendSchema,
-        channel_id: String,
+        channel_id: Snowflake,
         files: Option<Vec<PartialDiscordFileAttachment>>,
     ) -> Result<Message, crate::errors::ChorusLibError> {
         Message::send(self, channel_id, message, files).await

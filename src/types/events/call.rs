@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{VoiceState, WebSocketEvent};
+use crate::types::{Snowflake, VoiceState, WebSocketEvent};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented;
@@ -13,10 +13,10 @@ pub struct CallCreate {
     pub ringing: Vec<String>,
     pub region: String,
     // milan
-    pub message_id: String,
+    pub message_id: Snowflake,
     /// What is this?
     pub embedded_activities: Vec<serde_json::Value>,
-    pub channel_id: String,
+    pub channel_id: Snowflake,
 }
 
 impl WebSocketEvent for CallCreate {}
@@ -28,12 +28,12 @@ impl WebSocketEvent for CallCreate {}
 /// Ex: {"t":"CALL_UPDATE","s":5,"op":0,"d":{"ringing":["837606544539254834"],"region":"milan","message_id":"1107191540234846308","guild_id":null,"channel_id":"837609115475771392"}}
 pub struct CallUpdate {
     /// Seems like a vec of channel ids
-    pub ringing: Vec<String>,
+    pub ringing: Vec<Snowflake>,
     pub region: String,
     // milan
-    pub message_id: String,
-    pub guild_id: Option<String>,
-    pub channel_id: String,
+    pub message_id: Snowflake,
+    pub guild_id: Option<Snowflake>,
+    pub channel_id: Snowflake,
 }
 
 impl WebSocketEvent for CallUpdate {}
@@ -43,7 +43,7 @@ impl WebSocketEvent for CallUpdate {}
 /// Deletes a ringing call;
 /// Ex: {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
 pub struct CallDelete {
-    pub channel_id: String,
+    pub channel_id: Snowflake,
 }
 
 impl WebSocketEvent for CallDelete {}
@@ -54,7 +54,7 @@ impl WebSocketEvent for CallDelete {}
 ///
 /// Ex: {"op":13,"d":{"channel_id":"837609115475771392"}}
 pub struct CallSync {
-    pub channel_id: String,
+    pub channel_id: Snowflake,
 }
 
 impl WebSocketEvent for CallSync {}

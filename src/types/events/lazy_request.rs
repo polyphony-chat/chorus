@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::types::Snowflake;
+
 use super::WebSocketEvent;
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
@@ -15,7 +17,7 @@ use super::WebSocketEvent;
 ///
 /// {"op":14,"d":{"guild_id":"848582562217590824","typing":true,"activities":true,"threads":true}}
 pub struct LazyRequest {
-    pub guild_id: String,
+    pub guild_id: Snowflake,
     pub typing: bool,
     pub activities: bool,
     pub threads: bool,

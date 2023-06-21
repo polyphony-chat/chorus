@@ -2,10 +2,10 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::{handle_request, handle_request_as_result},
+    api::handle_request_as_result,
     errors::ChorusLibError,
     instance::UserMeta,
-    types::{self, PermissionOverwrite},
+    types::{self, PermissionOverwrite, Snowflake},
 };
 
 impl types::Channel {
@@ -22,7 +22,7 @@ impl types::Channel {
     /// This function returns a result that is either [`Ok(())`] if the request is successful, or an [`Err(ChorusLibError)`].
     pub async fn edit_permissions(
         user: &mut UserMeta,
-        channel_id: &str,
+        channel_id: Snowflake,
         overwrite: PermissionOverwrite,
     ) -> Result<(), ChorusLibError> {
         let url = {
@@ -58,8 +58,8 @@ impl types::Channel {
     /// This function returns a Result that is either [`Ok(())`] if the request is successfulm or an [`Err(ChorusLibError)`].
     pub async fn delete_permission(
         user: &mut UserMeta,
-        channel_id: &str,
-        overwrite_id: &str,
+        channel_id: Snowflake,
+        overwrite_id: Snowflake,
     ) -> Result<(), ChorusLibError> {
         let url = format!(
             "{}/channels/{}/permissions/{}",
