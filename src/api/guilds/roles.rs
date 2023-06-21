@@ -3,7 +3,7 @@ use serde_json::to_string;
 
 use crate::{
     api::deserialize_response,
-    errors::ChorusLibError,
+    errors::{ChorusLibError, ChorusResult},
     instance::UserMeta,
     types::{self, RoleCreateModifySchema, RoleObject},
 };
@@ -26,7 +26,7 @@ impl types::RoleObject {
     pub async fn get_all(
         user: &mut UserMeta,
         guild_id: &str,
-    ) -> Result<Option<Vec<RoleObject>>, ChorusLibError> {
+    ) -> ChorusResult<Option<Vec<RoleObject>>> {
         let url = format!(
             "{}/guilds/{}/roles/",
             user.belongs_to.borrow().urls.api,
@@ -65,7 +65,7 @@ impl types::RoleObject {
         user: &mut UserMeta,
         guild_id: &str,
         role_id: &str,
-    ) -> Result<RoleObject, ChorusLibError> {
+    ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/{}/",
             user.belongs_to.borrow().urls.api,
@@ -95,7 +95,7 @@ impl types::RoleObject {
         user: &mut UserMeta,
         guild_id: &str,
         role_create_schema: RoleCreateModifySchema,
-    ) -> Result<RoleObject, ChorusLibError> {
+    ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/",
             user.belongs_to.borrow().urls.api,
@@ -129,7 +129,7 @@ impl types::RoleObject {
         user: &mut UserMeta,
         guild_id: &str,
         role_position_update_schema: types::RolePositionUpdateSchema,
-    ) -> Result<RoleObject, ChorusLibError> {
+    ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/",
             user.belongs_to.borrow().urls.api,
@@ -169,7 +169,7 @@ impl types::RoleObject {
         guild_id: &str,
         role_id: &str,
         role_create_schema: RoleCreateModifySchema,
-    ) -> Result<RoleObject, ChorusLibError> {
+    ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/{}",
             user.belongs_to.borrow().urls.api,
