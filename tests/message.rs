@@ -14,7 +14,7 @@ async fn send_message() {
     };
     let _ = bundle
         .user
-        .send_message(&mut message, bundle.channel.id.to_string(), None)
+        .send_message(&mut message, bundle.channel.id, None)
         .await
         .unwrap();
     common::teardown(bundle).await
@@ -57,7 +57,7 @@ async fn send_message_attachment() {
         .user
         .send_message(
             &mut message,
-            bundle.channel.id.to_string(),
+            bundle.channel.id,
             Some(vec![attachment.clone()]),
         )
         .await
@@ -76,7 +76,7 @@ async fn read_messages() {
     };
     let _ = bundle
         .user
-        .send_message(&mut message, bundle.channel.id.to_string(), None)
+        .send_message(&mut message, bundle.channel.id, None)
         .await
         .unwrap();
     common::teardown(bundle).await
