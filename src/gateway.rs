@@ -1,9 +1,7 @@
 use crate::errors::GatewayError;
-use crate::errors::ObserverError;
 use crate::gateway::events::Events;
 use crate::types;
 use crate::types::WebSocketEvent;
-use std::any::Any;
 use std::sync::Arc;
 
 use futures_util::stream::SplitSink;

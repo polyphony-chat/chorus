@@ -1,14 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::entities::{Emoji, GuildMember, Message, PublicUser};
+use crate::types::{
+    entities::{Emoji, GuildMember, Message, PublicUser},
+    Snowflake,
+};
 
 use super::WebSocketEvent;
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct TypingStartEvent {
-    pub channel_id: String,
-    pub guild_id: Option<String>,
-    pub user_id: String,
+    pub channel_id: Snowflake,
+    pub guild_id: Option<Snowflake>,
+    pub user_id: Snowflake,
     pub timestamp: i64,
     pub member: Option<GuildMember>,
 }
@@ -20,7 +23,7 @@ impl WebSocketEvent for TypingStartEvent {}
 pub struct MessageCreate {
     #[serde(flatten)]
     message: Message,
-    guild_id: Option<String>,
+    guild_id: Option<Snowflake>,
     member: Option<GuildMember>,
     mentions: Option<Vec<MessageCreateUser>>,
 }
@@ -39,7 +42,7 @@ impl WebSocketEvent for MessageCreate {}
 pub struct MessageUpdate {
     #[serde(flatten)]
     message: Message,
-    guild_id: Option<String>,
+    guild_id: Option<Snowflake>,
     member: Option<GuildMember>,
     mentions: Option<Vec<MessageCreateUser>>,
 }
@@ -48,28 +51,28 @@ impl WebSocketEvent for MessageUpdate {}
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageDelete {
-    id: String,
-    channel_id: String,
-    guild_id: Option<String>,
+    id: Snowflake,
+    channel_id: Snowflake,
+    guild_id: Option<Snowflake>,
 }
 
 impl WebSocketEvent for MessageDelete {}
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageDeleteBulk {
-    ids: Vec<String>,
-    channel_id: String,
-    guild_id: Option<String>,
+    ids: Vec<Snowflake>,
+    channel_id: Snowflake,
+    guild_id: Option<Snowflake>,
 }
 
 impl WebSocketEvent for MessageDeleteBulk {}
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionAdd {
-    user_id: String,
-    channel_id: String,
-    message_id: String,
-    guild_id: Option<String>,
+    user_id: Snowflake,
+    channel_id: Snowflake,
+    message_id: Snowflake,
+    guild_id: Option<Snowflake>,
     member: Option<GuildMember>,
     emoji: Emoji,
 }
@@ -78,10 +81,10 @@ impl WebSocketEvent for MessageReactionAdd {}
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionRemove {
-    user_id: String,
-    channel_id: String,
-    message_id: String,
-    guild_id: Option<String>,
+    user_id: Snowflake,
+    channel_id: Snowflake,
+    message_id: Snowflake,
+    guild_id: Option<Snowflake>,
     emoji: Emoji,
 }
 
@@ -89,18 +92,18 @@ impl WebSocketEvent for MessageReactionRemove {}
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionRemoveAll {
-    channel_id: String,
-    message_id: String,
-    guild_id: Option<String>,
+    channel_id: Snowflake,
+    message_id: Snowflake,
+    guild_id: Option<Snowflake>,
 }
 
 impl WebSocketEvent for MessageReactionRemoveAll {}
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct MessageReactionRemoveEmoji {
-    channel_id: String,
-    message_id: String,
-    guild_id: Option<String>,
+    channel_id: Snowflake,
+    message_id: Snowflake,
+    guild_id: Option<Snowflake>,
     emoji: Emoji,
 }
 
@@ -118,13 +121,13 @@ impl WebSocketEvent for MessageReactionRemoveEmoji {}
 pub struct MessageACK {
     /// ?
     pub version: u16,
-    pub message_id: String,
+    pub message_id: Snowflake,
     /// This is an integer???
     /// Not even unix, see '3070'???
     pub last_viewed: Option<u64>,
     /// What flags?
     pub flags: Option<serde_json::Value>,
-    pub channel_id: String,
+    pub channel_id: Snowflake,
 }
 
 impl WebSocketEvent for MessageACK {}

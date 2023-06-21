@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::entities::Emoji;
+use crate::types::{entities::Emoji, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Activity {
@@ -10,7 +10,7 @@ pub struct Activity {
     url: Option<String>,
     created_at: i64,
     timestamps: Option<ActivityTimestamps>,
-    application_id: Option<String>,
+    application_id: Option<Snowflake>,
     details: Option<String>,
     state: Option<String>,
     emoji: Option<Emoji>,

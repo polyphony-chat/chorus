@@ -1,13 +1,13 @@
-use crate::types::entities::Channel;
 use crate::types::events::WebSocketEvent;
+use crate::types::{entities::Channel, Snowflake};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-pins-update
 pub struct ChannelPinsUpdate {
-    pub guild_id: Option<String>,
-    pub channel_id: String,
+    pub guild_id: Option<Snowflake>,
+    pub channel_id: Snowflake,
     pub last_pin_timestamp: Option<DateTime<Utc>>,
 }
 
@@ -37,15 +37,15 @@ impl WebSocketEvent for ChannelUpdate {}
 /// {"channel_unread_updates": [{"id": "816412869766938648", "last_message_id": "1085892012085104680"}}
 pub struct ChannelUnreadUpdate {
     pub channel_unread_updates: Vec<ChannelUnreadUpdateObject>,
-    pub guild_id: String,
+    pub guild_id: Snowflake,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Contains very few fields from [Channel]
 /// See also [ChannelUnreadUpdates]
 pub struct ChannelUnreadUpdateObject {
-    pub id: String,
-    pub last_message_id: String,
+    pub id: Snowflake,
+    pub last_message_id: Snowflake,
     pub last_pin_timestamp: Option<String>,
 }
 

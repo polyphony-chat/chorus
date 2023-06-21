@@ -47,13 +47,9 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    let result = Channel::modify(
-        modify_data,
-        &bundle.channel.id.to_string(),
-        &mut bundle.user,
-    )
-    .await
-    .unwrap();
+    let result = Channel::modify(modify_data, bundle.channel.id, &mut bundle.user)
+        .await
+        .unwrap();
     assert_eq!(result.name, Some("beepboop".to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([
@@ -61,7 +57,7 @@ async fn modify_channel() {
         PermissionFlags::MANAGE_MESSAGES,
     ]));
     let permission_override = PermissionOverwrite {
-        id: bundle.user.object.id.to_string(),
+        id: bundle.user.object.id,
         overwrite_type: "1".to_string(),
         allow: permission_override,
         deny: "0".to_string(),
@@ -69,19 +65,15 @@ async fn modify_channel() {
 
     Channel::edit_permissions(
         &mut bundle.user,
-        bundle.channel.id.to_string().as_str(),
+        bundle.channel.id,
         permission_override.clone(),
     )
     .await
     .unwrap();
 
-    Channel::delete_permission(
-        &mut bundle.user,
-        bundle.channel.id.to_string().as_str(),
-        &permission_override.id,
-    )
-    .await
-    .unwrap();
+    Channel::delete_permission(&mut bundle.user, bundle.channel.id, permission_override.id)
+        .await
+        .unwrap();
 
     common::teardown(bundle).await
 }

@@ -1,9 +1,6 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::{
-    deserialize_number_from_string, deserialize_option_number_from_string,
-    deserialize_string_from_number,
-};
+use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
@@ -27,7 +24,7 @@ pub struct Channel {
     pub name: Option<String>,
     pub topic: Option<String>,
     pub nsfw: Option<bool>,
-    pub last_message_id: Option<String>,
+    pub last_message_id: Option<Snowflake>,
     pub bitrate: Option<i32>,
     pub user_limit: Option<i32>,
     pub rate_limit_per_user: Option<i32>,
@@ -37,7 +34,7 @@ pub struct Channel {
     pub owner_id: Option<Snowflake>,
     pub application_id: Option<Snowflake>,
     pub managed: Option<bool>,
-    pub parent_id: Option<String>,
+    pub parent_id: Option<Snowflake>,
     pub last_pin_timestamp: Option<String>,
     pub rtc_region: Option<String>,
     pub video_quality_mode: Option<i32>,
@@ -70,20 +67,16 @@ pub struct Channel {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct Tag {
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_number_from_string")]
-    pub id: u64,
+    pub id: Snowflake,
     pub name: String,
     pub moderated: bool,
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    pub emoji_id: Option<u64>,
+    pub emoji_id: Option<Snowflake>,
     pub emoji_name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct PermissionOverwrite {
-    pub id: String,
+    pub id: Snowflake,
     #[serde(rename = "type")]
     #[serde(deserialize_with = "deserialize_string_from_number")]
     pub overwrite_type: String,
@@ -107,8 +100,8 @@ pub struct ThreadMetadata {
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct ThreadMember {
-    pub id: Option<u64>,
-    pub user_id: Option<u64>,
+    pub id: Option<Snowflake>,
+    pub user_id: Option<Snowflake>,
     pub join_timestamp: Option<String>,
     pub flags: Option<u64>,
     pub member: Option<GuildMember>,
@@ -117,8 +110,7 @@ pub struct ThreadMember {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct DefaultReaction {
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    pub emoji_id: Option<u64>,
+    pub emoji_id: Option<Snowflake>,
     pub emoji_name: Option<String>,
 }
 
