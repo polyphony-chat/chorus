@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-use crate::types::WebSocketEvent;
 use super::WebrtcEncryptionMode;
+use crate::types::WebSocketEvent;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 /// Event that describes our encryption mode and secret key for encryption
