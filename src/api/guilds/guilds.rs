@@ -7,6 +7,7 @@ use crate::api::handle_request;
 use crate::api::handle_request_as_result;
 use crate::api::limits::Limits;
 use crate::errors::ChorusLibError;
+use crate::instance::Instance;
 use crate::instance::UserMeta;
 use crate::limit::LimitedRequester;
 use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema};
@@ -101,7 +102,7 @@ impl Guild {
             &self.id.to_string(),
             schema,
             &mut user.limits,
-            &mut belongs_to.limits,
+            &mut belongs_to,
         )
         .await
     }
@@ -161,7 +162,7 @@ impl Guild {
             guild_id,
             &user.token,
             &mut user.limits,
-            &mut belongs_to.limits,
+            &mut belongs_to,
         )
         .await
     }
@@ -173,7 +174,7 @@ impl Guild {
         guild_id: &str,
         token: &str,
         limits_user: &mut Limits,
-        limits_instance: &mut Limits,
+        instance: &mut Instance,
     ) -> Result<Guild, ChorusLibError> {
         let request = Client::new()
             .get(format!("{}/guilds/{}/", url_api, guild_id))
@@ -181,7 +182,7 @@ impl Guild {
         let response = match LimitedRequester::send_request(
             request,
             crate::api::limits::LimitType::Guild,
-            limits_instance,
+            instance,
             limits_user,
         )
         .await
@@ -221,7 +222,7 @@ impl Channel {
             guild_id,
             schema,
             &mut user.limits,
-            &mut belongs_to.limits,
+            &mut belongs_to,
         )
         .await
     }
@@ -232,7 +233,7 @@ impl Channel {
         guild_id: &str,
         schema: ChannelCreateSchema,
         limits_user: &mut Limits,
-        limits_instance: &mut Limits,
+        instance: &mut Instance,
     ) -> Result<Channel, ChorusLibError> {
         let request = Client::new()
             .post(format!("{}/guilds/{}/channels/", url_api, guild_id))
@@ -241,7 +242,7 @@ impl Channel {
         let result = match LimitedRequester::send_request(
             request,
             crate::api::limits::LimitType::Guild,
-            limits_instance,
+            instance,
             limits_user,
         )
         .await
