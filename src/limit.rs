@@ -1,21 +1,50 @@
-use reqwest::{Client, RequestBuilder, Response};
+use reqwest::{RequestBuilder, Response};
 
 use crate::{
     api::limits::{Limit, LimitType, Limits, LimitsMutRef},
     errors::ChorusLibError,
+    instance::Instance,
 };
 
 #[derive(Debug)]
 pub struct LimitedRequester;
 
 impl LimitedRequester {
+    /// Checks if a request can be sent without hitting API rate limits and sends it, if true.
+    /// Will automatically update the rate limits of the LimitedRequester the request has been
+    /// sent with.
+    ///
+    /// # Arguments
+    ///
+    /// * `request`: A `RequestBuilder` that contains a request ready to be sent. Unfinished or
+    /// invalid requests will result in the method panicing.
+    /// * `limit_type`: Because this library does not yet implement a way to check for which rate
+    /// limit will be used when the request gets send, you will have to specify this manually using
+    /// a `LimitType` enum.
+    ///
+    /// # Returns
+    ///
+    /// * `Response`: The `Response` gotten from sending the request to the server. This will be
+    /// returned if the Request was built and send successfully. Is wrapped in an `Option`.
+    /// * `None`: `None` will be returned if the rate limit has been hit, and the request could
+    /// therefore not have been sent.
+    ///
+    /// # Errors
+    ///
+    /// This method will error if:
+    ///
+    /// * The request does not return a success status code (200-299)
+    /// * The supplied `RequestBuilder` contains invalid or incomplete information
+    /// * There has been an error with processing (unwrapping) the `Response`
+    /// * The call to `update_limits` yielded errors. Read the methods' Errors section for more
+    /// information.
     pub async fn send_request(
         request: RequestBuilder,
         limit_type: LimitType,
-        instance_rate_limits: &mut Limits,
+        instance: &mut Instance,
         user_rate_limits: &mut Limits,
     ) -> Result<Response, ChorusLibError> {
-        if LimitedRequester::can_send_request(limit_type, instance_rate_limits, user_rate_limits) {
+        if LimitedRequester::can_send_request(limit_type, &instance.limits, user_rate_limits) {
             let built_request = match request.build() {
                 Ok(request) => request,
                 Err(e) => {
@@ -25,7 +54,7 @@ impl LimitedRequester {
                     });
                 }
             };
-            let result = Client::new().execute(built_request).await;
+            let result = instance.client.execute(built_request).await;
             let response = match result {
                 Ok(is_response) => is_response,
                 Err(e) => {
@@ -37,7 +66,7 @@ impl LimitedRequester {
             LimitedRequester::update_limits(
                 &response,
                 limit_type,
-                instance_rate_limits,
+                &mut instance.limits,
                 user_rate_limits,
             );
             if !response.status().is_success() {
@@ -228,17 +257,17 @@ mod rate_limit {
             String::from("http://localhost:3001/cdn"),
         );
         let mut request: Option<Result<Response, ChorusLibError>> = None;
-        let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
+        let mut instance = Instance::new(urls.clone()).await.unwrap();
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
 
         for _ in 0..=50 {
             let request_path = urls.api.clone() + "/some/random/nonexisting/path";
-            let request_builder = Client::new().get(request_path);
+            let request_builder = instance.client.get(request_path);
             request = Some(
                 LimitedRequester::send_request(
                     request_builder,
                     LimitType::Channel,
-                    &mut instance_rate_limits,
+                    &mut instance,
                     &mut user_rate_limits,
                 )
                 .await,
@@ -254,15 +283,15 @@ mod rate_limit {
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
         );
-        let mut instance_rate_limits = Limits::check_limits(urls.api.clone()).await;
+        let mut instance = Instance::new(urls.clone()).await.unwrap();
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
         let _requester = LimitedRequester;
         let request_path = urls.api.clone() + "/policies/instance/limits";
-        let request_builder = Client::new().get(request_path);
+        let request_builder = instance.client.get(request_path);
         let request = LimitedRequester::send_request(
             request_builder,
             LimitType::Channel,
-            &mut instance_rate_limits,
+            &mut instance,
             &mut user_rate_limits,
         )
         .await;
