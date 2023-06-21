@@ -6,11 +6,9 @@ use crate::instance::Instance;
 use crate::types::GeneralConfiguration;
 
 impl Instance {
-    /**
-    Gets the instance policies schema.
-    # Errors
-    [`ChorusLibError`] - If the request fails.
-     */
+    /// Gets the instance policies schema.
+    /// # Errors
+    /// [`ChorusLibError`] - If the request fails.
     pub async fn general_configuration_schema(
         &self,
     ) -> Result<GeneralConfiguration, ChorusLibError> {
