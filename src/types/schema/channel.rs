@@ -47,3 +47,50 @@ pub struct ChannelModifySchema {
     pub default_thread_rate_limit_per_user: Option<i32>,
     pub video_quality_mode: Option<i32>,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct GetChannelMessagesSchema {
+    /// Between 1 and 100, defaults to 50.
+    pub limit: Option<i32>,
+    #[serde(flatten)]
+    pub anchor: ChannelMessagesAnchor,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum ChannelMessagesAnchor {
+    Before(Snowflake),
+    Around(Snowflake),
+    After(Snowflake),
+}
+
+impl GetChannelMessagesSchema {
+    pub fn before(anchor: Snowflake) -> Self {
+        Self {
+            limit: None,
+            anchor: ChannelMessagesAnchor::Before(anchor),
+        }
+    }
+
+    pub fn around(anchor: Snowflake) -> Self {
+        Self {
+            limit: None,
+            anchor: ChannelMessagesAnchor::Around(anchor),
+        }
+    }
+
+    pub fn after(anchor: Snowflake) -> Self {
+        Self {
+            limit: None,
+            anchor: ChannelMessagesAnchor::After(anchor),
+        }
+    }
+
+    /// Must be between 1 and 100
+    pub fn limit(self, limit: i32) -> Self {
+        Self {
+            limit: Some(limit),
+            ..self
+        }
+    }
+}

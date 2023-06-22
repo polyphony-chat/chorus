@@ -1,7 +1,7 @@
 use reqwest::Client;
 use serde_json::from_str;
 
-use crate::errors::ChorusLibError;
+use crate::errors::{ChorusLibError, ChorusResult};
 use crate::instance::Instance;
 use crate::types::GeneralConfiguration;
 
@@ -9,9 +9,7 @@ impl Instance {
     /// Gets the instance policies schema.
     /// # Errors
     /// [`ChorusLibError`] - If the request fails.
-    pub async fn general_configuration_schema(
-        &self,
-    ) -> Result<GeneralConfiguration, ChorusLibError> {
+    pub async fn general_configuration_schema(&self) -> ChorusResult<GeneralConfiguration> {
         let client = Client::new();
         let endpoint_url = self.urls.api.clone() + "/policies/instance/";
         let request = match client.get(&endpoint_url).send().await {
