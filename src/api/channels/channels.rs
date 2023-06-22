@@ -83,7 +83,7 @@ impl Channel {
             ))
             .bearer_auth(user.token())
             .body(to_string(&modify_data).unwrap());
-        let new_channel = match common::deserialize_response::<Channel>(
+        let new_channel = common::deserialize_response::<Channel>(
             request,
             user,
             crate::api::limits::LimitType::Channel,
