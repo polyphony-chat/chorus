@@ -3,7 +3,7 @@ use serde_json::to_string;
 
 use crate::{
     api::handle_request_as_result,
-    errors::ChorusLibError,
+    errors::{ChorusLibError, ChorusResult},
     instance::UserMeta,
     types::{self, PermissionOverwrite, Snowflake},
 };
@@ -24,7 +24,7 @@ impl types::Channel {
         user: &mut UserMeta,
         channel_id: Snowflake,
         overwrite: PermissionOverwrite,
-    ) -> Result<(), ChorusLibError> {
+    ) -> ChorusResult<()> {
         let url = {
             format!(
                 "{}/channels/{}/permissions/{}",
@@ -60,7 +60,7 @@ impl types::Channel {
         user: &mut UserMeta,
         channel_id: Snowflake,
         overwrite_id: Snowflake,
-    ) -> Result<(), ChorusLibError> {
+    ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/permissions/{}",
             user.belongs_to.borrow_mut().urls.api,

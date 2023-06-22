@@ -1,6 +1,6 @@
 use reqwest::Client;
 
-use crate::{api::handle_request_as_result, errors::ChorusLibError, instance::UserMeta, types};
+use crate::{api::handle_request_as_result, errors::ChorusResult, instance::UserMeta, types};
 
 /**
 Useful metadata for working with [`types::Reaction`], bundled together nicely.
@@ -25,7 +25,7 @@ impl ReactionMeta {
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions](https://discord.com/developers/docs/resources/channel#delete-all-reactions)
      */
-    pub async fn delete_all(&self, user: &mut UserMeta) -> Result<(), ChorusLibError> {
+    pub async fn delete_all(&self, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/",
             user.belongs_to.borrow().urls.api,
@@ -51,7 +51,7 @@ impl ReactionMeta {
     # Reference
     See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
      */
-    pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> Result<(), ChorusLibError> {
+    pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
             user.belongs_to.borrow().urls.api,
@@ -80,11 +80,7 @@ impl ReactionMeta {
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji](https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji)
      */
-    pub async fn delete_emoji(
-        &self,
-        emoji: &str,
-        user: &mut UserMeta,
-    ) -> Result<(), ChorusLibError> {
+    pub async fn delete_emoji(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
             user.belongs_to.borrow().urls.api,
@@ -115,7 +111,7 @@ impl ReactionMeta {
     # Reference
     See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
      */
-    pub async fn create(&self, emoji: &str, user: &mut UserMeta) -> Result<(), ChorusLibError> {
+    pub async fn create(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
             user.belongs_to.borrow().urls.api,
@@ -143,7 +139,7 @@ impl ReactionMeta {
     # Reference
     See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
      */
-    pub async fn remove(&self, emoji: &str, user: &mut UserMeta) -> Result<(), ChorusLibError> {
+    pub async fn remove(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
             user.belongs_to.borrow().urls.api,
@@ -179,7 +175,7 @@ impl ReactionMeta {
         user_id: &str,
         emoji: &str,
         user: &mut UserMeta,
-    ) -> Result<(), ChorusLibError> {
+    ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/{}",
             user.belongs_to.borrow().urls.api,
