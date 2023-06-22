@@ -9,7 +9,7 @@ use crate::{
 };
 
 impl Channel {
-    pub async fn get(user: &mut UserMeta, channel_id: &str) -> ChorusResult<Channel> {
+    pub async fn get(user: &mut UserMeta, channel_id: Snowflake) -> ChorusResult<Channel> {
         let url = user.belongs_to.borrow_mut().urls.api.clone();
         let request = Client::new()
             .get(format!("{}/channels/{}/", url, channel_id))

@@ -13,9 +13,7 @@ async fn get_channel() {
 
     assert_eq!(
         bundle_channel,
-        Channel::get(bundle_user, &bundle_channel.id.to_string())
-            .await
-            .unwrap()
+        Channel::get(bundle_user, bundle_channel.id).await.unwrap()
     );
     common::teardown(bundle).await
 }
@@ -23,7 +21,7 @@ async fn get_channel() {
 #[tokio::test]
 async fn delete_channel() {
     let mut bundle = common::setup().await;
-    let result = bundle.channel.clone().delete(&mut bundle.user).await;
+    let result = Channel::delete(bundle.channel.clone(), &mut bundle.user).await;
     assert!(result.is_ok());
     common::teardown(bundle).await
 }

@@ -5,7 +5,7 @@ use crate::{
     api::deserialize_response,
     errors::{ChorusLibError, ChorusResult},
     instance::UserMeta,
-    types::{self, RoleCreateModifySchema, RoleObject},
+    types::{self, RoleCreateModifySchema, RoleObject, Snowflake},
 };
 
 impl types::RoleObject {
@@ -25,7 +25,7 @@ impl types::RoleObject {
     /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
     pub async fn get_all(
         user: &mut UserMeta,
-        guild_id: &str,
+        guild_id: Snowflake,
     ) -> ChorusResult<Option<Vec<RoleObject>>> {
         let url = format!(
             "{}/guilds/{}/roles/",
@@ -63,8 +63,8 @@ impl types::RoleObject {
     /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
     pub async fn get(
         user: &mut UserMeta,
-        guild_id: &str,
-        role_id: &str,
+        guild_id: Snowflake,
+        role_id: Snowflake,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/{}/",
@@ -93,7 +93,7 @@ impl types::RoleObject {
     /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
     pub async fn create(
         user: &mut UserMeta,
-        guild_id: &str,
+        guild_id: Snowflake,
         role_create_schema: RoleCreateModifySchema,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
@@ -127,7 +127,7 @@ impl types::RoleObject {
     /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
     pub async fn position_update(
         user: &mut UserMeta,
-        guild_id: &str,
+        guild_id: Snowflake,
         role_position_update_schema: types::RolePositionUpdateSchema,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
@@ -166,8 +166,8 @@ impl types::RoleObject {
     /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
     pub async fn update(
         user: &mut UserMeta,
-        guild_id: &str,
-        role_id: &str,
+        guild_id: Snowflake,
+        role_id: Snowflake,
         role_create_schema: RoleCreateModifySchema,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
