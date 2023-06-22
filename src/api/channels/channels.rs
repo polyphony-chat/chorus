@@ -88,11 +88,7 @@ impl Channel {
             user,
             crate::api::limits::LimitType::Channel,
         )
-        .await
-        {
-            Ok(channel) => channel,
-            Err(e) => return Err(e),
-        };
+        .await?;
         let _ = std::mem::replace(self, new_channel);
         Ok(())
     }
