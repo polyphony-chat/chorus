@@ -70,10 +70,11 @@ impl Channel {
     ///
     /// A `Result` that contains a `Channel` object if the request was successful, or an `ChorusLibError` if an error occurred during the request.
     pub async fn modify(
+        &mut self,
         modify_data: ChannelModifySchema,
         channel_id: Snowflake,
         user: &mut UserMeta,
-    ) -> ChorusResult<Channel> {
+    ) -> ChorusResult<()> {
         let request = Client::new()
             .patch(format!(
                 "{}/channels/{}/",
@@ -82,12 +83,18 @@ impl Channel {
             ))
             .bearer_auth(user.token())
             .body(to_string(&modify_data).unwrap());
-        common::deserialize_response::<Channel>(
+        let new_channel = match common::deserialize_response::<Channel>(
             request,
             user,
             crate::api::limits::LimitType::Channel,
         )
         .await
+        {
+            Ok(channel) => channel,
+            Err(e) => return Err(e),
+        };
+        let _ = std::mem::replace(self, new_channel);
+        Ok(())
     }
 
     pub async fn messages(
