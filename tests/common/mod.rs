@@ -1,4 +1,5 @@
 use chorus::{
+    errors::ChorusResult,
     instance::{Instance, UserMeta},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
@@ -63,7 +64,7 @@ pub async fn setup() -> TestBundle {
     };
     let mut user = instance.register_account(&reg).await.unwrap();
     let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
-    let channel = Channel::create(&mut user, &guild.id.to_string(), channel_create_schema)
+    let channel = Channel::create(&mut user, guild.id, channel_create_schema)
         .await
         .unwrap();
 
@@ -77,8 +78,7 @@ pub async fn setup() -> TestBundle {
         position: None,
         color: None,
     };
-    let guild_id = guild.id.clone().to_string();
-    let role = chorus::types::RoleObject::create(&mut user, &guild_id, role_create_schema)
+    let role = chorus::types::RoleObject::create(&mut user, guild.id, role_create_schema)
         .await
         .unwrap();
 
@@ -95,6 +95,8 @@ pub async fn setup() -> TestBundle {
 // Teardown method to clean up after a test.
 #[allow(dead_code)]
 pub async fn teardown(mut bundle: TestBundle) {
-    Guild::delete(&mut bundle.user, &bundle.guild.id.to_string()).await;
-    bundle.user.delete().await;
+    Guild::delete(&mut bundle.user, bundle.guild.id)
+        .await
+        .unwrap();
+    bundle.user.delete().await.unwrap()
 }
