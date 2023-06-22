@@ -1,4 +1,7 @@
-use chorus::types::{self, Channel, PermissionFlags, PermissionOverwrite};
+use chorus::types::{
+    self, Channel, GetChannelMessagesSchema, MessageSendSchema, PermissionFlags,
+    PermissionOverwrite, Snowflake,
+};
 
 mod common;
 
@@ -74,6 +77,63 @@ async fn modify_channel() {
     Channel::delete_permission(&mut bundle.user, bundle.channel.id, permission_override.id)
         .await
         .unwrap();
+
+    common::teardown(bundle).await
+}
+
+#[tokio::test]
+async fn get_channel_messages() {
+    let mut bundle = common::setup().await;
+
+    // First create some messages to read
+    for _ in 0..10 {
+        let _ = bundle
+            .user
+            .send_message(
+                &mut MessageSendSchema {
+                    content: Some("A Message!".to_string()),
+                    ..Default::default()
+                },
+                bundle.channel.id,
+                None,
+            )
+            .await
+            .unwrap();
+    }
+
+    assert_eq!(
+        Channel::messages(
+            GetChannelMessagesSchema::before(Snowflake::generate()),
+            bundle.channel.id,
+            &mut bundle.user,
+        )
+        .await
+        .unwrap()
+        .len(),
+        10
+    );
+
+    // around is currently bugged in spacebar: https://github.com/spacebarchat/server/issues/1072
+    // assert_eq!(
+    //     Channel::messages(
+    //         GetChannelMessagesSchema::around(Snowflake::generate()).limit(10),
+    //         bundle.channel.id,
+    //         &mut bundle.user,
+    //     )
+    //     .await
+    //     .unwrap()
+    //     .len(),
+    //     5
+    // );
+
+    assert!(Channel::messages(
+        GetChannelMessagesSchema::after(Snowflake::generate()),
+        bundle.channel.id,
+        &mut bundle.user,
+    )
+    .await
+    .unwrap()
+    .is_empty());
 
     common::teardown(bundle).await
 }

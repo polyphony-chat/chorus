@@ -2,7 +2,7 @@ use reqwest::{RequestBuilder, Response};
 
 use crate::{
     api::limits::{Limit, LimitType, Limits, LimitsMutRef},
-    errors::ChorusLibError,
+    errors::{ChorusLibError, ChorusResult},
     instance::Instance,
 };
 
@@ -43,7 +43,7 @@ impl LimitedRequester {
         limit_type: LimitType,
         instance: &mut Instance,
         user_rate_limits: &mut Limits,
-    ) -> Result<Response, ChorusLibError> {
+    ) -> ChorusResult<Response> {
         if LimitedRequester::can_send_request(limit_type, &instance.limits, user_rate_limits) {
             let built_request = match request.build() {
                 Ok(request) => request,
@@ -256,7 +256,7 @@ mod rate_limit {
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
         );
-        let mut request: Option<Result<Response, ChorusLibError>> = None;
+        let mut request: Option<ChorusResult<Response>> = None;
         let mut instance = Instance::new(urls.clone()).await.unwrap();
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
 
