@@ -2,7 +2,7 @@ use reqwest::Client;
 
 use crate::{
     api::{deserialize_response, handle_request_as_result},
-    errors::ChorusLibError,
+    errors::ChorusResult,
     instance::UserMeta,
     types,
 };
@@ -23,7 +23,7 @@ impl types::GuildMember {
         user: &mut UserMeta,
         guild_id: &str,
         member_id: &str,
-    ) -> Result<types::GuildMember, ChorusLibError> {
+    ) -> ChorusResult<types::GuildMember> {
         let url = format!(
             "{}/guilds/{}/members/{}/",
             user.belongs_to.borrow().urls.api,
@@ -56,7 +56,7 @@ impl types::GuildMember {
         guild_id: &str,
         member_id: &str,
         role_id: &str,
-    ) -> Result<(), ChorusLibError> {
+    ) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
             user.belongs_to.borrow().urls.api,

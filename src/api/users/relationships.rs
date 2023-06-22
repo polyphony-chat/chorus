@@ -3,7 +3,7 @@ use serde_json::to_string;
 
 use crate::{
     api::{deserialize_response, handle_request_as_result},
-    errors::ChorusLibError,
+    errors::ChorusResult,
     instance::UserMeta,
     types::{self, CreateUserRelationshipSchema, RelationshipType},
 };
@@ -16,11 +16,11 @@ impl UserMeta {
     /// * `user_id` - A string slice that holds the ID of the user to retrieve the mutual relationships with.
     ///
     /// # Returns
-    /// This function returns a [`Result<Vec<PublicUser>, ChorusLibError>`].
+    /// This function returns a [`ChorusResult<Vec<PublicUser>>`].
     pub async fn get_mutual_relationships(
         &mut self,
         user_id: &str,
-    ) -> Result<Vec<types::PublicUser>, ChorusLibError> {
+    ) -> ChorusResult<Vec<types::PublicUser>> {
         let url = format!(
             "{}/users/{}/relationships/",
             self.belongs_to.borrow().urls.api,
@@ -38,8 +38,8 @@ impl UserMeta {
     /// Retrieves the authenticated user's relationships.
     ///
     /// # Returns
-    /// This function returns a [`Result<Vec<types::Relationship>, ChorusLibError>`].
-    pub async fn get_relationships(&mut self) -> Result<Vec<types::Relationship>, ChorusLibError> {
+    /// This function returns a [`ChorusResult<Vec<types::Relationship>>`].
+    pub async fn get_relationships(&mut self) -> ChorusResult<Vec<types::Relationship>> {
         let url = format!(
             "{}/users/@me/relationships/",
             self.belongs_to.borrow().urls.api
@@ -64,7 +64,7 @@ impl UserMeta {
     pub async fn send_friend_request(
         &mut self,
         schema: types::FriendRequestSendSchema,
-    ) -> Result<(), ChorusLibError> {
+    ) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/",
             self.belongs_to.borrow().urls.api
@@ -92,7 +92,7 @@ impl UserMeta {
         &mut self,
         user_id: &str,
         relationship_type: RelationshipType,
-    ) -> Result<(), ChorusLibError> {
+    ) -> ChorusResult<()> {
         let api_url = self.belongs_to.borrow().urls.api.clone();
         match relationship_type {
             RelationshipType::None => {
@@ -137,7 +137,7 @@ impl UserMeta {
     ///
     /// # Returns
     /// This function returns a [`Result`] that holds a [`ChorusLibError`] if the request fails.
-    pub async fn remove_relationship(&mut self, user_id: &str) -> Result<(), ChorusLibError> {
+    pub async fn remove_relationship(&mut self, user_id: &str) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/{}/",
             self.belongs_to.borrow().urls.api,

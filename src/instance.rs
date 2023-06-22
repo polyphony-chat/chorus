@@ -6,7 +6,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::api::limits::Limits;
-use crate::errors::{ChorusLibError, FieldFormatError};
+use crate::errors::{ChorusLibError, ChorusResult, FieldFormatError};
 use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::UrlBundle;
 
@@ -28,7 +28,7 @@ impl Instance {
     /// * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
     /// # Errors
     /// * [`InstanceError`] - If the instance cannot be created.
-    pub async fn new(urls: UrlBundle) -> Result<Instance, ChorusLibError> {
+    pub async fn new(urls: UrlBundle) -> ChorusResult<Instance> {
         let mut instance = Instance {
             urls: urls.clone(),
             // Will be overwritten in the next step

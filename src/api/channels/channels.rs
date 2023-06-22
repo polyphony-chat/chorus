@@ -3,13 +3,13 @@ use serde_json::to_string;
 
 use crate::{
     api::common,
-    errors::ChorusLibError,
+    errors::{ChorusLibError, ChorusResult},
     instance::UserMeta,
-    types::{Channel, ChannelModifySchema, Message, Snowflake},
+    types::{Channel, ChannelModifySchema, GetChannelMessagesSchema, Message, Snowflake},
 };
 
 impl Channel {
-    pub async fn get(user: &mut UserMeta, channel_id: &str) -> Result<Channel, ChorusLibError> {
+    pub async fn get(user: &mut UserMeta, channel_id: &str) -> ChorusResult<Channel> {
         let url = user.belongs_to.borrow_mut().urls.api.clone();
         let request = Client::new()
             .get(format!("{}/channels/{}/", url, channel_id))
@@ -43,7 +43,7 @@ impl Channel {
     /// # Returns
     ///
     /// A `Result` that contains a `ChorusLibError` if an error occurred during the request, or `()` if the request was successful.
-    pub async fn delete(self, user: &mut UserMeta) -> Result<(), ChorusLibError> {
+    pub async fn delete(self, user: &mut UserMeta) -> ChorusResult<()> {
         let request = Client::new()
             .delete(format!(
                 "{}/channels/{}/",
@@ -73,7 +73,7 @@ impl Channel {
         modify_data: ChannelModifySchema,
         channel_id: Snowflake,
         user: &mut UserMeta,
-    ) -> Result<Channel, ChorusLibError> {
+    ) -> ChorusResult<Channel> {
         let request = Client::new()
             .patch(format!(
                 "{}/channels/{}/",
@@ -88,5 +88,22 @@ impl Channel {
             crate::api::limits::LimitType::Channel,
         )
         .await
+    }
+
+    pub async fn messages(
+        range: GetChannelMessagesSchema,
+        channel_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> Result<Vec<Message>, ChorusLibError> {
+        let request = Client::new()
+            .get(format!(
+                "{}/channels/{}/messages",
+                user.belongs_to.borrow().urls.api,
+                channel_id
+            ))
+            .bearer_auth(user.token())
+            .query(&range);
+
+        common::deserialize_response::<Vec<Message>>(request, user, Default::default()).await
     }
 }

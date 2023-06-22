@@ -9,6 +9,8 @@ custom_error! {
     EmailError = "The provided email address is in an invalid format.",
 }
 
+pub type ChorusResult<T> = std::result::Result<T, ChorusLibError>;
+
 custom_error! {
     #[derive(PartialEq, Eq)]
     pub ChorusLibError

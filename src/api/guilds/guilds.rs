@@ -7,6 +7,7 @@ use crate::api::handle_request;
 use crate::api::handle_request_as_result;
 use crate::api::limits::Limits;
 use crate::errors::ChorusLibError;
+use crate::errors::ChorusResult;
 use crate::instance::Instance;
 use crate::instance::UserMeta;
 use crate::limit::LimitedRequester;
@@ -32,7 +33,7 @@ impl Guild {
     pub async fn create(
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
-    ) -> Result<Guild, ChorusLibError> {
+    ) -> ChorusResult<Guild> {
         let url = format!("{}/guilds/", user.belongs_to.borrow().urls.api);
         let request = reqwest::Client::new()
             .post(url.clone())
@@ -65,7 +66,7 @@ impl Guild {
     ///     None => println!("Guild deleted successfully"),
     /// }
     /// ```
-    pub async fn delete(user: &mut UserMeta, guild_id: &str) -> Result<(), ChorusLibError> {
+    pub async fn delete(user: &mut UserMeta, guild_id: &str) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/delete/",
             user.belongs_to.borrow().urls.api,
@@ -94,7 +95,7 @@ impl Guild {
         &self,
         user: &mut UserMeta,
         schema: ChannelCreateSchema,
-    ) -> Result<Channel, ChorusLibError> {
+    ) -> ChorusResult<Channel> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Channel::_create(
             &user.token,
@@ -116,7 +117,7 @@ impl Guild {
     /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
-    pub async fn channels(&self, user: &mut UserMeta) -> Result<Vec<Channel>, ChorusLibError> {
+    pub async fn channels(&self, user: &mut UserMeta) -> ChorusResult<Vec<Channel>> {
         let request = Client::new()
             .get(format!(
                 "{}/guilds/{}/channels/",
@@ -155,7 +156,7 @@ impl Guild {
     /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
-    pub async fn get(user: &mut UserMeta, guild_id: &str) -> Result<Guild, ChorusLibError> {
+    pub async fn get(user: &mut UserMeta, guild_id: &str) -> ChorusResult<Guild> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Guild::_get(
             &format!("{}", belongs_to.urls.api),
@@ -175,7 +176,7 @@ impl Guild {
         token: &str,
         limits_user: &mut Limits,
         instance: &mut Instance,
-    ) -> Result<Guild, ChorusLibError> {
+    ) -> ChorusResult<Guild> {
         let request = Client::new()
             .get(format!("{}/guilds/{}/", url_api, guild_id))
             .bearer_auth(token);
@@ -214,7 +215,7 @@ impl Channel {
         user: &mut UserMeta,
         guild_id: &str,
         schema: ChannelCreateSchema,
-    ) -> Result<Channel, ChorusLibError> {
+    ) -> ChorusResult<Channel> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Channel::_create(
             &user.token,
@@ -234,7 +235,7 @@ impl Channel {
         schema: ChannelCreateSchema,
         limits_user: &mut Limits,
         instance: &mut Instance,
-    ) -> Result<Channel, ChorusLibError> {
+    ) -> ChorusResult<Channel> {
         let request = Client::new()
             .post(format!("{}/guilds/{}/channels/", url_api, guild_id))
             .bearer_auth(token)

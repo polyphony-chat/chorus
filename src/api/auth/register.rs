@@ -5,7 +5,7 @@ use serde_json::{from_str, json};
 
 use crate::{
     api::limits::LimitType,
-    errors::ChorusLibError,
+    errors::{ChorusLibError, ChorusResult},
     instance::{Instance, Token, UserMeta},
     limit::LimitedRequester,
     types::{ErrorResponse, RegisterSchema},
@@ -24,7 +24,7 @@ impl Instance {
     pub async fn register_account(
         &mut self,
         register_schema: &RegisterSchema,
-    ) -> Result<UserMeta, ChorusLibError> {
+    ) -> ChorusResult<UserMeta> {
         let json_schema = json!(register_schema);
         let client = Client::new();
         let endpoint_url = self.urls.api.clone() + "/auth/register";

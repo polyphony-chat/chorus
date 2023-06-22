@@ -2,7 +2,11 @@ use reqwest::RequestBuilder;
 use serde::Deserialize;
 use serde_json::from_str;
 
-use crate::{errors::ChorusLibError, instance::UserMeta, limit::LimitedRequester};
+use crate::{
+    errors::{ChorusLibError, ChorusResult},
+    instance::UserMeta,
+    limit::LimitedRequester,
+};
 
 use super::limits::LimitType;
 
@@ -27,7 +31,7 @@ pub async fn handle_request_as_result(
     request: RequestBuilder,
     user: &mut UserMeta,
     limit_type: LimitType,
-) -> Result<(), ChorusLibError> {
+) -> ChorusResult<()> {
     match handle_request(request, user, limit_type).await {
         Ok(_) => Ok(()),
         Err(e) => Err(ChorusLibError::InvalidResponseError {
@@ -40,7 +44,7 @@ pub async fn deserialize_response<T: for<'a> Deserialize<'a>>(
     request: RequestBuilder,
     user: &mut UserMeta,
     limit_type: LimitType,
-) -> Result<T, ChorusLibError> {
+) -> ChorusResult<T> {
     let response = handle_request(request, user, limit_type).await.unwrap();
     let response_text = match response.text().await {
         Ok(string) => string,

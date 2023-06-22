@@ -5,16 +5,13 @@ use reqwest::Client;
 use serde_json::{from_str, json};
 
 use crate::api::limits::LimitType;
-use crate::errors::ChorusLibError;
+use crate::errors::{ChorusLibError, ChorusResult};
 use crate::instance::{Instance, UserMeta};
 use crate::limit::LimitedRequester;
 use crate::types::{ErrorResponse, LoginResult, LoginSchema};
 
 impl Instance {
-    pub async fn login_account(
-        &mut self,
-        login_schema: &LoginSchema,
-    ) -> Result<UserMeta, ChorusLibError> {
+    pub async fn login_account(&mut self, login_schema: &LoginSchema) -> ChorusResult<UserMeta> {
         let json_schema = json!(login_schema);
         let client = Client::new();
         let endpoint_url = self.urls.api.clone() + "/auth/login";
