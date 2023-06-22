@@ -28,9 +28,7 @@ impl types::Channel {
         let url = {
             format!(
                 "{}/channels/{}/permissions/{}",
-                user.belongs_to.borrow_mut().urls.api,
-                channel_id,
-                overwrite.id
+                user.belongs_to.urls.api, channel_id, overwrite.id
             )
         };
         let body = match to_string(&overwrite) {
@@ -63,9 +61,7 @@ impl types::Channel {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/permissions/{}",
-            user.belongs_to.borrow_mut().urls.api,
-            channel_id,
-            overwrite_id
+            user.belongs_to.urls.api, channel_id, overwrite_id
         );
         let request = Client::new().delete(url).bearer_auth(user.token());
         handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await

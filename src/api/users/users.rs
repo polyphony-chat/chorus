@@ -51,7 +51,7 @@ impl UserMeta {
             return Err(ChorusLibError::PasswordRequiredError);
         }
         let request = Client::new()
-            .patch(format!("{}/users/@me/", self.belongs_to.borrow().urls.api))
+            .patch(format!("{}/users/@me/", self.belongs_to.urls.api))
             .body(to_string(&modify_schema).unwrap())
             .bearer_auth(self.token());
         let user_updated =
@@ -73,10 +73,7 @@ impl UserMeta {
     /// Returns `()` if the user was successfully deleted, or a `ChorusLibError` if an error occurred.
     pub async fn delete(mut self) -> ChorusResult<()> {
         let request = Client::new()
-            .post(format!(
-                "{}/users/@me/delete/",
-                self.belongs_to.borrow().urls.api
-            ))
+            .post(format!("{}/users/@me/delete/", self.belongs_to.urls.api))
             .bearer_auth(self.token());
         handle_request_as_result(request, &mut self, crate::api::limits::LimitType::Ip).await
     }
@@ -84,11 +81,10 @@ impl UserMeta {
 
 impl User {
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
         User::_get(
             &user.token(),
-            &format!("{}", belongs_to.urls.api),
-            &mut belongs_to,
+            &format!("{}", user.belongs_to.urls.api),
+            &user.belongs_to,
             id,
         )
         .await
@@ -97,7 +93,7 @@ impl User {
     async fn _get(
         token: &str,
         url_api: &str,
-        instance: &mut Instance,
+        instance: &Instance,
         id: Option<&String>,
     ) -> ChorusResult<User> {
         let url = if id.is_none() {
@@ -106,7 +102,7 @@ impl User {
             format!("{}/users/{}", url_api, id.unwrap())
         };
         let request = reqwest::Client::new().get(url).bearer_auth(token);
-        let mut cloned_limits = instance.limits.clone();
+        let mut cloned_limits = instance.limits.borrow().clone();
         match LimitedRequester::send_request(
             request,
             crate::api::limits::LimitType::Ip,
@@ -131,7 +127,7 @@ impl User {
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings/", url_api))
             .bearer_auth(token);
-        let mut cloned_limits = instance.limits.clone();
+        let mut cloned_limits = instance.limits.borrow().clone();
         match LimitedRequester::send_request(
             request,
             crate::api::limits::LimitType::Ip,

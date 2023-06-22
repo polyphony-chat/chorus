@@ -23,8 +23,7 @@ impl UserMeta {
     ) -> ChorusResult<Vec<types::PublicUser>> {
         let url = format!(
             "{}/users/{}/relationships/",
-            self.belongs_to.borrow().urls.api,
-            user_id
+            self.belongs_to.urls.api, user_id
         );
         let request = Client::new().get(url).bearer_auth(self.token());
         deserialize_response::<Vec<types::PublicUser>>(
@@ -40,10 +39,7 @@ impl UserMeta {
     /// # Returns
     /// This function returns a [`ChorusResult<Vec<types::Relationship>>`].
     pub async fn get_relationships(&mut self) -> ChorusResult<Vec<types::Relationship>> {
-        let url = format!(
-            "{}/users/@me/relationships/",
-            self.belongs_to.borrow().urls.api
-        );
+        let url = format!("{}/users/@me/relationships/", self.belongs_to.urls.api);
         let request = Client::new().get(url).bearer_auth(self.token());
         deserialize_response::<Vec<types::Relationship>>(
             request,
@@ -65,10 +61,7 @@ impl UserMeta {
         &mut self,
         schema: types::FriendRequestSendSchema,
     ) -> ChorusResult<()> {
-        let url = format!(
-            "{}/users/@me/relationships/",
-            self.belongs_to.borrow().urls.api
-        );
+        let url = format!("{}/users/@me/relationships/", self.belongs_to.urls.api);
         let body = to_string(&schema).unwrap();
         let request = Client::new().post(url).bearer_auth(self.token()).body(body);
         handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
@@ -93,7 +86,7 @@ impl UserMeta {
         user_id: Snowflake,
         relationship_type: RelationshipType,
     ) -> ChorusResult<()> {
-        let api_url = self.belongs_to.borrow().urls.api.clone();
+        let api_url = &self.belongs_to.urls.api;
         match relationship_type {
             RelationshipType::None => {
                 let request = Client::new()
@@ -140,8 +133,7 @@ impl UserMeta {
     pub async fn remove_relationship(&mut self, user_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/{}/",
-            self.belongs_to.borrow().urls.api,
-            user_id
+            self.belongs_to.urls.api, user_id
         );
         let request = Client::new().delete(url).bearer_auth(self.token());
         handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await

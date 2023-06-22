@@ -35,7 +35,7 @@ impl Guild {
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
     ) -> ChorusResult<Guild> {
-        let url = format!("{}/guilds/", user.belongs_to.borrow().urls.api);
+        let url = format!("{}/guilds/", user.belongs_to.urls.api);
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone())
@@ -68,11 +68,7 @@ impl Guild {
     /// }
     /// ```
     pub async fn delete(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<()> {
-        let url = format!(
-            "{}/guilds/{}/delete/",
-            user.belongs_to.borrow().urls.api,
-            guild_id
-        );
+        let url = format!("{}/guilds/{}/delete/", user.belongs_to.urls.api, guild_id);
         let request = reqwest::Client::new()
             .post(url.clone())
             .bearer_auth(user.token.clone());
@@ -102,7 +98,7 @@ impl Guild {
             self.id,
             schema,
             &mut user.limits,
-            &mut user.belongs_to.borrow_mut(),
+            &user.belongs_to,
         )
         .await
     }
@@ -120,8 +116,7 @@ impl Guild {
         let request = Client::new()
             .get(format!(
                 "{}/guilds/{}/channels/",
-                user.belongs_to.borrow().urls.api,
-                self.id
+                user.belongs_to.urls.api, self.id
             ))
             .bearer_auth(user.token());
         let result = handle_request(request, user, crate::api::limits::LimitType::Channel)
@@ -156,8 +151,7 @@ impl Guild {
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
     pub async fn get(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<Guild> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
-        Guild::_get(guild_id, &user.token, &mut user.limits, &mut belongs_to).await
+        Guild::_get(guild_id, &user.token, &mut user.limits, &user.belongs_to).await
     }
 
     /// For internal use. Does the same as the public get method, but does not require a second, mutable
@@ -166,7 +160,7 @@ impl Guild {
         guild_id: Snowflake,
         token: &str,
         limits_user: &mut Limits,
-        instance: &mut Instance,
+        instance: &Instance,
     ) -> ChorusResult<Guild> {
         let request = Client::new()
             .get(format!("{}/guilds/{}/", instance.urls.api, guild_id))
@@ -207,13 +201,12 @@ impl Channel {
         guild_id: Snowflake,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
         Channel::_create(
             &user.token,
             guild_id,
             schema,
             &mut user.limits,
-            &mut belongs_to,
+            &user.belongs_to,
         )
         .await
     }
@@ -223,7 +216,7 @@ impl Channel {
         guild_id: Snowflake,
         schema: ChannelCreateSchema,
         limits_user: &mut Limits,
-        instance: &mut Instance,
+        instance: &Instance,
     ) -> ChorusResult<Channel> {
         let request = Client::new()
             .post(format!(

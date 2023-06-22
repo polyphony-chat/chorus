@@ -26,9 +26,7 @@ impl types::GuildMember {
     ) -> ChorusResult<types::GuildMember> {
         let url = format!(
             "{}/guilds/{}/members/{}/",
-            user.belongs_to.borrow().urls.api,
-            guild_id,
-            member_id
+            user.belongs_to.urls.api, guild_id, member_id
         );
         let request = Client::new().get(url).bearer_auth(user.token());
         deserialize_response::<types::GuildMember>(
@@ -59,10 +57,7 @@ impl types::GuildMember {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
-            user.belongs_to.borrow().urls.api,
-            guild_id,
-            member_id,
-            role_id
+            user.belongs_to.urls.api, guild_id, member_id, role_id
         );
         let request = Client::new().put(url).bearer_auth(user.token());
         handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await
@@ -88,10 +83,7 @@ impl types::GuildMember {
     ) -> Result<(), crate::errors::ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
-            user.belongs_to.borrow().urls.api,
-            guild_id,
-            member_id,
-            role_id
+            user.belongs_to.urls.api, guild_id, member_id, role_id
         );
         let request = Client::new().delete(url).bearer_auth(user.token());
         handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await

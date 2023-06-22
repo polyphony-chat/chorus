@@ -17,7 +17,7 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
-    pub limits: Limits,
+    pub limits: RefCell<Limits>,
     pub client: Client,
 }
 
@@ -29,11 +29,12 @@ impl Instance {
     /// # Errors
     /// * [`InstanceError`] - If the instance cannot be created.
     pub async fn new(urls: UrlBundle) -> ChorusResult<Instance> {
+        let api_url = urls.api.clone();
         let mut instance = Instance {
-            urls: urls.clone(),
+            urls,
             // Will be overwritten in the next step
             instance_info: GeneralConfiguration::default(),
-            limits: Limits::check_limits(urls.api).await,
+            limits: Limits::check_limits(api_url).await.into(),
             client: Client::new(),
         };
         instance.instance_info = match instance.general_configuration_schema().await {
@@ -80,7 +81,7 @@ impl Username {
 
 #[derive(Debug)]
 pub struct UserMeta {
-    pub belongs_to: Rc<RefCell<Instance>>,
+    pub belongs_to: Rc<Instance>,
     pub token: String,
     pub limits: Limits,
     pub settings: UserSettings,
@@ -97,7 +98,7 @@ impl UserMeta {
     }
 
     pub fn new(
-        belongs_to: Rc<RefCell<Instance>>,
+        belongs_to: Rc<Instance>,
         token: String,
         limits: Limits,
         settings: UserSettings,

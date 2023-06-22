@@ -27,11 +27,7 @@ impl types::RoleObject {
         user: &mut UserMeta,
         guild_id: Snowflake,
     ) -> ChorusResult<Option<Vec<RoleObject>>> {
-        let url = format!(
-            "{}/guilds/{}/roles/",
-            user.belongs_to.borrow().urls.api,
-            guild_id
-        );
+        let url = format!("{}/guilds/{}/roles/", user.belongs_to.urls.api, guild_id);
         let request = Client::new().get(url).bearer_auth(user.token());
         let roles = deserialize_response::<Vec<RoleObject>>(
             request,
@@ -68,9 +64,7 @@ impl types::RoleObject {
     ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/{}/",
-            user.belongs_to.borrow().urls.api,
-            guild_id,
-            role_id
+            user.belongs_to.urls.api, guild_id, role_id
         );
         let request = Client::new().get(url).bearer_auth(user.token());
         deserialize_response(request, user, crate::api::limits::LimitType::Guild).await
@@ -96,11 +90,7 @@ impl types::RoleObject {
         guild_id: Snowflake,
         role_create_schema: RoleCreateModifySchema,
     ) -> ChorusResult<RoleObject> {
-        let url = format!(
-            "{}/guilds/{}/roles/",
-            user.belongs_to.borrow().urls.api,
-            guild_id
-        );
+        let url = format!("{}/guilds/{}/roles/", user.belongs_to.urls.api, guild_id);
         let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
             ChorusLibError::FormCreationError {
                 error: e.to_string(),
@@ -130,11 +120,7 @@ impl types::RoleObject {
         guild_id: Snowflake,
         role_position_update_schema: types::RolePositionUpdateSchema,
     ) -> ChorusResult<RoleObject> {
-        let url = format!(
-            "{}/guilds/{}/roles/",
-            user.belongs_to.borrow().urls.api,
-            guild_id
-        );
+        let url = format!("{}/guilds/{}/roles/", user.belongs_to.urls.api, guild_id);
         let body = to_string(&role_position_update_schema).map_err(|e| {
             ChorusLibError::FormCreationError {
                 error: e.to_string(),
@@ -172,9 +158,7 @@ impl types::RoleObject {
     ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/{}",
-            user.belongs_to.borrow().urls.api,
-            guild_id,
-            role_id
+            user.belongs_to.urls.api, guild_id, role_id
         );
         let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
             ChorusLibError::FormCreationError {
