@@ -31,6 +31,7 @@ async fn delete_channel() {
 #[tokio::test]
 async fn modify_channel() {
     let mut bundle = common::setup().await;
+    let channel = &mut bundle.channel;
     let modify_data: types::ChannelModifySchema = types::ChannelModifySchema {
         name: Some("beepboop".to_string()),
         channel_type: None,
@@ -50,10 +51,10 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    let result = Channel::modify(modify_data, bundle.channel.id, &mut bundle.user)
+    Channel::modify(channel, modify_data, channel.id, &mut bundle.user)
         .await
         .unwrap();
-    assert_eq!(result.name, Some("beepboop".to_string()));
+    assert_eq!(channel.name, Some("beepboop".to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([
         PermissionFlags::MANAGE_CHANNELS,
