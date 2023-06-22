@@ -10,7 +10,7 @@ use crate::{
 
 impl Channel {
     pub async fn get(user: &mut UserMeta, channel_id: Snowflake) -> ChorusResult<Channel> {
-        let url = user.belongs_to.borrow_mut().urls.api.clone();
+        let url = user.belongs_to.urls.api.clone();
         let request = Client::new()
             .get(format!("{}/channels/{}/", url, channel_id))
             .bearer_auth(user.token());
@@ -47,8 +47,7 @@ impl Channel {
         let request = Client::new()
             .delete(format!(
                 "{}/channels/{}/",
-                user.belongs_to.borrow_mut().urls.api,
-                self.id
+                user.belongs_to.urls.api, self.id
             ))
             .bearer_auth(user.token());
         common::handle_request_as_result(request, user, crate::api::limits::LimitType::Channel)
@@ -78,8 +77,7 @@ impl Channel {
         let request = Client::new()
             .patch(format!(
                 "{}/channels/{}/",
-                user.belongs_to.borrow().urls.api,
-                channel_id
+                user.belongs_to.urls.api, channel_id
             ))
             .bearer_auth(user.token())
             .body(to_string(&modify_data).unwrap());
@@ -101,8 +99,7 @@ impl Channel {
         let request = Client::new()
             .get(format!(
                 "{}/channels/{}/messages",
-                user.belongs_to.borrow().urls.api,
-                channel_id
+                user.belongs_to.urls.api, channel_id
             ))
             .bearer_auth(user.token())
             .query(&range);

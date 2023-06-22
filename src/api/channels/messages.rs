@@ -25,7 +25,7 @@ impl Message {
         message: &mut MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
     ) -> Result<Message, crate::errors::ChorusLibError> {
-        let url_api = user.belongs_to.borrow().urls.api.clone();
+        let url_api = &user.belongs_to.urls.api;
 
         if files.is_none() {
             let request = Client::new()

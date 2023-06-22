@@ -16,13 +16,7 @@ pub async fn handle_request(
     user: &mut UserMeta,
     limit_type: LimitType,
 ) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-    LimitedRequester::send_request(
-        request,
-        limit_type,
-        &mut user.belongs_to.borrow_mut(),
-        &mut user.limits,
-    )
-    .await
+    LimitedRequester::send_request(request, limit_type, &user.belongs_to, &mut user.limits).await
 }
 
 /// Sends a request to wherever it needs to go. Returns [`Ok(())`] on success and

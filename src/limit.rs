@@ -41,10 +41,14 @@ impl LimitedRequester {
     pub async fn send_request(
         request: RequestBuilder,
         limit_type: LimitType,
-        instance: &mut Instance,
+        instance: &Instance,
         user_rate_limits: &mut Limits,
     ) -> ChorusResult<Response> {
-        if LimitedRequester::can_send_request(limit_type, &instance.limits, user_rate_limits) {
+        if LimitedRequester::can_send_request(
+            limit_type,
+            &instance.limits.borrow(),
+            user_rate_limits,
+        ) {
             let built_request = match request.build() {
                 Ok(request) => request,
                 Err(e) => {
@@ -66,7 +70,7 @@ impl LimitedRequester {
             LimitedRequester::update_limits(
                 &response,
                 limit_type,
-                &mut instance.limits,
+                &mut instance.limits.borrow_mut(),
                 user_rate_limits,
             );
             if !response.status().is_success() {
@@ -257,7 +261,7 @@ mod rate_limit {
             String::from("http://localhost:3001/cdn"),
         );
         let mut request: Option<ChorusResult<Response>> = None;
-        let mut instance = Instance::new(urls.clone()).await.unwrap();
+        let instance = Instance::new(urls.clone()).await.unwrap();
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
 
         for _ in 0..=50 {
@@ -267,7 +271,7 @@ mod rate_limit {
                 LimitedRequester::send_request(
                     request_builder,
                     LimitType::Channel,
-                    &mut instance,
+                    &instance,
                     &mut user_rate_limits,
                 )
                 .await,

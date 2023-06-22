@@ -33,9 +33,7 @@ impl ReactionMeta {
     pub async fn delete_all(&self, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/",
-            user.belongs_to.borrow().urls.api,
-            self.channel_id,
-            self.message_id
+            user.belongs_to.urls.api, self.channel_id, self.message_id
         );
         let request = Client::new().delete(url).bearer_auth(user.token());
         handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
@@ -59,10 +57,7 @@ impl ReactionMeta {
     pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
-            user.belongs_to.borrow().urls.api,
-            self.channel_id,
-            self.message_id,
-            emoji
+            user.belongs_to.urls.api, self.channel_id, self.message_id, emoji
         );
         let request = Client::new().get(url).bearer_auth(user.token());
         handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
@@ -88,10 +83,7 @@ impl ReactionMeta {
     pub async fn delete_emoji(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
-            user.belongs_to.borrow().urls.api,
-            self.channel_id,
-            self.message_id,
-            emoji
+            user.belongs_to.urls.api, self.channel_id, self.message_id, emoji
         );
         let request = Client::new().delete(url).bearer_auth(user.token());
         handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
@@ -119,10 +111,7 @@ impl ReactionMeta {
     pub async fn create(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
-            user.belongs_to.borrow().urls.api,
-            self.channel_id,
-            self.message_id,
-            emoji
+            user.belongs_to.urls.api, self.channel_id, self.message_id, emoji
         );
         let request = Client::new().put(url).bearer_auth(user.token());
         handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
@@ -147,10 +136,7 @@ impl ReactionMeta {
     pub async fn remove(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
-            user.belongs_to.borrow().urls.api,
-            self.channel_id,
-            self.message_id,
-            emoji
+            user.belongs_to.urls.api, self.channel_id, self.message_id, emoji
         );
         let request = Client::new().delete(url).bearer_auth(user.token());
         handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
@@ -183,11 +169,7 @@ impl ReactionMeta {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/{}",
-            user.belongs_to.borrow().urls.api,
-            self.channel_id,
-            self.message_id,
-            emoji,
-            user_id
+            user.belongs_to.urls.api, self.channel_id, self.message_id, emoji, user_id
         );
         let request = Client::new().delete(url).bearer_auth(user.token());
         handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await

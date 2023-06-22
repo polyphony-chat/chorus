@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use reqwest::Client;
 use serde_json::{from_str, json};
@@ -32,7 +32,7 @@ impl Instance {
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since register is an instance wide limit), which is why we are just cloning
         // the instances' limits to pass them on as user_rate_limits later.
-        let mut cloned_limits = self.limits.clone();
+        let mut cloned_limits = self.limits.borrow().clone();
         let response = LimitedRequester::send_request(
             request_builder,
             LimitType::AuthRegister,
@@ -65,7 +65,7 @@ impl Instance {
             .await
             .unwrap();
         let user = UserMeta::new(
-            Rc::new(RefCell::new(self.clone())),
+            Rc::new(self.clone()),
             token.clone(),
             cloned_limits,
             settings,
