@@ -1,5 +1,4 @@
 use chorus::{
-    errors::ChorusResult,
     instance::{Instance, UserMeta},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
