@@ -19,6 +19,4 @@ pub mod limits {
         Guild,
         Webhook,
     }
-
-    
 }
