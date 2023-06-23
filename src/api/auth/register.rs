@@ -7,7 +7,7 @@ use crate::{
     api::limits::LimitType,
     errors::{ChorusLibError, ChorusResult},
     instance::{Instance, Token, UserMeta},
-    limit::LimitedRequester,
+    ratelimiter::LimitedRequester,
     types::{ErrorResponse, RegisterSchema},
 };
 

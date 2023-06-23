@@ -10,7 +10,7 @@ use crate::errors::ChorusLibError;
 use crate::errors::ChorusResult;
 use crate::instance::Instance;
 use crate::instance::UserMeta;
-use crate::limit::LimitedRequester;
+use crate::ratelimiter::LimitedRequester;
 use crate::types::Snowflake;
 use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema};
 

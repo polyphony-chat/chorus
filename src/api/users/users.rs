@@ -5,7 +5,7 @@ use crate::{
     api::{deserialize_response, handle_request_as_result},
     errors::{ChorusLibError, ChorusResult},
     instance::{Instance, UserMeta},
-    limit::LimitedRequester,
+    ratelimiter::LimitedRequester,
     types::{User, UserModifySchema, UserSettings},
 };
 
