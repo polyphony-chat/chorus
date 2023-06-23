@@ -5,7 +5,6 @@ use std::rc::Rc;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::api::limits::Limits;
 use crate::errors::{ChorusLibError, ChorusResult, FieldFormatError};
 use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::UrlBundle;
@@ -17,7 +16,7 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
-    pub limits: Limits,
+    pub limits: Option<Limits>,
     pub client: Client,
 }
 
@@ -28,13 +27,18 @@ impl Instance {
     /// * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
     /// # Errors
     /// * [`InstanceError`] - If the instance cannot be created.
-    pub async fn new(urls: UrlBundle) -> ChorusResult<Instance> {
+    pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
+        let limits;
+        if limited {
+            limits = Some(Limits::check_limits(urls.api).await?);
+        } else {
+            limits = None;
+        }
         let mut instance = Instance {
             urls: urls.clone(),
             // Will be overwritten in the next step
             instance_info: GeneralConfiguration::default(),
-            limits: Limits::check_limits(urls.api).await,
-            client: Client::new(),
+            limits,
         };
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
