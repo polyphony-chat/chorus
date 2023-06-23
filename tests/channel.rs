@@ -13,9 +13,7 @@ async fn get_channel() {
 
     assert_eq!(
         bundle_channel,
-        Channel::get(bundle_user, &bundle_channel.id.to_string())
-            .await
-            .unwrap()
+        Channel::get(bundle_user, bundle_channel.id).await.unwrap()
     );
     common::teardown(bundle).await
 }
@@ -23,7 +21,7 @@ async fn get_channel() {
 #[tokio::test]
 async fn delete_channel() {
     let mut bundle = common::setup().await;
-    let result = bundle.channel.clone().delete(&mut bundle.user).await;
+    let result = Channel::delete(bundle.channel.clone(), &mut bundle.user).await;
     assert!(result.is_ok());
     common::teardown(bundle).await
 }
@@ -31,6 +29,7 @@ async fn delete_channel() {
 #[tokio::test]
 async fn modify_channel() {
     let mut bundle = common::setup().await;
+    let channel = &mut bundle.channel;
     let modify_data: types::ChannelModifySchema = types::ChannelModifySchema {
         name: Some("beepboop".to_string()),
         channel_type: None,
@@ -50,10 +49,10 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    let result = Channel::modify(modify_data, bundle.channel.id, &mut bundle.user)
+    Channel::modify(channel, modify_data, channel.id, &mut bundle.user)
         .await
         .unwrap();
-    assert_eq!(result.name, Some("beepboop".to_string()));
+    assert_eq!(channel.name, Some("beepboop".to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([
         PermissionFlags::MANAGE_CHANNELS,
