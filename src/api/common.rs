@@ -5,25 +5,10 @@ use serde_json::from_str;
 use crate::{
     errors::{ChorusLibError, ChorusResult},
     instance::UserMeta,
-    limit::LimitedRequester,
+    ratelimiter::LimitedRequester,
 };
 
 use super::limits::LimitType;
-
-/// Sends a request to wherever it needs to go and performs some basic error handling.
-pub async fn handle_request(
-    request: RequestBuilder,
-    user: &mut UserMeta,
-    limit_type: LimitType,
-) -> Result<reqwest::Response, crate::errors::ChorusLibError> {
-    LimitedRequester::send_request(
-        request,
-        limit_type,
-        &mut user.belongs_to.borrow_mut(),
-        &mut user.limits,
-    )
-    .await
-}
 
 /// Sends a request to wherever it needs to go. Returns [`Ok(())`] on success and
 /// [`Err(ChorusLibError)`] on failure.
