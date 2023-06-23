@@ -5,7 +5,7 @@ use crate::{
     api::{deserialize_response, handle_request_as_result},
     errors::ChorusResult,
     instance::UserMeta,
-    types::{self, CreateUserRelationshipSchema, RelationshipType},
+    types::{self, CreateUserRelationshipSchema, RelationshipType, Snowflake},
 };
 
 impl UserMeta {
@@ -13,13 +13,13 @@ impl UserMeta {
     ///
     /// # Arguments
     ///
-    /// * `user_id` - A string slice that holds the ID of the user to retrieve the mutual relationships with.
+    /// * `user_id` - ID of the user to retrieve the mutual relationships with.
     ///
     /// # Returns
     /// This function returns a [`ChorusResult<Vec<PublicUser>>`].
     pub async fn get_mutual_relationships(
         &mut self,
-        user_id: &str,
+        user_id: Snowflake,
     ) -> ChorusResult<Vec<types::PublicUser>> {
         let url = format!(
             "{}/users/{}/relationships/",
@@ -78,7 +78,7 @@ impl UserMeta {
     ///
     /// # Arguments
     ///
-    /// * `user_id` - A string slice that holds the ID of the user to modify the relationship with.
+    /// * `user_id` - ID of the user to modify the relationship with.
     /// * `relationship_type` - A [`RelationshipType`] enum that specifies the type of relationship to modify.
     ///     * [`RelationshipType::None`]: Removes the relationship between the two users.
     ///     * [`RelationshipType::Friends`] | [`RelationshipType::Incoming`] | [`RelationshipType::Outgoing`]:
@@ -90,7 +90,7 @@ impl UserMeta {
     /// This function returns an [`Result`] that holds a [`ChorusLibError`] if the request fails.
     pub async fn modify_user_relationship(
         &mut self,
-        user_id: &str,
+        user_id: Snowflake,
         relationship_type: RelationshipType,
     ) -> ChorusResult<()> {
         let api_url = self.belongs_to.borrow().urls.api.clone();
@@ -133,11 +133,11 @@ impl UserMeta {
     ///
     /// # Arguments
     ///
-    /// * `user_id` - A string slice that holds the ID of the user to remove the relationship with.
+    /// * `user_id` - ID of the user to remove the relationship with.
     ///
     /// # Returns
     /// This function returns a [`Result`] that holds a [`ChorusLibError`] if the request fails.
-    pub async fn remove_relationship(&mut self, user_id: &str) -> ChorusResult<()> {
+    pub async fn remove_relationship(&mut self, user_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/{}/",
             self.belongs_to.borrow().urls.api,

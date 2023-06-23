@@ -11,6 +11,7 @@ use crate::errors::ChorusResult;
 use crate::instance::Instance;
 use crate::instance::UserMeta;
 use crate::limit::LimitedRequester;
+use crate::types::Snowflake;
 use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema};
 
 impl Guild {
@@ -48,7 +49,7 @@ impl Guild {
     ///
     /// * `user` - A mutable reference to a `User` instance.
     /// * `instance` - A mutable reference to an `Instance` instance.
-    /// * `guild_id` - A `String` representing the ID of the guild to delete.
+    /// * `guild_id` - ID of the guild to delete.
     ///
     /// # Returns
     ///
@@ -66,7 +67,7 @@ impl Guild {
     ///     None => println!("Guild deleted successfully"),
     /// }
     /// ```
-    pub async fn delete(user: &mut UserMeta, guild_id: &str) -> ChorusResult<()> {
+    pub async fn delete(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/delete/",
             user.belongs_to.borrow().urls.api,
@@ -96,14 +97,12 @@ impl Guild {
         user: &mut UserMeta,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
         Channel::_create(
             &user.token,
-            &format!("{}", belongs_to.urls.api),
-            &self.id.to_string(),
+            self.id,
             schema,
             &mut user.limits,
-            &mut belongs_to,
+            &mut user.belongs_to.borrow_mut(),
         )
         .await
     }
@@ -151,34 +150,26 @@ impl Guild {
     /// # Arguments
     ///
     /// * `url_api` - A string slice that holds the URL of the API.
-    /// * `guild_id` - A string slice that holds the ID of the guild.
+    /// * `guild_id` - ID of the guild.
     /// * `token` - A string slice that holds the authorization token.
     /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
-    pub async fn get(user: &mut UserMeta, guild_id: &str) -> ChorusResult<Guild> {
+    pub async fn get(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<Guild> {
         let mut belongs_to = user.belongs_to.borrow_mut();
-        Guild::_get(
-            &format!("{}", belongs_to.urls.api),
-            guild_id,
-            &user.token,
-            &mut user.limits,
-            &mut belongs_to,
-        )
-        .await
+        Guild::_get(guild_id, &user.token, &mut user.limits, &mut belongs_to).await
     }
 
     /// For internal use. Does the same as the public get method, but does not require a second, mutable
     /// borrow of `UserMeta::belongs_to`, when used in conjunction with other methods, which borrow `UserMeta::belongs_to`.
     async fn _get(
-        url_api: &str,
-        guild_id: &str,
+        guild_id: Snowflake,
         token: &str,
         limits_user: &mut Limits,
         instance: &mut Instance,
     ) -> ChorusResult<Guild> {
         let request = Client::new()
-            .get(format!("{}/guilds/{}/", url_api, guild_id))
+            .get(format!("{}/guilds/{}/", instance.urls.api, guild_id))
             .bearer_auth(token);
         let response = match LimitedRequester::send_request(
             request,
@@ -213,13 +204,12 @@ impl Channel {
     /// A `Result` containing a `reqwest::Response` if the request was successful, or an `ChorusLibError` if there was an error.
     pub async fn create(
         user: &mut UserMeta,
-        guild_id: &str,
+        guild_id: Snowflake,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
         let mut belongs_to = user.belongs_to.borrow_mut();
         Channel::_create(
             &user.token,
-            &format!("{}", belongs_to.urls.api),
             guild_id,
             schema,
             &mut user.limits,
@@ -230,14 +220,16 @@ impl Channel {
 
     async fn _create(
         token: &str,
-        url_api: &str,
-        guild_id: &str,
+        guild_id: Snowflake,
         schema: ChannelCreateSchema,
         limits_user: &mut Limits,
         instance: &mut Instance,
     ) -> ChorusResult<Channel> {
         let request = Client::new()
-            .post(format!("{}/guilds/{}/channels/", url_api, guild_id))
+            .post(format!(
+                "{}/guilds/{}/channels/",
+                instance.urls.api, guild_id
+            ))
             .bearer_auth(token)
             .body(to_string(&schema).unwrap());
         let result = match LimitedRequester::send_request(
@@ -254,7 +246,7 @@ impl Channel {
         match from_str::<Channel>(&result.text().await.unwrap()) {
             Ok(object) => Ok(object),
             Err(e) => Err(ChorusLibError::RequestErrorError {
-                url: format!("{}/guilds/{}/channels/", url_api, guild_id),
+                url: format!("{}/guilds/{}/channels/", instance.urls.api, guild_id),
                 error: e.to_string(),
             }),
         }

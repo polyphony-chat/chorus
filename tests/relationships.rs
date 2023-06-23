@@ -21,7 +21,7 @@ async fn test_get_mutual_relationships() {
     };
     other_user.send_friend_request(friend_request_schema).await;
     let relationships = user
-        .get_mutual_relationships(&other_user.object.id.to_string())
+        .get_mutual_relationships(other_user.object.id)
         .await
         .unwrap();
     println!("{:?}", relationships);
@@ -65,10 +65,7 @@ async fn test_modify_relationship_friends() {
     let user = &mut bundle.user;
     let mut other_user = belongs_to.register_account(&register_schema).await.unwrap();
     other_user
-        .modify_user_relationship(
-            &user.object.id.to_string(),
-            types::RelationshipType::Friends,
-        )
+        .modify_user_relationship(user.object.id, types::RelationshipType::Friends)
         .await;
     let relationships = user.get_relationships().await.unwrap();
     assert_eq!(relationships.get(0).unwrap().id, other_user.object.id);
@@ -82,11 +79,8 @@ async fn test_modify_relationship_friends() {
         relationships.get(0).unwrap().relationship_type,
         RelationshipType::Outgoing
     );
-    user.modify_user_relationship(
-        other_user.object.id.to_string().as_str(),
-        RelationshipType::Friends,
-    )
-    .await;
+    user.modify_user_relationship(other_user.object.id, RelationshipType::Friends)
+        .await;
     assert_eq!(
         other_user
             .get_relationships()
@@ -97,8 +91,7 @@ async fn test_modify_relationship_friends() {
             .relationship_type,
         RelationshipType::Friends
     );
-    user.remove_relationship(other_user.object.id.to_string().as_str())
-        .await;
+    user.remove_relationship(other_user.object.id).await;
     assert_eq!(
         other_user.get_relationships().await.unwrap(),
         Vec::<Relationship>::new()
@@ -120,10 +113,7 @@ async fn test_modify_relationship_block() {
     let user = &mut bundle.user;
     let mut other_user = belongs_to.register_account(&register_schema).await.unwrap();
     other_user
-        .modify_user_relationship(
-            &user.object.id.to_string(),
-            types::RelationshipType::Blocked,
-        )
+        .modify_user_relationship(user.object.id, types::RelationshipType::Blocked)
         .await;
     let relationships = user.get_relationships().await.unwrap();
     assert_eq!(relationships, Vec::<Relationship>::new());
@@ -133,9 +123,7 @@ async fn test_modify_relationship_block() {
         relationships.get(0).unwrap().relationship_type,
         RelationshipType::Blocked
     );
-    other_user
-        .remove_relationship(user.object.id.to_string().as_str())
-        .await;
+    other_user.remove_relationship(user.object.id).await;
     assert_eq!(
         other_user.get_relationships().await.unwrap(),
         Vec::<Relationship>::new()
