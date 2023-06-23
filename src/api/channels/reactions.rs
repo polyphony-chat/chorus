@@ -1,10 +1,10 @@
 use reqwest::Client;
 
 use crate::{
-    api::handle_request_as_result,
+    api::{deserialize_response, handle_request_as_result},
     errors::ChorusResult,
     instance::UserMeta,
-    types::{self, Snowflake},
+    types::{self, PublicUser, Snowflake},
 };
 
 /**
@@ -46,7 +46,7 @@ impl ReactionMeta {
     /// A Result that is [`Err(crate::errors::ChorusLibError)`] if something went wrong.
     /// # Reference
     /// See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
-    pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
+    pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<Vec<PublicUser>> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
             user.belongs_to.borrow().urls.api,
@@ -55,7 +55,12 @@ impl ReactionMeta {
             emoji
         );
         let request = Client::new().get(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        deserialize_response::<Vec<PublicUser>>(
+            request,
+            user,
+            crate::api::limits::LimitType::Channel,
+        )
+        .await
     }
 
     /// Deletes all the reactions for a given `emoji` on a message. This endpoint requires the
