@@ -1,6 +1,11 @@
 use reqwest::Client;
 
-use crate::{api::handle_request_as_result, errors::ChorusResult, instance::UserMeta, types};
+use crate::{
+    api::handle_request_as_result,
+    errors::ChorusResult,
+    instance::UserMeta,
+    types::{self, Snowflake},
+};
 
 /**
 Useful metadata for working with [`types::Reaction`], bundled together nicely.
@@ -157,7 +162,7 @@ impl ReactionMeta {
     This endpoint requires the MANAGE_MESSAGES permission to be present on the current user.
 
     # Arguments
-    * `user_id` - A string slice containing the ID of the user whose reaction is to be deleted.
+    * `user_id` - ID of the user whose reaction is to be deleted.
     * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
     the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
     format name:id with the emoji name and emoji id.
@@ -172,7 +177,7 @@ impl ReactionMeta {
      */
     pub async fn delete_user(
         &self,
-        user_id: &str,
+        user_id: Snowflake,
         emoji: &str,
         user: &mut UserMeta,
     ) -> ChorusResult<()> {

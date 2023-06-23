@@ -4,7 +4,7 @@ use crate::{
     api::{deserialize_response, handle_request_as_result},
     errors::ChorusResult,
     instance::UserMeta,
-    types,
+    types::{self, Snowflake},
 };
 
 impl types::GuildMember {
@@ -21,8 +21,8 @@ impl types::GuildMember {
     /// A [`Result`] containing a [`GuildMember`] if the request succeeds, or a [`ChorusLibError`] if the request fails.
     pub async fn get(
         user: &mut UserMeta,
-        guild_id: &str,
-        member_id: &str,
+        guild_id: Snowflake,
+        member_id: Snowflake,
     ) -> ChorusResult<types::GuildMember> {
         let url = format!(
             "{}/guilds/{}/members/{}/",
@@ -53,9 +53,9 @@ impl types::GuildMember {
     /// An `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
     pub async fn add_role(
         user: &mut UserMeta,
-        guild_id: &str,
-        member_id: &str,
-        role_id: &str,
+        guild_id: Snowflake,
+        member_id: Snowflake,
+        role_id: Snowflake,
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
@@ -82,9 +82,9 @@ impl types::GuildMember {
     /// A `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
     pub async fn remove_role(
         user: &mut UserMeta,
-        guild_id: &str,
-        member_id: &str,
-        role_id: &str,
+        guild_id: Snowflake,
+        member_id: Snowflake,
+        role_id: Snowflake,
     ) -> Result<(), crate::errors::ChorusLibError> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
