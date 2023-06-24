@@ -10,7 +10,7 @@ backend = ["poem", "sqlx"]
 client = []
 
 [dependencies]
-tokio = {version = "1.28.1", features = ["rt", "macros", "rt-multi-thread", "full"]}
+tokio = {version = "1.28.1"}
 serde = {version = "1.0.163", features = ["derive"]}
 serde_json = {version= "1.0.96", features = ["raw_value"]}
 serde-aux = "4.2.0"
@@ -36,5 +36,6 @@ thiserror = "1.0.40"
 jsonwebtoken = "8.3.0"
 
 [dev-dependencies]
+tokio = {version = "1.28.1", features = ["full"]}
 lazy_static = "1.4.0"
 rusty-hook = "0.11.2"
