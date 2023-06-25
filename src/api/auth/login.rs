@@ -26,16 +26,12 @@ impl Instance {
             self,
             &mut cloned_limits,
         )
-        .await;
-        if response.is_err() {
-            return Err(ChorusLibError::NoResponse);
-        }
+        .await?;
 
-        let response_unwrap = response.unwrap();
-        let status = response_unwrap.status();
-        let response_text_string = response_unwrap.text().await.unwrap();
+        let status = response.status();
+        let response_text = response.text().await.unwrap();
         if status.is_client_error() {
-            let json: ErrorResponse = serde_json::from_str(&response_text_string).unwrap();
+            let json: ErrorResponse = serde_json::from_str(&response_text).unwrap();
             let error_type = json.errors.errors.iter().next().unwrap().0.to_owned();
             let mut error = "".to_string();
             for (_, value) in json.errors.errors.iter() {
@@ -47,11 +43,8 @@ impl Instance {
         }
 
         let cloned_limits = self.limits.clone();
-        let login_result: LoginResult = from_str(&response_text_string).unwrap();
-        let object = self
-            .get_user(login_result.token.clone(), None)
-            .await
-            .unwrap();
+        let login_result: LoginResult = from_str(&response_text).unwrap();
+        let object = self.get_user(login_result.token.clone(), None).await?;
         let user = UserMeta::new(
             Rc::new(RefCell::new(self.clone())),
             login_result.token,

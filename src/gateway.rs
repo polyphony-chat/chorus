@@ -1879,7 +1879,7 @@ mod example {
 
     #[derive(Debug)]
     struct Consumer {
-        name: String,
+        _name: String,
         events_received: AtomicI32,
     }
 
@@ -1900,13 +1900,13 @@ mod example {
         };
 
         let consumer = Arc::new(Consumer {
-            name: "first".into(),
+            _name: "first".into(),
             events_received: 0.into(),
         });
         event.subscribe(consumer.clone());
 
         let second_consumer = Arc::new(Consumer {
-            name: "second".into(),
+            _name: "second".into(),
             events_received: 0.into(),
         });
         event.subscribe(second_consumer.clone());
