@@ -23,7 +23,7 @@ pub struct LoginSchema {
     pub login: String,
     /// For Discord, must be between 1 and 72 characters,
     /// but other servers may have different limits.
-    pub password: Option<String>,
+    pub password: String,
     pub undelete: Option<bool>,
     pub captcha_key: Option<String>,
     pub login_source: Option<String>,
