@@ -86,7 +86,7 @@ impl Username {
 pub struct UserMeta {
     pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,
-    pub limits: Limits,
+    pub limits: Ratelimits,
     pub settings: UserSettings,
     pub object: User,
 }
