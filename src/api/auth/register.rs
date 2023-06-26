@@ -39,15 +39,11 @@ impl Instance {
             self,
             &mut cloned_limits,
         )
-        .await;
-        if response.is_err() {
-            return Err(ChorusLibError::NoResponse);
-        }
+        .await?;
 
-        let response_unwrap = response.unwrap();
-        let status = response_unwrap.status();
-        let response_unwrap_text = response_unwrap.text().await.unwrap();
-        let token = from_str::<Token>(&response_unwrap_text).unwrap();
+        let status = response.status();
+        let response_text = response.text().await.unwrap();
+        let token = from_str::<Token>(&response_text).unwrap();
         let token = token.token;
         if status.is_client_error() {
             let json: ErrorResponse = serde_json::from_str(&token).unwrap();
@@ -61,9 +57,7 @@ impl Instance {
             return Err(ChorusLibError::InvalidFormBodyError { error_type, error });
         }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
-        let settings = UserMeta::get_settings(&token, &self.urls.api.clone(), self)
-            .await
-            .unwrap();
+        let settings = UserMeta::get_settings(&token, &self.urls.api.clone(), self).await?;
         let user = UserMeta::new(
             Rc::new(RefCell::new(self.clone())),
             token.clone(),
