@@ -5,6 +5,7 @@ use crate::{
     api::limits::LimitType,
     errors::{ChorusLibError, ChorusResult},
     instance::UserMeta,
+    types::LimitsConfiguration,
 };
 
 pub struct ChorusRequest {
@@ -47,4 +48,6 @@ impl ChorusRequest {
     fn interpret_error(response: reqwest::Response) -> ChorusLibError {}
 
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType) {}
+
+    async fn get_rate_limits(url_api: &str) -> LimitsConfiguration {}
 }
