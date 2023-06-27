@@ -5,6 +5,7 @@ use std::rc::Rc;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
+use crate::api::limits::Ratelimits;
 use crate::errors::{ChorusLibError, ChorusResult, FieldFormatError};
 use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::UrlBundle;
@@ -103,7 +104,7 @@ impl UserMeta {
     pub fn new(
         belongs_to: Rc<RefCell<Instance>>,
         token: String,
-        limits: Limits,
+        limits: Ratelimits,
         settings: UserSettings,
         object: User,
     ) -> UserMeta {
