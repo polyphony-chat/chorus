@@ -17,7 +17,7 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
-    pub limits: Option<Limits>,
+    pub limits: Option<Ratelimits>,
     pub client: Client,
 }
 
