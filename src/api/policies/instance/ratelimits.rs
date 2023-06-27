@@ -3,8 +3,6 @@ pub mod limits {
     pub enum LimitType {
         AuthRegister,
         AuthLogin,
-        AbsoluteMessage,
-        AbsoluteRegister,
         #[default]
         Global,
         Ip,
@@ -14,7 +12,16 @@ pub mod limits {
         Webhook,
     }
 
-    pub struct Ratelimits;
+    pub struct Ratelimits {
+        pub auth_register: Limit,
+        pub auth_login: Limit,
+        pub global: Limit,
+        pub ip: Limit,
+        pub channel: Limit,
+        pub error: Limit,
+        pub guild: Limit,
+        pub webhook: Limit,
+    }
 
     pub struct Limit {
         pub bucket: LimitType,
