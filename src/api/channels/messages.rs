@@ -4,6 +4,7 @@ use reqwest::{multipart, Client};
 use serde_json::to_string;
 
 use crate::api::deserialize_response;
+use crate::errors::ChorusResult;
 use crate::instance::UserMeta;
 use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment, Snowflake};
 
@@ -24,7 +25,7 @@ impl Message {
         channel_id: Snowflake,
         message: &mut MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<Message, crate::errors::ChorusLibError> {
+    ) -> ChorusResult<Message> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
 
         if files.is_none() {
@@ -91,7 +92,7 @@ impl UserMeta {
         message: &mut MessageSendSchema,
         channel_id: Snowflake,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<Message, crate::errors::ChorusLibError> {
+    ) -> ChorusResult<Message> {
         Message::send(self, channel_id, message, files).await
     }
 }

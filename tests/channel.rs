@@ -1,33 +1,32 @@
-use chorus::types::{
-    self, Channel, GetChannelMessagesSchema, MessageSendSchema, PermissionFlags,
-    PermissionOverwrite, Snowflake,
+use chorus::{
+    errors::ChorusResult,
+    types::{
+        self, Channel, GetChannelMessagesSchema, MessageSendSchema, PermissionFlags,
+        PermissionOverwrite, Snowflake,
+    },
 };
 
 mod common;
 
 #[tokio::test]
-async fn get_channel() {
+async fn get_channel() -> ChorusResult<()> {
     let mut bundle = common::setup().await;
-    let bundle_channel = bundle.channel.clone();
-    let bundle_user = &mut bundle.user;
-
     assert_eq!(
-        bundle_channel,
-        Channel::get(bundle_user, bundle_channel.id).await.unwrap()
+        bundle.channel,
+        Channel::get(&mut bundle.user, bundle.channel.id).await?
     );
     common::teardown(bundle).await
 }
 
 #[tokio::test]
-async fn delete_channel() {
+async fn delete_channel() -> ChorusResult<()> {
     let mut bundle = common::setup().await;
-    let result = Channel::delete(bundle.channel.clone(), &mut bundle.user).await;
-    assert!(result.is_ok());
+    Channel::delete(bundle.channel.clone(), &mut bundle.user).await?;
     common::teardown(bundle).await
 }
 
 #[tokio::test]
-async fn modify_channel() {
+async fn modify_channel() -> ChorusResult<()> {
     let mut bundle = common::setup().await;
     let channel = &mut bundle.channel;
     let modify_data: types::ChannelModifySchema = types::ChannelModifySchema {
@@ -49,9 +48,7 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    Channel::modify(channel, modify_data, channel.id, &mut bundle.user)
-        .await
-        .unwrap();
+    Channel::modify(channel, modify_data, channel.id, &mut bundle.user).await?;
     assert_eq!(channel.name, Some("beepboop".to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([
@@ -70,18 +67,15 @@ async fn modify_channel() {
         bundle.channel.id,
         permission_override.clone(),
     )
-    .await
-    .unwrap();
+    .await?;
 
-    Channel::delete_permission(&mut bundle.user, bundle.channel.id, permission_override.id)
-        .await
-        .unwrap();
+    Channel::delete_permission(&mut bundle.user, bundle.channel.id, permission_override.id).await?;
 
     common::teardown(bundle).await
 }
 
 #[tokio::test]
-async fn get_channel_messages() {
+async fn get_channel_messages() -> ChorusResult<()> {
     let mut bundle = common::setup().await;
 
     // First create some messages to read
@@ -96,8 +90,7 @@ async fn get_channel_messages() {
                 bundle.channel.id,
                 None,
             )
-            .await
-            .unwrap();
+            .await?;
     }
 
     assert_eq!(
@@ -106,8 +99,7 @@ async fn get_channel_messages() {
             bundle.channel.id,
             &mut bundle.user,
         )
-        .await
-        .unwrap()
+        .await?
         .len(),
         10
     );
@@ -119,8 +111,7 @@ async fn get_channel_messages() {
     //         bundle.channel.id,
     //         &mut bundle.user,
     //     )
-    //     .await
-    //     .unwrap()
+    //     .await?
     //     .len(),
     //     5
     // );
@@ -130,8 +121,7 @@ async fn get_channel_messages() {
         bundle.channel.id,
         &mut bundle.user,
     )
-    .await
-    .unwrap()
+    .await?
     .is_empty());
 
     common::teardown(bundle).await
