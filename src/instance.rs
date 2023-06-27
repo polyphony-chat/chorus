@@ -1,11 +1,12 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::api::limits::Ratelimits;
+use crate::api::limits::{Limit, LimitType, Ratelimits};
 use crate::errors::{ChorusLibError, ChorusResult, FieldFormatError};
 use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::UrlBundle;
@@ -17,7 +18,7 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
-    pub limits: Option<Ratelimits>,
+    pub limits: Option<HashMap<LimitType, Limit>>,
     pub client: Client,
 }
 
@@ -87,7 +88,7 @@ impl Username {
 pub struct UserMeta {
     pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,
-    pub limits: Ratelimits,
+    pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: UserSettings,
     pub object: User,
 }
