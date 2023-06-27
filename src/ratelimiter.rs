@@ -18,8 +18,7 @@ pub struct ChorusRequest {
 impl ChorusRequest {
     pub async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
         let belongs_to = user.belongs_to.borrow();
-        if belongs_to.limits.is_some()
-            && !ChorusRequest::can_send_request(belongs_to.limits.unwrap(), &self.limit_type)
+        if belongs_to.limits.is_some() && !ChorusRequest::can_send_request(&user, &self.limit_type)
         {
             return Err(ChorusLibError::RateLimited {
                 bucket: format!("{:?}", self.limit_type),
@@ -38,16 +37,49 @@ impl ChorusRequest {
             }
         };
         drop(belongs_to);
-        if !result.status().is_success() {
-            return Err(ChorusRequest::interpret_error(result));
-        }
         ChorusRequest::update_rate_limits(user, &self.limit_type);
+        if !result.status().is_success() {
+            if result.status().as_u16() == 429 {
+                user.limits.get_mut(self.limit_type.clone()).remaining = 0;
+            }
+            return Err(ChorusRequest::interpret_error(result).await);
+        }
         Ok(result)
     }
 
-    fn can_send_request(ratelimits: &Ratelimits, limit_type: &LimitType) -> bool {}
+    fn can_send_request(user: &UserMeta, limit_type: &LimitType) -> bool {
+        !user.limits.is_exhausted(limit_type)
+            && !user
+                .belongs_to
+                .borrow()
+                .limits
+                .unwrap()
+                .is_exhausted(limit_type)
+    }
 
-    fn interpret_error(response: reqwest::Response) -> ChorusLibError {}
+    async fn interpret_error(response: reqwest::Response) -> ChorusLibError {
+        match response.status().as_u16() {
+            200..=299 => ChorusLibError::InvalidArgumentsError {
+                error: "You somehow passed a successful request into this function, which is not allowed."
+                    .to_string(),
+            },
+            401..=403 | 407 => ChorusLibError::NoPermission,
+            404 => ChorusLibError::NotFound {
+                error: response.text().await.unwrap(),
+            },
+            405 | 408 | 409 => ChorusLibError::RequestErrorError {
+                url: response.url().to_string(),
+                error: response.text().await.unwrap(),
+            },
+            411..=421 | 426 | 428 | 431 => ChorusLibError::InvalidArgumentsError {
+                error: response.text().await.unwrap(),
+            },
+            429 => panic!("Illegal state: Rate limit exception should have been caught before this function call."),
+            451 => ChorusLibError::NoResponse,
+            500..=599 => ChorusLibError::ReceivedErrorCodeError { error_code: format!("{}", response.status().as_u16()) },
+            _ => ChorusLibError::RequestErrorError { url: response.url().to_string(), error: response.text().await.unwrap() }
+        }
+    }
 
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType) {}
 
