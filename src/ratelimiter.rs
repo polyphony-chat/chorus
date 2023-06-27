@@ -1,10 +1,11 @@
-use std::fmt::format;
+use std::collections::HashMap;
 
 use reqwest::{Client, RequestBuilder, Response};
 use serde_json::from_str;
+use strum::IntoEnumIterator;
 
 use crate::{
-    api::limits::{Limit, LimitType, Ratelimits},
+    api::limits::{Limit, LimitType},
     errors::{ChorusLibError, ChorusResult},
     instance::UserMeta,
     types::LimitsConfiguration,
@@ -40,7 +41,12 @@ impl ChorusRequest {
         ChorusRequest::update_rate_limits(user, &self.limit_type);
         if !result.status().is_success() {
             if result.status().as_u16() == 429 {
-                user.limits.get_mut(self.limit_type.clone()).remaining = 0;
+                user.limits
+                    .as_mut()
+                    .unwrap()
+                    .get_mut(&self.limit_type)
+                    .unwrap()
+                    .remaining = 0;
             }
             return Err(ChorusRequest::interpret_error(result).await);
         }
@@ -48,13 +54,27 @@ impl ChorusRequest {
     }
 
     fn can_send_request(user: &UserMeta, limit_type: &LimitType) -> bool {
-        !user.limits.is_exhausted(limit_type)
-            && !user
-                .belongs_to
-                .borrow()
-                .limits
-                .unwrap()
-                .is_exhausted(limit_type)
+        let belongs_to = user.belongs_to.borrow();
+        if belongs_to.limits.is_none() {
+            return true;
+        }
+        let global = belongs_to
+            .limits
+            .as_ref()
+            .unwrap()
+            .get(&LimitType::Global)
+            .unwrap();
+        let ip = belongs_to
+            .limits
+            .as_ref()
+            .unwrap()
+            .get(&LimitType::Ip)
+            .unwrap();
+        let limit_type = belongs_to.limits.as_ref().unwrap().get(limit_type).unwrap();
+        if global.remaining == 0 || ip.remaining == 0 || limit_type.remaining == 0 {
+            return false;
+        }
+        true
     }
 
     async fn interpret_error(response: reqwest::Response) -> ChorusLibError {
@@ -83,7 +103,9 @@ impl ChorusRequest {
 
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType) {}
 
-    pub async fn check_rate_limits(url_api: &str) -> ChorusResult<Option<Ratelimits>> {
+    pub async fn check_rate_limits(
+        url_api: &str,
+    ) -> ChorusResult<Option<HashMap<LimitType, Limit>>> {
         let request = Client::new()
             .get(format!("{}/policies/instance/limits/", url_api))
             .send()
@@ -118,68 +140,74 @@ impl ChorusRequest {
             }
         };
 
-        Ok(ChorusRequest::limits_config_to_ratelimits(
+        Ok(ChorusRequest::limits_config_to_hashmap(
             limits_configuration,
         ))
     }
 
-    fn limits_config_to_ratelimits(
+    fn limits_config_to_hashmap(
         limits_configuration: LimitsConfiguration,
-    ) -> Option<Ratelimits> {
+    ) -> Option<HashMap<LimitType, Limit>> {
         if !limits_configuration.rate.enabled {
             return None;
         }
         let config = limits_configuration.rate;
         let routes = config.routes;
-        Some(Ratelimits {
-            auth_register: Limit {
-                bucket: LimitType::AuthRegister,
-                limit: routes.auth.register.count,
-                remaining: routes.auth.register.count,
-                reset: routes.auth.register.window,
-            },
-            auth_login: Limit {
+        let mut map: HashMap<LimitType, Limit> = HashMap::new();
+        map.insert(
+            LimitType::AuthLogin,
+            Limit {
                 bucket: LimitType::AuthLogin,
                 limit: routes.auth.login.count,
                 remaining: routes.auth.login.count,
                 reset: routes.auth.login.window,
             },
-            global: Limit {
-                bucket: LimitType::Global,
-                limit: config.global.count,
-                remaining: config.global.count - 1, // We have used 1 request to get this info
-                reset: config.global.window,
+        );
+        map.insert(
+            LimitType::AuthRegister,
+            Limit {
+                bucket: LimitType::AuthRegister,
+                limit: routes.auth.register.count,
+                remaining: routes.auth.register.count,
+                reset: routes.auth.register.window,
             },
-            ip: Limit {
-                bucket: LimitType::Ip,
-                limit: config.ip.count,
-                remaining: config.ip.count - 1, // Same here
-                reset: config.ip.window,
-            },
-            channel: Limit {
+        );
+        map.insert(
+            LimitType::Channel,
+            Limit {
                 bucket: LimitType::Channel,
                 limit: routes.channel.count,
                 remaining: routes.channel.count,
                 reset: routes.channel.window,
             },
-            error: Limit {
+        );
+        map.insert(
+            LimitType::Error,
+            Limit {
                 bucket: LimitType::Error,
                 limit: config.error.count,
                 remaining: config.error.count,
                 reset: config.error.window,
             },
-            guild: Limit {
-                bucket: LimitType::Guild,
-                limit: routes.guild.count,
-                remaining: routes.guild.count,
-                reset: routes.guild.window,
+        );
+        map.insert(
+            LimitType::Global,
+            Limit {
+                bucket: LimitType::Global,
+                limit: config.global.count,
+                remaining: config.global.count,
+                reset: config.global.window,
             },
-            webhook: Limit {
-                bucket: LimitType::Webhook,
-                limit: routes.webhook.count,
-                remaining: routes.webhook.count,
-                reset: routes.webhook.window,
+        );
+        map.insert(
+            LimitType::Ip,
+            Limit {
+                bucket: LimitType::Ip,
+                limit: config.ip.count,
+                remaining: config.ip.count,
+                reset: config.ip.window,
             },
-        })
+        );
+        Some(map)
     }
 }
