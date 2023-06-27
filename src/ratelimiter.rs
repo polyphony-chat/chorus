@@ -1,4 +1,3 @@
-use http::response;
 use reqwest::{RequestBuilder, Response};
 
 use crate::{
