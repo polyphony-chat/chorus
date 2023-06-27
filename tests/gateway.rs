@@ -5,9 +5,7 @@ use chorus::types;
 #[tokio::test]
 /// Tests establishing a connection (hello and heartbeats) on the local gateway;
 async fn test_gateway_establish() {
-    let bundle = common::setup().await;
-
-    Gateway::new(bundle.urls.wss).await.unwrap();
+    Gateway::new(common::WSS.into()).await.unwrap();
 }
 
 #[tokio::test]
@@ -15,10 +13,13 @@ async fn test_gateway_establish() {
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
-    let gateway = Gateway::new(bundle.urls.wss).await.unwrap();
+    let gateway = Gateway::new(common::WSS.into()).await.unwrap();
 
     let mut identify = types::GatewayIdentifyPayload::common();
-    identify.token = bundle.user.token;
+    identify.token = bundle.user.token.clone();
 
     gateway.send_identify(identify).await;
+
+    // TODO: Trying to teardown the bundle hangs?
+    // common::teardown(bundle).await.unwrap();
 }

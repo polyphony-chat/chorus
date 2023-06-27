@@ -1,9 +1,9 @@
-use chorus::types::RegisterSchema;
+use chorus::{errors::ChorusResult, types::RegisterSchema};
 
 mod common;
 
 #[tokio::test]
-async fn test_registration() {
+async fn test_registration() -> ChorusResult<()> {
     let mut bundle = common::setup().await;
     let reg = RegisterSchema {
         username: "Hiiii".into(),
@@ -11,6 +11,6 @@ async fn test_registration() {
         consent: true,
         ..Default::default()
     };
-    bundle.instance.register_account(&reg).await.unwrap();
-    common::teardown(bundle).await;
+    bundle.instance.register_account(&reg).await?;
+    common::teardown(bundle).await
 }
