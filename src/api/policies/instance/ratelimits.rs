@@ -16,5 +16,10 @@ pub mod limits {
 
     pub struct Ratelimits;
 
-    pub struct Limit {}
+    pub struct Limit {
+        pub bucket: LimitType,
+        pub limit: u64,
+        pub remaining: u64,
+        pub reset: u64,
+    }
 }
