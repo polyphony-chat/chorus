@@ -101,11 +101,53 @@ impl ChorusRequest {
         }
     }
 
-    fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType) {}
+    fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType) {
+        let mut belongs_to = user.belongs_to.borrow_mut();
+        if belongs_to.limits.is_none() {
+            return;
+        }
+        let instance_dictated_limits = [&LimitType::AuthLogin, &LimitType::AuthRegister];
+        let user_dictated_limits = [
+            &LimitType::Channel,
+            &LimitType::Error,
+            &LimitType::Guild,
+            &LimitType::Webhook,
+        ];
 
-    pub async fn check_rate_limits(
-        url_api: &str,
-    ) -> ChorusResult<Option<HashMap<LimitType, Limit>>> {
+        if instance_dictated_limits.contains(&limit_type) {
+            belongs_to
+                .limits
+                .as_mut()
+                .unwrap()
+                .get_mut(limit_type)
+                .unwrap()
+                .remaining -= 1;
+        } else {
+            user.limits
+                .as_mut()
+                .unwrap()
+                .get_mut(limit_type)
+                .unwrap()
+                .remaining -= 1;
+        }
+        belongs_to
+            .limits
+            .as_mut()
+            .unwrap()
+            .get_mut(&LimitType::Global)
+            .unwrap()
+            .remaining -= 1;
+        belongs_to
+            .limits
+            .as_mut()
+            .unwrap()
+            .get_mut(&LimitType::Ip)
+            .unwrap()
+            .remaining -= 1;
+        true
+    }
+
+    pub async fn get_rate_limits(url_api: &str) -> ChorusResult<Option<HashMap<LimitType, Limit>>> {
         let request = Client::new()
             .get(format!("{}/policies/instance/limits/", url_api))
             .send()
