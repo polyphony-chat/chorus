@@ -7,7 +7,6 @@ use serde_json::{from_str, json};
 use crate::api::limits::LimitType;
 use crate::errors::{ChorusLibError, ChorusResult};
 use crate::instance::{Instance, UserMeta};
-use crate::ratelimiter::LimitedRequester;
 use crate::types::{ErrorResponse, LoginResult, LoginSchema};
 
 impl Instance {
