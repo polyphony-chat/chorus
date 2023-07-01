@@ -8,6 +8,7 @@ use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
+use log::{debug, info, trace, warn};
 use native_tls::TlsConnector;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::error::TryRecvError;
@@ -191,7 +192,7 @@ impl GatewayHandle {
     pub async fn send_identify(&self, to_send: types::GatewayIdentifyPayload) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        println!("GW: Sending Identify..");
+        trace!("GW: Sending Identify..");
 
         self.send_json_event(GATEWAY_IDENTIFY, to_send_value).await;
     }
@@ -200,7 +201,7 @@ impl GatewayHandle {
     pub async fn send_resume(&self, to_send: types::GatewayResume) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        println!("GW: Sending Resume..");
+        trace!("GW: Sending Resume..");
 
         self.send_json_event(GATEWAY_RESUME, to_send_value).await;
     }
@@ -209,7 +210,7 @@ impl GatewayHandle {
     pub async fn send_update_presence(&self, to_send: types::UpdatePresence) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        println!("GW: Sending Update Presence..");
+        trace!("GW: Sending Update Presence..");
 
         self.send_json_event(GATEWAY_UPDATE_PRESENCE, to_send_value)
             .await;
@@ -219,7 +220,7 @@ impl GatewayHandle {
     pub async fn send_request_guild_members(&self, to_send: types::GatewayRequestGuildMembers) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        println!("GW: Sending Request Guild Members..");
+        trace!("GW: Sending Request Guild Members..");
 
         self.send_json_event(GATEWAY_REQUEST_GUILD_MEMBERS, to_send_value)
             .await;
@@ -229,7 +230,7 @@ impl GatewayHandle {
     pub async fn send_update_voice_state(&self, to_send: types::UpdateVoiceState) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        println!("GW: Sending Update Voice State..");
+        trace!("GW: Sending Update Voice State..");
 
         self.send_json_event(GATEWAY_UPDATE_VOICE_STATE, to_send_value)
             .await;
@@ -239,7 +240,7 @@ impl GatewayHandle {
     pub async fn send_call_sync(&self, to_send: types::CallSync) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        println!("GW: Sending Call Sync..");
+        trace!("GW: Sending Call Sync..");
 
         self.send_json_event(GATEWAY_CALL_SYNC, to_send_value).await;
     }
@@ -248,7 +249,7 @@ impl GatewayHandle {
     pub async fn send_lazy_request(&self, to_send: types::LazyRequest) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
-        println!("GW: Sending Lazy Request..");
+        trace!("GW: Sending Lazy Request..");
 
         self.send_json_event(GATEWAY_LAZY_REQUEST, to_send_value)
             .await;
@@ -318,7 +319,7 @@ impl Gateway {
             });
         }
 
-        println!("GW: Received Hello");
+        info!("GW: Received Hello");
 
         let gateway_hello: types::HelloData =
             serde_json::from_str(gateway_payload.event_data.unwrap().get()).unwrap();
@@ -367,7 +368,7 @@ impl Gateway {
             }
 
             // We couldn't receive the next message or it was an error, something is wrong with the websocket, close
-            println!("GW: Websocket is broken, stopping gateway");
+            warn!("GW: Websocket is broken, stopping gateway");
             break;
         }
     }
@@ -401,7 +402,7 @@ impl Gateway {
         }
 
         if !msg.is_error() && !msg.is_payload() {
-            println!(
+            warn!(
                 "Message unrecognised: {:?}, please open an issue on the chorus github",
                 msg.message.to_string()
             );
@@ -410,11 +411,9 @@ impl Gateway {
 
         // To:do: handle errors in a good way, maybe observers like events?
         if msg.is_error() {
-            println!("GW: Received error, connection will close..");
+            warn!("GW: Received error, connection will close..");
 
             let _error = msg.error();
-
-            {}
 
             self.close().await;
             return;
@@ -428,7 +427,7 @@ impl Gateway {
             GATEWAY_DISPATCH => {
                 let gateway_payload_t = gateway_payload.clone().event_name.unwrap();
 
-                println!("GW: Received {}..", gateway_payload_t);
+                trace!("GW: Received {}..", gateway_payload_t);
 
                 //println!("Event data dump: {}", gateway_payload.d.clone().unwrap().get());
 
@@ -443,7 +442,7 @@ impl Gateway {
                                 .await;
 
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -459,7 +458,7 @@ impl Gateway {
                                 .await;
 
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -481,7 +480,7 @@ impl Gateway {
                                 .await;
 
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -495,7 +494,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -509,7 +508,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -523,7 +522,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -537,7 +536,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -551,7 +550,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -565,7 +564,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -579,7 +578,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -593,7 +592,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -607,7 +606,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -621,7 +620,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -635,7 +634,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -649,7 +648,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -663,7 +662,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -677,7 +676,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -691,7 +690,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -705,7 +704,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -719,7 +718,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -733,7 +732,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -747,7 +746,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -761,7 +760,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -775,7 +774,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -789,7 +788,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -803,7 +802,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -817,7 +816,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -831,7 +830,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -845,7 +844,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -859,7 +858,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -873,7 +872,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -887,7 +886,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -901,7 +900,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -915,7 +914,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -929,7 +928,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -943,7 +942,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -957,7 +956,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -971,7 +970,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -985,7 +984,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -999,7 +998,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1014,7 +1013,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1033,7 +1032,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1047,7 +1046,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1061,7 +1060,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1075,7 +1074,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1089,7 +1088,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1103,7 +1102,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1117,7 +1116,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1131,7 +1130,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1145,7 +1144,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1159,7 +1158,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1173,7 +1172,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1187,7 +1186,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1201,7 +1200,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1215,7 +1214,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1229,7 +1228,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1243,7 +1242,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1257,7 +1256,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1271,7 +1270,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1285,7 +1284,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1299,7 +1298,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1313,7 +1312,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1327,7 +1326,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1341,7 +1340,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1353,7 +1352,7 @@ impl Gateway {
                         let result: Result<Vec<types::Session>, serde_json::Error> =
                             serde_json::from_str(gateway_payload.event_data.unwrap().get());
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1373,7 +1372,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1387,7 +1386,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1401,7 +1400,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1415,7 +1414,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1429,7 +1428,7 @@ impl Gateway {
                             Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
                                 .await;
                         if result.is_err() {
-                            println!(
+                            warn!(
                                 "Failed to parse gateway event {} ({})",
                                 gateway_payload_t,
                                 result.err().unwrap()
@@ -1438,14 +1437,14 @@ impl Gateway {
                         }
                     }
                     _ => {
-                        println!("Received unrecognized gateway event ({})! Please open an issue on the chorus github so we can implement it", &gateway_payload_t);
+                        warn!("Received unrecognized gateway event ({})! Please open an issue on the chorus github so we can implement it", &gateway_payload_t);
                     }
                 }
             }
             // We received a heartbeat from the server
             // "Discord may send the app a Heartbeat (opcode 1) event, in which case the app should send a Heartbeat event immediately."
             GATEWAY_HEARTBEAT => {
-                println!("GW: Received Heartbeat // Heartbeat Request");
+                trace!("GW: Received Heartbeat // Heartbeat Request");
 
                 // Tell the heartbeat handler it should send a heartbeat right away
 
@@ -1469,10 +1468,10 @@ impl Gateway {
             // Starts our heartbeat
             // We should have already handled this in gateway init
             GATEWAY_HELLO => {
-                panic!("Received hello when it was unexpected");
+                warn!("Received hello when it was unexpected");
             }
             GATEWAY_HEARTBEAT_ACK => {
-                println!("GW: Received Heartbeat ACK");
+                trace!("GW: Received Heartbeat ACK");
 
                 // Tell the heartbeat handler we received an ack
 
@@ -1500,7 +1499,7 @@ impl Gateway {
                 Err::<(), GatewayError>(error).unwrap();
             }
             _ => {
-                println!("Received unrecognized gateway op code ({})! Please open an issue on the chorus github so we can implement it", gateway_payload.op_code);
+                warn!("Received unrecognized gateway op code ({})! Please open an issue on the chorus github so we can implement it", gateway_payload.op_code);
             }
         }
 
@@ -1588,6 +1587,7 @@ impl HeartbeatHandler {
         loop {
             let should_shutdown = kill_receive.try_recv().is_ok();
             if should_shutdown {
+                trace!("GW: Closing heartbeat task");
                 break;
             }
 
@@ -1627,11 +1627,11 @@ impl HeartbeatHandler {
                 && last_heartbeat_timestamp.elapsed().as_millis() > HEARTBEAT_ACK_TIMEOUT
             {
                 should_send = true;
-                println!("GW: Timed out waiting for a heartbeat ack, resending");
+                info!("GW: Timed out waiting for a heartbeat ack, resending");
             }
 
             if should_send {
-                println!("GW: Sending Heartbeat..");
+                trace!("GW: Sending Heartbeat..");
 
                 let heartbeat = types::GatewayHeartbeat {
                     op: GATEWAY_HEARTBEAT,
@@ -1645,7 +1645,7 @@ impl HeartbeatHandler {
                 let send_result = websocket_tx.lock().await.send(msg).await;
                 if send_result.is_err() {
                     // We couldn't send, the websocket is broken
-                    println!("GW: Couldnt send heartbeat, websocket seems broken");
+                    warn!("GW: Couldnt send heartbeat, websocket seems broken");
                     break;
                 }
 
