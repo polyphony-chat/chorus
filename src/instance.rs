@@ -36,11 +36,13 @@ impl Instance {
         let limits;
         let limits_configuration;
         if limited {
-            limits = Some(Limits::check_limits(urls.api).await?);
             limits_configuration = match ChorusRequest::get_limits_config(&urls.api).await {
                 Ok(conf) => Some(conf),
                 Err(e) => return Err(e),
             };
+            limits = Some(ChorusRequest::limits_config_to_hashmap(
+                limits_configuration.as_ref().unwrap(),
+            ));
         } else {
             limits = None;
             limits_configuration = None;
@@ -116,7 +118,7 @@ impl UserMeta {
     pub fn new(
         belongs_to: Rc<RefCell<Instance>>,
         token: String,
-        limits: Ratelimits,
+        limits: Option<HashMap<LimitType, Limit>>,
         settings: UserSettings,
         object: User,
     ) -> UserMeta {
