@@ -1,4 +1,3 @@
-use reqwest::Client;
 use serde_json::from_str;
 
 use crate::errors::{ChorusError, ChorusResult};
@@ -16,14 +15,15 @@ impl Instance {
             Err(e) => {
                 return Err(ChorusError::RequestErrorError {
                     url: endpoint_url,
-                    error: e.to_string(),
+                    error: e,
                 });
             }
         };
 
         if !request.status().as_str().starts_with('2') {
             return Err(ChorusError::ReceivedErrorCodeError {
-                error_code: request.status().to_string(),
+                error_code: request.status().as_u16(),
+                error: request.text().await.unwrap(),
             });
         }
 
