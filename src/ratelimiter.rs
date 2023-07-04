@@ -31,9 +31,10 @@ impl ChorusRequest {
             .await
         {
             Ok(result) => result,
-            Err(e) => {
-                return Err(ChorusError::ReceivedErrorCodeError {
-                    error_code: e.to_string(),
+            Err(error) => {
+                return Err(ChorusError::RequestErrorError {
+                    url: error.url().unwrap().to_string(),
+                    error,
                 })
             }
         };
@@ -87,17 +88,14 @@ impl ChorusRequest {
             404 => ChorusError::NotFound {
                 error: response.text().await.unwrap(),
             },
-            405 | 408 | 409 => ChorusError::RequestErrorError {
-                url: response.url().to_string(),
-                error: response.text().await.unwrap(),
-            },
+            405 | 408 | 409 => ChorusError::ReceivedErrorCodeError { error_code: response.status().as_u16(), error: response.text().await.unwrap() },
             411..=421 | 426 | 428 | 431 => ChorusError::InvalidArgumentsError {
                 error: response.text().await.unwrap(),
             },
             429 => panic!("Illegal state: Rate limit exception should have been caught before this function call."),
             451 => ChorusError::NoResponse,
-            500..=599 => ChorusError::ReceivedErrorCodeError { error_code: format!("{}", response.status().as_u16()) },
-            _ => ChorusError::RequestErrorError { url: response.url().to_string(), error: response.text().await.unwrap() }
+            500..=599 => ChorusError::ReceivedErrorCodeError { error_code: response.status().as_u16(), error: response.text().await.unwrap() },
+            _ => ChorusError::ReceivedErrorCodeError { error_code: response.status().as_u16(), error: response.text().await.unwrap()},
         }
     }
 
