@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use reqwest::{Client, RequestBuilder, Response};
+use serde::Deserialize;
 use serde_json::from_str;
 
 use crate::{
@@ -218,10 +219,7 @@ impl ChorusRequest {
 
     pub fn limits_config_to_hashmap(
         limits_configuration: &LimitsConfiguration,
-    ) -> Option<HashMap<LimitType, Limit>> {
-        if !limits_configuration.rate.enabled {
-            return None;
-        }
+    ) -> HashMap<LimitType, Limit> {
         let config = limits_configuration.rate;
         let routes = config.routes;
         let mut map: HashMap<LimitType, Limit> = HashMap::new();
@@ -279,6 +277,45 @@ impl ChorusRequest {
                 reset: config.ip.window,
             },
         );
-        Some(map)
+        map
+    }
+
+    /// Sends a request to wherever it needs to go. Returns [`Ok(())`] on success and
+    /// [`Err(ChorusLibError)`] on failure.
+    pub async fn handle_request_as_result(self, user: &mut UserMeta) -> ChorusResult<()> {
+        match self.send_request(user).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn deserialize_response<T: for<'a> Deserialize<'a>>(
+        self,
+        user: &mut UserMeta,
+    ) -> ChorusResult<T> {
+        let response = self.send_request(user).await?;
+        let response_text = match response.text().await {
+            Ok(string) => string,
+            Err(e) => {
+                return Err(ChorusError::InvalidResponseError {
+                    error: format!(
+                        "Error while trying to process the HTTP response into a String: {}",
+                        e
+                    ),
+                });
+            }
+        };
+        let object = match from_str::<T>(&response_text) {
+            Ok(object) => object,
+            Err(e) => {
+                return Err(ChorusError::InvalidResponseError {
+                    error: format!(
+                        "Error while trying to deserialize the JSON response into T: {}",
+                        e
+                    ),
+                })
+            }
+        };
+        Ok(object)
     }
 }
