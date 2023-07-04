@@ -121,41 +121,70 @@ impl ChorusRequest {
             &LimitType::Global,
             &LimitType::Ip,
         ];
-        let limits: &mut HashMap<LimitType, Limit>;
+        let mut relevant_limits = Vec::new();
         if instance_dictated_limits.contains(&limit_type) {
-            limits = &mut belongs_to.limits.unwrap();
+            relevant_limits.push(
+                belongs_to
+                    .limits
+                    .as_mut()
+                    .unwrap()
+                    .get_mut(limit_type)
+                    .unwrap(),
+            );
         } else {
-            limits = &mut user.limits.unwrap();
+            relevant_limits.push(user.limits.as_mut().unwrap().get_mut(limit_type).unwrap());
         }
-        // Ip and Global get decreased later on anyways. Skip them here
-        if limit_type != &LimitType::Global || limit_type != &LimitType::Ip {
-            limits.get_mut(limit_type).unwrap().remaining -= 1;
-        }
-        drop(limits);
+        relevant_limits.push(
+            belongs_to
+                .limits
+                .as_mut()
+                .unwrap()
+                .get_mut(&LimitType::Global)
+                .unwrap(),
+        );
+        relevant_limits.push(
+            belongs_to
+                .limits
+                .as_mut()
+                .unwrap()
+                .get_mut(&LimitType::Ip)
+                .unwrap(),
+        );
         if response_was_err {
-            user.limits
-                .unwrap()
-                .get_mut(&LimitType::Error)
-                .unwrap()
-                .remaining -= 1;
+            relevant_limits.push(
+                user.limits
+                    .as_mut()
+                    .unwrap()
+                    .get_mut(&LimitType::Error)
+                    .unwrap(),
+            );
         }
-        belongs_to
-            .limits
-            .as_mut()
-            .unwrap()
-            .get_mut(&LimitType::Global)
-            .unwrap()
-            .remaining -= 1;
-        belongs_to
-            .limits
-            .as_mut()
-            .unwrap()
-            .get_mut(&LimitType::Ip)
-            .unwrap()
-            .remaining -= 1;
+        let time: u64 = chrono::Utc::now().timestamp() as u64;
+        for limit in relevant_limits.iter() {
+            let limit = *limit; // deref here so we don't have to do it later
+            if time > limit.reset {
+                let limit_from_instance_config = belongs_to
+                    .limits_configuration
+                    .unwrap()
+                    .rate
+                    .to_hash_map()
+                    .get(&limit.bucket)
+                    .unwrap();
+                // Spacebar does not yet return rate limit information in its response headers. We
+                // therefore have to guess the next rate limit window. This is not ideal. Oh well!
+                limit.reset = limit_from_instance_config.window + time;
+                limit.remaining = limit.limit;
+            }
+            if let Some(remaining) = limit.remaining.checked_sub(1) {
+                limit.remaining = remaining;
+            } else {
+                // This should normally not occur. If it does, then something weird is going on.
+                panic!("Illegal state: Trying to set rate limit bucket {:?} to < 0. This should not have happened.", limit.bucket)
+            }
+        }
     }
 
-    pub async fn get_rate_limits(url_api: &str) -> ChorusResult<Option<HashMap<LimitType, Limit>>> {
+    pub async fn get_limits_config(url_api: &str) -> ChorusResult<LimitsConfiguration> {
         let request = Client::new()
             .get(format!("{}/policies/instance/limits/", url_api))
             .send()
@@ -190,13 +219,11 @@ impl ChorusRequest {
             }
         };
 
-        Ok(ChorusRequest::limits_config_to_hashmap(
-            limits_configuration,
-        ))
+        Ok(limits_configuration)
     }
 
-    fn limits_config_to_hashmap(
-        limits_configuration: LimitsConfiguration,
+    pub fn limits_config_to_hashmap(
+        limits_configuration: &LimitsConfiguration,
     ) -> Option<HashMap<LimitType, Limit>> {
         if !limits_configuration.rate.enabled {
             return None;
