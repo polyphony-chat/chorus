@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use reqwest::{Client, RequestBuilder, Response};
 use serde_json::from_str;
-use strum::IntoEnumIterator;
 
 use crate::{
     api::limits::{Limit, LimitType},
@@ -39,7 +38,7 @@ impl ChorusRequest {
             }
         };
         drop(belongs_to);
-        ChorusRequest::update_rate_limits(user, &self.limit_type);
+        ChorusRequest::update_rate_limits(user, &self.limit_type, !result.status().is_success());
         if !result.status().is_success() {
             if result.status().as_u16() == 429 {
                 user.limits
@@ -59,6 +58,18 @@ impl ChorusRequest {
         if belongs_to.limits.is_none() {
             return true;
         }
+        let instance_dictated_limits = [
+            &LimitType::AuthLogin,
+            &LimitType::AuthRegister,
+            &LimitType::Global,
+            &LimitType::Ip,
+        ];
+        let limits: &mut HashMap<LimitType, Limit>;
+        if instance_dictated_limits.contains(&limit_type) {
+            limits = &mut belongs_to.limits.unwrap();
+        } else {
+            limits = &mut user.limits.unwrap();
+        }
         let global = belongs_to
             .limits
             .as_ref()
@@ -71,8 +82,8 @@ impl ChorusRequest {
             .unwrap()
             .get(&LimitType::Ip)
             .unwrap();
-        let limit_type = belongs_to.limits.as_ref().unwrap().get(limit_type).unwrap();
-        if global.remaining == 0 || ip.remaining == 0 || limit_type.remaining == 0 {
+        let limit_type_limit = limits.get(limit_type).unwrap();
+        if global.remaining == 0 || ip.remaining == 0 || limit_type_limit.remaining == 0 {
             return false;
         }
         true
@@ -99,32 +110,32 @@ impl ChorusRequest {
         }
     }
 
-    fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType) {
+    fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
         let mut belongs_to = user.belongs_to.borrow_mut();
         if belongs_to.limits.is_none() {
             return;
         }
-        let instance_dictated_limits = [&LimitType::AuthLogin, &LimitType::AuthRegister];
-        let user_dictated_limits = [
-            &LimitType::Channel,
-            &LimitType::Error,
-            &LimitType::Guild,
-            &LimitType::Webhook,
+        let instance_dictated_limits = [
+            &LimitType::AuthLogin,
+            &LimitType::AuthRegister,
+            &LimitType::Global,
+            &LimitType::Ip,
         ];
-
+        let limits: &mut HashMap<LimitType, Limit>;
         if instance_dictated_limits.contains(&limit_type) {
-            belongs_to
-                .limits
-                .as_mut()
-                .unwrap()
-                .get_mut(limit_type)
-                .unwrap()
-                .remaining -= 1;
+            limits = &mut belongs_to.limits.unwrap();
         } else {
+            limits = &mut user.limits.unwrap();
+        }
+        // Ip and Global get decreased later on anyways. Skip them here
+        if limit_type != &LimitType::Global || limit_type != &LimitType::Ip {
+            limits.get_mut(limit_type).unwrap().remaining -= 1;
+        }
+        drop(limits);
+        if response_was_err {
             user.limits
-                .as_mut()
                 .unwrap()
-                .get_mut(limit_type)
+                .get_mut(&LimitType::Error)
                 .unwrap()
                 .remaining -= 1;
         }
