@@ -6,9 +6,11 @@ use std::rc::Rc;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::api::limits::{Limit, LimitType, Ratelimits};
+use crate::api::limits::{Limit, LimitType};
 use crate::errors::{ChorusError, ChorusResult, FieldFormatError};
-use crate::types::{GeneralConfiguration, User, UserSettings};
+use crate::ratelimiter::ChorusRequest;
+use crate::types::types::limit_configuration;
+use crate::types::{GeneralConfiguration, LimitsConfiguration, User, UserSettings};
 use crate::UrlBundle;
 
 #[derive(Debug, Clone)]
@@ -18,6 +20,7 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
+    pub limits_configuration: Option<LimitsConfiguration>,
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub client: Client,
 }
@@ -31,16 +34,24 @@ impl Instance {
     /// * [`InstanceError`] - If the instance cannot be created.
     pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
         let limits;
+        let limits_configuration;
         if limited {
             limits = Some(Limits::check_limits(urls.api).await?);
+            limits_configuration = match ChorusRequest::get_limits_config(&urls.api).await {
+                Ok(conf) => Some(conf),
+                Err(e) => return Err(e),
+            };
         } else {
             limits = None;
+            limits_configuration = None;
         }
         let mut instance = Instance {
             urls: urls.clone(),
             // Will be overwritten in the next step
             instance_info: GeneralConfiguration::default(),
             limits,
+            limits_configuration,
+            client: Client::new(),
         };
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
