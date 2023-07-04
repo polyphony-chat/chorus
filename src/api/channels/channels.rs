@@ -3,7 +3,7 @@ use serde_json::to_string;
 
 use crate::{
     api::common,
-    errors::{ChorusLibError, ChorusResult},
+    errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     types::{Channel, ChannelModifySchema, GetChannelMessagesSchema, Message, Snowflake},
 };
@@ -22,7 +22,7 @@ impl Channel {
         )
         .await;
         if result.is_err() {
-            return Err(ChorusLibError::RequestErrorError {
+            return Err(ChorusError::RequestErrorError {
                 url: format!("{}/channels/{}/", url, channel_id),
                 error: result.err().unwrap().to_string(),
             });
@@ -97,7 +97,7 @@ impl Channel {
         range: GetChannelMessagesSchema,
         channel_id: Snowflake,
         user: &mut UserMeta,
-    ) -> Result<Vec<Message>, ChorusLibError> {
+    ) -> Result<Vec<Message>, ChorusError> {
         let request = Client::new()
             .get(format!(
                 "{}/channels/{}/messages",

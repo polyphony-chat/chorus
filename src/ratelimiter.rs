@@ -6,7 +6,7 @@ use strum::IntoEnumIterator;
 
 use crate::{
     api::limits::{Limit, LimitType},
-    errors::{ChorusLibError, ChorusResult},
+    errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     types::LimitsConfiguration,
 };
@@ -21,7 +21,7 @@ impl ChorusRequest {
         let belongs_to = user.belongs_to.borrow();
         if belongs_to.limits.is_some() && !ChorusRequest::can_send_request(&user, &self.limit_type)
         {
-            return Err(ChorusLibError::RateLimited {
+            return Err(ChorusError::RateLimited {
                 bucket: format!("{:?}", self.limit_type),
             });
         }
@@ -32,7 +32,7 @@ impl ChorusRequest {
         {
             Ok(result) => result,
             Err(e) => {
-                return Err(ChorusLibError::ReceivedErrorCodeError {
+                return Err(ChorusError::ReceivedErrorCodeError {
                     error_code: e.to_string(),
                 })
             }
@@ -77,27 +77,27 @@ impl ChorusRequest {
         true
     }
 
-    async fn interpret_error(response: reqwest::Response) -> ChorusLibError {
+    async fn interpret_error(response: reqwest::Response) -> ChorusError {
         match response.status().as_u16() {
-            200..=299 => ChorusLibError::InvalidArgumentsError {
+            200..=299 => ChorusError::InvalidArgumentsError {
                 error: "You somehow passed a successful request into this function, which is not allowed."
                     .to_string(),
             },
-            401..=403 | 407 => ChorusLibError::NoPermission,
-            404 => ChorusLibError::NotFound {
+            401..=403 | 407 => ChorusError::NoPermission,
+            404 => ChorusError::NotFound {
                 error: response.text().await.unwrap(),
             },
-            405 | 408 | 409 => ChorusLibError::RequestErrorError {
+            405 | 408 | 409 => ChorusError::RequestErrorError {
                 url: response.url().to_string(),
                 error: response.text().await.unwrap(),
             },
-            411..=421 | 426 | 428 | 431 => ChorusLibError::InvalidArgumentsError {
+            411..=421 | 426 | 428 | 431 => ChorusError::InvalidArgumentsError {
                 error: response.text().await.unwrap(),
             },
             429 => panic!("Illegal state: Rate limit exception should have been caught before this function call."),
-            451 => ChorusLibError::NoResponse,
-            500..=599 => ChorusLibError::ReceivedErrorCodeError { error_code: format!("{}", response.status().as_u16()) },
-            _ => ChorusLibError::RequestErrorError { url: response.url().to_string(), error: response.text().await.unwrap() }
+            451 => ChorusError::NoResponse,
+            500..=599 => ChorusError::ReceivedErrorCodeError { error_code: format!("{}", response.status().as_u16()) },
+            _ => ChorusError::RequestErrorError { url: response.url().to_string(), error: response.text().await.unwrap() }
         }
     }
 
@@ -144,7 +144,6 @@ impl ChorusRequest {
             .get_mut(&LimitType::Ip)
             .unwrap()
             .remaining -= 1;
-        true
     }
 
     pub async fn get_rate_limits(url_api: &str) -> ChorusResult<Option<HashMap<LimitType, Limit>>> {
@@ -155,7 +154,7 @@ impl ChorusRequest {
         let request = match request {
             Ok(request) => request,
             Err(e) => {
-                return Err(ChorusLibError::RequestErrorError {
+                return Err(ChorusError::RequestErrorError {
                     url: url_api.to_string(),
                     error: e.to_string(),
                 })
@@ -164,19 +163,19 @@ impl ChorusRequest {
         let limits_configuration = match request.status().as_u16() {
             200 => from_str::<LimitsConfiguration>(&request.text().await.unwrap()).unwrap(),
             429 => {
-                return Err(ChorusLibError::RateLimited {
+                return Err(ChorusError::RateLimited {
                     bucket: format!("{:?}", LimitType::Ip),
                 })
             }
-            404 => return Err(ChorusLibError::RequestErrorError { url: url_api.to_string(), error: format!("Route \"/policies/instance/limits/\" not found. Are you perhaps trying to request the Limits configuration from an unsupported server?") }),
+            404 => return Err(ChorusError::RequestErrorError { url: url_api.to_string(), error: format!("Route \"/policies/instance/limits/\" not found. Are you perhaps trying to request the Limits configuration from an unsupported server?") }),
             400..=u16::MAX => {
-                return Err(ChorusLibError::RequestErrorError {
+                return Err(ChorusError::RequestErrorError {
                     url: url_api.to_string(),
                     error: request.text().await.unwrap(),
                 })
             }
             _ => {
-                return Err(ChorusLibError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponseError {
                     error: request.text().await.unwrap(),
                 })
             }

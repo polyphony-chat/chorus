@@ -6,7 +6,7 @@ use crate::api::deserialize_response;
 use crate::api::handle_request;
 use crate::api::handle_request_as_result;
 use crate::api::limits::Limits;
-use crate::errors::ChorusLibError;
+use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::Instance;
 use crate::instance::UserMeta;
@@ -130,7 +130,7 @@ impl Guild {
         let stringed_response = match result.text().await {
             Ok(value) => value,
             Err(e) => {
-                return Err(ChorusLibError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponseError {
                     error: e.to_string(),
                 });
             }
@@ -138,7 +138,7 @@ impl Guild {
         let _: Vec<Channel> = match from_str(&stringed_response) {
             Ok(result) => return Ok(result),
             Err(e) => {
-                return Err(ChorusLibError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponseError {
                     error: e.to_string(),
                 });
             }
@@ -245,7 +245,7 @@ impl Channel {
         };
         match from_str::<Channel>(&result.text().await.unwrap()) {
             Ok(object) => Ok(object),
-            Err(e) => Err(ChorusLibError::RequestErrorError {
+            Err(e) => Err(ChorusError::RequestErrorError {
                 url: format!("{}/guilds/{}/channels/", instance.urls.api, guild_id),
                 error: e.to_string(),
             }),

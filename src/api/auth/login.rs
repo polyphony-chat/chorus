@@ -5,7 +5,7 @@ use reqwest::Client;
 use serde_json::{from_str, json};
 
 use crate::api::limits::LimitType;
-use crate::errors::{ChorusLibError, ChorusResult};
+use crate::errors::{ChorusError, ChorusResult};
 use crate::instance::{Instance, UserMeta};
 use crate::types::{ErrorResponse, LoginResult, LoginSchema};
 
@@ -38,7 +38,7 @@ impl Instance {
                     error += &(error_item.message.to_string() + " (" + &error_item.code + ")");
                 }
             }
-            return Err(ChorusLibError::InvalidFormBodyError { error_type, error });
+            return Err(ChorusError::InvalidFormBodyError { error_type, error });
         }
 
         let cloned_limits = self.limits.clone();

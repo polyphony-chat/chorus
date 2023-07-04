@@ -3,7 +3,7 @@ use serde_json::to_string;
 
 use crate::{
     api::{deserialize_response, handle_request_as_result},
-    errors::{ChorusLibError, ChorusResult},
+    errors::{ChorusError, ChorusResult},
     instance::{Instance, UserMeta},
     ratelimiter::LimitedRequester,
     types::{User, UserModifySchema, UserSettings},
@@ -48,7 +48,7 @@ impl UserMeta {
             || modify_schema.email.is_some()
             || modify_schema.code.is_some()
         {
-            return Err(ChorusLibError::PasswordRequiredError);
+            return Err(ChorusError::PasswordRequiredError);
         }
         let request = Client::new()
             .patch(format!("{}/users/@me/", self.belongs_to.borrow().urls.api))

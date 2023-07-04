@@ -5,7 +5,7 @@ use serde_json::{from_str, json};
 
 use crate::{
     api::limits::LimitType,
-    errors::{ChorusLibError, ChorusResult},
+    errors::{ChorusError, ChorusResult},
     instance::{Instance, Token, UserMeta},
     ratelimiter::LimitedRequester,
     types::{ErrorResponse, RegisterSchema},
@@ -54,7 +54,7 @@ impl Instance {
                     error += &(error_item.message.to_string() + " (" + &error_item.code + ")");
                 }
             }
-            return Err(ChorusLibError::InvalidFormBodyError { error_type, error });
+            return Err(ChorusError::InvalidFormBodyError { error_type, error });
         }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
         let settings = UserMeta::get_settings(&token, &self.urls.api.clone(), self).await?;

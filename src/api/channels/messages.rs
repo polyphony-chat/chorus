@@ -24,7 +24,7 @@ impl Message {
         channel_id: Snowflake,
         message: &mut MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<Message, crate::errors::ChorusLibError> {
+    ) -> Result<Message, crate::errors::ChorusError> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
 
         if files.is_none() {
@@ -91,7 +91,7 @@ impl UserMeta {
         message: &mut MessageSendSchema,
         channel_id: Snowflake,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<Message, crate::errors::ChorusLibError> {
+    ) -> Result<Message, crate::errors::ChorusError> {
         Message::send(self, channel_id, message, files).await
     }
 }

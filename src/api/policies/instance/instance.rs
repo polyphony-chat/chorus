@@ -1,7 +1,7 @@
 use reqwest::Client;
 use serde_json::from_str;
 
-use crate::errors::{ChorusLibError, ChorusResult};
+use crate::errors::{ChorusError, ChorusResult};
 use crate::instance::Instance;
 use crate::types::GeneralConfiguration;
 
@@ -15,7 +15,7 @@ impl Instance {
         let request = match client.get(&endpoint_url).send().await {
             Ok(result) => result,
             Err(e) => {
-                return Err(ChorusLibError::RequestErrorError {
+                return Err(ChorusError::RequestErrorError {
                     url: endpoint_url,
                     error: e.to_string(),
                 });
@@ -23,7 +23,7 @@ impl Instance {
         };
 
         if !request.status().as_str().starts_with('2') {
-            return Err(ChorusLibError::ReceivedErrorCodeError {
+            return Err(ChorusError::ReceivedErrorCodeError {
                 error_code: request.status().to_string(),
             });
         }

@@ -7,7 +7,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::api::limits::{Limit, LimitType, Ratelimits};
-use crate::errors::{ChorusLibError, ChorusResult, FieldFormatError};
+use crate::errors::{ChorusError, ChorusResult, FieldFormatError};
 use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::UrlBundle;
 
@@ -45,7 +45,7 @@ impl Instance {
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
             Err(e) => {
-                return Err(ChorusLibError::CantGetInfoError {
+                return Err(ChorusError::CantGetInfoError {
                     error: e.to_string(),
                 });
             }
