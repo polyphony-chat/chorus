@@ -1,5 +1,5 @@
 use custom_error::custom_error;
-use reqwest::{Error, Response};
+use reqwest::Error;
 
 custom_error! {
     #[derive(PartialEq, Eq)]
