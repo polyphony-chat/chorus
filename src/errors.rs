@@ -1,4 +1,5 @@
 use custom_error::custom_error;
+use reqwest::Error;
 
 custom_error! {
     #[derive(PartialEq, Eq)]
@@ -12,21 +13,34 @@ custom_error! {
 pub type ChorusResult<T> = std::result::Result<T, ChorusError>;
 
 custom_error! {
-    #[derive(PartialEq, Eq)]
     pub ChorusError
+    // Server did not respond.
     NoResponse = "Did not receive a response from the Server.",
-    RequestErrorError{url:String, error:String} = "An error occured while trying to GET from {url}: {error}",
+    // Reqwest returned an Error instead of a Response object.
+    RequestErrorError{url:String, error: Error} = "An error occured while trying to GET from {url}: {error}",
+    // Response received, however, it was not of the successful responses type. Used when no other, special case applies.
     ReceivedErrorCodeError{error_code:String} = "Received the following error code while requesting from the route: {error_code}",
+    // Used when there is likely something wrong with the instance, the request was directed to.
     CantGetInfoError{error:String} = "Something seems to be wrong with the instance. Cannot get information about the instance: {error}",
+    // The requests form body was malformed/invalid.
     InvalidFormBodyError{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
+    // The request has not been processed by the server due to a relevant rate limit bucket being exhausted.
     RateLimited{bucket:String} = "Ratelimited on Bucket {bucket}",
+    // The multipart form could not be created.
     MultipartCreationError{error: String} = "Got an error whilst creating the form: {error}",
+    // The regular form could not be created.
     FormCreationError{error: String} = "Got an error whilst creating the form: {error}",
+    // The token is invalid.
     TokenExpired = "Token expired, invalid or not found.",
+    // No permission
     NoPermission = "You do not have the permissions needed to perform this action.",
+    // Resource not found
     NotFound{error: String} = "The provided resource hasn't been found: {error}",
+    // Used when you, for example, try to change your spacebar account password without providing your old password for verification.
     PasswordRequiredError = "You need to provide your current password to authenticate for this action.",
+    // Malformed or unexpected response.
     InvalidResponseError{error: String} = "The response is malformed and cannot be processed. Error: {error}",
+    // Invalid, insufficient or too many arguments provided.
     InvalidArgumentsError{error: String} = "Invalid arguments were provided. Error: {error}"
 }
 
