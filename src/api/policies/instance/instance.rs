@@ -10,9 +10,8 @@ impl Instance {
     /// # Errors
     /// [`ChorusLibError`] - If the request fails.
     pub async fn general_configuration_schema(&self) -> ChorusResult<GeneralConfiguration> {
-        let client = Client::new();
         let endpoint_url = self.urls.api.clone() + "/policies/instance/";
-        let request = match client.get(&endpoint_url).send().await {
+        let request = match self.client.get(&endpoint_url).send().await {
             Ok(result) => result,
             Err(e) => {
                 return Err(ChorusError::RequestErrorError {
