@@ -18,8 +18,7 @@ pub struct ChorusRequest {
 impl ChorusRequest {
     pub async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
         let belongs_to = user.belongs_to.borrow();
-        if belongs_to.limits.is_some() && !ChorusRequest::can_send_request(&user, &self.limit_type)
-        {
+        if !ChorusRequest::can_send_request(&user, &self.limit_type) {
             return Err(ChorusError::RateLimited {
                 bucket: format!("{:?}", self.limit_type),
             });
@@ -47,6 +46,9 @@ impl ChorusRequest {
                     .get_mut(&self.limit_type)
                     .unwrap()
                     .remaining = 0;
+                return Err(ChorusError::RateLimited {
+                    bucket: format!("{:?}", self.limit_type),
+                });
             }
             return Err(ChorusRequest::interpret_error(result).await);
         }
@@ -175,12 +177,7 @@ impl ChorusRequest {
                 limit.reset = limit_from_instance_config.window + time;
                 limit.remaining = limit.limit;
             }
-            if let Some(remaining) = limit.remaining.checked_sub(1) {
-                limit.remaining = remaining;
-            } else {
-                // This should normally not occur. If it does, then something weird is going on.
-                panic!("Illegal state: Trying to set rate limit bucket {:?} to < 0. This should not have happened.", limit.bucket)
-            }
+            limit.remaining -= 1;
         }
     }
 
@@ -194,7 +191,7 @@ impl ChorusRequest {
             Err(e) => {
                 return Err(ChorusError::RequestErrorError {
                     url: url_api.to_string(),
-                    error: e.to_string(),
+                    error: e,
                 })
             }
         };
@@ -205,12 +202,9 @@ impl ChorusRequest {
                     bucket: format!("{:?}", LimitType::Ip),
                 })
             }
-            404 => return Err(ChorusError::RequestErrorError { url: url_api.to_string(), error: format!("Route \"/policies/instance/limits/\" not found. Are you perhaps trying to request the Limits configuration from an unsupported server?") }),
+            404 => return Err(ChorusError::NotFound { error: format!("Route \"/policies/instance/limits/\" not found. Are you perhaps trying to request the Limits configuration from an unsupported server?") }),
             400..=u16::MAX => {
-                return Err(ChorusError::RequestErrorError {
-                    url: url_api.to_string(),
-                    error: request.text().await.unwrap(),
-                })
+                return Err(ChorusError::ReceivedErrorCodeError { error_code: request.status().as_u16(), error: request.text().await.unwrap() })
             }
             _ => {
                 return Err(ChorusError::InvalidResponseError {
