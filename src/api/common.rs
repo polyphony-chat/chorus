@@ -3,7 +3,7 @@ use serde::Deserialize;
 use serde_json::from_str;
 
 use crate::{
-    errors::{ChorusLibError, ChorusResult},
+    errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     ratelimiter::LimitedRequester,
 };
@@ -19,7 +19,7 @@ pub async fn handle_request_as_result(
 ) -> ChorusResult<()> {
     match handle_request(request, user, limit_type).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(ChorusLibError::InvalidResponseError {
+        Err(e) => Err(ChorusError::InvalidResponseError {
             error: e.to_string(),
         }),
     }
@@ -34,7 +34,7 @@ pub async fn deserialize_response<T: for<'a> Deserialize<'a>>(
     let response_text = match response.text().await {
         Ok(string) => string,
         Err(e) => {
-            return Err(ChorusLibError::InvalidResponseError {
+            return Err(ChorusError::InvalidResponseError {
                 error: format!(
                     "Error while trying to process the HTTP response into a String: {}",
                     e
@@ -45,7 +45,7 @@ pub async fn deserialize_response<T: for<'a> Deserialize<'a>>(
     let object = match from_str::<T>(&response_text) {
         Ok(object) => object,
         Err(e) => {
-            return Err(ChorusLibError::InvalidResponseError {
+            return Err(ChorusError::InvalidResponseError {
                 error: format!(
                     "Error while trying to deserialize the JSON response into T: {}",
                     e

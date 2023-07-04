@@ -9,11 +9,11 @@ custom_error! {
     EmailError = "The provided email address is in an invalid format.",
 }
 
-pub type ChorusResult<T> = std::result::Result<T, ChorusLibError>;
+pub type ChorusResult<T> = std::result::Result<T, ChorusError>;
 
 custom_error! {
     #[derive(PartialEq, Eq)]
-    pub ChorusLibError
+    pub ChorusError
     NoResponse = "Did not receive a response from the Server.",
     RequestErrorError{url:String, error:String} = "An error occured while trying to GET from {url}: {error}",
     ReceivedErrorCodeError{error_code:String} = "Received the following error code while requesting from the route: {error_code}",

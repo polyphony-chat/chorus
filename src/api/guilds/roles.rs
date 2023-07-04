@@ -3,7 +3,7 @@ use serde_json::to_string;
 
 use crate::{
     api::deserialize_response,
-    errors::{ChorusLibError, ChorusResult},
+    errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     types::{self, RoleCreateModifySchema, RoleObject, Snowflake},
 };
@@ -102,7 +102,7 @@ impl types::RoleObject {
             guild_id
         );
         let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
-            ChorusLibError::FormCreationError {
+            ChorusError::FormCreationError {
                 error: e.to_string(),
             }
         })?;
@@ -136,7 +136,7 @@ impl types::RoleObject {
             guild_id
         );
         let body = to_string(&role_position_update_schema).map_err(|e| {
-            ChorusLibError::FormCreationError {
+            ChorusError::FormCreationError {
                 error: e.to_string(),
             }
         })?;
@@ -177,7 +177,7 @@ impl types::RoleObject {
             role_id
         );
         let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
-            ChorusLibError::FormCreationError {
+            ChorusError::FormCreationError {
                 error: e.to_string(),
             }
         })?;

@@ -85,7 +85,7 @@ impl types::GuildMember {
         guild_id: Snowflake,
         member_id: Snowflake,
         role_id: Snowflake,
-    ) -> Result<(), crate::errors::ChorusLibError> {
+    ) -> Result<(), crate::errors::ChorusError> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}/",
             user.belongs_to.borrow().urls.api,

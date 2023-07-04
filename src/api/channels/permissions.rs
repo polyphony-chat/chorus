@@ -3,7 +3,7 @@ use serde_json::to_string;
 
 use crate::{
     api::handle_request_as_result,
-    errors::{ChorusLibError, ChorusResult},
+    errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     types::{self, PermissionOverwrite, Snowflake},
 };
@@ -36,7 +36,7 @@ impl types::Channel {
         let body = match to_string(&overwrite) {
             Ok(string) => string,
             Err(e) => {
-                return Err(ChorusLibError::FormCreationError {
+                return Err(ChorusError::FormCreationError {
                     error: e.to_string(),
                 });
             }
