@@ -1,15 +1,15 @@
-use chorus::types::{self, RegisterSchema, RegisterSchemaOptions, Relationship, RelationshipType};
+use chorus::types::{self, RegisterSchema, Relationship, RelationshipType};
 
 mod common;
 
 #[tokio::test]
 async fn test_get_mutual_relationships() {
-    let register_schema = RegisterSchemaOptions {
+    let register_schema = RegisterSchema {
+        username: "integrationtestuser2".to_string(),
+        consent: true,
         date_of_birth: Some("2000-01-01".to_string()),
-        ..RegisterSchema::builder("integrationtestuser2", true)
-    }
-    .build()
-    .unwrap();
+        ..Default::default()
+    };
 
     let mut bundle = common::setup().await;
     let belongs_to = &mut bundle.instance;
@@ -30,12 +30,12 @@ async fn test_get_mutual_relationships() {
 
 #[tokio::test]
 async fn test_get_relationships() {
-    let register_schema = RegisterSchemaOptions {
+    let register_schema = RegisterSchema {
+        username: "integrationtestuser2".to_string(),
+        consent: true,
         date_of_birth: Some("2000-01-01".to_string()),
-        ..RegisterSchema::builder("integrationtestuser2", true)
-    }
-    .build()
-    .unwrap();
+        ..Default::default()
+    };
 
     let mut bundle = common::setup().await;
     let belongs_to = &mut bundle.instance;
@@ -53,12 +53,12 @@ async fn test_get_relationships() {
 
 #[tokio::test]
 async fn test_modify_relationship_friends() {
-    let register_schema = RegisterSchemaOptions {
+    let register_schema = RegisterSchema {
+        username: "integrationtestuser2".to_string(),
+        consent: true,
         date_of_birth: Some("2000-01-01".to_string()),
-        ..RegisterSchema::builder("integrationtestuser2", true)
-    }
-    .build()
-    .unwrap();
+        ..Default::default()
+    };
 
     let mut bundle = common::setup().await;
     let belongs_to = &mut bundle.instance;
@@ -101,12 +101,12 @@ async fn test_modify_relationship_friends() {
 
 #[tokio::test]
 async fn test_modify_relationship_block() {
-    let register_schema = RegisterSchemaOptions {
+    let register_schema = RegisterSchema {
+        username: "integrationtestuser2".to_string(),
+        consent: true,
         date_of_birth: Some("2000-01-01".to_string()),
-        ..RegisterSchema::builder("integrationtestuser2", true)
-    }
-    .build()
-    .unwrap();
+        ..Default::default()
+    };
 
     let mut bundle = common::setup().await;
     let belongs_to = &mut bundle.instance;
