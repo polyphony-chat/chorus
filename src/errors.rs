@@ -1,5 +1,5 @@
 use custom_error::custom_error;
-use reqwest::Error;
+use reqwest::{Error, Response};
 
 custom_error! {
     #[derive(PartialEq, Eq)]
@@ -19,7 +19,7 @@ custom_error! {
     /// Reqwest returned an Error instead of a Response object.
     RequestErrorError{url:String, error: Error} = "An error occured while trying to GET from {url}: {error}",
     /// Response received, however, it was not of the successful responses type. Used when no other, special case applies.
-    ReceivedErrorCodeError{error_code:String} = "Received the following error code while requesting from the route: {error_code}",
+    ReceivedErrorCodeError{error_code: u16, error: String} = "Received the following error code while requesting from the route: {error_code}",
     /// Used when there is likely something wrong with the instance, the request was directed to.
     CantGetInfoError{error:String} = "Something seems to be wrong with the instance. Cannot get information about the instance: {error}",
     /// The requests form body was malformed/invalid.
