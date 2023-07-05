@@ -2,7 +2,6 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::deserialize_response,
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     types::{self, RoleCreateModifySchema, RoleObject, Snowflake},
