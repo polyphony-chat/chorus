@@ -130,4 +130,20 @@ impl UserMeta {
             object,
         }
     }
+
+    /// Creates a new 'shell' of a user. The user does not exist as an object, and exists so that you have
+    /// a UserMeta object to make Rate Limited requests with. This is useful in scenarios like
+    /// registering or logging in to the Instance, where you do not yet have a User object, but still
+    /// need to make a RateLimited request.
+    pub(crate) fn shell(instance: Rc<RefCell<Instance>>, token: String) -> UserMeta {
+        let settings = UserSettings::default();
+        let object = User::default();
+        UserMeta {
+            belongs_to: instance,
+            token,
+            limits: instance.borrow().limits.clone(),
+            settings,
+            object,
+        }
+    }
 }
