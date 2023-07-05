@@ -1,4 +1,5 @@
 use chorus::{
+    errors::ChorusResult,
     instance::{Instance, UserMeta},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
@@ -11,19 +12,20 @@ use chorus::{
 pub struct TestBundle {
     pub urls: UrlBundle,
     pub user: UserMeta,
+    pub other_user: UserMeta,
     pub instance: Instance,
     pub guild: Guild,
     pub role: RoleObject,
     pub channel: Channel,
 }
 
+pub const API: &str = "http://localhost:3001/api";
+pub const WSS: &str = "ws://localhost:3001";
+pub const CDN: &str = "http://localhost:3001";
+
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 pub async fn setup() -> TestBundle {
-    let urls = UrlBundle::new(
-        "http://localhost:3001/api".to_string(),
-        "ws://localhost:3001".to_string(),
-        "http://localhost:3001".to_string(),
-    );
+    let urls = UrlBundle::new(API.to_string(), WSS.to_string(), CDN.to_string());
     let mut instance = Instance::new(urls.clone()).await.unwrap();
     // Requires the existance of the below user.
     let reg = RegisterSchema {
@@ -32,14 +34,15 @@ pub async fn setup() -> TestBundle {
         date_of_birth: Some("2000-01-01".to_string()),
         ..Default::default()
     };
+    let reg_2 = RegisterSchema {
+        username: "integrationtestuser2".to_string(),
+        consent: true,
+        date_of_birth: Some("2000-01-01".to_string()),
+        ..Default::default()
+    };
     let guild_create_schema = GuildCreateSchema {
         name: Some("Test-Guild!".to_string()),
-        region: None,
-        icon: None,
-        channels: None,
-        guild_template_code: None,
-        system_channel_id: None,
-        rules_channel_id: None,
+        ..Default::default()
     };
     let channel_create_schema = ChannelCreateSchema {
         name: "testchannel".to_string(),
@@ -62,12 +65,13 @@ pub async fn setup() -> TestBundle {
         video_quality_mode: None,
     };
     let mut user = instance.register_account(&reg).await.unwrap();
+    let other_user = instance.register_account(&reg_2).await.unwrap();
     let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
     let channel = Channel::create(&mut user, guild.id, channel_create_schema)
         .await
         .unwrap();
 
-    let role_create_schema: chorus::types::RoleCreateModifySchema = RoleCreateModifySchema {
+    let role_create_schema = RoleCreateModifySchema {
         name: Some("Bundle role".to_string()),
         permissions: Some("8".to_string()), // Administrator permissions
         hoist: Some(true),
@@ -77,13 +81,14 @@ pub async fn setup() -> TestBundle {
         position: None,
         color: None,
     };
-    let role = chorus::types::RoleObject::create(&mut user, guild.id, role_create_schema)
+    let role = RoleObject::create(&mut user, guild.id, role_create_schema)
         .await
         .unwrap();
 
     TestBundle {
         urls,
         user,
+        other_user,
         instance,
         guild,
         role,
@@ -93,9 +98,8 @@ pub async fn setup() -> TestBundle {
 
 // Teardown method to clean up after a test.
 #[allow(dead_code)]
-pub async fn teardown(mut bundle: TestBundle) {
-    Guild::delete(&mut bundle.user, bundle.guild.id)
-        .await
-        .unwrap();
-    bundle.user.delete().await.unwrap()
+pub async fn teardown(mut bundle: TestBundle) -> ChorusResult<()> {
+    Guild::delete(&mut bundle.user, bundle.guild.id).await?;
+    bundle.user.delete().await?;
+    bundle.other_user.delete().await
 }

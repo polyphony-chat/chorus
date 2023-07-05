@@ -26,7 +26,7 @@ impl types::RoleObject {
     pub async fn get_all(
         user: &mut UserMeta,
         guild_id: Snowflake,
-    ) -> ChorusResult<Option<Vec<RoleObject>>> {
+    ) -> ChorusResult<Vec<RoleObject>> {
         let url = format!(
             "{}/guilds/{}/roles/",
             user.belongs_to.borrow().urls.api,
@@ -40,10 +40,7 @@ impl types::RoleObject {
         )
         .await
         .unwrap();
-        if roles.is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(roles))
+        Ok(roles)
     }
 
     /// Retrieves a single role for a given guild.

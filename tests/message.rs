@@ -1,35 +1,27 @@
-use std::fs::File;
-use std::io::{BufReader, Read};
-
-use chorus::types;
+use chorus::errors::ChorusResult;
+use chorus::types::{MessageSendSchema, PartialDiscordFileAttachment};
 
 mod common;
 
 #[tokio::test]
-async fn send_message() {
+async fn send_message() -> ChorusResult<()> {
     let mut bundle = common::setup().await;
-    let mut message = types::MessageSendSchema {
+    let mut message = MessageSendSchema {
         content: Some("A Message!".to_string()),
         ..Default::default()
     };
     let _ = bundle
         .user
         .send_message(&mut message, bundle.channel.id, None)
-        .await
-        .unwrap();
+        .await?;
     common::teardown(bundle).await
 }
 
 #[tokio::test]
-async fn send_message_attachment() {
-    let f = File::open("./README.md").unwrap();
-    let mut reader = BufReader::new(f);
-    let mut buffer = Vec::new();
+async fn send_message_attachment() -> ChorusResult<()> {
     let mut bundle = common::setup().await;
 
-    reader.read_to_end(&mut buffer).unwrap();
-
-    let attachment = types::PartialDiscordFileAttachment {
+    let attachment = PartialDiscordFileAttachment {
         id: None,
         filename: "README.md".to_string(),
         description: None,
@@ -42,25 +34,18 @@ async fn send_message_attachment() {
         ephemeral: None,
         duration_secs: None,
         waveform: None,
-        content: buffer,
+        content: include_bytes!("../README.md").to_vec(),
     };
 
-    let mut message = types::MessageSendSchema {
+    let mut message = MessageSendSchema {
         content: Some("trans rights now".to_string()),
         attachments: Some(vec![attachment.clone()]),
         ..Default::default()
     };
 
-    let vec_attach = vec![attachment.clone()];
-    let _arg = Some(&vec_attach);
     bundle
         .user
-        .send_message(
-            &mut message,
-            bundle.channel.id,
-            Some(vec![attachment.clone()]),
-        )
-        .await
-        .unwrap();
+        .send_message(&mut message, bundle.channel.id, Some(vec![attachment]))
+        .await?;
     common::teardown(bundle).await
 }

@@ -1,10 +1,9 @@
-use reqwest::{RequestBuilder, Response};
-
 use crate::{
     api::limits::{Limit, LimitType, Limits, LimitsMutRef},
     errors::{ChorusLibError, ChorusResult},
     instance::Instance,
 };
+use reqwest::{RequestBuilder, Response};
 
 #[derive(Debug)]
 pub struct LimitedRequester;
@@ -256,24 +255,24 @@ mod rate_limit {
             String::from("wss://localhost:3001/"),
             String::from("http://localhost:3001/cdn"),
         );
-        let mut request: Option<ChorusResult<Response>> = None;
         let mut instance = Instance::new(urls.clone()).await.unwrap();
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
 
+        let limit_type = LimitType::Channel;
+        let mut ran_into_limits = false;
         for _ in 0..=50 {
             let request_path = urls.api.clone() + "/some/random/nonexisting/path";
             let request_builder = instance.client.get(request_path);
-            request = Some(
-                LimitedRequester::send_request(
-                    request_builder,
-                    LimitType::Channel,
-                    &mut instance,
-                    &mut user_rate_limits,
-                )
-                .await,
-            );
+            let request = LimitedRequester::send_request(
+                request_builder,
+                limit_type,
+                &mut instance,
+                &mut user_rate_limits,
+            )
+            .await;
+            ran_into_limits = matches!(request, Err(ChorusLibError::RateLimited { bucket}) if bucket == limit_type.to_string());
         }
-        assert!(matches!(request, Some(Err(_))));
+        assert!(ran_into_limits);
     }
 
     #[tokio::test]
@@ -285,7 +284,6 @@ mod rate_limit {
         );
         let mut instance = Instance::new(urls.clone()).await.unwrap();
         let mut user_rate_limits = Limits::check_limits(urls.api.clone()).await;
-        let _requester = LimitedRequester;
         let request_path = urls.api.clone() + "/policies/instance/limits";
         let request_builder = instance.client.get(request_path);
         let request = LimitedRequester::send_request(
@@ -295,10 +293,6 @@ mod rate_limit {
             &mut user_rate_limits,
         )
         .await;
-        let result = match request {
-            Ok(result) => result,
-            Err(_) => panic!("Request failed"),
-        };
-        let _config: Config = from_str(result.text().await.unwrap().as_str()).unwrap();
+        from_str::<Config>(request.unwrap().text().await.unwrap().as_str()).unwrap();
     }
 }

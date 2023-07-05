@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
 /// Represents the schema which needs to be sent to create a Guild.
 /// See: [https://docs.spacebar.chat/routes/#cmp--schemas-guildcreateschema](https://docs.spacebar.chat/routes/#cmp--schemas-guildcreateschema)
+#[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub struct GuildCreateSchema {
     pub name: Option<String>,
     pub region: Option<String>,
