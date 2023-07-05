@@ -2,9 +2,9 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::{deserialize_response, handle_request_as_result},
     errors::ChorusResult,
     instance::UserMeta,
+    ratelimiter::ChorusRequest,
     types::{self, CreateUserRelationshipSchema, RelationshipType, Snowflake},
 };
 
@@ -26,13 +26,13 @@ impl UserMeta {
             self.belongs_to.borrow().urls.api,
             user_id
         );
-        let request = Client::new().get(url).bearer_auth(self.token());
-        deserialize_response::<Vec<types::PublicUser>>(
-            request,
-            self,
-            crate::api::limits::LimitType::Global,
-        )
-        .await
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url).bearer_auth(self.token()),
+            limit_type: crate::api::limits::LimitType::Global,
+        };
+        chorus_request
+            .deserialize_response::<Vec<types::PublicUser>>(self)
+            .await
     }
 
     /// Retrieves the authenticated user's relationships.
@@ -44,13 +44,13 @@ impl UserMeta {
             "{}/users/@me/relationships/",
             self.belongs_to.borrow().urls.api
         );
-        let request = Client::new().get(url).bearer_auth(self.token());
-        deserialize_response::<Vec<types::Relationship>>(
-            request,
-            self,
-            crate::api::limits::LimitType::Global,
-        )
-        .await
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url).bearer_auth(self.token()),
+            limit_type: crate::api::limits::LimitType::Global,
+        };
+        chorus_request
+            .deserialize_response::<Vec<types::Relationship>>(self)
+            .await
     }
 
     /// Sends a friend request to a user.
@@ -70,8 +70,11 @@ impl UserMeta {
             self.belongs_to.borrow().urls.api
         );
         let body = to_string(&schema).unwrap();
-        let request = Client::new().post(url).bearer_auth(self.token()).body(body);
-        handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().post(url).bearer_auth(self.token()),
+            limit_type: crate::api::limits::LimitType::Global,
+        };
+        chorus_request.handle_request_as_result(self).await
     }
 
     /// Modifies the relationship between the authenticated user and the specified user.
@@ -96,10 +99,13 @@ impl UserMeta {
         let api_url = self.belongs_to.borrow().urls.api.clone();
         match relationship_type {
             RelationshipType::None => {
-                let request = Client::new()
-                    .delete(format!("{}/users/@me/relationships/{}/", api_url, user_id))
-                    .bearer_auth(self.token());
-                handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
+                let chorus_request = ChorusRequest {
+                    request: Client::new()
+                        .delete(format!("{}/users/@me/relationships/{}/", api_url, user_id))
+                        .bearer_auth(self.token()),
+                    limit_type: crate::api::limits::LimitType::Global,
+                };
+                chorus_request.handle_request_as_result(self).await
             }
             RelationshipType::Friends | RelationshipType::Incoming | RelationshipType::Outgoing => {
                 let body = CreateUserRelationshipSchema {
@@ -107,11 +113,14 @@ impl UserMeta {
                     from_friend_suggestion: None,
                     friend_token: None,
                 };
-                let request = Client::new()
-                    .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
-                    .bearer_auth(self.token())
-                    .body(to_string(&body).unwrap());
-                handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
+                let chorus_request = ChorusRequest {
+                    request: Client::new()
+                        .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
+                        .bearer_auth(self.token())
+                        .body(to_string(&body).unwrap()),
+                    limit_type: crate::api::limits::LimitType::Global,
+                };
+                chorus_request.handle_request_as_result(self).await
             }
             RelationshipType::Blocked => {
                 let body = CreateUserRelationshipSchema {
@@ -119,11 +128,14 @@ impl UserMeta {
                     from_friend_suggestion: None,
                     friend_token: None,
                 };
-                let request = Client::new()
-                    .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
-                    .bearer_auth(self.token())
-                    .body(to_string(&body).unwrap());
-                handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
+                let chorus_request = ChorusRequest {
+                    request: Client::new()
+                        .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
+                        .bearer_auth(self.token())
+                        .body(to_string(&body).unwrap()),
+                    limit_type: crate::api::limits::LimitType::Global,
+                };
+                chorus_request.handle_request_as_result(self).await
             }
             RelationshipType::Suggestion | RelationshipType::Implicit => Ok(()),
         }
@@ -143,7 +155,10 @@ impl UserMeta {
             self.belongs_to.borrow().urls.api,
             user_id
         );
-        let request = Client::new().delete(url).bearer_auth(self.token());
-        handle_request_as_result(request, self, crate::api::limits::LimitType::Global).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(self.token()),
+            limit_type: crate::api::limits::LimitType::Global,
+        };
+        chorus_request.handle_request_as_result(self).await
     }
 }
