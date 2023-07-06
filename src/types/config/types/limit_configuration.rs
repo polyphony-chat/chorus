@@ -1,7 +1,6 @@
-use std::{collections::HashMap, hash::Hash};
+use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use strum::IntoEnumIterator;
 
 use crate::{
     api::limits::LimitType,
@@ -27,14 +26,14 @@ pub struct LimitsConfiguration {
 impl RateLimits {
     pub fn to_hash_map(&self) -> HashMap<LimitType, RateLimitOptions> {
         let mut map = HashMap::new();
-        map.insert(LimitType::AuthLogin, self.routes.auth.login);
-        map.insert(LimitType::AuthRegister, self.routes.auth.register);
-        map.insert(LimitType::Channel, self.routes.channel);
-        map.insert(LimitType::Error, self.error);
-        map.insert(LimitType::Global, self.global);
-        map.insert(LimitType::Ip, self.ip);
-        map.insert(LimitType::Webhook, self.routes.webhook);
-        map.insert(LimitType::Guild, self.routes.guild);
+        map.insert(LimitType::AuthLogin, self.routes.auth.login.clone());
+        map.insert(LimitType::AuthRegister, self.routes.auth.register.clone());
+        map.insert(LimitType::Channel, self.routes.channel.clone());
+        map.insert(LimitType::Error, self.error.clone());
+        map.insert(LimitType::Global, self.global.clone());
+        map.insert(LimitType::Ip, self.ip.clone());
+        map.insert(LimitType::Webhook, self.routes.webhook.clone());
+        map.insert(LimitType::Guild, self.routes.guild.clone());
         map
     }
 }

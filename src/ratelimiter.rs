@@ -67,11 +67,11 @@ impl ChorusRequest {
             &LimitType::Global,
             &LimitType::Ip,
         ];
-        let limits: &mut HashMap<LimitType, Limit>;
+        let limits: HashMap<LimitType, Limit>;
         if instance_dictated_limits.contains(&limit_type) {
-            limits = &mut belongs_to.limits.unwrap();
+            limits = belongs_to.limits.as_ref().unwrap().clone();
         } else {
-            limits = &mut user.limits.unwrap();
+            limits = user.limits.as_ref().unwrap().clone();
         }
         let global = belongs_to
             .limits
@@ -114,8 +114,7 @@ impl ChorusRequest {
     }
 
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
-        let mut belongs_to = user.belongs_to.borrow_mut();
-        if belongs_to.limits.is_none() {
+        if user.belongs_to.borrow().limits.is_none() {
             return;
         }
         let instance_dictated_limits = [
@@ -125,6 +124,7 @@ impl ChorusRequest {
             &LimitType::Ip,
         ];
         let mut relevant_limits = Vec::new();
+        let mut belongs_to = user.belongs_to.borrow_mut();
         if instance_dictated_limits.contains(&limit_type) {
             relevant_limits.push(
                 belongs_to
@@ -146,7 +146,8 @@ impl ChorusRequest {
                 .unwrap(),
         );
         relevant_limits.push(
-            belongs_to
+            user.belongs_to
+                .borrow_mut()
                 .limits
                 .as_mut()
                 .unwrap()
@@ -166,7 +167,9 @@ impl ChorusRequest {
         for limit in relevant_limits.iter() {
             let limit = *limit; // deref here so we don't have to do it later
             if time > limit.reset {
-                let limit_from_instance_config = belongs_to
+                let limit_from_instance_config = user
+                    .belongs_to
+                    .borrow()
                     .limits_configuration
                     .unwrap()
                     .rate
@@ -220,7 +223,7 @@ impl ChorusRequest {
     pub fn limits_config_to_hashmap(
         limits_configuration: &LimitsConfiguration,
     ) -> HashMap<LimitType, Limit> {
-        let config = limits_configuration.rate;
+        let config = limits_configuration.rate.clone();
         let routes = config.routes;
         let mut map: HashMap<LimitType, Limit> = HashMap::new();
         map.insert(

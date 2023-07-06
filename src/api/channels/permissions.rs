@@ -2,9 +2,9 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::handle_request_as_result,
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
+    ratelimiter::ChorusRequest,
     types::{self, PermissionOverwrite, Snowflake},
 };
 
@@ -25,14 +25,12 @@ impl types::Channel {
         channel_id: Snowflake,
         overwrite: PermissionOverwrite,
     ) -> ChorusResult<()> {
-        let url = {
-            format!(
-                "{}/channels/{}/permissions/{}",
-                user.belongs_to.borrow_mut().urls.api,
-                channel_id,
-                overwrite.id
-            )
-        };
+        let url = format!(
+            "{}/channels/{}/permissions/{}",
+            user.belongs_to.borrow_mut().urls.api,
+            channel_id,
+            overwrite.id
+        );
         let body = match to_string(&overwrite) {
             Ok(string) => string,
             Err(e) => {
@@ -41,8 +39,11 @@ impl types::Channel {
                 });
             }
         };
-        let request = Client::new().put(url).bearer_auth(user.token()).body(body);
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().put(url).bearer_auth(user.token()).body(body),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
     /// Deletes a permission overwrite for a channel.
@@ -67,7 +68,10 @@ impl types::Channel {
             channel_id,
             overwrite_id
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 }
