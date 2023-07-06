@@ -1,9 +1,9 @@
 use reqwest::Client;
 
 use crate::{
-    api::{deserialize_response, handle_request_as_result},
     errors::ChorusResult,
     instance::UserMeta,
+    ratelimiter::ChorusRequest,
     types::{self, PublicUser, Snowflake},
 };
 
@@ -32,8 +32,11 @@ impl ReactionMeta {
             self.channel_id,
             self.message_id
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
     /// Gets a list of users that reacted with a specific emoji to a message.
@@ -54,13 +57,13 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let request = Client::new().get(url).bearer_auth(user.token());
-        deserialize_response::<Vec<PublicUser>>(
-            request,
-            user,
-            crate::api::limits::LimitType::Channel,
-        )
-        .await
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        chorus_request
+            .deserialize_response::<Vec<PublicUser>>(user)
+            .await
     }
 
     /// Deletes all the reactions for a given `emoji` on a message. This endpoint requires the
@@ -83,8 +86,11 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
     /// Create a reaction for the message.
@@ -110,8 +116,11 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let request = Client::new().put(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().put(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
     /// Delete a reaction the current user has made for the message.
@@ -133,8 +142,11 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
     /// Delete a user's reaction to a message.
@@ -164,7 +176,10 @@ impl ReactionMeta {
             emoji,
             user_id
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 }

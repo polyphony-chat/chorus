@@ -4,7 +4,6 @@ use serde_json::to_string;
 
 use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
-use crate::instance::Instance;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::Snowflake;

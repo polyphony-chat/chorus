@@ -2,32 +2,22 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::common,
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
+    ratelimiter::ChorusRequest,
     types::{Channel, ChannelModifySchema, GetChannelMessagesSchema, Message, Snowflake},
 };
 
 impl Channel {
     pub async fn get(user: &mut UserMeta, channel_id: Snowflake) -> ChorusResult<Channel> {
-        let url = user.belongs_to.borrow_mut().urls.api.clone();
-        let request = Client::new()
-            .get(format!("{}/channels/{}/", url, channel_id))
-            .bearer_auth(user.token());
-
-        let result = common::deserialize_response::<Channel>(
-            request,
-            user,
-            crate::api::limits::LimitType::Channel,
-        )
-        .await;
-        if result.is_err() {
-            return Err(ChorusError::RequestErrorError {
-                url: format!("{}/channels/{}/", url, channel_id),
-                error: result.err().unwrap().to_string(),
-            });
-        }
-        Ok(result.unwrap())
+        let url = user.belongs_to.borrow().urls.api.clone();
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .get(format!("{}/channels/{}/", url, channel_id))
+                .bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        Ok(chorus_request.deserialize_response::<Channel>(user).await?)
     }
 
     /// Deletes a channel.
@@ -44,15 +34,17 @@ impl Channel {
     ///
     /// A `Result` that contains a `ChorusLibError` if an error occurred during the request, or `()` if the request was successful.
     pub async fn delete(self, user: &mut UserMeta) -> ChorusResult<()> {
-        let request = Client::new()
-            .delete(format!(
-                "{}/channels/{}/",
-                user.belongs_to.borrow_mut().urls.api,
-                self.id
-            ))
-            .bearer_auth(user.token());
-        common::handle_request_as_result(request, user, crate::api::limits::LimitType::Channel)
-            .await
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .delete(format!(
+                    "{}/channels/{}/",
+                    user.belongs_to.borrow().urls.api,
+                    self.id
+                ))
+                .bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
     /// Modifies a channel.
@@ -75,20 +67,18 @@ impl Channel {
         channel_id: Snowflake,
         user: &mut UserMeta,
     ) -> ChorusResult<()> {
-        let request = Client::new()
-            .patch(format!(
-                "{}/channels/{}/",
-                user.belongs_to.borrow().urls.api,
-                channel_id
-            ))
-            .bearer_auth(user.token())
-            .body(to_string(&modify_data).unwrap());
-        let new_channel = common::deserialize_response::<Channel>(
-            request,
-            user,
-            crate::api::limits::LimitType::Channel,
-        )
-        .await?;
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/channels/{}/",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id
+                ))
+                .bearer_auth(user.token())
+                .body(to_string(&modify_data).unwrap()),
+            limit_type: crate::api::limits::LimitType::Channel,
+        };
+        let new_channel = chorus_request.deserialize_response::<Channel>(user).await?;
         let _ = std::mem::replace(self, new_channel);
         Ok(())
     }
@@ -98,15 +88,20 @@ impl Channel {
         channel_id: Snowflake,
         user: &mut UserMeta,
     ) -> Result<Vec<Message>, ChorusError> {
-        let request = Client::new()
-            .get(format!(
-                "{}/channels/{}/messages",
-                user.belongs_to.borrow().urls.api,
-                channel_id
-            ))
-            .bearer_auth(user.token())
-            .query(&range);
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .get(format!(
+                    "{}/channels/{}/messages",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id
+                ))
+                .bearer_auth(user.token())
+                .query(&range),
+            limit_type: Default::default(),
+        };
 
-        common::deserialize_response::<Vec<Message>>(request, user, Default::default()).await
+        chorus_request
+            .deserialize_response::<Vec<Message>>(user)
+            .await
     }
 }

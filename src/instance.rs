@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 use crate::api::limits::{Limit, LimitType};
 use crate::errors::{ChorusError, ChorusResult, FieldFormatError};
 use crate::ratelimiter::ChorusRequest;
-use crate::types::types::limit_configuration;
 use crate::types::{GeneralConfiguration, LimitsConfiguration, User, UserSettings};
 use crate::UrlBundle;
 
@@ -139,7 +138,7 @@ impl UserMeta {
         let settings = UserSettings::default();
         let object = User::default();
         UserMeta {
-            belongs_to: instance,
+            belongs_to: instance.clone(),
             token,
             limits: instance.borrow().limits.clone(),
             settings,

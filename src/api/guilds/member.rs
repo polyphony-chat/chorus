@@ -3,6 +3,7 @@ use reqwest::Client;
 use crate::{
     errors::ChorusResult,
     instance::UserMeta,
+    ratelimiter::ChorusRequest,
     types::{self, Snowflake},
 };
 
@@ -29,13 +30,13 @@ impl types::GuildMember {
             guild_id,
             member_id
         );
-        let request = Client::new().get(url).bearer_auth(user.token());
-        deserialize_response::<types::GuildMember>(
-            request,
-            user,
-            crate::api::limits::LimitType::Guild,
-        )
-        .await
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Guild,
+        };
+        chorus_request
+            .deserialize_response::<types::GuildMember>(user)
+            .await
     }
 
     /// Adds a role to a guild member.
@@ -63,8 +64,11 @@ impl types::GuildMember {
             member_id,
             role_id
         );
-        let request = Client::new().put(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().put(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Guild,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
     /// Removes a role from a guild member.
@@ -92,7 +96,10 @@ impl types::GuildMember {
             member_id,
             role_id
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Guild,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 }

@@ -4,6 +4,7 @@ use serde_json::to_string;
 use crate::{
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
+    ratelimiter::ChorusRequest,
     types::{self, RoleCreateModifySchema, RoleObject, Snowflake},
 };
 
@@ -31,14 +32,14 @@ impl types::RoleObject {
             user.belongs_to.borrow().urls.api,
             guild_id
         );
-        let request = Client::new().get(url).bearer_auth(user.token());
-        let roles = deserialize_response::<Vec<RoleObject>>(
-            request,
-            user,
-            crate::api::limits::LimitType::Guild,
-        )
-        .await
-        .unwrap();
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Guild,
+        };
+        let roles = chorus_request
+            .deserialize_response::<Vec<RoleObject>>(user)
+            .await
+            .unwrap();
         if roles.is_empty() {
             return Ok(None);
         }
@@ -71,8 +72,13 @@ impl types::RoleObject {
             guild_id,
             role_id
         );
-        let request = Client::new().get(url).bearer_auth(user.token());
-        deserialize_response(request, user, crate::api::limits::LimitType::Guild).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url).bearer_auth(user.token()),
+            limit_type: crate::api::limits::LimitType::Guild,
+        };
+        chorus_request
+            .deserialize_response::<RoleObject>(user)
+            .await
     }
 
     /// Creates a new role for a given guild.
@@ -105,8 +111,13 @@ impl types::RoleObject {
                 error: e.to_string(),
             }
         })?;
-        let request = Client::new().post(url).bearer_auth(user.token()).body(body);
-        deserialize_response(request, user, crate::api::limits::LimitType::Guild).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().post(url).bearer_auth(user.token()).body(body),
+            limit_type: crate::api::limits::LimitType::Guild,
+        };
+        chorus_request
+            .deserialize_response::<RoleObject>(user)
+            .await
     }
 
     /// Updates the position of a role in the guild's hierarchy.
@@ -139,11 +150,15 @@ impl types::RoleObject {
                 error: e.to_string(),
             }
         })?;
-        let request = Client::new()
-            .patch(url)
-            .bearer_auth(user.token())
-            .body(body);
-        deserialize_response::<RoleObject>(request, user, crate::api::limits::LimitType::Guild)
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(url)
+                .bearer_auth(user.token())
+                .body(body),
+            limit_type: crate::api::limits::LimitType::Guild,
+        };
+        chorus_request
+            .deserialize_response::<RoleObject>(user)
             .await
     }
 
@@ -180,11 +195,15 @@ impl types::RoleObject {
                 error: e.to_string(),
             }
         })?;
-        let request = Client::new()
-            .patch(url)
-            .bearer_auth(user.token())
-            .body(body);
-        deserialize_response::<RoleObject>(request, user, crate::api::limits::LimitType::Guild)
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(url)
+                .bearer_auth(user.token())
+                .body(body),
+            limit_type: crate::api::limits::LimitType::Guild,
+        };
+        chorus_request
+            .deserialize_response::<RoleObject>(user)
             .await
     }
 }
