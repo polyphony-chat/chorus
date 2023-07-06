@@ -24,7 +24,7 @@ pub async fn setup() -> TestBundle {
         "ws://localhost:3001".to_string(),
         "http://localhost:3001".to_string(),
     );
-    let mut instance = Instance::new(urls.clone()).await.unwrap();
+    let mut instance = Instance::new(urls.clone(), true).await.unwrap();
     // Requires the existance of the below user.
     let reg = RegisterSchema {
         username: "integrationtestuser".into(),

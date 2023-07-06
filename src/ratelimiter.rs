@@ -123,59 +123,46 @@ impl ChorusRequest {
             &LimitType::Global,
             &LimitType::Ip,
         ];
+        // modify this to store something to look up the value with later, instead of storing a reference to the actual data itself.
         let mut relevant_limits = Vec::new();
-        let mut belongs_to = user.belongs_to.borrow_mut();
         if instance_dictated_limits.contains(&limit_type) {
-            relevant_limits.push(
-                belongs_to
+            relevant_limits.push((LimitOrigin::INSTANCE, *limit_type));
+        } else {
+            relevant_limits.push((LimitOrigin::USER, *limit_type));
+        }
+        relevant_limits.push((LimitOrigin::INSTANCE, LimitType::Global));
+        relevant_limits.push((LimitOrigin::INSTANCE, LimitType::Ip));
+        if response_was_err {
+            relevant_limits.push((LimitOrigin::USER, LimitType::Error));
+        }
+        let time: u64 = chrono::Utc::now().timestamp() as u64;
+        let instance_rate_limits_conf = user
+            .belongs_to
+            .borrow()
+            .limits_configuration
+            .as_ref()
+            .unwrap()
+            .rate
+            .clone()
+            .to_hash_map();
+        for relevant_limit in relevant_limits.iter() {
+            let mut belongs_to = user.belongs_to.borrow_mut();
+            let limit = match relevant_limit.0 {
+                LimitOrigin::INSTANCE => belongs_to
                     .limits
                     .as_mut()
                     .unwrap()
-                    .get_mut(limit_type)
+                    .get_mut(&relevant_limit.1)
                     .unwrap(),
-            );
-        } else {
-            relevant_limits.push(user.limits.as_mut().unwrap().get_mut(limit_type).unwrap());
-        }
-        relevant_limits.push(
-            belongs_to
-                .limits
-                .as_mut()
-                .unwrap()
-                .get_mut(&LimitType::Global)
-                .unwrap(),
-        );
-        relevant_limits.push(
-            user.belongs_to
-                .borrow_mut()
-                .limits
-                .as_mut()
-                .unwrap()
-                .get_mut(&LimitType::Ip)
-                .unwrap(),
-        );
-        if response_was_err {
-            relevant_limits.push(
-                user.limits
+                LimitOrigin::USER => user
+                    .limits
                     .as_mut()
                     .unwrap()
-                    .get_mut(&LimitType::Error)
+                    .get_mut(&relevant_limit.1)
                     .unwrap(),
-            );
-        }
-        let time: u64 = chrono::Utc::now().timestamp() as u64;
-        for limit in relevant_limits.iter() {
-            let limit = *limit; // deref here so we don't have to do it later
+            };
             if time > limit.reset {
-                let limit_from_instance_config = user
-                    .belongs_to
-                    .borrow()
-                    .limits_configuration
-                    .unwrap()
-                    .rate
-                    .to_hash_map()
-                    .get(&limit.bucket)
-                    .unwrap();
+                let limit_from_instance_config = instance_rate_limits_conf.get(limit_type).unwrap();
                 // Spacebar does not yet return rate limit information in its response headers. We
                 // therefore have to guess the next rate limit window. This is not ideal. Oh well!
                 limit.reset = limit_from_instance_config.window + time;
@@ -321,4 +308,9 @@ impl ChorusRequest {
         };
         Ok(object)
     }
+}
+
+enum LimitOrigin {
+    INSTANCE,
+    USER,
 }
