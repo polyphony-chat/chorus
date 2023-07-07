@@ -7,7 +7,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::api::limits::{Limit, LimitType};
-use crate::errors::{ChorusError, ChorusResult};
+use crate::errors::ChorusResult;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{GeneralConfiguration, LimitsConfiguration, User, UserSettings};
 use crate::UrlBundle;
@@ -57,9 +57,8 @@ impl Instance {
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
             Err(e) => {
-                return Err(ChorusError::CantGetInformation {
-                    error: e.to_string(),
-                });
+                log::warn!("Could not get instance configuration schema: {}", e);
+                GeneralConfiguration::default()
             }
         };
         Ok(instance)
