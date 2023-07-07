@@ -71,7 +71,7 @@ impl UserMeta {
         );
         let body = to_string(&schema).unwrap();
         let chorus_request = ChorusRequest {
-            request: Client::new().post(url).bearer_auth(self.token()),
+            request: Client::new().post(url).bearer_auth(self.token()).body(body),
             limit_type: crate::api::limits::LimitType::Global,
         };
         chorus_request.handle_request_as_result(self).await
