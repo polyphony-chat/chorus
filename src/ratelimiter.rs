@@ -67,7 +67,7 @@ impl ChorusRequest {
             &LimitType::Global,
             &LimitType::Ip,
         ];
-        let limits: HashMap<LimitType, Limit>;
+        let limits;
         if instance_dictated_limits.contains(&limit_type) {
             limits = belongs_to.limits.as_ref().unwrap().clone();
         } else {
@@ -126,14 +126,14 @@ impl ChorusRequest {
         // modify this to store something to look up the value with later, instead of storing a reference to the actual data itself.
         let mut relevant_limits = Vec::new();
         if instance_dictated_limits.contains(&limit_type) {
-            relevant_limits.push((LimitOrigin::INSTANCE, *limit_type));
+            relevant_limits.push((LimitOrigin::Instance, *limit_type));
         } else {
-            relevant_limits.push((LimitOrigin::USER, *limit_type));
+            relevant_limits.push((LimitOrigin::User, *limit_type));
         }
-        relevant_limits.push((LimitOrigin::INSTANCE, LimitType::Global));
-        relevant_limits.push((LimitOrigin::INSTANCE, LimitType::Ip));
+        relevant_limits.push((LimitOrigin::Instance, LimitType::Global));
+        relevant_limits.push((LimitOrigin::Instance, LimitType::Ip));
         if response_was_err {
-            relevant_limits.push((LimitOrigin::USER, LimitType::Error));
+            relevant_limits.push((LimitOrigin::User, LimitType::Error));
         }
         let time: u64 = chrono::Utc::now().timestamp() as u64;
         let instance_rate_limits_conf = user
@@ -148,13 +148,13 @@ impl ChorusRequest {
         for relevant_limit in relevant_limits.iter() {
             let mut belongs_to = user.belongs_to.borrow_mut();
             let limit = match relevant_limit.0 {
-                LimitOrigin::INSTANCE => belongs_to
+                LimitOrigin::Instance => belongs_to
                     .limits
                     .as_mut()
                     .unwrap()
                     .get_mut(&relevant_limit.1)
                     .unwrap(),
-                LimitOrigin::USER => user
+                LimitOrigin::User => user
                     .limits
                     .as_mut()
                     .unwrap()
@@ -193,7 +193,7 @@ impl ChorusRequest {
                     bucket: format!("{:?}", LimitType::Ip),
                 })
             }
-            404 => return Err(ChorusError::NotFound { error: format!("Route \"/policies/instance/limits/\" not found. Are you perhaps trying to request the Limits configuration from an unsupported server?") }),
+            404 => return Err(ChorusError::NotFound { error: "Route \"/policies/instance/limits/\" not found. Are you perhaps trying to request the Limits configuration from an unsupported server?".to_string() }),
             400..=u16::MAX => {
                 return Err(ChorusError::ReceivedErrorCodeError { error_code: request.status().as_u16(), error: request.text().await.unwrap() })
             }
@@ -267,6 +267,24 @@ impl ChorusRequest {
                 reset: config.ip.window,
             },
         );
+        map.insert(
+            LimitType::Guild,
+            Limit {
+                bucket: LimitType::Guild,
+                limit: routes.guild.count,
+                remaining: routes.guild.count,
+                reset: routes.guild.window,
+            },
+        );
+        map.insert(
+            LimitType::Webhook,
+            Limit {
+                bucket: LimitType::Webhook,
+                limit: routes.webhook.count,
+                remaining: routes.webhook.count,
+                reset: routes.webhook.window,
+            },
+        );
         map
     }
 
@@ -311,6 +329,6 @@ impl ChorusRequest {
 }
 
 enum LimitOrigin {
-    INSTANCE,
-    USER,
+    Instance,
+    User,
 }
