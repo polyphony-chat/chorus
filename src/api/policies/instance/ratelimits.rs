@@ -1,5 +1,5 @@
 pub mod limits {
-    use std::hash::{Hash, Hasher};
+    use std::hash::Hash;
 
     #[derive(Clone, Copy, Eq, PartialEq, Debug, Default, Hash)]
     pub enum LimitType {
