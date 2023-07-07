@@ -40,13 +40,15 @@ impl Instance {
             .deserialize_response::<Token>(&mut shell)
             .await?
             .token;
-        self.limits = shell.belongs_to.borrow().limits.clone();
+        if self.limits_information.is_some() {
+            self.limits_information.as_mut().unwrap().limits = shell.limits.clone().unwrap();
+        }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
         let settings = UserMeta::get_settings(&token, &self.urls.api.clone(), self).await?;
         let user = UserMeta::new(
             Rc::new(RefCell::new(self.clone())),
             token.clone(),
-            self.limits.clone(),
+            self.clone_limits_if_some(),
             settings,
             user_object,
         );
