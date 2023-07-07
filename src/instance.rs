@@ -7,7 +7,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::api::limits::{Limit, LimitType};
-use crate::errors::{ChorusError, ChorusResult};
+use crate::errors::ChorusResult;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{GeneralConfiguration, LimitsConfiguration, User, UserSettings};
 use crate::UrlBundle;
