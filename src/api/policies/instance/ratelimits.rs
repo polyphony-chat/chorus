@@ -1,7 +1,7 @@
 pub mod limits {
     use std::hash::{Hash, Hasher};
 
-    #[derive(Clone, Copy, Eq, PartialEq, Debug, Default)]
+    #[derive(Clone, Copy, Eq, PartialEq, Debug, Default, Hash)]
     pub enum LimitType {
         AuthRegister,
         AuthLogin,
@@ -12,13 +12,6 @@ pub mod limits {
         Error,
         Guild,
         Webhook,
-    }
-
-    // A fast way to hash this basic Enum
-    impl Hash for LimitType {
-        fn hash<H: Hasher>(&self, state: &mut H) {
-            (*self as u32).hash(state);
-        }
     }
 
     #[derive(Debug, Clone)]
