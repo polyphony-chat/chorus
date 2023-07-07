@@ -56,11 +56,7 @@ impl Instance {
         };
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
-            Err(e) => {
-                return Err(ChorusError::CantGetInformation {
-                    error: e.to_string(),
-                });
-            }
+            Err(_) => GeneralConfiguration::default(),
         };
         Ok(instance)
     }
