@@ -45,7 +45,10 @@ async fn test_get_relationships() {
         username: user.object.username.clone(),
         discriminator: Some(user.object.discriminator.clone()),
     };
-    other_user.send_friend_request(friend_request_schema).await;
+    other_user
+        .send_friend_request(friend_request_schema)
+        .await
+        .unwrap();
     let relationships = user.get_relationships().await.unwrap();
     assert_eq!(relationships.get(0).unwrap().id, other_user.object.id);
     common::teardown(bundle).await
