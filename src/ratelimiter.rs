@@ -35,7 +35,7 @@ impl ChorusRequest {
         {
             Ok(result) => result,
             Err(error) => {
-                return Err(ChorusError::RequestErrorError {
+                return Err(ChorusError::RequestFailed {
                     url: error.url().unwrap().to_string(),
                     error,
                 })
@@ -96,7 +96,7 @@ impl ChorusRequest {
 
     async fn interpret_error(response: reqwest::Response) -> ChorusError {
         match response.status().as_u16() {
-            200..=299 => ChorusError::InvalidArgumentsError {
+            200..=299 => ChorusError::InvalidArguments {
                 error: "You somehow passed a successful request into this function, which is not allowed."
                     .to_string(),
             },
@@ -104,14 +104,14 @@ impl ChorusRequest {
             404 => ChorusError::NotFound {
                 error: response.text().await.unwrap(),
             },
-            405 | 408 | 409 => ChorusError::ReceivedErrorCodeError { error_code: response.status().as_u16(), error: response.text().await.unwrap() },
-            411..=421 | 426 | 428 | 431 => ChorusError::InvalidArgumentsError {
+            405 | 408 | 409 => ChorusError::ReceivedErrorCode { error_code: response.status().as_u16(), error: response.text().await.unwrap() },
+            411..=421 | 426 | 428 | 431 => ChorusError::InvalidArguments {
                 error: response.text().await.unwrap(),
             },
             429 => panic!("Illegal state: Rate limit exception should have been caught before this function call."),
             451 => ChorusError::NoResponse,
-            500..=599 => ChorusError::ReceivedErrorCodeError { error_code: response.status().as_u16(), error: response.text().await.unwrap() },
-            _ => ChorusError::ReceivedErrorCodeError { error_code: response.status().as_u16(), error: response.text().await.unwrap()},
+            500..=599 => ChorusError::ReceivedErrorCode { error_code: response.status().as_u16(), error: response.text().await.unwrap() },
+            _ => ChorusError::ReceivedErrorCode { error_code: response.status().as_u16(), error: response.text().await.unwrap()},
         }
     }
 
@@ -182,7 +182,7 @@ impl ChorusRequest {
         let request = match request {
             Ok(request) => request,
             Err(e) => {
-                return Err(ChorusError::RequestErrorError {
+                return Err(ChorusError::RequestFailed {
                     url: url_api.to_string(),
                     error: e,
                 })
@@ -197,10 +197,10 @@ impl ChorusRequest {
             }
             404 => return Err(ChorusError::NotFound { error: "Route \"/policies/instance/limits/\" not found. Are you perhaps trying to request the Limits configuration from an unsupported server?".to_string() }),
             400..=u16::MAX => {
-                return Err(ChorusError::ReceivedErrorCodeError { error_code: request.status().as_u16(), error: request.text().await.unwrap() })
+                return Err(ChorusError::ReceivedErrorCode { error_code: request.status().as_u16(), error: request.text().await.unwrap() })
             }
             _ => {
-                return Err(ChorusError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponse {
                     error: request.text().await.unwrap(),
                 })
             }
@@ -305,7 +305,7 @@ impl ChorusRequest {
         let response_text = match response.text().await {
             Ok(string) => string,
             Err(e) => {
-                return Err(ChorusError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponse {
                     error: format!(
                         "Error while trying to process the HTTP response into a String: {}",
                         e
@@ -316,7 +316,7 @@ impl ChorusRequest {
         let object = match from_str::<T>(&response_text) {
             Ok(object) => object,
             Err(e) => {
-                return Err(ChorusError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponse {
                     error: format!(
                         "Error while trying to deserialize the JSON response into T: {}",
                         e

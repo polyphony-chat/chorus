@@ -107,7 +107,7 @@ impl types::RoleObject {
             guild_id
         );
         let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
-            ChorusError::FormCreationError {
+            ChorusError::FormCreation {
                 error: e.to_string(),
             }
         })?;
@@ -145,11 +145,10 @@ impl types::RoleObject {
             user.belongs_to.borrow().urls.api,
             guild_id
         );
-        let body = to_string(&role_position_update_schema).map_err(|e| {
-            ChorusError::FormCreationError {
+        let body =
+            to_string(&role_position_update_schema).map_err(|e| ChorusError::FormCreation {
                 error: e.to_string(),
-            }
-        })?;
+            })?;
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .patch(url)
@@ -191,7 +190,7 @@ impl types::RoleObject {
             role_id
         );
         let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
-            ChorusError::FormCreationError {
+            ChorusError::FormCreation {
                 error: e.to_string(),
             }
         })?;

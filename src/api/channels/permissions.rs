@@ -34,7 +34,7 @@ impl types::Channel {
         let body = match to_string(&overwrite) {
             Ok(string) => string,
             Err(e) => {
-                return Err(ChorusError::FormCreationError {
+                return Err(ChorusError::FormCreation {
                     error: e.to_string(),
                 });
             }
