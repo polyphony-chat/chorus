@@ -1,7 +1,7 @@
 pub mod limits {
     use std::hash::{Hash, Hasher};
 
-    #[derive(Clone, Copy, Eq, PartialEq, Debug, Default, EnumIter)]
+    #[derive(Clone, Copy, Eq, PartialEq, Debug, Default)]
     pub enum LimitType {
         AuthRegister,
         AuthLogin,
