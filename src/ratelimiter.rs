@@ -17,9 +17,10 @@ pub struct ChorusRequest {
 }
 
 impl ChorusRequest {
+    #[allow(clippy::await_holding_refcell_ref)]
     pub async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
         let belongs_to = user.belongs_to.borrow();
-        if !ChorusRequest::can_send_request(&user, &self.limit_type) {
+        if !ChorusRequest::can_send_request(user, &self.limit_type) {
             return Err(ChorusError::RateLimited {
                 bucket: format!("{:?}", self.limit_type),
             });
@@ -67,12 +68,10 @@ impl ChorusRequest {
             &LimitType::Global,
             &LimitType::Ip,
         ];
-        let limits;
-        if instance_dictated_limits.contains(&limit_type) {
-            limits = belongs_to.limits.as_ref().unwrap().clone();
-        } else {
-            limits = user.limits.as_ref().unwrap().clone();
-        }
+        let limits = match instance_dictated_limits.contains(&limit_type) {
+            true => belongs_to.limits.as_ref().unwrap().clone(),
+            false => user.limits.as_ref().unwrap().clone(),
+        };
         let global = belongs_to
             .limits
             .as_ref()
