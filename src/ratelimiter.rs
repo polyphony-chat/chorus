@@ -17,6 +17,9 @@ pub struct ChorusRequest {
 }
 
 impl ChorusRequest {
+    /// Sends a [`ChorusRequest`]. Checks if the user is rate limited, and if not, sends the request.
+    /// If the user is not rate limited and the instance has rate limits enabled, it will update the
+    /// rate limits.
     #[allow(clippy::await_holding_refcell_ref)]
     pub(crate) async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
         let belongs_to = user.belongs_to.borrow();
@@ -287,8 +290,6 @@ impl ChorusRequest {
         map
     }
 
-    /// Sends a request to wherever it needs to go. Returns [`Ok(())`] on success and
-    /// [`Err(ChorusLibError)`] on failure.
     pub(crate) async fn handle_request_as_result(self, user: &mut UserMeta) -> ChorusResult<()> {
         match self.send_request(user).await {
             Ok(_) => Ok(()),
