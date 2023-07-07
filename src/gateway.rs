@@ -8,7 +8,7 @@ use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
-use log::{debug, info, trace, warn};
+use log::{info, trace, warn};
 use native_tls::TlsConnector;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::error::TryRecvError;
