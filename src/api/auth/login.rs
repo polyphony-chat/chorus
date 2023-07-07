@@ -27,11 +27,13 @@ impl Instance {
             .deserialize_response::<LoginResult>(&mut shell)
             .await?;
         let object = self.get_user(login_result.token.clone(), None).await?;
-        self.limits = shell.limits.clone();
+        if self.limits_information.is_some() {
+            self.limits_information.as_mut().unwrap().limits = shell.limits.clone().unwrap();
+        }
         let user = UserMeta::new(
             Rc::new(RefCell::new(self.clone())),
             login_result.token,
-            self.limits.clone(),
+            self.clone_limits_if_some(),
             login_result.settings,
             object,
         );

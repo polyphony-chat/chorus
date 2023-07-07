@@ -62,7 +62,7 @@ impl ChorusRequest {
 
     fn can_send_request(user: &UserMeta, limit_type: &LimitType) -> bool {
         let belongs_to = user.belongs_to.borrow();
-        if belongs_to.limits.is_none() {
+        if belongs_to.limits_information.is_none() {
             return true;
         }
         let instance_dictated_limits = [
@@ -72,26 +72,30 @@ impl ChorusRequest {
             &LimitType::Ip,
         ];
         let limits = match instance_dictated_limits.contains(&limit_type) {
-            true => belongs_to.limits.as_ref().unwrap().clone(),
+            true => belongs_to
+                .limits_information
+                .as_ref()
+                .unwrap()
+                .limits
+                .clone(),
             false => user.limits.as_ref().unwrap().clone(),
         };
         let global = belongs_to
-            .limits
+            .limits_information
             .as_ref()
             .unwrap()
+            .limits
             .get(&LimitType::Global)
             .unwrap();
         let ip = belongs_to
-            .limits
+            .limits_information
             .as_ref()
             .unwrap()
+            .limits
             .get(&LimitType::Ip)
             .unwrap();
         let limit_type_limit = limits.get(limit_type).unwrap();
-        if global.remaining == 0 || ip.remaining == 0 || limit_type_limit.remaining == 0 {
-            return false;
-        }
-        true
+        global.remaining > 0 && ip.remaining > 0 && limit_type_limit.remaining > 0
     }
 
     async fn interpret_error(response: reqwest::Response) -> ChorusError {
@@ -116,9 +120,10 @@ impl ChorusRequest {
     }
 
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
-        if user.belongs_to.borrow().limits.is_none() {
-            return;
-        }
+        let instance_rate_limits_info = match &user.belongs_to.borrow().limits_information {
+            Some(limits) => limits.limits_configuration.rate.to_hash_map(),
+            None => return,
+        };
         let instance_dictated_limits = [
             &LimitType::AuthLogin,
             &LimitType::AuthRegister,
@@ -138,22 +143,14 @@ impl ChorusRequest {
             relevant_limits.push((LimitOrigin::User, LimitType::Error));
         }
         let time: u64 = chrono::Utc::now().timestamp() as u64;
-        let instance_rate_limits_conf = user
-            .belongs_to
-            .borrow()
-            .limits_configuration
-            .as_ref()
-            .unwrap()
-            .rate
-            .clone()
-            .to_hash_map();
         for relevant_limit in relevant_limits.iter() {
             let mut belongs_to = user.belongs_to.borrow_mut();
             let limit = match relevant_limit.0 {
                 LimitOrigin::Instance => belongs_to
-                    .limits
+                    .limits_information
                     .as_mut()
                     .unwrap()
+                    .limits
                     .get_mut(&relevant_limit.1)
                     .unwrap(),
                 LimitOrigin::User => user
@@ -164,7 +161,7 @@ impl ChorusRequest {
                     .unwrap(),
             };
             if time > limit.reset {
-                let limit_from_instance_config = instance_rate_limits_conf.get(limit_type).unwrap();
+                let limit_from_instance_config = instance_rate_limits_info.get(limit_type).unwrap();
                 // Spacebar does not yet return rate limit information in its response headers. We
                 // therefore have to guess the next rate limit window. This is not ideal. Oh well!
                 limit.reset = limit_from_instance_config.window + time;

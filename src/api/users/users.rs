@@ -131,7 +131,10 @@ impl User {
             Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
             Err(e) => Err(e),
         };
-        instance.limits = user.belongs_to.borrow().limits.clone();
+        if instance.limits_information.is_some() {
+            instance.limits_information.as_mut().unwrap().limits =
+                user.belongs_to.borrow().clone_limits_if_some().unwrap();
+        }
         result
     }
 }
@@ -150,7 +153,10 @@ impl Instance {
     pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
         let mut user = UserMeta::shell(Rc::new(RefCell::new(self.clone())), token);
         let result = User::get(&mut user, id).await;
-        self.limits = user.belongs_to.borrow().limits.clone();
+        if self.limits_information.is_some() {
+            self.limits_information.as_mut().unwrap().limits =
+                user.belongs_to.borrow().clone_limits_if_some().unwrap();
+        }
         result
     }
 }

@@ -19,9 +19,14 @@ The [`Instance`] what you will be using to perform all sorts of actions on the S
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
-    pub limits_configuration: Option<LimitsConfiguration>,
-    pub limits: Option<HashMap<LimitType, Limit>>,
+    pub limits_information: Option<LimitsInformation>,
     pub client: Client,
+}
+
+#[derive(Debug, Clone)]
+pub struct LimitsInformation {
+    pub limits: HashMap<LimitType, Limit>,
+    pub limits_configuration: LimitsConfiguration,
 }
 
 impl Instance {
@@ -32,23 +37,24 @@ impl Instance {
     /// # Errors
     /// * [`InstanceError`] - If the instance cannot be created.
     pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
-        let limits;
-        let limits_configuration;
+        let limits_information;
         if limited {
-            limits_configuration = Some(ChorusRequest::get_limits_config(&urls.api).await?);
-            limits = Some(ChorusRequest::limits_config_to_hashmap(
+            let limits_configuration = Some(ChorusRequest::get_limits_config(&urls.api).await?);
+            let limits = Some(ChorusRequest::limits_config_to_hashmap(
                 limits_configuration.as_ref().unwrap(),
             ));
+            limits_information = Some(LimitsInformation {
+                limits: limits.unwrap(),
+                limits_configuration: limits_configuration.unwrap(),
+            });
         } else {
-            limits = None;
-            limits_configuration = None;
+            limits_information = None;
         }
         let mut instance = Instance {
             urls: urls.clone(),
             // Will be overwritten in the next step
             instance_info: GeneralConfiguration::default(),
-            limits,
-            limits_configuration,
+            limits_information,
             client: Client::new(),
         };
         instance.instance_info = match instance.general_configuration_schema().await {
@@ -59,6 +65,12 @@ impl Instance {
             }
         };
         Ok(instance)
+    }
+    pub(crate) fn clone_limits_if_some(&self) -> Option<HashMap<LimitType, Limit>> {
+        if self.limits_information.is_some() {
+            return Some(self.limits_information.as_ref().unwrap().limits.clone());
+        }
+        None
     }
 }
 
@@ -117,7 +129,11 @@ impl UserMeta {
         UserMeta {
             belongs_to: instance.clone(),
             token,
-            limits: instance.borrow().limits.clone(),
+            limits: instance
+                .borrow()
+                .limits_information
+                .as_ref()
+                .map(|info| info.limits.clone()),
             settings,
             object,
         }
