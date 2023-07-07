@@ -1,8 +1,6 @@
 pub mod limits {
     use std::hash::{Hash, Hasher};
 
-    use strum::EnumIter;
-
     #[derive(Clone, Copy, Eq, PartialEq, Debug, Default, EnumIter)]
     pub enum LimitType {
         AuthRegister,
