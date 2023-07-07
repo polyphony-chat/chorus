@@ -17,7 +17,7 @@ impl Channel {
                 .bearer_auth(user.token()),
             limit_type: crate::api::limits::LimitType::Channel,
         };
-        Ok(chorus_request.deserialize_response::<Channel>(user).await?)
+        chorus_request.deserialize_response::<Channel>(user).await
     }
 
     /// Deletes a channel.
