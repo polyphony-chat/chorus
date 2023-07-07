@@ -35,10 +35,7 @@ impl Instance {
         let limits;
         let limits_configuration;
         if limited {
-            limits_configuration = match ChorusRequest::get_limits_config(&urls.api).await {
-                Ok(conf) => Some(conf),
-                Err(e) => return Err(e),
-            };
+            limits_configuration = Some(ChorusRequest::get_limits_config(&urls.api).await?;
             limits = Some(ChorusRequest::limits_config_to_hashmap(
                 limits_configuration.as_ref().unwrap(),
             ));
