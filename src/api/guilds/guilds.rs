@@ -197,6 +197,6 @@ impl Channel {
                 .body(to_string(&schema).unwrap()),
             limit_type: crate::api::limits::LimitType::Guild,
         };
-        Ok(chorus_request.deserialize_response::<Channel>(user).await?)
+        chorus_request.deserialize_response::<Channel>(user).await
     }
 }
