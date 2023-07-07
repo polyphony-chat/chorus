@@ -13,7 +13,7 @@ impl Instance {
         let request = match self.client.get(&endpoint_url).send().await {
             Ok(result) => result,
             Err(e) => {
-                return Err(ChorusError::RequestErrorError {
+                return Err(ChorusError::RequestFailed {
                     url: endpoint_url,
                     error: e,
                 });
@@ -21,7 +21,7 @@ impl Instance {
         };
 
         if !request.status().as_str().starts_with('2') {
-            return Err(ChorusError::ReceivedErrorCodeError {
+            return Err(ChorusError::ReceivedErrorCode {
                 error_code: request.status().as_u16(),
                 error: request.text().await.unwrap(),
             });

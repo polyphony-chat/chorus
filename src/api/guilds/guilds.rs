@@ -125,7 +125,7 @@ impl Guild {
         let stringed_response = match result.text().await {
             Ok(value) => value,
             Err(e) => {
-                return Err(ChorusError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponse {
                     error: e.to_string(),
                 });
             }
@@ -133,7 +133,7 @@ impl Guild {
         let _: Vec<Channel> = match from_str(&stringed_response) {
             Ok(result) => return Ok(result),
             Err(e) => {
-                return Err(ChorusError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponse {
                     error: e.to_string(),
                 });
             }

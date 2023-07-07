@@ -50,7 +50,7 @@ impl UserMeta {
             || modify_schema.email.is_some()
             || modify_schema.code.is_some()
         {
-            return Err(ChorusError::PasswordRequiredError);
+            return Err(ChorusError::PasswordRequired);
         }
         let request = Client::new()
             .patch(format!("{}/users/@me/", self.belongs_to.borrow().urls.api))

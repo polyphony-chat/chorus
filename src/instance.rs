@@ -7,7 +7,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::api::limits::{Limit, LimitType};
-use crate::errors::{ChorusError, ChorusResult, FieldFormatError};
+use crate::errors::{ChorusError, ChorusResult};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{GeneralConfiguration, LimitsConfiguration, User, UserSettings};
 use crate::UrlBundle;
@@ -57,7 +57,7 @@ impl Instance {
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
             Err(e) => {
-                return Err(ChorusError::CantGetInfoError {
+                return Err(ChorusError::CantGetInformation {
                     error: e.to_string(),
                 });
             }
@@ -74,25 +74,6 @@ pub struct Token {
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.token)
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct Username {
-    pub username: String,
-}
-
-impl Username {
-    /// Creates a new [`Username`].
-    /// # Arguments
-    /// * `username` - The username that will be used to create the [`Username`].
-    /// # Errors
-    /// * [`UsernameFormatError`] - If the username is not between 2 and 32 characters.
-    pub fn new(username: String) -> Result<Username, FieldFormatError> {
-        if username.len() < 2 || username.len() > 32 {
-            return Err(FieldFormatError::UsernameError);
-        }
-        Ok(Username { username })
     }
 }
 
