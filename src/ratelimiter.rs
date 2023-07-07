@@ -18,7 +18,7 @@ pub struct ChorusRequest {
 
 impl ChorusRequest {
     #[allow(clippy::await_holding_refcell_ref)]
-    pub async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
+    pub(crate) async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
         let belongs_to = user.belongs_to.borrow();
         if !ChorusRequest::can_send_request(user, &self.limit_type) {
             return Err(ChorusError::RateLimited {
@@ -171,7 +171,7 @@ impl ChorusRequest {
         }
     }
 
-    pub async fn get_limits_config(url_api: &str) -> ChorusResult<LimitsConfiguration> {
+    pub(crate) async fn get_limits_config(url_api: &str) -> ChorusResult<LimitsConfiguration> {
         let request = Client::new()
             .get(format!("{}/policies/instance/limits/", url_api))
             .send()
@@ -206,7 +206,7 @@ impl ChorusRequest {
         Ok(limits_configuration)
     }
 
-    pub fn limits_config_to_hashmap(
+    pub(crate) fn limits_config_to_hashmap(
         limits_configuration: &LimitsConfiguration,
     ) -> HashMap<LimitType, Limit> {
         let config = limits_configuration.rate.clone();
@@ -289,14 +289,14 @@ impl ChorusRequest {
 
     /// Sends a request to wherever it needs to go. Returns [`Ok(())`] on success and
     /// [`Err(ChorusLibError)`] on failure.
-    pub async fn handle_request_as_result(self, user: &mut UserMeta) -> ChorusResult<()> {
+    pub(crate) async fn handle_request_as_result(self, user: &mut UserMeta) -> ChorusResult<()> {
         match self.send_request(user).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
     }
 
-    pub async fn deserialize_response<T: for<'a> Deserialize<'a>>(
+    pub(crate) async fn deserialize_response<T: for<'a> Deserialize<'a>>(
         self,
         user: &mut UserMeta,
     ) -> ChorusResult<T> {
