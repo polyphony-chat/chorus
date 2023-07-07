@@ -56,7 +56,10 @@ impl Instance {
         };
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
-            Err(_) => GeneralConfiguration::default(),
+            Err(e) => {
+                log::warn!("Could not get instance configuration schema: {}", e);
+                GeneralConfiguration::default()
+            }
         };
         Ok(instance)
     }
