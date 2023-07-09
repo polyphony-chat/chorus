@@ -2,7 +2,7 @@ use reqwest::Client;
 use serde_json::from_str;
 use serde_json::to_string;
 
-use crate::api::limits::LimitType;
+use crate::api::LimitType;
 use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::UserMeta;

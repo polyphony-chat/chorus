@@ -1,7 +1,7 @@
 use reqwest::Client;
 
 use crate::{
-    api::limits::LimitType,
+    api::LimitType,
     errors::ChorusResult,
     instance::UserMeta,
     ratelimiter::ChorusRequest,

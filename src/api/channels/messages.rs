@@ -3,7 +3,7 @@ use http::HeaderMap;
 use reqwest::{multipart, Client};
 use serde_json::to_string;
 
-use crate::api::limits::LimitType;
+use crate::api::LimitType;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment, Snowflake};

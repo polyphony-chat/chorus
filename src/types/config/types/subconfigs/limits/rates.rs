@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    api::limits::LimitType,
+    api::LimitType,
     types::config::types::subconfigs::limits::ratelimits::{
         route::RouteRateLimit, RateLimitOptions,
     },
