@@ -132,7 +132,7 @@ impl User {
             Err(e) => Err(e),
         };
         if instance.limits_information.is_some() {
-            instance.limits_information.as_mut().unwrap().limits =
+            instance.limits_information.as_mut().unwrap().ratelimits =
                 user.belongs_to.borrow().clone_limits_if_some().unwrap();
         }
         result
@@ -154,7 +154,7 @@ impl Instance {
         let mut user = UserMeta::shell(Rc::new(RefCell::new(self.clone())), token);
         let result = User::get(&mut user, id).await;
         if self.limits_information.is_some() {
-            self.limits_information.as_mut().unwrap().limits =
+            self.limits_information.as_mut().unwrap().ratelimits =
                 user.belongs_to.borrow().clone_limits_if_some().unwrap();
         }
         result

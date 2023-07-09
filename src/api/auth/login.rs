@@ -28,7 +28,7 @@ impl Instance {
             .await?;
         let object = self.get_user(login_result.token.clone(), None).await?;
         if self.limits_information.is_some() {
-            self.limits_information.as_mut().unwrap().limits = shell.limits.clone().unwrap();
+            self.limits_information.as_mut().unwrap().ratelimits = shell.limits.clone().unwrap();
         }
         let user = UserMeta::new(
             Rc::new(RefCell::new(self.clone())),

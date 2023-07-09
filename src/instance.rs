@@ -25,8 +25,8 @@ pub struct Instance {
 
 #[derive(Debug, Clone)]
 pub struct LimitsInformation {
-    pub limits: HashMap<LimitType, Limit>,
-    pub limits_configuration: LimitsConfiguration,
+    pub ratelimits: HashMap<LimitType, Limit>,
+    pub configuration: LimitsConfiguration,
 }
 
 impl Instance {
@@ -44,8 +44,8 @@ impl Instance {
                 limits_configuration.as_ref().unwrap(),
             ));
             limits_information = Some(LimitsInformation {
-                limits: limits.unwrap(),
-                limits_configuration: limits_configuration.unwrap(),
+                ratelimits: limits.unwrap(),
+                configuration: limits_configuration.unwrap(),
             });
         } else {
             limits_information = None;
@@ -68,7 +68,7 @@ impl Instance {
     }
     pub(crate) fn clone_limits_if_some(&self) -> Option<HashMap<LimitType, Limit>> {
         if self.limits_information.is_some() {
-            return Some(self.limits_information.as_ref().unwrap().limits.clone());
+            return Some(self.limits_information.as_ref().unwrap().ratelimits.clone());
         }
         None
     }
@@ -133,7 +133,7 @@ impl UserMeta {
                 .borrow()
                 .limits_information
                 .as_ref()
-                .map(|info| info.limits.clone()),
+                .map(|info| info.ratelimits.clone()),
             settings,
             object,
         }

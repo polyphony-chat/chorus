@@ -1,6 +1,7 @@
 use reqwest::Client;
 
 use crate::{
+    api::limits::LimitType,
     errors::ChorusResult,
     instance::UserMeta,
     ratelimiter::ChorusRequest,
@@ -32,7 +33,7 @@ impl types::GuildMember {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().get(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         chorus_request
             .deserialize_response::<types::GuildMember>(user)
@@ -66,7 +67,7 @@ impl types::GuildMember {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().put(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         chorus_request.handle_request_as_result(user).await
     }
@@ -98,7 +99,7 @@ impl types::GuildMember {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().delete(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         chorus_request.handle_request_as_result(user).await
     }

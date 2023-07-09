@@ -2,6 +2,7 @@ use reqwest::Client;
 use serde_json::from_str;
 use serde_json::to_string;
 
+use crate::api::limits::LimitType;
 use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::UserMeta;
@@ -36,7 +37,7 @@ impl Guild {
                 .post(url.clone())
                 .bearer_auth(user.token.clone())
                 .body(to_string(&guild_create_schema).unwrap()),
-            limit_type: crate::api::limits::LimitType::Global,
+            limit_type: LimitType::Global,
         };
         chorus_request.deserialize_response::<Guild>(user).await
     }
@@ -75,7 +76,7 @@ impl Guild {
             request: Client::new()
                 .post(url.clone())
                 .bearer_auth(user.token.clone()),
-            limit_type: crate::api::limits::LimitType::Global,
+            limit_type: LimitType::Global,
         };
         chorus_request.handle_request_as_result(user).await
     }
@@ -119,7 +120,7 @@ impl Guild {
                     self.id
                 ))
                 .bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(self.id),
         };
         let result = chorus_request.send_request(user).await?;
         let stringed_response = match result.text().await {
@@ -159,7 +160,7 @@ impl Guild {
                     guild_id
                 ))
                 .bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
         Ok(response)
@@ -195,7 +196,7 @@ impl Channel {
                 ))
                 .bearer_auth(user.token())
                 .body(to_string(&schema).unwrap()),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         chorus_request.deserialize_response::<Channel>(user).await
     }
