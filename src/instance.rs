@@ -10,7 +10,7 @@ use crate::api::limits::{Limit, LimitType};
 use crate::errors::ChorusResult;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
-use crate::types::{GeneralConfiguration, LimitsConfiguration, User, UserSettings};
+use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::UrlBundle;
 
 #[derive(Debug, Clone)]
