@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::api::limits::{Limit, LimitType};
 use crate::errors::ChorusResult;
 use crate::ratelimiter::ChorusRequest;
+use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{GeneralConfiguration, LimitsConfiguration, User, UserSettings};
 use crate::UrlBundle;
 
@@ -26,7 +27,7 @@ pub struct Instance {
 #[derive(Debug, Clone)]
 pub struct LimitsInformation {
     pub ratelimits: HashMap<LimitType, Limit>,
-    pub configuration: LimitsConfiguration,
+    pub configuration: RateLimits,
 }
 
 impl Instance {
@@ -39,7 +40,8 @@ impl Instance {
     pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
         let limits_information;
         if limited {
-            let limits_configuration = Some(ChorusRequest::get_limits_config(&urls.api).await?);
+            let limits_configuration =
+                Some(ChorusRequest::get_limits_config(&urls.api).await?.rate);
             let limits = Some(ChorusRequest::limits_config_to_hashmap(
                 limits_configuration.as_ref().unwrap(),
             ));
