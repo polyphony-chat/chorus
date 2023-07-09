@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde_json::from_str;
 
 use crate::{
-    api::limits::{Limit, LimitType},
+    api::{Limit, LimitType},
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     types::{types::subconfigs::limits::rates::RateLimits, LimitsConfiguration},

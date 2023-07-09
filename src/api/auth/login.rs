@@ -4,7 +4,7 @@ use std::rc::Rc;
 use reqwest::Client;
 use serde_json::to_string;
 
-use crate::api::limits::LimitType;
+use crate::api::LimitType;
 use crate::errors::ChorusResult;
 use crate::instance::{Instance, UserMeta};
 use crate::ratelimiter::ChorusRequest;

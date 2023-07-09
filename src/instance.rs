@@ -6,7 +6,7 @@ use std::rc::Rc;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::api::limits::{Limit, LimitType};
+use crate::api::{Limit, LimitType};
 use crate::errors::ChorusResult;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
