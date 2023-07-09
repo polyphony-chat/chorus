@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use log;
 use reqwest::{Client, RequestBuilder, Response};
 use serde::Deserialize;
 use serde_json::from_str;
@@ -25,6 +26,7 @@ impl ChorusRequest {
     #[allow(clippy::await_holding_refcell_ref)]
     pub(crate) async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
         if !ChorusRequest::can_send_request(user, &self.limit_type) {
+            log::info!("Rate limit hit. Bucket: {:?}", self.limit_type);
             return Err(ChorusError::RateLimited {
                 bucket: format!("{:?}", self.limit_type),
             });
@@ -37,34 +39,42 @@ impl ChorusRequest {
         {
             Ok(result) => result,
             Err(error) => {
+                log::warn!("Request failed: {:?}", error);
                 return Err(ChorusError::RequestFailed {
                     url: error.url().unwrap().to_string(),
                     error,
-                })
+                });
             }
         };
         drop(belongs_to);
-        ChorusRequest::update_rate_limits(user, &self.limit_type, !result.status().is_success());
         if !result.status().is_success() {
             if result.status().as_u16() == 429 {
-                user.limits
+                log::warn!("Rate limit hit unexpectedly. Bucket: {:?}. Setting the instances' remaining global limit to 0 to have cooldown.", self.limit_type);
+                user.belongs_to
+                    .borrow_mut()
+                    .limits_information
                     .as_mut()
                     .unwrap()
-                    .get_mut(&self.limit_type)
+                    .ratelimits
+                    .get_mut(&LimitType::Global)
                     .unwrap()
                     .remaining = 0;
                 return Err(ChorusError::RateLimited {
                     bucket: format!("{:?}", self.limit_type),
                 });
             }
+            log::warn!("Request failed: {:?}", result);
             return Err(ChorusRequest::interpret_error(result).await);
         }
+        ChorusRequest::update_rate_limits(user, &self.limit_type, !result.status().is_success());
         Ok(result)
     }
 
     fn can_send_request(user: &mut UserMeta, limit_type: &LimitType) -> bool {
+        log::trace!("Checking if user or instance is rate-limited...");
         let mut belongs_to = user.belongs_to.borrow_mut();
         if belongs_to.limits_information.is_none() {
+            log::trace!("Instance indicates no rate limits are configured. Continuing.");
             return true;
         }
         let instance_dictated_limits = [
@@ -74,13 +84,23 @@ impl ChorusRequest {
             &LimitType::Ip,
         ];
         let limits = match instance_dictated_limits.contains(&limit_type) {
-            true => belongs_to
-                .limits_information
-                .as_mut()
-                .unwrap()
-                .ratelimits
-                .clone(),
+            true => {
+                log::trace!(
+                    "Limit type {:?} is dictated by the instance. Continuing.",
+                    limit_type
+                );
+                belongs_to
+                    .limits_information
+                    .as_mut()
+                    .unwrap()
+                    .ratelimits
+                    .clone()
+            }
             false => {
+                log::trace!(
+                    "Limit type {:?} is dictated by the user. Continuing.",
+                    limit_type
+                );
                 ChorusRequest::ensure_limit_in_map(
                     &belongs_to
                         .limits_information
@@ -116,12 +136,18 @@ impl ChorusRequest {
         map: &mut HashMap<LimitType, Limit>,
         limit_type: &LimitType,
     ) {
+        log::trace!("Ensuring limit type {:?} is in the map.", limit_type);
         let time: u64 = chrono::Utc::now().timestamp() as u64;
         match limit_type {
             LimitType::Channel(snowflake) => {
                 if map.get(&LimitType::Channel(*snowflake)).is_some() {
+                    log::trace!(
+                        "Limit type {:?} is already in the map. Returning.",
+                        limit_type
+                    );
                     return;
                 }
+                log::trace!("Limit type {:?} is not in the map. Adding it.", limit_type);
                 let channel_limit = &rate_limits_config.routes.channel;
                 map.insert(
                     LimitType::Channel(*snowflake),
@@ -230,23 +256,32 @@ impl ChorusRequest {
         for relevant_limit in relevant_limits.iter() {
             let mut belongs_to = user.belongs_to.borrow_mut();
             let limit = match relevant_limit.0 {
-                LimitOrigin::Instance => belongs_to
-                    .limits_information
-                    .as_mut()
-                    .unwrap()
-                    .ratelimits
-                    .get_mut(&relevant_limit.1)
-                    .unwrap(),
-                LimitOrigin::User => user
-                    .limits
-                    .as_mut()
-                    .unwrap()
-                    .get_mut(&relevant_limit.1)
-                    .unwrap(),
+                LimitOrigin::Instance => {
+                    log::trace!(
+                        "Updating instance rate limit. Bucket: {:?}",
+                        relevant_limit.1
+                    );
+                    belongs_to
+                        .limits_information
+                        .as_mut()
+                        .unwrap()
+                        .ratelimits
+                        .get_mut(&relevant_limit.1)
+                        .unwrap()
+                }
+                LimitOrigin::User => {
+                    log::trace!("Updating user rate limit. Bucket: {:?}", relevant_limit.1);
+                    user.limits
+                        .as_mut()
+                        .unwrap()
+                        .get_mut(&relevant_limit.1)
+                        .unwrap()
+                }
             };
             if time > limit.reset {
                 // Spacebar does not yet return rate limit information in its response headers. We
                 // therefore have to guess the next rate limit window. This is not ideal. Oh well!
+                log::trace!("Rate limit replenished. Bucket: {:?}", limit.bucket);
                 limit.reset += limit.window;
                 limit.remaining = limit.limit;
             }
