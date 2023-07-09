@@ -201,10 +201,6 @@ impl ChorusRequest {
     }
 
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
-        let instance_rate_limits_info = match &user.belongs_to.borrow().limits_information {
-            Some(limits) => limits.configuration.to_hash_map(),
-            None => return,
-        };
         let instance_dictated_limits = [
             &LimitType::AuthLogin,
             &LimitType::AuthRegister,
