@@ -25,6 +25,7 @@ pub mod limits {
         pub limit: u64,
         pub remaining: u64,
         pub reset: u64,
+        pub window: u64,
     }
 
     impl Limit {
@@ -32,11 +33,13 @@ pub mod limits {
             limit_type: LimitType,
             rate_limit_options: &RateLimitOptions,
         ) -> Limit {
+            let time: u64 = chrono::Utc::now().timestamp() as u64;
             Limit {
                 bucket: limit_type,
                 limit: rate_limit_options.count,
                 remaining: rate_limit_options.count,
-                reset: rate_limit_options.window,
+                reset: rate_limit_options.window + time,
+                window: rate_limit_options.window,
             }
         }
     }

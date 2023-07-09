@@ -78,7 +78,18 @@ impl ChorusRequest {
                 .unwrap()
                 .ratelimits
                 .clone(),
-            false => user.limits.as_mut().unwrap().clone(),
+            false => {
+                ChorusRequest::ensure_limit_in_map(
+                    &belongs_to
+                        .limits_information
+                        .as_ref()
+                        .unwrap()
+                        .configuration,
+                    user.limits.as_mut().unwrap(),
+                    limit_type,
+                );
+                user.limits.as_mut().unwrap().clone()
+            }
         };
         let global = belongs_to
             .limits_information
@@ -96,6 +107,80 @@ impl ChorusRequest {
             .unwrap();
         let limit_type_limit = limits.get(limit_type).unwrap();
         global.remaining > 0 && ip.remaining > 0 && limit_type_limit.remaining > 0
+    }
+
+    fn ensure_limit_in_map(
+        rate_limits_config: &RateLimits,
+        map: &mut HashMap<LimitType, Limit>,
+        limit_type: &LimitType,
+    ) {
+        let time: u64 = chrono::Utc::now().timestamp() as u64;
+        match limit_type {
+            LimitType::Channel(snowflake) => {
+                if map.get(&LimitType::Channel(*snowflake)).is_some() {
+                    return;
+                }
+                let channel_limit = &rate_limits_config.routes.channel;
+                map.insert(
+                    LimitType::Channel(*snowflake),
+                    Limit {
+                        bucket: LimitType::Channel(*snowflake),
+                        limit: channel_limit.count,
+                        remaining: channel_limit.count,
+                        reset: channel_limit.window + time,
+                        window: channel_limit.window,
+                    },
+                );
+            }
+            LimitType::Guild(snowflake) => {
+                if map.get(&LimitType::Guild(*snowflake)).is_some() {
+                    return;
+                }
+                let guild_limit = &rate_limits_config.routes.guild;
+                map.insert(
+                    LimitType::Guild(*snowflake),
+                    Limit {
+                        bucket: LimitType::Guild(*snowflake),
+                        limit: guild_limit.count,
+                        remaining: guild_limit.count,
+                        reset: guild_limit.window + time,
+                        window: guild_limit.window,
+                    },
+                );
+            }
+            LimitType::Webhook(snowflake) => {
+                if map.get(&LimitType::Webhook(*snowflake)).is_some() {
+                    return;
+                }
+                let webhook_limit = &rate_limits_config.routes.webhook;
+                map.insert(
+                    LimitType::Webhook(*snowflake),
+                    Limit {
+                        bucket: LimitType::Webhook(*snowflake),
+                        limit: webhook_limit.count,
+                        remaining: webhook_limit.count,
+                        reset: webhook_limit.window + time,
+                        window: webhook_limit.window,
+                    },
+                );
+            }
+            other_limit => {
+                if map.get(other_limit).is_some() {
+                    return;
+                }
+                let limits_map = ChorusRequest::limits_config_to_hashmap(rate_limits_config);
+                map.insert(
+                    *other_limit,
+                    Limit {
+                        bucket: *other_limit,
+                        limit: limits_map.get(other_limit).as_ref().unwrap().limit,
+                        remaining: limits_map.get(other_limit).as_ref().unwrap().remaining,
+                        reset: limits_map.get(other_limit).as_ref().unwrap().reset,
+                        window: limits_map.get(other_limit).as_ref().unwrap().window,
+                    },
+                );
+            }
+        }
     }
 
     async fn interpret_error(response: reqwest::Response) -> ChorusError {
@@ -117,7 +202,7 @@ impl ChorusRequest {
 
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
         let instance_rate_limits_info = match &user.belongs_to.borrow().limits_information {
-            Some(limits) => limits.configuration.rate.to_hash_map(),
+            Some(limits) => limits.configuration.to_hash_map(),
             None => return,
         };
         let instance_dictated_limits = [
@@ -157,10 +242,9 @@ impl ChorusRequest {
                     .unwrap(),
             };
             if time > limit.reset {
-                let limit_from_instance_config = instance_rate_limits_info.get(limit_type).unwrap();
                 // Spacebar does not yet return rate limit information in its response headers. We
                 // therefore have to guess the next rate limit window. This is not ideal. Oh well!
-                limit.reset = limit_from_instance_config.window + time;
+                limit.reset += limit.window;
                 limit.remaining = limit.limit;
             }
             limit.remaining -= 1;
@@ -203,18 +287,20 @@ impl ChorusRequest {
     }
 
     pub(crate) fn limits_config_to_hashmap(
-        limits_configuration: &LimitsConfiguration,
+        limits_configuration: &RateLimits,
     ) -> HashMap<LimitType, Limit> {
-        let config = limits_configuration.rate.clone();
+        let config = limits_configuration.clone();
         let routes = config.routes;
         let mut map: HashMap<LimitType, Limit> = HashMap::new();
+        let time: u64 = chrono::Utc::now().timestamp() as u64;
         map.insert(
             LimitType::AuthLogin,
             Limit {
                 bucket: LimitType::AuthLogin,
                 limit: routes.auth.login.count,
                 remaining: routes.auth.login.count,
-                reset: routes.auth.login.window,
+                reset: routes.auth.login.window + time,
+                window: routes.auth.login.window,
             },
         );
         map.insert(
@@ -223,7 +309,8 @@ impl ChorusRequest {
                 bucket: LimitType::AuthRegister,
                 limit: routes.auth.register.count,
                 remaining: routes.auth.register.count,
-                reset: routes.auth.register.window,
+                reset: routes.auth.register.window + time,
+                window: routes.auth.register.window,
             },
         );
         map.insert(
@@ -232,7 +319,8 @@ impl ChorusRequest {
                 bucket: LimitType::ChannelBaseline,
                 limit: routes.channel.count,
                 remaining: routes.channel.count,
-                reset: routes.channel.window,
+                reset: routes.channel.window + time,
+                window: routes.channel.window,
             },
         );
         map.insert(
@@ -241,7 +329,8 @@ impl ChorusRequest {
                 bucket: LimitType::Error,
                 limit: config.error.count,
                 remaining: config.error.count,
-                reset: config.error.window,
+                reset: config.error.window + time,
+                window: config.error.window,
             },
         );
         map.insert(
@@ -250,7 +339,8 @@ impl ChorusRequest {
                 bucket: LimitType::Global,
                 limit: config.global.count,
                 remaining: config.global.count,
-                reset: config.global.window,
+                reset: config.global.window + time,
+                window: config.global.window,
             },
         );
         map.insert(
@@ -259,7 +349,8 @@ impl ChorusRequest {
                 bucket: LimitType::Ip,
                 limit: config.ip.count,
                 remaining: config.ip.count,
-                reset: config.ip.window,
+                reset: config.ip.window + time,
+                window: config.ip.window,
             },
         );
         map.insert(
@@ -268,7 +359,8 @@ impl ChorusRequest {
                 bucket: LimitType::GuildBaseline,
                 limit: routes.guild.count,
                 remaining: routes.guild.count,
-                reset: routes.guild.window,
+                reset: routes.guild.window + time,
+                window: routes.guild.window,
             },
         );
         map.insert(
@@ -277,7 +369,8 @@ impl ChorusRequest {
                 bucket: LimitType::WebhookBaseline,
                 limit: routes.webhook.count,
                 remaining: routes.webhook.count,
-                reset: routes.webhook.window,
+                reset: routes.webhook.window + time,
+                window: routes.webhook.window,
             },
         );
         map
