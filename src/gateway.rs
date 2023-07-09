@@ -1517,6 +1517,7 @@ impl Gateway {
 }
 
 /// Handles sending heartbeats to the gateway in another thread
+#[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
 struct HeartbeatHandler {
     /// The heartbeat interval in milliseconds
     pub heartbeat_interval: u128,
