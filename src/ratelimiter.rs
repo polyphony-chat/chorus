@@ -11,6 +11,7 @@ use crate::{
     types::{types::subconfigs::limits::rates::RateLimits, LimitsConfiguration},
 };
 
+/// Chorus' request struct. This struct is used to send requests to the Spacebar server.
 pub struct ChorusRequest {
     pub request: RequestBuilder,
     pub limit_type: LimitType,
@@ -200,6 +201,11 @@ impl ChorusRequest {
         }
     }
 
+    /// Updates the rate limits of the user. The following steps are performed:
+    /// 1.  If the current unix timestamp is greater than the reset timestamp, the reset timestamp is
+    ///     set to the current unix timestamp + the rate limit window. The remaining rate limit is
+    ///     reset to the rate limit limit.
+    /// 2. The remaining rate limit is decreased by 1.
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
         let instance_dictated_limits = [
             &LimitType::AuthLogin,
@@ -372,6 +378,8 @@ impl ChorusRequest {
         map
     }
 
+    /// Sends a [`ChorusRequest`] and returns a [`ChorusResult`] that contains nothing if the request
+    /// was successful, or a [`ChorusError`] if the request failed.
     pub(crate) async fn handle_request_as_result(self, user: &mut UserMeta) -> ChorusResult<()> {
         match self.send_request(user).await {
             Ok(_) => Ok(()),
@@ -379,6 +387,8 @@ impl ChorusRequest {
         }
     }
 
+    /// Sends a [`ChorusRequest`] and returns a [`ChorusResult`] that contains a [`T`] if the request
+    /// was successful, or a [`ChorusError`] if the request failed.
     pub(crate) async fn deserialize_response<T: for<'a> Deserialize<'a>>(
         self,
         user: &mut UserMeta,

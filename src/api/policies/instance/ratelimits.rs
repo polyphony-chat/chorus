@@ -2,6 +2,8 @@ use std::hash::Hash;
 
 use crate::types::Snowflake;
 
+/// The different types of ratelimits that can be applied to a request. Includes "Baseline"-variants
+/// for when the Snowflake is not yet known.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Default, Hash)]
 pub enum LimitType {
     AuthRegister,
@@ -18,6 +20,9 @@ pub enum LimitType {
     WebhookBaseline,
 }
 
+/// A struct that represents the current ratelimits, either instance-wide or user-wide.
+/// Unlike [`RateLimits`], this struct shows the current ratelimits, not the rate limit
+/// configuration for the instance.
 #[derive(Debug, Clone)]
 pub struct Limit {
     pub bucket: LimitType,
