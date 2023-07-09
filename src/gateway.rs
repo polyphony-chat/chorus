@@ -8,7 +8,7 @@ use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
-use log::{debug, info, trace, warn};
+use log::{info, trace, warn};
 use native_tls::TlsConnector;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::error::TryRecvError;
@@ -95,25 +95,21 @@ impl GatewayMessage {
         let processed_content = content.to_lowercase().replace('.', "");
 
         match processed_content.as_str() {
-            "unknown error" | "4000" => Some(GatewayError::UnknownError),
-            "unknown opcode" | "4001" => Some(GatewayError::UnknownOpcodeError),
-            "decode error" | "error while decoding payload" | "4002" => {
-                Some(GatewayError::DecodeError)
-            }
-            "not authenticated" | "4003" => Some(GatewayError::NotAuthenticatedError),
-            "authentication failed" | "4004" => Some(GatewayError::AuthenticationFailedError),
-            "already authenticated" | "4005" => Some(GatewayError::AlreadyAuthenticatedError),
-            "invalid seq" | "4007" => Some(GatewayError::InvalidSequenceNumberError),
-            "rate limited" | "4008" => Some(GatewayError::RateLimitedError),
-            "session timed out" | "4009" => Some(GatewayError::SessionTimedOutError),
-            "invalid shard" | "4010" => Some(GatewayError::InvalidShardError),
-            "sharding required" | "4011" => Some(GatewayError::ShardingRequiredError),
-            "invalid api version" | "4012" => Some(GatewayError::InvalidAPIVersionError),
-            "invalid intent(s)" | "invalid intent" | "4013" => {
-                Some(GatewayError::InvalidIntentsError)
-            }
+            "unknown error" | "4000" => Some(GatewayError::Unknown),
+            "unknown opcode" | "4001" => Some(GatewayError::UnknownOpcode),
+            "decode error" | "error while decoding payload" | "4002" => Some(GatewayError::Decode),
+            "not authenticated" | "4003" => Some(GatewayError::NotAuthenticated),
+            "authentication failed" | "4004" => Some(GatewayError::AuthenticationFailed),
+            "already authenticated" | "4005" => Some(GatewayError::AlreadyAuthenticated),
+            "invalid seq" | "4007" => Some(GatewayError::InvalidSequenceNumber),
+            "rate limited" | "4008" => Some(GatewayError::RateLimited),
+            "session timed out" | "4009" => Some(GatewayError::SessionTimedOut),
+            "invalid shard" | "4010" => Some(GatewayError::InvalidShard),
+            "sharding required" | "4011" => Some(GatewayError::ShardingRequired),
+            "invalid api version" | "4012" => Some(GatewayError::InvalidAPIVersion),
+            "invalid intent(s)" | "invalid intent" | "4013" => Some(GatewayError::InvalidIntents),
             "disallowed intent(s)" | "disallowed intents" | "4014" => {
-                Some(GatewayError::DisallowedIntentsError)
+                Some(GatewayError::DisallowedIntents)
             }
             _ => None,
         }
@@ -294,7 +290,7 @@ impl Gateway {
         {
             Ok(websocket_stream) => websocket_stream,
             Err(e) => {
-                return Err(GatewayError::CannotConnectError {
+                return Err(GatewayError::CannotConnect {
                     error: e.to_string(),
                 })
             }
@@ -314,7 +310,7 @@ impl Gateway {
             serde_json::from_str(msg.to_text().unwrap()).unwrap();
 
         if gateway_payload.op_code != GATEWAY_HELLO {
-            return Err(GatewayError::NonHelloOnInitiateError {
+            return Err(GatewayError::NonHelloOnInitiate {
                 opcode: gateway_payload.op_code,
             });
         }
@@ -1493,7 +1489,7 @@ impl Gateway {
             | GATEWAY_REQUEST_GUILD_MEMBERS
             | GATEWAY_CALL_SYNC
             | GATEWAY_LAZY_REQUEST => {
-                let error = GatewayError::UnexpectedOpcodeReceivedError {
+                let error = GatewayError::UnexpectedOpcodeReceived {
                     opcode: gateway_payload.op_code,
                 };
                 Err::<(), GatewayError>(error).unwrap();
@@ -1521,6 +1517,7 @@ impl Gateway {
 }
 
 /// Handles sending heartbeats to the gateway in another thread
+#[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
 struct HeartbeatHandler {
     /// The heartbeat interval in milliseconds
     pub heartbeat_interval: u128,

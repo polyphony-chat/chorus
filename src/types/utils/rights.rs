@@ -73,6 +73,7 @@ impl Rights {
     }
 }
 
+#[allow(dead_code)] // FIXME: Remove this when we  use this
 fn all_rights() -> Rights {
     Rights::OPERATOR
         | Rights::MANAGE_APPLICATIONS

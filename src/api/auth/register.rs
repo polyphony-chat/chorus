@@ -1,14 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
 use reqwest::Client;
-use serde_json::{from_str, json};
+use serde_json::to_string;
 
 use crate::{
-    api::limits::LimitType,
-    errors::{ChorusLibError, ChorusResult},
+    api::policies::instance::LimitType,
+    errors::ChorusResult,
     instance::{Instance, Token, UserMeta},
-    limit::LimitedRequester,
-    types::{ErrorResponse, RegisterSchema},
+    ratelimiter::ChorusRequest,
+    types::RegisterSchema,
 };
 
 impl Instance {
@@ -25,43 +25,30 @@ impl Instance {
         &mut self,
         register_schema: &RegisterSchema,
     ) -> ChorusResult<UserMeta> {
-        let json_schema = json!(register_schema);
-        let client = Client::new();
         let endpoint_url = self.urls.api.clone() + "/auth/register";
-        let request_builder = client.post(endpoint_url).body(json_schema.to_string());
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(endpoint_url)
+                .body(to_string(register_schema).unwrap()),
+            limit_type: LimitType::AuthRegister,
+        };
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since register is an instance wide limit), which is why we are just cloning
         // the instances' limits to pass them on as user_rate_limits later.
-        let mut cloned_limits = self.limits.clone();
-        let response = LimitedRequester::send_request(
-            request_builder,
-            LimitType::AuthRegister,
-            self,
-            &mut cloned_limits,
-        )
-        .await?;
-
-        let status = response.status();
-        let response_text = response.text().await.unwrap();
-        let token = from_str::<Token>(&response_text).unwrap();
-        let token = token.token;
-        if status.is_client_error() {
-            let json: ErrorResponse = serde_json::from_str(&token).unwrap();
-            let error_type = json.errors.errors.iter().next().unwrap().0.to_owned();
-            let mut error = "".to_string();
-            for (_, value) in json.errors.errors.iter() {
-                for error_item in value._errors.iter() {
-                    error += &(error_item.message.to_string() + " (" + &error_item.code + ")");
-                }
-            }
-            return Err(ChorusLibError::InvalidFormBodyError { error_type, error });
+        let mut shell = UserMeta::shell(Rc::new(RefCell::new(self.clone())), "None".to_string());
+        let token = chorus_request
+            .deserialize_response::<Token>(&mut shell)
+            .await?
+            .token;
+        if self.limits_information.is_some() {
+            self.limits_information.as_mut().unwrap().ratelimits = shell.limits.unwrap();
         }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
         let settings = UserMeta::get_settings(&token, &self.urls.api.clone(), self).await?;
         let user = UserMeta::new(
             Rc::new(RefCell::new(self.clone())),
             token.clone(),
-            cloned_limits,
+            self.clone_limits_if_some(),
             settings,
             user_object,
         );
