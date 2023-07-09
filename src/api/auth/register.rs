@@ -41,7 +41,7 @@ impl Instance {
             .await?
             .token;
         if self.limits_information.is_some() {
-            self.limits_information.as_mut().unwrap().ratelimits = shell.limits.clone().unwrap();
+            self.limits_information.as_mut().unwrap().ratelimits = shell.limits.unwrap();
         }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
         let settings = UserMeta::get_settings(&token, &self.urls.api.clone(), self).await?;
