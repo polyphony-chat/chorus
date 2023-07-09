@@ -12,7 +12,7 @@ const EPOCH: i64 = 1420070400000;
 
 /// Unique identifier including a timestamp.
 /// See https://discord.com/developers/docs/reference#snowflakes
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
 pub struct Snowflake(u64);

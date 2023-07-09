@@ -3,6 +3,7 @@ use http::HeaderMap;
 use reqwest::{multipart, Client};
 use serde_json::to_string;
 
+use crate::api::limits::LimitType;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment, Snowflake};
@@ -33,7 +34,7 @@ impl Message {
                     .post(format!("{}/channels/{}/messages/", url_api, channel_id))
                     .bearer_auth(user.token())
                     .body(to_string(message).unwrap()),
-                limit_type: crate::api::limits::LimitType::Channel,
+                limit_type: LimitType::Channel(channel_id),
             };
             chorus_request.deserialize_response::<Message>(user).await
         } else {
@@ -69,7 +70,7 @@ impl Message {
                     .post(format!("{}/channels/{}/messages/", url_api, channel_id))
                     .bearer_auth(user.token())
                     .multipart(form),
-                limit_type: crate::api::limits::LimitType::Channel,
+                limit_type: LimitType::Channel(channel_id),
             };
             chorus_request.deserialize_response::<Message>(user).await
         }

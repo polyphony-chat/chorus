@@ -2,6 +2,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
+    api::limits::LimitType,
     errors::ChorusResult,
     instance::UserMeta,
     ratelimiter::ChorusRequest,
@@ -28,7 +29,7 @@ impl UserMeta {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().get(url).bearer_auth(self.token()),
-            limit_type: crate::api::limits::LimitType::Global,
+            limit_type: LimitType::Global,
         };
         chorus_request
             .deserialize_response::<Vec<types::PublicUser>>(self)
@@ -46,7 +47,7 @@ impl UserMeta {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().get(url).bearer_auth(self.token()),
-            limit_type: crate::api::limits::LimitType::Global,
+            limit_type: LimitType::Global,
         };
         chorus_request
             .deserialize_response::<Vec<types::Relationship>>(self)
@@ -72,7 +73,7 @@ impl UserMeta {
         let body = to_string(&schema).unwrap();
         let chorus_request = ChorusRequest {
             request: Client::new().post(url).bearer_auth(self.token()).body(body),
-            limit_type: crate::api::limits::LimitType::Global,
+            limit_type: LimitType::Global,
         };
         chorus_request.handle_request_as_result(self).await
     }
@@ -103,7 +104,7 @@ impl UserMeta {
                     request: Client::new()
                         .delete(format!("{}/users/@me/relationships/{}/", api_url, user_id))
                         .bearer_auth(self.token()),
-                    limit_type: crate::api::limits::LimitType::Global,
+                    limit_type: LimitType::Global,
                 };
                 chorus_request.handle_request_as_result(self).await
             }
@@ -118,7 +119,7 @@ impl UserMeta {
                         .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
                         .bearer_auth(self.token())
                         .body(to_string(&body).unwrap()),
-                    limit_type: crate::api::limits::LimitType::Global,
+                    limit_type: LimitType::Global,
                 };
                 chorus_request.handle_request_as_result(self).await
             }
@@ -133,7 +134,7 @@ impl UserMeta {
                         .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
                         .bearer_auth(self.token())
                         .body(to_string(&body).unwrap()),
-                    limit_type: crate::api::limits::LimitType::Global,
+                    limit_type: LimitType::Global,
                 };
                 chorus_request.handle_request_as_result(self).await
             }
@@ -157,7 +158,7 @@ impl UserMeta {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().delete(url).bearer_auth(self.token()),
-            limit_type: crate::api::limits::LimitType::Global,
+            limit_type: LimitType::Global,
         };
         chorus_request.handle_request_as_result(self).await
     }

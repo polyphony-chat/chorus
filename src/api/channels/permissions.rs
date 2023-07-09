@@ -2,6 +2,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
+    api::limits::LimitType,
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     ratelimiter::ChorusRequest,
@@ -41,7 +42,7 @@ impl types::Channel {
         };
         let chorus_request = ChorusRequest {
             request: Client::new().put(url).bearer_auth(user.token()).body(body),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await
     }
@@ -70,7 +71,7 @@ impl types::Channel {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().delete(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await
     }

@@ -2,6 +2,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
+    api::limits::LimitType,
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     ratelimiter::ChorusRequest,
@@ -34,7 +35,7 @@ impl types::RoleObject {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().get(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         let roles = chorus_request
             .deserialize_response::<Vec<RoleObject>>(user)
@@ -74,7 +75,7 @@ impl types::RoleObject {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().get(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         chorus_request
             .deserialize_response::<RoleObject>(user)
@@ -113,7 +114,7 @@ impl types::RoleObject {
         })?;
         let chorus_request = ChorusRequest {
             request: Client::new().post(url).bearer_auth(user.token()).body(body),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         chorus_request
             .deserialize_response::<RoleObject>(user)
@@ -154,7 +155,7 @@ impl types::RoleObject {
                 .patch(url)
                 .bearer_auth(user.token())
                 .body(body),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         chorus_request
             .deserialize_response::<RoleObject>(user)
@@ -199,7 +200,7 @@ impl types::RoleObject {
                 .patch(url)
                 .bearer_auth(user.token())
                 .body(body),
-            limit_type: crate::api::limits::LimitType::Guild,
+            limit_type: LimitType::Guild(guild_id),
         };
         chorus_request
             .deserialize_response::<RoleObject>(user)

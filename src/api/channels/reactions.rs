@@ -1,6 +1,7 @@
 use reqwest::Client;
 
 use crate::{
+    api::limits::LimitType,
     errors::ChorusResult,
     instance::UserMeta,
     ratelimiter::ChorusRequest,
@@ -34,7 +35,7 @@ impl ReactionMeta {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().delete(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
     }
@@ -59,7 +60,7 @@ impl ReactionMeta {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().get(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request
             .deserialize_response::<Vec<PublicUser>>(user)
@@ -88,7 +89,7 @@ impl ReactionMeta {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().delete(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
     }
@@ -118,7 +119,7 @@ impl ReactionMeta {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().put(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
     }
@@ -144,7 +145,7 @@ impl ReactionMeta {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().delete(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
     }
@@ -178,7 +179,7 @@ impl ReactionMeta {
         );
         let chorus_request = ChorusRequest {
             request: Client::new().delete(url).bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
     }

@@ -2,6 +2,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
+    api::limits::LimitType,
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     ratelimiter::ChorusRequest,
@@ -15,7 +16,7 @@ impl Channel {
             request: Client::new()
                 .get(format!("{}/channels/{}/", url, channel_id))
                 .bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.deserialize_response::<Channel>(user).await
     }
@@ -42,7 +43,7 @@ impl Channel {
                     self.id
                 ))
                 .bearer_auth(user.token()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(self.id),
         };
         chorus_request.handle_request_as_result(user).await
     }
@@ -76,7 +77,7 @@ impl Channel {
                 ))
                 .bearer_auth(user.token())
                 .body(to_string(&modify_data).unwrap()),
-            limit_type: crate::api::limits::LimitType::Channel,
+            limit_type: LimitType::Channel(channel_id),
         };
         let new_channel = chorus_request.deserialize_response::<Channel>(user).await?;
         let _ = std::mem::replace(self, new_channel);

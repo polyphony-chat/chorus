@@ -8,7 +8,7 @@ use crate::{
     api::limits::{Limit, LimitType},
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
-    types::LimitsConfiguration,
+    types::{types::subconfigs::limits::rates::RateLimits, LimitsConfiguration},
 };
 
 pub struct ChorusRequest {
@@ -22,12 +22,12 @@ impl ChorusRequest {
     /// rate limits.
     #[allow(clippy::await_holding_refcell_ref)]
     pub(crate) async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
-        let belongs_to = user.belongs_to.borrow();
         if !ChorusRequest::can_send_request(user, &self.limit_type) {
             return Err(ChorusError::RateLimited {
                 bucket: format!("{:?}", self.limit_type),
             });
         }
+        let belongs_to = user.belongs_to.borrow();
         let result = match belongs_to
             .client
             .execute(self.request.build().unwrap())
@@ -60,8 +60,8 @@ impl ChorusRequest {
         Ok(result)
     }
 
-    fn can_send_request(user: &UserMeta, limit_type: &LimitType) -> bool {
-        let belongs_to = user.belongs_to.borrow();
+    fn can_send_request(user: &mut UserMeta, limit_type: &LimitType) -> bool {
+        let mut belongs_to = user.belongs_to.borrow_mut();
         if belongs_to.limits_information.is_none() {
             return true;
         }
@@ -74,24 +74,24 @@ impl ChorusRequest {
         let limits = match instance_dictated_limits.contains(&limit_type) {
             true => belongs_to
                 .limits_information
-                .as_ref()
+                .as_mut()
                 .unwrap()
-                .limits
+                .ratelimits
                 .clone(),
-            false => user.limits.as_ref().unwrap().clone(),
+            false => user.limits.as_mut().unwrap().clone(),
         };
         let global = belongs_to
             .limits_information
             .as_ref()
             .unwrap()
-            .limits
+            .ratelimits
             .get(&LimitType::Global)
             .unwrap();
         let ip = belongs_to
             .limits_information
             .as_ref()
             .unwrap()
-            .limits
+            .ratelimits
             .get(&LimitType::Ip)
             .unwrap();
         let limit_type_limit = limits.get(limit_type).unwrap();
@@ -100,10 +100,6 @@ impl ChorusRequest {
 
     async fn interpret_error(response: reqwest::Response) -> ChorusError {
         match response.status().as_u16() {
-            200..=299 => ChorusError::InvalidArguments {
-                error: "You somehow passed a successful request into this function, which is not allowed."
-                    .to_string(),
-            },
             401..=403 | 407 => ChorusError::NoPermission,
             404 => ChorusError::NotFound {
                 error: response.text().await.unwrap(),
@@ -121,7 +117,7 @@ impl ChorusRequest {
 
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
         let instance_rate_limits_info = match &user.belongs_to.borrow().limits_information {
-            Some(limits) => limits.limits_configuration.rate.to_hash_map(),
+            Some(limits) => limits.configuration.rate.to_hash_map(),
             None => return,
         };
         let instance_dictated_limits = [
@@ -150,7 +146,7 @@ impl ChorusRequest {
                     .limits_information
                     .as_mut()
                     .unwrap()
-                    .limits
+                    .ratelimits
                     .get_mut(&relevant_limit.1)
                     .unwrap(),
                 LimitOrigin::User => user
@@ -231,9 +227,9 @@ impl ChorusRequest {
             },
         );
         map.insert(
-            LimitType::Channel,
+            LimitType::ChannelBaseline,
             Limit {
-                bucket: LimitType::Channel,
+                bucket: LimitType::ChannelBaseline,
                 limit: routes.channel.count,
                 remaining: routes.channel.count,
                 reset: routes.channel.window,
@@ -267,18 +263,18 @@ impl ChorusRequest {
             },
         );
         map.insert(
-            LimitType::Guild,
+            LimitType::GuildBaseline,
             Limit {
-                bucket: LimitType::Guild,
+                bucket: LimitType::GuildBaseline,
                 limit: routes.guild.count,
                 remaining: routes.guild.count,
                 reset: routes.guild.window,
             },
         );
         map.insert(
-            LimitType::Webhook,
+            LimitType::WebhookBaseline,
             Limit {
-                bucket: LimitType::Webhook,
+                bucket: LimitType::WebhookBaseline,
                 limit: routes.webhook.count,
                 remaining: routes.webhook.count,
                 reset: routes.webhook.window,
