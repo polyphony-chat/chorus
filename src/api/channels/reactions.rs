@@ -8,9 +8,7 @@ use crate::{
     types::{self, PublicUser, Snowflake},
 };
 
-/**
-Useful metadata for working with [`types::Reaction`], bundled together nicely.
- */
+/// Useful metadata for working with [`types::Reaction`], bundled together nicely.
 pub struct ReactionMeta {
     pub message_id: types::Snowflake,
     pub channel_id: types::Snowflake,

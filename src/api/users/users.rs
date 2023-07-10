@@ -140,16 +140,14 @@ impl User {
 }
 
 impl Instance {
-    /**
-    Get a user object by id, or get the current user.
-    # Arguments
-    * `token` - A valid access token for the API.
-    * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
-    # Errors
-    * [`ChorusLibError`] - If the request fails.
-    # Notes
-    This function is a wrapper around [`User::get`].
-     */
+    // Get a user object by id, or get the current user.
+    // # Arguments
+    // * `token` - A valid access token for the API.
+    // * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
+    // # Errors
+    // * [`ChorusLibError`] - If the request fails.
+    // # Notes
+    // This function is a wrapper around [`User::get`].
     pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
         let mut user = UserMeta::shell(Rc::new(RefCell::new(self.clone())), token);
         let result = User::get(&mut user, id).await;

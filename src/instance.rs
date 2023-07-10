@@ -14,10 +14,8 @@ use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::UrlBundle;
 
 #[derive(Debug, Clone)]
-/**
-The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
-If `limits_information` is `None`, then the instance will not be rate limited.
- */
+/// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
+/// If `limits_information` is `None`, then the instance will not be rate limited.
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
