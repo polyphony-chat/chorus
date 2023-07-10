@@ -6,7 +6,9 @@ use crate::{
     errors::ChorusResult,
     instance::UserMeta,
     ratelimiter::ChorusRequest,
-    types::{self, CreateUserRelationshipSchema, RelationshipType, Snowflake},
+    types::{
+        self, CreateUserRelationshipSchema, FriendRequestSendSchema, RelationshipType, Snowflake,
+    },
 };
 
 impl UserMeta {
@@ -61,10 +63,10 @@ impl UserMeta {
     /// * `schema` - A [`FriendRequestSendSchema`] struct that holds the information about the friend request to be sent.
     ///
     /// # Returns
-    /// This function returns a [`Result`] that holds a [`ChorusLibError`] if the request fails.
+    /// This function returns a [`ChorusResult`].
     pub async fn send_friend_request(
         &mut self,
-        schema: types::FriendRequestSendSchema,
+        schema: FriendRequestSendSchema,
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/",
@@ -91,7 +93,7 @@ impl UserMeta {
     ///     * [`RelationshipType::Blocked`]: Blocks the specified user_id.
     ///
     /// # Returns
-    /// This function returns an [`Result`] that holds a [`ChorusLibError`] if the request fails.
+    /// This function returns an [`ChorusResult`].
     pub async fn modify_user_relationship(
         &mut self,
         user_id: Snowflake,
@@ -149,7 +151,7 @@ impl UserMeta {
     /// * `user_id` - ID of the user to remove the relationship with.
     ///
     /// # Returns
-    /// This function returns a [`Result`] that holds a [`ChorusLibError`] if the request fails.
+    /// This function returns a [`ChorusResult`].
     pub async fn remove_relationship(&mut self, user_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/{}/",

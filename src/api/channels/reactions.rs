@@ -20,10 +20,10 @@ impl ReactionMeta {
     /// # Arguments
     /// * `user` - A mutable reference to a [`UserMeta`] instance.
     /// # Returns
-    /// A `Result` [`()`] [`crate::errors::ChorusLibError`] if something went wrong.
+    /// A `Result` [`()`] [`crate::errors::ChorusError`] if something went wrong.
     /// Fires a `Message Reaction Remove All` Gateway event.
     /// # Reference
-    /// See [https://discord.com/developers/docs/resources/channel#delete-all-reactions](https://discord.com/developers/docs/resources/channel#delete-all-reactions)
+    /// See <https://discord.com/developers/docs/resources/channel#delete-all-reactions>
     pub async fn delete_all(&self, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/",
@@ -47,7 +47,7 @@ impl ReactionMeta {
     /// # Returns
     /// A Result that is [`Err(crate::errors::ChorusLibError)`] if something went wrong.
     /// # Reference
-    /// See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
+    /// See <https://discord.com/developers/docs/resources/channel#get-reactions>
     pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<Vec<PublicUser>> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
@@ -76,7 +76,7 @@ impl ReactionMeta {
     /// A Result that is [`Err(crate::errors::ChorusLibError)`] if something went wrong.
     /// Fires a `Message Reaction Remove Emoji` Gateway event.
     /// # Reference
-    /// See [https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji](https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji)
+    /// See <https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji>
     pub async fn delete_emoji(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
@@ -103,9 +103,9 @@ impl ReactionMeta {
     /// format name:id with the emoji name and emoji id.
     /// * `user` - A mutable reference to a [`UserMeta`] instance.
     /// # Returns
-    /// A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
+    /// A `Result` containing [`()`] or a [`crate::errors::ChorusError`].
     /// # Reference
-    /// See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
+    /// See <https://discord.com/developers/docs/resources/channel#create-reaction>
     ///
     pub async fn create(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
@@ -129,10 +129,10 @@ impl ReactionMeta {
     /// format name:id with the emoji name and emoji id.
     /// * `user` - A mutable reference to a [`UserMeta`] instance.
     /// # Returns
-    /// A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
+    /// A `Result` containing [`()`] or a [`crate::errors::ChorusError`].
     /// Fires a `Message Reaction Remove` Gateway event.
     /// # Reference
-    /// See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
+    /// See <https://discord.com/developers/docs/resources/channel#delete-own-reaction>
     pub async fn remove(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
@@ -157,10 +157,10 @@ impl ReactionMeta {
     /// format name:id with the emoji name and emoji id.
     /// * `user` - A mutable reference to a [`UserMeta`] instance.
     /// # Returns
-    /// A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
+    /// A [`ChorusResult`] containing [`()`] or a [`crate::errors::ChorusError`].
     /// Fires a Message Reaction Remove Gateway event.
     /// # Reference
-    /// See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
+    /// See <https://discord.com/developers/docs/resources/channel#delete-user-reaction>
     pub async fn delete_user(
         &self,
         user_id: Snowflake,

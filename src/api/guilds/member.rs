@@ -5,7 +5,7 @@ use crate::{
     errors::ChorusResult,
     instance::UserMeta,
     ratelimiter::ChorusRequest,
-    types::{self, Snowflake},
+    types::{self, GuildMember, Snowflake},
 };
 
 impl types::GuildMember {
@@ -19,12 +19,12 @@ impl types::GuildMember {
     ///
     /// # Returns
     ///
-    /// A [`Result`] containing a [`GuildMember`] if the request succeeds, or a [`ChorusLibError`] if the request fails.
+    /// A [`ChorusResult`] containing a [`GuildMember`] if the request succeeds.
     pub async fn get(
         user: &mut UserMeta,
         guild_id: Snowflake,
         member_id: Snowflake,
-    ) -> ChorusResult<types::GuildMember> {
+    ) -> ChorusResult<GuildMember> {
         let url = format!(
             "{}/guilds/{}/members/{}/",
             user.belongs_to.borrow().urls.api,
@@ -36,7 +36,7 @@ impl types::GuildMember {
             limit_type: LimitType::Guild(guild_id),
         };
         chorus_request
-            .deserialize_response::<types::GuildMember>(user)
+            .deserialize_response::<GuildMember>(user)
             .await
     }
 
@@ -51,7 +51,7 @@ impl types::GuildMember {
     ///
     /// # Returns
     ///
-    /// An `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
+    /// A [`ChorusResult`] containing a [`crate::errors::ChorusError`] if the request fails, or `()` if the request succeeds.
     pub async fn add_role(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -83,7 +83,7 @@ impl types::GuildMember {
     ///
     /// # Returns
     ///
-    /// A `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
+    /// A [`ChorusResult`] containing a [`crate::errors::ChorusError`] if the request fails, or `()` if the request succeeds.
     pub async fn remove_role(
         user: &mut UserMeta,
         guild_id: Snowflake,

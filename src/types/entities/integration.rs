@@ -8,7 +8,7 @@ use crate::types::{
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
-/// See https://discord.com/developers/docs/resources/guild#integration-object-integration-structure
+/// See <https://discord.com/developers/docs/resources/guild#integration-object-integration-structure>
 pub struct Integration {
     pub id: Snowflake,
     pub name: String,
@@ -33,7 +33,7 @@ pub struct Integration {
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/resources/guild#integration-account-object-integration-account-structure
+/// See <https://discord.com/developers/docs/resources/guild#integration-account-object-integration-account-structure>
 pub struct IntegrationAccount {
     pub id: String,
     pub name: String,

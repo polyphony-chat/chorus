@@ -168,7 +168,7 @@ pub struct ApplicationCommandInteractionDataOption {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
-/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-guild-application-command-permissions-structure
+/// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-guild-application-command-permissions-structure>
 pub struct GuildApplicationCommandPermissions {
     pub id: Snowflake,
     pub application_id: Snowflake,
@@ -177,7 +177,7 @@ pub struct GuildApplicationCommandPermissions {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
-/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure
+/// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure>
 pub struct ApplicationCommandPermission {
     pub id: Snowflake,
     #[serde(rename = "type")]
@@ -189,7 +189,7 @@ pub struct ApplicationCommandPermission {
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(u8)]
-/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type
+/// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type>
 pub enum ApplicationCommandPermissionType {
     #[default]
     Role = 1,

@@ -19,11 +19,10 @@ impl UserMeta {
     /// * `token` - A valid access token for the API.
     /// * `url_api` - The URL to the API.
     /// * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
-    /// * `instance_limits` - The [`Limits`] of the instance.
     ///
     /// # Errors
     ///
-    /// * [`ChorusLibError`] - If the request fails.
+    /// * [`ChorusError`] - If the request fails.
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         User::get(user, id).await
     }
@@ -44,7 +43,7 @@ impl UserMeta {
     ///
     /// # Errors
     ///
-    /// Returns an `ChorusLibError` if the request fails or if a password is required but not provided.
+    /// Returns an [`ChorusError`] if the request fails or if a password is required but not provided.
     pub async fn modify(&mut self, modify_schema: UserModifySchema) -> ChorusResult<User> {
         if modify_schema.new_password.is_some()
             || modify_schema.email.is_some()
@@ -76,7 +75,7 @@ impl UserMeta {
     ///
     /// # Returns
     ///
-    /// Returns `()` if the user was successfully deleted, or a `ChorusLibError` if an error occurred.
+    /// Returns `()` if the user was successfully deleted, or a [`ChorusError`] if an error occurred.
     pub async fn delete(mut self) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
@@ -145,7 +144,7 @@ impl Instance {
     // * `token` - A valid access token for the API.
     // * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
     // # Errors
-    // * [`ChorusLibError`] - If the request fails.
+    // * [`ChorusError`] - If the request fails.
     // # Notes
     // This function is a wrapper around [`User::get`].
     pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {

@@ -5,7 +5,7 @@ use crate::types::events::WebSocketEvent;
 use crate::types::Snowflake;
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#thread-create
+/// See <https://discord.com/developers/docs/topics/gateway-events#thread-create>
 pub struct ThreadCreate {
     #[serde(flatten)]
     pub thread: Channel,
@@ -14,7 +14,7 @@ pub struct ThreadCreate {
 impl WebSocketEvent for ThreadCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#thread-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#thread-update>
 pub struct ThreadUpdate {
     #[serde(flatten)]
     pub thread: Channel,
@@ -23,7 +23,7 @@ pub struct ThreadUpdate {
 impl WebSocketEvent for ThreadUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#thread-delete
+/// See <https://discord.com/developers/docs/topics/gateway-events#thread-delete>
 pub struct ThreadDelete {
     #[serde(flatten)]
     pub thread: Channel,
@@ -32,7 +32,7 @@ pub struct ThreadDelete {
 impl WebSocketEvent for ThreadDelete {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#thread-list-sync
+/// See <https://discord.com/developers/docs/topics/gateway-events#thread-list-sync>
 pub struct ThreadListSync {
     pub guild_id: Snowflake,
     pub channel_ids: Option<Vec<Snowflake>>,
@@ -43,7 +43,7 @@ pub struct ThreadListSync {
 impl WebSocketEvent for ThreadListSync {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#thread-member-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#thread-member-update>
 /// The inner payload is a thread member object with an extra field.
 pub struct ThreadMemberUpdate {
     #[serde(flatten)]
@@ -54,7 +54,7 @@ pub struct ThreadMemberUpdate {
 impl WebSocketEvent for ThreadMemberUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#thread-members-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#thread-members-update>
 pub struct ThreadMembersUpdate {
     pub id: Snowflake,
     pub guild_id: Snowflake,

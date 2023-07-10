@@ -6,7 +6,7 @@ use crate::{
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     ratelimiter::ChorusRequest,
-    types::{self, RoleCreateModifySchema, RoleObject, Snowflake},
+    types::{self, RoleCreateModifySchema, RoleObject, RolePositionUpdateSchema, Snowflake},
 };
 
 impl types::RoleObject {
@@ -20,10 +20,6 @@ impl types::RoleObject {
     /// # Returns
     ///
     /// An `Option` containing a `Vec` of [`RoleObject`]s if roles were found, or `None` if no roles were found.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
     pub async fn get_all(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -57,11 +53,7 @@ impl types::RoleObject {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the retrieved [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    /// A `Result` containing the retrieved [`RoleObject`] if successful, or a [`ChorusError`] if the request fails or if the response is invalid.
     pub async fn get(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -92,11 +84,7 @@ impl types::RoleObject {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the newly created [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    /// A `Result` containing the newly created [`RoleObject`] if successful, or a [`ChorusError`] if the request fails or if the response is invalid.
     pub async fn create(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -131,15 +119,11 @@ impl types::RoleObject {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the updated [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    /// A `Result` containing the updated [`RoleObject`] if successful, or a [`ChorusError`] if the request fails or if the response is invalid.
     pub async fn position_update(
         user: &mut UserMeta,
         guild_id: Snowflake,
-        role_position_update_schema: types::RolePositionUpdateSchema,
+        role_position_update_schema: RolePositionUpdateSchema,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/",
@@ -173,11 +157,7 @@ impl types::RoleObject {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the updated [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    /// A `Result` containing the updated [`RoleObject`] if successful, or a [`ChorusError`] if the request fails or if the response is invalid.
     pub async fn update(
         user: &mut UserMeta,
         guild_id: Snowflake,

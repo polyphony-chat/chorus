@@ -30,12 +30,7 @@ pub struct LimitsInformation {
 }
 
 impl Instance {
-    /// Creates a new [`Instance`].
-    /// # Arguments
-    /// * `urls` - The [`URLBundle`] that contains all the URLs that are needed to connect to the Spacebar server.
-    /// * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
-    /// # Errors
-    /// * [`InstanceError`] - If the instance cannot be created.
+    /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle), where `limited` is whether or not to automatically use rate limits.
     pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
         let limits_information;
         if limited {

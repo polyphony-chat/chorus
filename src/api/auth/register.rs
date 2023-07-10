@@ -20,7 +20,7 @@ impl Instance {
     ///
     /// # Errors
     ///
-    /// * [`ChorusLibError`] - If the server does not respond.
+    /// * [`crate::errors::ChorusError`] - If the server does not respond.
     pub async fn register_account(
         &mut self,
         register_schema: &RegisterSchema,

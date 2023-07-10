@@ -4,6 +4,7 @@ use reqwest::{multipart, Client};
 use serde_json::to_string;
 
 use crate::api::LimitType;
+use crate::errors::ChorusResult;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment, Snowflake};
@@ -13,17 +14,14 @@ impl Message {
     /// # Arguments
     /// * `url_api` - The URL of the Spacebar server's API.
     /// * `message` - The [`Message`] that will be sent to the Spacebar server.
-    /// * `limits_user` - The [`Limits`] of the user.
-    /// * `limits_instance` - The [`Limits`] of the instance.
-    /// * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
     /// # Errors
-    /// * [`ChorusLibError`] - If the message cannot be sent.
+    /// * [`crate::errors::ChorusError`] - If the message cannot be sent.
     pub async fn send(
         user: &mut UserMeta,
         channel_id: Snowflake,
         message: &mut MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<Message, crate::errors::ChorusError> {
+    ) -> ChorusResult<Message> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
 
         if files.is_none() {
@@ -80,11 +78,8 @@ impl UserMeta {
     /// # Arguments
     /// * `url_api` - The URL of the Spacebar server's API.
     /// * `message` - The [`Message`] that will be sent to the Spacebar server.
-    /// * `limits_user` - The [`Limits`] of the user.
-    /// * `limits_instance` - The [`Limits`] of the instance.
-    /// * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
     /// # Errors
-    /// * [`ChorusLibError`] - If the message cannot be sent.
+    /// * [`crate::errors::ChorusError`] - If the message cannot be sent.
     /// # Notes
     /// Shorthand call for Message::send()
     pub async fn send_message(
@@ -92,7 +87,7 @@ impl UserMeta {
         message: &mut MessageSendSchema,
         channel_id: Snowflake,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<Message, crate::errors::ChorusError> {
+    ) -> ChorusResult<Message> {
         Message::send(self, channel_id, message, files).await
     }
 }

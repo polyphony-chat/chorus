@@ -57,7 +57,7 @@ pub trait WebSocketEvent {}
 #[derive(Debug, Default, Serialize, Clone)]
 /// The payload used for sending events to the gateway
 ///
-/// Similar to [GatewayReceivePayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
+/// Similar to [GatewayReceivePayload], except we send a [serde_json::value::Value] for d whilst we receive a [serde_json::value::RawValue]
 /// Also, we never need to send the event name
 pub struct GatewaySendPayload {
     #[serde(rename = "op")]
@@ -76,9 +76,6 @@ impl WebSocketEvent for GatewaySendPayload {}
 
 #[derive(Debug, Default, Deserialize, Clone)]
 /// The payload used for receiving events from the gateway
-///
-/// Similar to [GatewaySendPayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
-/// Also, we never need to sent the event name
 pub struct GatewayReceivePayload<'a> {
     #[serde(rename = "op")]
     pub op_code: u8,
