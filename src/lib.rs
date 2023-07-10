@@ -18,9 +18,18 @@ pub mod voice;
 #[derive(Clone, Default, Debug, PartialEq, Eq)]
 /// A URLBundle is a struct which bundles together the API-, Gateway- and CDN-URLs of a Spacebar
 /// instance.
+/// # Notes
+/// All the urls can be found on the /api/policies/instance/domains endpoint of a spacebar server
 pub struct UrlBundle {
+    /// The api's url.
+    /// Ex: `https://old.server.spacebar.chat/api`
     pub api: String,
+    /// The gateway websocket url.
+    /// Note that because this is a websocket url, it will always start with `wss://`
+    /// Ex: `wss://gateway.old.server.spacebar.chat`
     pub wss: String,
+    /// The CDN's url.
+    /// Ex: `https://cdn.old.server.spacebar.chat`
     pub cdn: String,
 }
 
