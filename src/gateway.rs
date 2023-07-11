@@ -4,7 +4,6 @@ use crate::types;
 use crate::types::WebSocketEvent;
 use async_trait::async_trait;
 use std::sync::Arc;
-use async_trait::async_trait;
 
 use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
