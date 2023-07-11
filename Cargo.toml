@@ -35,6 +35,7 @@ sqlx = { git = "https://github.com/zert3x/sqlx", branch="feature/skip", features
 thiserror = "1.0.40"
 jsonwebtoken = "8.3.0"
 log = "0.4.19"
+async-trait = "0.1.71"
 
 [dev-dependencies]
 tokio = {version = "1.28.1", features = ["full"]}
