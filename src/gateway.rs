@@ -2,6 +2,7 @@ use crate::errors::GatewayError;
 use crate::gateway::events::Events;
 use crate::types;
 use crate::types::WebSocketEvent;
+use async_trait::async_trait;
 use std::sync::Arc;
 
 use futures_util::stream::SplitSink;
@@ -1667,8 +1668,9 @@ struct HeartbeatThreadCommunication {
 /// an Observable. The Observer is notified when the Observable's data changes.
 /// In this case, the Observable is a [`GatewayEvent`], which is a wrapper around a WebSocketEvent.
 /// Note that `Debug` is used to tell `Observer`s apart when unsubscribing.
+#[async_trait]
 pub trait Observer<T>: Sync + Send + std::fmt::Debug {
-    fn update(&self, data: &T);
+    async fn update(&self, data: &T);
 }
 
 /// GatewayEvent is a wrapper around a WebSocketEvent. It is used to notify the observers of a
@@ -1703,7 +1705,7 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     /// Notifies the observers of the GatewayEvent.
     async fn notify(&self, new_event_data: T) {
         for observer in &self.observers {
-            observer.update(&new_event_data);
+            observer.update(&new_event_data).await;
         }
     }
 }
@@ -1880,8 +1882,9 @@ mod example {
         events_received: AtomicI32,
     }
 
+    #[async_trait]
     impl Observer<types::GatewayResume> for Consumer {
-        fn update(&self, _data: &types::GatewayResume) {
+        async fn update(&self, _data: &types::GatewayResume) {
             self.events_received.fetch_add(1, Relaxed);
         }
     }
