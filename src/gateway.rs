@@ -406,7 +406,7 @@ impl Gateway {
             return;
         }
 
-        // To:do: handle errors in a good way, maybe observers like events?
+        // Todo: handle errors in a good way, maybe observers like events?
         if msg.is_error() {
             warn!("GW: Received error, connection will close..");
 
@@ -422,1021 +422,127 @@ impl Gateway {
         match gateway_payload.op_code {
             // An event was dispatched, we need to look at the gateway event name t
             GATEWAY_DISPATCH => {
-                let gateway_payload_t = gateway_payload.clone().event_name.unwrap();
+                let Some(event_name) = gateway_payload.event_name else {
+                    warn!("Gateway dispatch op without event_name");
+                    return
+                };
 
-                trace!("GW: Received {}..", gateway_payload_t);
+                trace!("Gateway: Received {event_name}");
 
-                //println!("Event data dump: {}", gateway_payload.d.clone().unwrap().get());
+                macro_rules! handle {
+                    ($($name:literal => $($path:ident).+),*) => {
+                        match event_name.as_str() {
+                            $($name => {
+                                let event = &mut self.events.lock().await.$($path).+;
+
+                                let result =
+                                    Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
+                                        .await;
+
+                                if let Err(err) = result {
+                                    warn!("Failed to parse gateway event {event_name} ({err})");
+                                }
+                            },)*
+                            "RESUMED" => (),
+                            "SESSIONS_REPLACE" => {
+                                let result: Result<Vec<types::Session>, serde_json::Error> =
+                                    serde_json::from_str(gateway_payload.event_data.unwrap().get());
+                                match result {
+                                    Err(err) => {
+                                        warn!(
+                                            "Failed to parse gateway event {} ({})",
+                                            event_name,
+                                            err
+                                        );
+                                        return;
+                                    }
+                                    Ok(sessions) => {
+                                        self.events.lock().await.session.replace.notify(
+                                            types::SessionsReplace {sessions}
+                                        ).await;
+                                    }
+                                }
+                            },
+                            _ => {
+                                warn!("Received unrecognized gateway event ({event_name})! Please open an issue on the chorus github so we can implement it");
+                            }
+                        }
+                    };
+                }
 
                 // See https://discord.com/developers/docs/topics/gateway-events#receive-events
                 // "Some" of these are undocumented
-                match gateway_payload_t.as_str() {
-                    "READY" => {
-                        let event = &mut self.events.lock().await.session.ready;
-
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "READY_SUPPLEMENTAL" => {
-                        let event = &mut self.events.lock().await.session.ready_supplemental;
-
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "RESUMED" => {}
-                    "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => {
-                        let event = &mut self
-                            .events
-                            .lock()
-                            .await
-                            .application
-                            .command_permissions_update;
-
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "AUTO_MODERATION_RULE_CREATE" => {
-                        let event = &mut self.events.lock().await.auto_moderation.rule_create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "AUTO_MODERATION_RULE_UPDATE" => {
-                        let event = &mut self.events.lock().await.auto_moderation.rule_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "AUTO_MODERATION_RULE_DELETE" => {
-                        let event = &mut self.events.lock().await.auto_moderation.rule_delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "AUTO_MODERATION_ACTION_EXECUTION" => {
-                        let event = &mut self.events.lock().await.auto_moderation.action_execution;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "CHANNEL_CREATE" => {
-                        let event = &mut self.events.lock().await.channel.create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "CHANNEL_UPDATE" => {
-                        let event = &mut self.events.lock().await.channel.update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "CHANNEL_UNREAD_UPDATE" => {
-                        let event = &mut self.events.lock().await.channel.unread_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "CHANNEL_DELETE" => {
-                        let event = &mut self.events.lock().await.channel.delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "CHANNEL_PINS_UPDATE" => {
-                        let event = &mut self.events.lock().await.channel.pins_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "CALL_CREATE" => {
-                        let event = &mut self.events.lock().await.call.create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "CALL_UPDATE" => {
-                        let event = &mut self.events.lock().await.call.update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "CALL_DELETE" => {
-                        let event = &mut self.events.lock().await.call.delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "THREAD_CREATE" => {
-                        let event = &mut self.events.lock().await.thread.create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "THREAD_UPDATE" => {
-                        let event = &mut self.events.lock().await.thread.update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "THREAD_DELETE" => {
-                        let event = &mut self.events.lock().await.thread.delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "THREAD_LIST_SYNC" => {
-                        let event = &mut self.events.lock().await.thread.list_sync;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "THREAD_MEMBER_UPDATE" => {
-                        let event = &mut self.events.lock().await.thread.member_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "THREAD_MEMBERS_UPDATE" => {
-                        let event = &mut self.events.lock().await.thread.members_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_CREATE" => {
-                        let event = &mut self.events.lock().await.guild.create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_UPDATE" => {
-                        let event = &mut self.events.lock().await.guild.update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_DELETE" => {
-                        let event = &mut self.events.lock().await.guild.delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_AUDIT_LOG_ENTRY_CREATE" => {
-                        let event = &mut self.events.lock().await.guild.audit_log_entry_create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_BAN_ADD" => {
-                        let event = &mut self.events.lock().await.guild.ban_add;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_BAN_REMOVE" => {
-                        let event = &mut self.events.lock().await.guild.ban_remove;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_EMOJIS_UPDATE" => {
-                        let event = &mut self.events.lock().await.guild.emojis_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_STICKERS_UPDATE" => {
-                        let event = &mut self.events.lock().await.guild.stickers_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_INTEGRATIONS_UPDATE" => {
-                        let event = &mut self.events.lock().await.guild.integrations_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_MEMBER_ADD" => {
-                        let event = &mut self.events.lock().await.guild.member_add;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_MEMBER_REMOVE" => {
-                        let event = &mut self.events.lock().await.guild.member_remove;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_MEMBER_UPDATE" => {
-                        let event = &mut self.events.lock().await.guild.member_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_MEMBERS_CHUNK" => {
-                        let event = &mut self.events.lock().await.guild.members_chunk;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_ROLE_CREATE" => {
-                        let event = &mut self.events.lock().await.guild.role_create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_ROLE_UPDATE" => {
-                        let event = &mut self.events.lock().await.guild.role_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_ROLE_DELETE" => {
-                        let event = &mut self.events.lock().await.guild.role_delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_SCHEDULED_EVENT_CREATE" => {
-                        let event = &mut self.events.lock().await.guild.role_scheduled_event_create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_SCHEDULED_EVENT_UPDATE" => {
-                        let event = &mut self.events.lock().await.guild.role_scheduled_event_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_SCHEDULED_EVENT_DELETE" => {
-                        let event = &mut self.events.lock().await.guild.role_scheduled_event_delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_SCHEDULED_EVENT_USER_ADD" => {
-                        let event =
-                            &mut self.events.lock().await.guild.role_scheduled_event_user_add;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "GUILD_SCHEDULED_EVENT_USER_REMOVE" => {
-                        let event = &mut self
-                            .events
-                            .lock()
-                            .await
-                            .guild
-                            .role_scheduled_event_user_remove;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "PASSIVE_UPDATE_V1" => {
-                        let event = &mut self.events.lock().await.guild.passive_update_v1;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "INTEGRATION_CREATE" => {
-                        let event = &mut self.events.lock().await.integration.create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "INTEGRATION_UPDATE" => {
-                        let event = &mut self.events.lock().await.integration.update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "INTEGRATION_DELETE" => {
-                        let event = &mut self.events.lock().await.integration.delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "INTERACTION_CREATE" => {
-                        let event = &mut self.events.lock().await.interaction.create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "INVITE_CREATE" => {
-                        let event = &mut self.events.lock().await.invite.create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "INVITE_DELETE" => {
-                        let event = &mut self.events.lock().await.invite.delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "MESSAGE_CREATE" => {
-                        let event = &mut self.events.lock().await.message.create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "MESSAGE_UPDATE" => {
-                        let event = &mut self.events.lock().await.message.update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "MESSAGE_DELETE" => {
-                        let event = &mut self.events.lock().await.message.delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "MESSAGE_DELETE_BULK" => {
-                        let event = &mut self.events.lock().await.message.delete_bulk;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "MESSAGE_REACTION_ADD" => {
-                        let event = &mut self.events.lock().await.message.reaction_add;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "MESSAGE_REACTION_REMOVE" => {
-                        let event = &mut self.events.lock().await.message.reaction_remove;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "MESSAGE_REACTION_REMOVE_ALL" => {
-                        let event = &mut self.events.lock().await.message.reaction_remove_all;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "MESSAGE_REACTION_REMOVE_EMOJI" => {
-                        let event = &mut self.events.lock().await.message.reaction_remove_emoji;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "MESSAGE_ACK" => {
-                        let event = &mut self.events.lock().await.message.ack;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "PRESENCE_UPDATE" => {
-                        let event = &mut self.events.lock().await.user.presence_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "RELATIONSHIP_ADD" => {
-                        let event = &mut self.events.lock().await.relationship.add;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "RELATIONSHIP_REMOVE" => {
-                        let event = &mut self.events.lock().await.relationship.remove;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "STAGE_INSTANCE_CREATE" => {
-                        let event = &mut self.events.lock().await.stage_instance.create;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "STAGE_INSTANCE_UPDATE" => {
-                        let event = &mut self.events.lock().await.stage_instance.update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "STAGE_INSTANCE_DELETE" => {
-                        let event = &mut self.events.lock().await.stage_instance.delete;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "SESSIONS_REPLACE" => {
-                        let result: Result<Vec<types::Session>, serde_json::Error> =
-                            serde_json::from_str(gateway_payload.event_data.unwrap().get());
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-
-                        let data = types::SessionsReplace {
-                            sessions: result.unwrap(),
-                        };
-
-                        self.events.lock().await.session.replace.notify(data).await;
-                    }
-                    "USER_UPDATE" => {
-                        let event = &mut self.events.lock().await.user.update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "USER_GUILD_SETTINGS_UPDATE" => {
-                        let event = &mut self.events.lock().await.user.guild_settings_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "VOICE_STATE_UPDATE" => {
-                        let event = &mut self.events.lock().await.voice.state_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "VOICE_SERVER_UPDATE" => {
-                        let event = &mut self.events.lock().await.voice.server_update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    "WEBHOOKS_UPDATE" => {
-                        let event = &mut self.events.lock().await.webhooks.update;
-                        let result =
-                            Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                .await;
-                        if result.is_err() {
-                            warn!(
-                                "Failed to parse gateway event {} ({})",
-                                gateway_payload_t,
-                                result.err().unwrap()
-                            );
-                            return;
-                        }
-                    }
-                    _ => {
-                        warn!("Received unrecognized gateway event ({})! Please open an issue on the chorus github so we can implement it", &gateway_payload_t);
-                    }
-                }
+                handle!(
+                    "READY" => session.ready,
+                    "READY_SUPPLEMENTAL" => session.ready_supplemental,
+                    "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => application.command_permissions_update,
+                    "AUTO_MODERATION_RULE_CREATE" =>auto_moderation.rule_create,
+                    "AUTO_MODERATION_RULE_UPDATE" =>auto_moderation.rule_update,
+                    "AUTO_MODERATION_RULE_DELETE" => auto_moderation.rule_delete,
+                    "AUTO_MODERATION_ACTION_EXECUTION" => auto_moderation.action_execution,
+                    "CHANNEL_CREATE" => channel.create,
+                    "CHANNEL_UPDATE" => channel.update,
+                    "CHANNEL_UNREAD_UPDATE" => channel.unread_update,
+                    "CHANNEL_DELETE" => channel.delete,
+                    "CHANNEL_PINS_UPDATE" => channel.pins_update,
+                    "CALL_CREATE" => call.create,
+                    "CALL_UPDATE" => call.update,
+                    "CALL_DELETE" => call.delete,
+                    "THREAD_CREATE" => thread.create,
+                    "THREAD_UPDATE" => thread.update,
+                    "THREAD_DELETE" => thread.delete,
+                    "THREAD_LIST_SYNC" => thread.list_sync,
+                    "THREAD_MEMBER_UPDATE" => thread.member_update,
+                    "THREAD_MEMBERS_UPDATE" => thread.members_update,
+                    "GUILD_CREATE" => guild.create,
+                    "GUILD_UPDATE" => guild.update,
+                    "GUILD_DELETE" => guild.delete,
+                    "GUILD_AUDIT_LOG_ENTRY_CREATE" => guild.audit_log_entry_create,
+                    "GUILD_BAN_ADD" => guild.ban_add,
+                    "GUILD_BAN_REMOVE" => guild.ban_remove,
+                    "GUILD_EMOJIS_UPDATE" => guild.emojis_update,
+                    "GUILD_STICKERS_UPDATE" => guild.stickers_update,
+                    "GUILD_INTEGRATIONS_UPDATE" => guild.integrations_update,
+                    "GUILD_MEMBER_ADD" => guild.member_add,
+                    "GUILD_MEMBER_REMOVE" => guild.member_remove,
+                    "GUILD_MEMBER_UPDATE" => guild.member_update,
+                    "GUILD_MEMBERS_CHUNK" => guild.members_chunk,
+                    "GUILD_ROLE_CREATE" => guild.role_create,
+                    "GUILD_ROLE_UPDATE" => guild.role_update,
+                    "GUILD_ROLE_DELETE" => guild.role_delete,
+                    "GUILD_SCHEDULED_EVENT_CREATE" => guild.role_scheduled_event_create,
+                    "GUILD_SCHEDULED_EVENT_UPDATE" => guild.role_scheduled_event_update,
+                    "GUILD_SCHEDULED_EVENT_DELETE" => guild.role_scheduled_event_delete,
+                    "GUILD_SCHEDULED_EVENT_USER_ADD" => guild.role_scheduled_event_user_add,
+                    "GUILD_SCHEDULED_EVENT_USER_REMOVE" => guild.role_scheduled_event_user_remove,
+                    "PASSIVE_UPDATE_V1" => guild.passive_update_v1,
+                    "INTEGRATION_CREATE" => integration.create,
+                    "INTEGRATION_UPDATE" => integration.update,
+                    "INTEGRATION_DELETE" => integration.delete,
+                    "INTERACTION_CREATE" => interaction.create,
+                    "INVITE_CREATE" => invite.create,
+                    "INVITE_DELETE" => invite.delete,
+                    "MESSAGE_CREATE" => message.create,
+                    "MESSAGE_UPDATE" => message.update,
+                    "MESSAGE_DELETE" => message.delete,
+                    "MESSAGE_DELETE_BULK" => message.delete_bulk,
+                    "MESSAGE_REACTION_ADD" => message.reaction_add,
+                    "MESSAGE_REACTION_REMOVE" => message.reaction_remove,
+                    "MESSAGE_REACTION_REMOVE_ALL" => message.reaction_remove_all,
+                    "MESSAGE_REACTION_REMOVE_EMOJI" => message.reaction_remove_emoji,
+                    "MESSAGE_ACK" => message.ack,
+                    "PRESENCE_UPDATE" => user.presence_update,
+                    "RELATIONSHIP_ADD" => relationship.add,
+                    "RELATIONSHIP_REMOVE" => relationship.remove,
+                    "STAGE_INSTANCE_CREATE" => stage_instance.create,
+                    "STAGE_INSTANCE_UPDATE" => stage_instance.update,
+                    "STAGE_INSTANCE_DELETE" => stage_instance.delete,
+                    "USER_UPDATE" => user.update,
+                    "USER_GUILD_SETTINGS_UPDATE" => user.guild_settings_update,
+                    "VOICE_STATE_UPDATE" => voice.state_update,
+                    "VOICE_SERVER_UPDATE" => voice.server_update,
+                    "WEBHOOKS_UPDATE" => webhooks.update
+                );
             }
             // We received a heartbeat from the server
             // "Discord may send the app a Heartbeat (opcode 1) event, in which case the app should send a Heartbeat event immediately."
@@ -1501,9 +607,9 @@ impl Gateway {
         }
 
         // If we we received a seq number we should let it know
-        if gateway_payload.sequence_number.is_some() {
+        if let Some(seq_num) = gateway_payload.sequence_number {
             let heartbeat_communication = HeartbeatThreadCommunication {
-                sequence_number: Some(gateway_payload.sequence_number.unwrap()),
+                sequence_number: Some(seq_num),
                 // Op code is irrelevant here
                 op_code: None,
             };
@@ -1597,16 +703,14 @@ impl HeartbeatHandler {
 
             let received_communication: Result<HeartbeatThreadCommunication, TryRecvError> =
                 receive.try_recv();
-            if received_communication.is_ok() {
-                let communication = received_communication.unwrap();
-
+            if let Ok(communication) = received_communication {
                 // If we received a seq number update, use that as the last seq number
                 if communication.sequence_number.is_some() {
-                    last_seq_number = Some(communication.sequence_number.unwrap());
+                    last_seq_number = communication.sequence_number;
                 }
 
-                if communication.op_code.is_some() {
-                    match communication.op_code.unwrap() {
+                if let Some(op_code) = communication.op_code {
+                    match op_code {
                         GATEWAY_HEARTBEAT => {
                             // As per the api docs, if the server sends us a Heartbeat, that means we need to respond with a heartbeat immediately
                             should_send = true;
