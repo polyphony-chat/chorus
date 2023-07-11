@@ -2,6 +2,7 @@ use crate::errors::GatewayError;
 use crate::gateway::events::Events;
 use crate::types;
 use crate::types::WebSocketEvent;
+use async_trait::async_trait;
 use std::sync::Arc;
 use async_trait::async_trait;
 
