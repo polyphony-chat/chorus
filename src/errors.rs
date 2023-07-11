@@ -1,39 +1,50 @@
 use custom_error::custom_error;
+use reqwest::Error;
 
 custom_error! {
     #[derive(PartialEq, Eq)]
-    pub FieldFormatError
-    PasswordError = "Password must be between 1 and 72 characters.",
-    UsernameError = "Username must be between 2 and 32 characters.",
-    ConsentError = "Consent must be 'true' to register.",
-    EmailError = "The provided email address is in an invalid format.",
+    pub RegistrationError
+    Consent = "Consent must be 'true' to register.",
 }
 
-pub type ChorusResult<T> = std::result::Result<T, ChorusLibError>;
+pub type ChorusResult<T> = std::result::Result<T, ChorusError>;
 
 custom_error! {
-    #[derive(PartialEq, Eq)]
-    pub ChorusLibError
+    pub ChorusError
+    /// Server did not respond.
     NoResponse = "Did not receive a response from the Server.",
-    RequestErrorError{url:String, error:String} = "An error occured while trying to GET from {url}: {error}",
-    ReceivedErrorCodeError{error_code:String} = "Received the following error code while requesting from the route: {error_code}",
-    CantGetInfoError{error:String} = "Something seems to be wrong with the instance. Cannot get information about the instance: {error}",
-    InvalidFormBodyError{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
+    /// Reqwest returned an Error instead of a Response object.
+    RequestFailed{url:String, error: Error} = "An error occured while trying to GET from {url}: {error}",
+    /// Response received, however, it was not of the successful responses type. Used when no other, special case applies.
+    ReceivedErrorCode{error_code: u16, error: String} = "Received the following error code while requesting from the route: {error_code}",
+    /// Used when there is likely something wrong with the instance, the request was directed to.
+    CantGetInformation{error:String} = "Something seems to be wrong with the instance. Cannot get information about the instance: {error}",
+    /// The requests form body was malformed/invalid.
+    InvalidFormBody{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
+    /// The request has not been processed by the server due to a relevant rate limit bucket being exhausted.
     RateLimited{bucket:String} = "Ratelimited on Bucket {bucket}",
-    MultipartCreationError{error: String} = "Got an error whilst creating the form: {error}",
-    FormCreationError{error: String} = "Got an error whilst creating the form: {error}",
+    /// The multipart form could not be created.
+    MultipartCreation{error: String} = "Got an error whilst creating the form: {error}",
+    /// The regular form could not be created.
+    FormCreation{error: String} = "Got an error whilst creating the form: {error}",
+    /// The token is invalid.
     TokenExpired = "Token expired, invalid or not found.",
+    /// No permission
     NoPermission = "You do not have the permissions needed to perform this action.",
+    /// Resource not found
     NotFound{error: String} = "The provided resource hasn't been found: {error}",
-    PasswordRequiredError = "You need to provide your current password to authenticate for this action.",
-    InvalidResponseError{error: String} = "The response is malformed and cannot be processed. Error: {error}",
-    InvalidArgumentsError{error: String} = "Invalid arguments were provided. Error: {error}"
+    /// Used when you, for example, try to change your spacebar account password without providing your old password for verification.
+    PasswordRequired = "You need to provide your current password to authenticate for this action.",
+    /// Malformed or unexpected response.
+    InvalidResponse{error: String} = "The response is malformed and cannot be processed. Error: {error}",
+    /// Invalid, insufficient or too many arguments provided.
+    InvalidArguments{error: String} = "Invalid arguments were provided. Error: {error}"
 }
 
 custom_error! {
     #[derive(PartialEq, Eq)]
     pub ObserverError
-    AlreadySubscribedError = "Each event can only be subscribed to once."
+    AlreadySubscribed = "Each event can only be subscribed to once."
 }
 
 custom_error! {
@@ -45,25 +56,25 @@ custom_error! {
     #[derive(PartialEq, Eq)]
     pub GatewayError
     // Errors we have received from the gateway
-    UnknownError = "We're not sure what went wrong. Try reconnecting?",
-    UnknownOpcodeError = "You sent an invalid Gateway opcode or an invalid payload for an opcode",
-    DecodeError = "Gateway server couldn't decode payload",
-    NotAuthenticatedError = "You sent a payload prior to identifying",
-    AuthenticationFailedError = "The account token sent with your identify payload is invalid",
-    AlreadyAuthenticatedError = "You've already identified, no need to reauthenticate",
-    InvalidSequenceNumberError = "The sequence number sent when resuming the session was invalid. Reconnect and start a new session",
-    RateLimitedError = "You are being rate limited!",
-    SessionTimedOutError = "Your session timed out. Reconnect and start a new one",
-    InvalidShardError = "You sent us an invalid shard when identifying",
-    ShardingRequiredError = "The session would have handled too many guilds - you are required to shard your connection in order to connect",
-    InvalidAPIVersionError = "You sent an invalid Gateway version",
-    InvalidIntentsError = "You sent an invalid intent",
-    DisallowedIntentsError = "You sent a disallowed intent. You may have tried to specify an intent that you have not enabled or are not approved for",
+    Unknown = "We're not sure what went wrong. Try reconnecting?",
+    UnknownOpcode = "You sent an invalid Gateway opcode or an invalid payload for an opcode",
+    Decode = "Gateway server couldn't decode payload",
+    NotAuthenticated = "You sent a payload prior to identifying",
+    AuthenticationFailed = "The account token sent with your identify payload is invalid",
+    AlreadyAuthenticated = "You've already identified, no need to reauthenticate",
+    InvalidSequenceNumber = "The sequence number sent when resuming the session was invalid. Reconnect and start a new session",
+    RateLimited = "You are being rate limited!",
+    SessionTimedOut = "Your session timed out. Reconnect and start a new one",
+    InvalidShard = "You sent us an invalid shard when identifying",
+    ShardingRequired = "The session would have handled too many guilds - you are required to shard your connection in order to connect",
+    InvalidAPIVersion = "You sent an invalid Gateway version",
+    InvalidIntents = "You sent an invalid intent",
+    DisallowedIntents = "You sent a disallowed intent. You may have tried to specify an intent that you have not enabled or are not approved for",
 
     // Errors when initiating a gateway connection
-    CannotConnectError{error: String} = "Cannot connect due to a tungstenite error: {error}",
-    NonHelloOnInitiateError{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
+    CannotConnect{error: String} = "Cannot connect due to a tungstenite error: {error}",
+    NonHelloOnInitiate{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
 
     // Other misc errors
-    UnexpectedOpcodeReceivedError{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
+    UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
 }

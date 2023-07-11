@@ -1,8 +1,7 @@
+use crate::types::utils::Snowflake;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
-
-use crate::types::utils::Snowflake;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
@@ -16,7 +15,6 @@ impl User {
         PublicUser::from(self)
     }
 }
-
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct User {
@@ -89,6 +87,7 @@ impl From<User> for PublicUser {
     }
 }
 
+#[allow(dead_code)] // FIXME: Remove this when we actually use this
 const CUSTOM_USER_FLAG_OFFSET: u64 = 1 << 32;
 
 bitflags::bitflags! {

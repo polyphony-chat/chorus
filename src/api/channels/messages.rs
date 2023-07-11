@@ -3,8 +3,9 @@ use http::HeaderMap;
 use reqwest::{multipart, Client};
 use serde_json::to_string;
 
-use crate::api::deserialize_response;
+use crate::api::LimitType;
 use crate::instance::UserMeta;
+use crate::ratelimiter::ChorusRequest;
 use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment, Snowflake};
 
 impl Message {
@@ -24,16 +25,18 @@ impl Message {
         channel_id: Snowflake,
         message: &mut MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<Message, crate::errors::ChorusLibError> {
+    ) -> Result<Message, crate::errors::ChorusError> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
 
         if files.is_none() {
-            let request = Client::new()
-                .post(format!("{}/channels/{}/messages/", url_api, channel_id))
-                .bearer_auth(user.token())
-                .body(to_string(message).unwrap());
-            deserialize_response::<Message>(request, user, crate::api::limits::LimitType::Channel)
-                .await
+            let chorus_request = ChorusRequest {
+                request: Client::new()
+                    .post(format!("{}/channels/{}/messages/", url_api, channel_id))
+                    .bearer_auth(user.token())
+                    .body(to_string(message).unwrap()),
+                limit_type: LimitType::Channel(channel_id),
+            };
+            chorus_request.deserialize_response::<Message>(user).await
         } else {
             for (index, attachment) in message.attachments.iter_mut().enumerate() {
                 attachment.get_mut(index).unwrap().set_id(index as i16);
@@ -62,13 +65,14 @@ impl Message {
                 form = form.part(part_name, part);
             }
 
-            let request = Client::new()
-                .post(format!("{}/channels/{}/messages/", url_api, channel_id))
-                .bearer_auth(user.token())
-                .multipart(form);
-
-            deserialize_response::<Message>(request, user, crate::api::limits::LimitType::Channel)
-                .await
+            let chorus_request = ChorusRequest {
+                request: Client::new()
+                    .post(format!("{}/channels/{}/messages/", url_api, channel_id))
+                    .bearer_auth(user.token())
+                    .multipart(form),
+                limit_type: LimitType::Channel(channel_id),
+            };
+            chorus_request.deserialize_response::<Message>(user).await
         }
     }
 }
@@ -91,7 +95,7 @@ impl UserMeta {
         message: &mut MessageSendSchema,
         channel_id: Snowflake,
         files: Option<Vec<PartialDiscordFileAttachment>>,
-    ) -> Result<Message, crate::errors::ChorusLibError> {
+    ) -> Result<Message, crate::errors::ChorusError> {
         Message::send(self, channel_id, message, files).await
     }
 }

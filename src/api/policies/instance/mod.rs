@@ -1,5 +1,5 @@
 pub use instance::*;
-pub use limits::*;
+pub use ratelimits::*;
 
 pub mod instance;
-pub mod limits;
+pub mod ratelimits;

@@ -18,10 +18,8 @@ pub struct GeneralConfiguration {
 impl Default for GeneralConfiguration {
     fn default() -> Self {
         Self {
-            instance_name: String::from("Spacebar Instance"),
-            instance_description: Some(String::from(
-                "This is a Spacebar instance made in the pre-release days",
-            )),
+            instance_name: String::from("Spacebar-compatible Instance"),
+            instance_description: Some(String::from("This is a spacebar-compatible instance.")),
             front_page: None,
             tos_page: None,
             correspondence_email: None,
