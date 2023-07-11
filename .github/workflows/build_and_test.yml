@@ -15,18 +15,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3    
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 16
-        cache: 'npm'
-    - name: Prepare and start Spacebar server
+    - uses: actions/checkout@v3
+    - name: Clone spacebar server
       run: |
         git clone https://github.com/bitfl0wer/server.git
+        cd server
+    - uses: actions/setup-node@v3
+      with:
+          node-version: 16
+          cache: 'npm'
+    - name: Prepare and start Spacebar server
+      run: |
         npm install
         npm run setup
         npm run start &
-      working-directory: ./server
+    - name: Navigate folders back
+      run: cd ..
     - uses: Swatinem/rust-cache@v2
     - name: Build
       run: cargo build --verbose
