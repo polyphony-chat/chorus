@@ -1,9 +1,8 @@
 use chorus::{
-    errors::ChorusResult,
     instance::{Instance, UserMeta},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
-        RegisterSchemaOptions, RoleCreateModifySchema, RoleObject,
+        RoleCreateModifySchema, RoleObject,
     },
     UrlBundle,
 };
@@ -25,14 +24,14 @@ pub async fn setup() -> TestBundle {
         "ws://localhost:3001".to_string(),
         "http://localhost:3001".to_string(),
     );
-    let mut instance = Instance::new(urls.clone()).await.unwrap();
+    let mut instance = Instance::new(urls.clone(), true).await.unwrap();
     // Requires the existance of the below user.
-    let reg = RegisterSchemaOptions {
+    let reg = RegisterSchema {
+        username: "integrationtestuser".into(),
+        consent: true,
         date_of_birth: Some("2000-01-01".to_string()),
-        ..RegisterSchema::builder("integrationtestuser", true)
-    }
-    .build()
-    .unwrap();
+        ..Default::default()
+    };
     let guild_create_schema = GuildCreateSchema {
         name: Some("Test-Guild!".to_string()),
         region: None,

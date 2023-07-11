@@ -10,7 +10,7 @@ backend = ["poem", "sqlx"]
 client = []
 
 [dependencies]
-tokio = {version = "1.28.1", features = ["rt", "macros", "rt-multi-thread", "full"]}
+tokio = {version = "1.28.1"}
 serde = {version = "1.0.163", features = ["derive"]}
 serde_json = {version= "1.0.96", features = ["raw_value"]}
 serde-aux = "4.2.0"
@@ -34,7 +34,9 @@ poem = { version = "1.3.55", optional = true }
 sqlx = { git = "https://github.com/zert3x/sqlx", branch="feature/skip", features = ["mysql", "sqlite", "json", "chrono", "ipnetwork", "runtime-tokio-native-tls", "any"], optional = true }
 thiserror = "1.0.40"
 jsonwebtoken = "8.3.0"
+log = "0.4.19"
 
 [dev-dependencies]
+tokio = {version = "1.28.1", features = ["full"]}
 lazy_static = "1.4.0"
 rusty-hook = "0.11.2"

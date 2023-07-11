@@ -10,7 +10,7 @@ pub mod gateway;
 #[cfg(feature = "client")]
 pub mod instance;
 #[cfg(feature = "client")]
-pub mod limit;
+pub mod ratelimiter;
 pub mod types;
 #[cfg(feature = "client")]
 pub mod voice;

@@ -1,16 +1,16 @@
-use chorus::types::{RegisterSchema, RegisterSchemaOptions};
+use chorus::types::RegisterSchema;
 
 mod common;
 
 #[tokio::test]
 async fn test_registration() {
     let mut bundle = common::setup().await;
-    let reg = RegisterSchemaOptions {
+    let reg = RegisterSchema {
+        username: "Hiiii".into(),
         date_of_birth: Some("2000-01-01".to_string()),
-        ..RegisterSchema::builder("Hiiii", true)
-    }
-    .build()
-    .unwrap();
+        consent: true,
+        ..Default::default()
+    };
     bundle.instance.register_account(&reg).await.unwrap();
     common::teardown(bundle).await;
 }
