@@ -11,6 +11,7 @@ use crate::ratelimiter::ChorusRequest;
 use crate::types::{LoginResult, LoginSchema};
 
 impl Instance {
+    /// Logs into an existing account on the spacebar server.
     pub async fn login_account(&mut self, login_schema: &LoginSchema) -> ChorusResult<UserMeta> {
         let endpoint_url = self.urls.api.clone() + "/auth/login";
         let chorus_request = ChorusRequest {
