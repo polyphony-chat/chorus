@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Build
+    - uses: actions/checkout@v3    
+    - name: (Blazing Fast) Build
       run: cargo build --verbose
-    - name: Run tests
+    - name: Run tests (blazingly fast btw)
       run: cargo test --verbose
