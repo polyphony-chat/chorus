@@ -19,18 +19,17 @@ jobs:
     - name: Clone spacebar server
       run: |
         git clone https://github.com/bitfl0wer/server.git
-        cd server
     - uses: actions/setup-node@v3
       with:
           node-version: 16
           cache: 'npm'
+          cache-dependency-path: server/package-lock.json
     - name: Prepare and start Spacebar server
       run: |
         npm install
         npm run setup
         npm run start &
-    - name: Navigate folders back
-      run: cd ..
+      working-directory: ./server
     - uses: Swatinem/rust-cache@v2
     - name: Build
       run: cargo build --verbose
