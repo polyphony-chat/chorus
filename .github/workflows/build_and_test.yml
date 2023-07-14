@@ -15,21 +15,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3    
-    - name: Install dependencies
+    - uses: actions/checkout@v3
+    - name: Clone spacebar server
       run: |
-        sudo apt-get update
-        sudo apt-get install -y git python3 build-essential
-        curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-        sudo apt-get install -y nodejs
         git clone https://github.com/bitfl0wer/server.git
+    - uses: actions/setup-node@v3
+      with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
     - name: Prepare and start Spacebar server
       run: |
         npm install
         npm run setup
         npm run start &
       working-directory: ./server
+    - uses: Swatinem/rust-cache@v2
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --release --verbose
     - name: Run tests
       run: cargo test --verbose
