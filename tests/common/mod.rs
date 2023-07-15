@@ -8,7 +8,7 @@ use chorus::{
 };
 
 #[derive(Debug)]
-pub struct TestBundle {
+pub(crate) struct TestBundle {
     pub urls: UrlBundle,
     pub user: UserMeta,
     pub instance: Instance,
@@ -17,8 +17,23 @@ pub struct TestBundle {
     pub channel: Channel,
 }
 
+impl TestBundle {
+    pub(crate) async fn create_user(&mut self, username: &str) -> UserMeta {
+        let register_schema = RegisterSchema {
+            username: username.to_string(),
+            consent: true,
+            date_of_birth: Some("2000-01-01".to_string()),
+            ..Default::default()
+        };
+        self.instance
+            .register_account(&register_schema)
+            .await
+            .unwrap()
+    }
+}
+
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
-pub async fn setup() -> TestBundle {
+pub(crate) async fn setup() -> TestBundle {
     let urls = UrlBundle::new(
         "http://localhost:3001/api".to_string(),
         "ws://localhost:3001".to_string(),
@@ -93,7 +108,7 @@ pub async fn setup() -> TestBundle {
 
 // Teardown method to clean up after a test.
 #[allow(dead_code)]
-pub async fn teardown(mut bundle: TestBundle) {
+pub(crate) async fn teardown(mut bundle: TestBundle) {
     Guild::delete(&mut bundle.user, bundle.guild.id)
         .await
         .unwrap();
