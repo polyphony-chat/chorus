@@ -27,5 +27,18 @@ impl UserMeta {
         .await
     }
 
-    pub async fn create_user_invite(&mut self, code: Option<&str>) -> ChorusResult<Invite> {}
+    pub async fn create_user_invite(&mut self, code: Option<&str>) -> ChorusResult<Invite> {
+        ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/user/@me/invites/",
+                    self.belongs_to.borrow().urls.api
+                ))
+                .body(to_string(&code).unwrap())
+                .bearer_auth(self.token()),
+            limit_type: super::LimitType::Global,
+        }
+        .deserialize_response::<Invite>(self)
+        .await
+    }
 }
