@@ -26,6 +26,7 @@ pub struct UserModifySchema {
 ///
 /// # Reference:
 /// Read: <https://discord-userdoccers.vercel.app/resources/channel#json-params>
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PrivateChannelCreateSchema {
     pub recipients: Option<Vec<Snowflake>>,
     pub access_tokens: Option<Vec<String>>,
