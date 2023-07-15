@@ -10,7 +10,7 @@ use sqlx::{
     database::{HasArguments, HasValueRef},
     encode::IsNull,
     error::BoxDynError,
-    Decode, Encode, MySql,
+    Decode, MySql,
 };
 
 use crate::types::config::types::subconfigs::guild::{
