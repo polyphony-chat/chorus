@@ -168,4 +168,5 @@ async fn create_dm() {
         dm_channel.recipients.as_ref().unwrap().get(1).unwrap().id,
         user.object.id
     );
+    common::teardown(bundle).await;
 }
