@@ -5,6 +5,8 @@ use crate::types::{Snowflake, WelcomeScreenObject};
 use super::guild::GuildScheduledEvent;
 use super::{Application, Channel, GuildMember, User};
 
+/// Represents a code that when used, adds a user to a guild or group DM channel, or creates a relationship between two users.
+/// See <https://discord-userdoccers.vercel.app/resources/invite#invite-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Invite {
     pub code: String,
@@ -30,6 +32,8 @@ pub struct Invite {
     pub temporary: bool,
 }
 
+/// The guild an invite is for.
+/// See <https://discord-userdoccers.vercel.app/resources/invite#invite-guild-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InviteGuild {
     pub id: Snowflake,
@@ -49,6 +53,8 @@ pub struct InviteGuild {
     pub welcome_screen: Option<WelcomeScreenObject>,
 }
 
+/// See <https://discord-userdoccers.vercel.app/resources/guild#nsfw-level> for an explanation on what
+/// the levels mean.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum NSFWLevel {
@@ -58,6 +64,7 @@ pub enum NSFWLevel {
     AgeRestricted = 3,
 }
 
+/// See <https://discord-userdoccers.vercel.app/resources/invite#invite-stage-instance-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InviteStageInstance {
     pub members: Vec<GuildMember>,
