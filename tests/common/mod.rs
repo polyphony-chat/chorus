@@ -7,6 +7,7 @@ use chorus::{
     UrlBundle,
 };
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub(crate) struct TestBundle {
     pub urls: UrlBundle,
@@ -18,6 +19,7 @@ pub(crate) struct TestBundle {
 }
 
 impl TestBundle {
+    #[allow(unused)]
     pub(crate) async fn create_user(&mut self, username: &str) -> UserMeta {
         let register_schema = RegisterSchema {
             username: username.to_string(),
