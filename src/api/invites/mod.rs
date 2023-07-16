@@ -31,10 +31,9 @@ impl UserMeta {
         ChorusRequest {
             request: Client::new()
                 .post(format!(
-                    "{}/user/@me/invites/",
+                    "{}/users/@me/invites/",
                     self.belongs_to.borrow().urls.api
                 ))
-                .body(to_string(&code).unwrap())
                 .bearer_auth(self.token()),
             limit_type: super::LimitType::Global,
         }
