@@ -88,7 +88,7 @@ impl fmt::Display for Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UserMeta {
     pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,
