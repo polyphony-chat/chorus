@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::PermissionOverwrite, Snowflake};
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
 #[serde(rename_all = "snake_case")]
 pub struct ChannelCreateSchema {
     pub name: String,
@@ -27,7 +27,7 @@ pub struct ChannelCreateSchema {
     pub video_quality_mode: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialEq, PartialOrd)]
 #[serde(rename_all = "snake_case")]
 pub struct ChannelModifySchema {
     pub name: Option<String>,
@@ -49,7 +49,7 @@ pub struct ChannelModifySchema {
     pub video_quality_mode: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
 pub struct GetChannelMessagesSchema {
     /// Between 1 and 100, defaults to 50.
     pub limit: Option<i32>,
@@ -57,7 +57,7 @@ pub struct GetChannelMessagesSchema {
     pub anchor: ChannelMessagesAnchor,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
 #[serde(rename_all = "snake_case")]
 pub enum ChannelMessagesAnchor {
     Before(Snowflake),
@@ -96,7 +96,7 @@ impl GetChannelMessagesSchema {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
 pub struct CreateChannelInviteSchema {
     pub flags: Option<InviteFlags>,
     pub max_age: Option<u32>,
@@ -126,13 +126,13 @@ impl Default for CreateChannelInviteSchema {
 }
 
 bitflags! {
-    #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
     pub struct InviteFlags: u64 {
         const GUEST = 1 << 0;
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, Default, PartialOrd, Ord, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum InviteType {
     #[default]
