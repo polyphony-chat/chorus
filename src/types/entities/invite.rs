@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{Snowflake, WelcomeScreenObject};
@@ -9,27 +10,27 @@ use super::{Application, Channel, GuildMember, User};
 /// See <https://discord-userdoccers.vercel.app/resources/invite#invite-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Invite {
-    pub code: String,
-    #[serde(rename = "type")]
-    pub invite_type: i32,
-    pub channel: Option<Channel>,
-    pub guild_id: Option<Snowflake>,
-    pub guild: Option<InviteGuild>,
-    pub inviter: Option<User>,
-    pub flags: Option<i32>,
-    pub target_type: Option<i32>,
-    pub target_user: Option<User>,
-    pub target_application: Option<Application>,
     pub approximate_member_count: Option<i32>,
     pub approximate_presence_count: Option<i32>,
-    pub expires_at: Option<String>,
-    pub stage_instance: Option<InviteStageInstance>,
+    pub channel: Option<Channel>,
+    pub code: String,
+    pub created_at: Option<DateTime<Utc>>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub flags: Option<i32>,
+    pub guild: Option<InviteGuild>,
+    pub guild_id: Option<Snowflake>,
     pub guild_scheduled_event: Option<GuildScheduledEvent>,
-    pub created_at: String,
-    pub uses: Option<i32>,
+    #[serde(rename = "type")]
+    pub invite_type: Option<i32>,
+    pub inviter: Option<User>,
+    pub max_age: Option<i32>,
     pub max_uses: Option<i32>,
-    pub max_age: i32,
-    pub temporary: bool,
+    pub stage_instance: Option<InviteStageInstance>,
+    pub target_application: Option<Application>,
+    pub target_type: Option<i32>,
+    pub target_user: Option<User>,
+    pub temporary: Option<bool>,
+    pub uses: Option<i32>,
 }
 
 /// The guild an invite is for.
