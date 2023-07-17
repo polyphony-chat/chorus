@@ -450,8 +450,8 @@ impl ChorusRequest {
             Err(e) => {
                 return Err(ChorusError::InvalidResponse {
                     error: format!(
-                        "Error while trying to deserialize the JSON response into T: {}",
-                        e
+                        "Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
+                        e, response_text
                     ),
                 })
             }
