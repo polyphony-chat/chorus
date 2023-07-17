@@ -141,3 +141,10 @@ pub enum InviteType {
     RoleSubscriptions = 3,
     CreatorPage = 4,
 }
+
+/// See <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
+pub struct AddChannelRecipientSchema {
+    pub access_token: Option<String>,
+    pub nick: Option<String>,
+}
