@@ -9,17 +9,6 @@ use crate::ratelimiter::ChorusRequest;
 use crate::types::{Message, MessageSendSchema, Snowflake};
 
 impl Message {
-    /**
-    Sends a message to the Spacebar server.
-    # Arguments
-    * `url_api` - The URL of the Spacebar server's API.
-    * `message` - The [`Message`] that will be sent to the Spacebar server.
-    * `limits_user` - The [`Limits`] of the user.
-    * `limits_instance` - The [`Limits`] of the instance.
-    * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
-    # Errors
-    * [`ChorusLibError`] - If the message cannot be sent.
-     */
     pub async fn send(
         user: &mut UserMeta,
         channel_id: Snowflake,
@@ -77,18 +66,6 @@ impl Message {
 }
 
 impl UserMeta {
-    /// Shorthand call for Message::send()
-    /**
-    Sends a message to the Spacebar server.
-    # Arguments
-    * `url_api` - The URL of the Spacebar server's API.
-    * `message` - The [`Message`] that will be sent to the Spacebar server.
-    * `limits_user` - The [`Limits`] of the user.
-    * `limits_instance` - The [`Limits`] of the instance.
-    * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
-    # Errors
-    * [`ChorusLibError`] - If the message cannot be sent.
-     */
     pub async fn send_message(
         &mut self,
         message: MessageSendSchema,
