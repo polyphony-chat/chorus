@@ -139,7 +139,7 @@ pub enum GuildFeatures {
     InvitesClosed,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq)]
 pub struct GuildFeaturesList(Vec<GuildFeatures>);
 
 impl Deref for GuildFeaturesList {
