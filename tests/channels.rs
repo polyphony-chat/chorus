@@ -89,12 +89,11 @@ async fn get_channel_messages() {
         let _ = bundle
             .user
             .send_message(
-                &mut MessageSendSchema {
+                MessageSendSchema {
                     content: Some("A Message!".to_string()),
                     ..Default::default()
                 },
                 bundle.channel.id,
-                None,
             )
             .await
             .unwrap();

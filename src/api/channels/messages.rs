@@ -6,34 +6,22 @@ use serde_json::to_string;
 use crate::api::LimitType;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment, Snowflake};
+use crate::types::{Message, MessageSendSchema, Snowflake};
 
 impl Message {
-    /**
-    Sends a message to the Spacebar server.
-    # Arguments
-    * `url_api` - The URL of the Spacebar server's API.
-    * `message` - The [`Message`] that will be sent to the Spacebar server.
-    * `limits_user` - The [`Limits`] of the user.
-    * `limits_instance` - The [`Limits`] of the instance.
-    * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
-    # Errors
-    * [`ChorusLibError`] - If the message cannot be sent.
-     */
     pub async fn send(
         user: &mut UserMeta,
         channel_id: Snowflake,
-        message: &mut MessageSendSchema,
-        files: Option<Vec<PartialDiscordFileAttachment>>,
+        mut message: MessageSendSchema,
     ) -> Result<Message, crate::errors::ChorusError> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
 
-        if files.is_none() {
+        if message.attachments.is_none() {
             let chorus_request = ChorusRequest {
                 request: Client::new()
                     .post(format!("{}/channels/{}/messages/", url_api, channel_id))
                     .bearer_auth(user.token())
-                    .body(to_string(message).unwrap()),
+                    .body(to_string(&message).unwrap()),
                 limit_type: LimitType::Channel(channel_id),
             };
             chorus_request.deserialize_response::<Message>(user).await
@@ -42,12 +30,12 @@ impl Message {
                 attachment.get_mut(index).unwrap().set_id(index as i16);
             }
             let mut form = reqwest::multipart::Form::new();
-            let payload_json = to_string(message).unwrap();
+            let payload_json = to_string(&message).unwrap();
             let payload_field = reqwest::multipart::Part::text(payload_json);
 
             form = form.part("payload_json", payload_field);
 
-            for (index, attachment) in files.unwrap().into_iter().enumerate() {
+            for (index, attachment) in message.attachments.unwrap().into_iter().enumerate() {
                 let (attachment_content, current_attachment) = attachment.move_content();
                 let (attachment_filename, _) = current_attachment.move_filename();
                 let part_name = format!("files[{}]", index);
@@ -78,24 +66,11 @@ impl Message {
 }
 
 impl UserMeta {
-    /// Shorthand call for Message::send()
-    /**
-    Sends a message to the Spacebar server.
-    # Arguments
-    * `url_api` - The URL of the Spacebar server's API.
-    * `message` - The [`Message`] that will be sent to the Spacebar server.
-    * `limits_user` - The [`Limits`] of the user.
-    * `limits_instance` - The [`Limits`] of the instance.
-    * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
-    # Errors
-    * [`ChorusLibError`] - If the message cannot be sent.
-     */
     pub async fn send_message(
         &mut self,
-        message: &mut MessageSendSchema,
+        message: MessageSendSchema,
         channel_id: Snowflake,
-        files: Option<Vec<PartialDiscordFileAttachment>>,
     ) -> Result<Message, crate::errors::ChorusError> {
-        Message::send(self, channel_id, message, files).await
+        Message::send(self, channel_id, message).await
     }
 }
