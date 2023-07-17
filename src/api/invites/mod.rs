@@ -4,7 +4,7 @@ use serde_json::to_string;
 use crate::errors::ChorusResult;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{CreateChannelInviteSchema, Guild, Invite, Snowflake};
+use crate::types::{CreateChannelInviteSchema, GuildInvite, Invite, Snowflake};
 
 impl UserMeta {
     /// # Arguments
@@ -17,22 +17,24 @@ impl UserMeta {
         &mut self,
         invite_code: &str,
         session_id: Option<&str>,
-    ) -> ChorusResult<Guild> {
-        ChorusRequest {
+    ) -> ChorusResult<Invite> {
+        let mut request = ChorusRequest {
             request: Client::new()
                 .post(format!(
-                    "{}/invites/{}",
+                    "{}/invites/{}/",
                     self.belongs_to.borrow().urls.api,
                     invite_code
                 ))
-                .body(to_string(&session_id).unwrap())
                 .bearer_auth(self.token()),
             limit_type: super::LimitType::Global,
+        };
+        if session_id.is_some() {
+            request.request = request
+                .request
+                .body(to_string(session_id.unwrap()).unwrap());
         }
-        .deserialize_response::<Guild>(self)
-        .await
+        request.deserialize_response::<Invite>(self).await
     }
-
     /// Note: Spacebar does not yet implement this endpoint.
     pub async fn create_user_invite(&mut self, code: Option<&str>) -> ChorusResult<Invite> {
         ChorusRequest {
@@ -53,7 +55,7 @@ impl UserMeta {
         &mut self,
         create_channel_invite_schema: CreateChannelInviteSchema,
         channel_id: Snowflake,
-    ) -> ChorusResult<Invite> {
+    ) -> ChorusResult<GuildInvite> {
         ChorusRequest {
             request: Client::new()
                 .post(format!(
@@ -65,7 +67,7 @@ impl UserMeta {
                 .body(to_string(&create_channel_invite_schema).unwrap()),
             limit_type: super::LimitType::Channel(channel_id),
         }
-        .deserialize_response::<Invite>(self)
+        .deserialize_response::<GuildInvite>(self)
         .await
     }
 }
