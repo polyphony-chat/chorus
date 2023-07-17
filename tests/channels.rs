@@ -94,7 +94,6 @@ async fn get_channel_messages() {
                     ..Default::default()
                 },
                 bundle.channel.id,
-                None,
             )
             .await
             .unwrap();
