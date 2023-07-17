@@ -4,9 +4,15 @@ use serde_json::to_string;
 use crate::errors::ChorusResult;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{Guild, Invite};
+use crate::types::{CreateChannelInviteSchema, Guild, Invite, Snowflake};
 
 impl UserMeta {
+    /// # Arguments
+    /// - invite_code: The invite code to accept the invite for.
+    /// - session_id: The session ID that is accepting the invite, required for guest invites.
+    ///
+    /// # Reference:
+    /// Read <https://discord-userdoccers.vercel.app/resources/invite#accept-invite>
     pub async fn accept_invite(
         &mut self,
         invite_code: &str,
@@ -43,5 +49,23 @@ impl UserMeta {
         .await
     }
 
-    pub async fn create_guild_invite() {}
+    pub async fn create_guild_invite(
+        &mut self,
+        create_channel_invite_schema: CreateChannelInviteSchema,
+        channel_id: Snowflake,
+    ) -> ChorusResult<Invite> {
+        ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/invites/",
+                    self.belongs_to.borrow().urls.api,
+                    channel_id
+                ))
+                .bearer_auth(self.token())
+                .body(to_string(&create_channel_invite_schema).unwrap()),
+            limit_type: super::LimitType::Channel(channel_id),
+        }
+        .deserialize_response::<Invite>(self)
+        .await
+    }
 }
