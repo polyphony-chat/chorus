@@ -14,7 +14,7 @@ async fn send_message() {
     };
     let _ = bundle
         .user
-        .send_message(message, bundle.channel.id, None)
+        .send_message(message, bundle.channel.id)
         .await
         .unwrap();
     common::teardown(bundle).await
@@ -55,7 +55,7 @@ async fn send_message_attachment() {
     let _arg = Some(&vec_attach);
     bundle
         .user
-        .send_message(message, bundle.channel.id, Some(vec![attachment.clone()]))
+        .send_message(message, bundle.channel.id)
         .await
         .unwrap();
     common::teardown(bundle).await

@@ -6,7 +6,7 @@ use serde_json::to_string;
 use crate::api::LimitType;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{Message, MessageSendSchema, PartialDiscordFileAttachment, Snowflake};
+use crate::types::{Message, MessageSendSchema, Snowflake};
 
 impl Message {
     /**
@@ -24,11 +24,10 @@ impl Message {
         user: &mut UserMeta,
         channel_id: Snowflake,
         mut message: MessageSendSchema,
-        files: Option<Vec<PartialDiscordFileAttachment>>,
     ) -> Result<Message, crate::errors::ChorusError> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
 
-        if files.is_none() {
+        if message.attachments.is_none() {
             let chorus_request = ChorusRequest {
                 request: Client::new()
                     .post(format!("{}/channels/{}/messages/", url_api, channel_id))
@@ -47,7 +46,7 @@ impl Message {
 
             form = form.part("payload_json", payload_field);
 
-            for (index, attachment) in files.unwrap().into_iter().enumerate() {
+            for (index, attachment) in message.attachments.unwrap().into_iter().enumerate() {
                 let (attachment_content, current_attachment) = attachment.move_content();
                 let (attachment_filename, _) = current_attachment.move_filename();
                 let part_name = format!("files[{}]", index);
@@ -94,8 +93,7 @@ impl UserMeta {
         &mut self,
         message: MessageSendSchema,
         channel_id: Snowflake,
-        files: Option<Vec<PartialDiscordFileAttachment>>,
     ) -> Result<Message, crate::errors::ChorusError> {
-        Message::send(self, channel_id, message, files).await
+        Message::send(self, channel_id, message).await
     }
 }
