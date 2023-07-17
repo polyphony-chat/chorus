@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::PermissionOverwrite, Snowflake};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub struct ChannelCreateSchema {
     pub name: String,
@@ -99,14 +99,30 @@ impl GetChannelMessagesSchema {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CreateChannelInviteSchema {
     pub flags: Option<InviteFlags>,
-    pub max_age: u32,
-    pub max_uses: u8,
-    pub temporary: bool,
-    pub unique: bool,
-    pub validate: String,
-    pub target_type: InviteType,
-    pub target_user_id: Snowflake,
-    pub target_application_id: Snowflake,
+    pub max_age: Option<u32>,
+    pub max_uses: Option<u8>,
+    pub temporary: Option<bool>,
+    pub unique: Option<bool>,
+    pub validate: Option<String>,
+    pub target_type: Option<InviteType>,
+    pub target_user_id: Option<Snowflake>,
+    pub target_application_id: Option<Snowflake>,
+}
+
+impl Default for CreateChannelInviteSchema {
+    fn default() -> Self {
+        Self {
+            flags: None,
+            max_age: Some(86400),
+            max_uses: Some(0),
+            temporary: Some(false),
+            unique: Some(false),
+            validate: None,
+            target_type: None,
+            target_user_id: None,
+            target_application_id: None,
+        }
+    }
 }
 
 bitflags! {
@@ -116,9 +132,10 @@ bitflags! {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum InviteType {
+    #[default]
     Stream = 1,
     EmbeddedApplication = 2,
     RoleSubscriptions = 3,
