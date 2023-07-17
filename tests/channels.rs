@@ -1,6 +1,6 @@
 use chorus::types::{
     self, Channel, GetChannelMessagesSchema, MessageSendSchema, PermissionFlags,
-    PermissionOverwrite, PrivateChannelCreateSchema, RegisterSchema, Snowflake,
+    PermissionOverwrite, PrivateChannelCreateSchema, Snowflake,
 };
 
 mod common;
@@ -139,17 +139,9 @@ async fn get_channel_messages() {
 
 #[tokio::test]
 async fn create_dm() {
-    let register_schema = RegisterSchema {
-        username: "integrationtestuser2".to_string(),
-        consent: true,
-        date_of_birth: Some("2000-01-01".to_string()),
-        ..Default::default()
-    };
-
     let mut bundle = common::setup().await;
-    let belongs_to = &mut bundle.instance;
+    let other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
-    let other_user = belongs_to.register_account(&register_schema).await.unwrap();
     let private_channel_create_schema = PrivateChannelCreateSchema {
         recipients: Some(Vec::from([other_user.object.id])),
         access_tokens: None,

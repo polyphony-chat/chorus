@@ -1,20 +1,12 @@
-use chorus::types::{self, RegisterSchema, Relationship, RelationshipType};
+use chorus::types::{self, Relationship, RelationshipType};
 
 mod common;
 
 #[tokio::test]
 async fn test_get_mutual_relationships() {
-    let register_schema = RegisterSchema {
-        username: "integrationtestuser2".to_string(),
-        consent: true,
-        date_of_birth: Some("2000-01-01".to_string()),
-        ..Default::default()
-    };
-
     let mut bundle = common::setup().await;
-    let belongs_to = &mut bundle.instance;
+    let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
-    let mut other_user = belongs_to.register_account(&register_schema).await.unwrap();
     let friend_request_schema = types::FriendRequestSendSchema {
         username: user.object.username.clone(),
         discriminator: Some(user.object.discriminator.clone()),
@@ -30,17 +22,9 @@ async fn test_get_mutual_relationships() {
 
 #[tokio::test]
 async fn test_get_relationships() {
-    let register_schema = RegisterSchema {
-        username: "integrationtestuser2".to_string(),
-        consent: true,
-        date_of_birth: Some("2000-01-01".to_string()),
-        ..Default::default()
-    };
-
     let mut bundle = common::setup().await;
-    let belongs_to = &mut bundle.instance;
+    let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
-    let mut other_user = belongs_to.register_account(&register_schema).await.unwrap();
     let friend_request_schema = types::FriendRequestSendSchema {
         username: user.object.username.clone(),
         discriminator: Some(user.object.discriminator.clone()),
@@ -56,17 +40,9 @@ async fn test_get_relationships() {
 
 #[tokio::test]
 async fn test_modify_relationship_friends() {
-    let register_schema = RegisterSchema {
-        username: "integrationtestuser2".to_string(),
-        consent: true,
-        date_of_birth: Some("2000-01-01".to_string()),
-        ..Default::default()
-    };
-
     let mut bundle = common::setup().await;
-    let belongs_to = &mut bundle.instance;
+    let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
-    let mut other_user = belongs_to.register_account(&register_schema).await.unwrap();
     let _ = other_user
         .modify_user_relationship(user.object.id, types::RelationshipType::Friends)
         .await;
@@ -105,17 +81,9 @@ async fn test_modify_relationship_friends() {
 
 #[tokio::test]
 async fn test_modify_relationship_block() {
-    let register_schema = RegisterSchema {
-        username: "integrationtestuser2".to_string(),
-        consent: true,
-        date_of_birth: Some("2000-01-01".to_string()),
-        ..Default::default()
-    };
-
     let mut bundle = common::setup().await;
-    let belongs_to = &mut bundle.instance;
+    let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
-    let mut other_user = belongs_to.register_account(&register_schema).await.unwrap();
     let _ = other_user
         .modify_user_relationship(user.object.id, types::RelationshipType::Blocked)
         .await;
