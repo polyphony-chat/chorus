@@ -10,34 +10,34 @@ backend = ["poem", "sqlx"]
 client = []
 
 [dependencies]
-tokio = {version = "1.28.1"}
-serde = {version = "1.0.163", features = ["derive"]}
-serde_json = {version= "1.0.96", features = ["raw_value"]}
+tokio = {version = "1.29.1"}
+serde = {version = "1.0.171", features = ["derive"]}
+serde_json = {version= "1.0.103", features = ["raw_value"]}
 serde-aux = "4.2.0"
 serde_with = "3.0.0"
-serde_repr = "0.1.12"
-reqwest = {version = "0.11.16", features = ["multipart"]}
-url = "2.3.1"
-chrono = {version = "0.4.24", features = ["serde"]}
-regex = "1.7.3"
+serde_repr = "0.1.14"
+reqwest = {version = "0.11.18", features = ["multipart"]}
+url = "2.4.0"
+chrono = {version = "0.4.26", features = ["serde"]}
+regex = "1.9.1"
 custom_error = "1.9.2"
 native-tls = "0.2.11"
 tokio-tungstenite = {version = "0.19.0", features = ["native-tls"]}
 futures-util = "0.3.28"
 http = "0.2.9"
-openssl = "0.10.52"
+openssl = "0.10.55"
 base64 = "0.21.2"
 hostname = "0.3.1"
-bitflags = { version = "2.2.1", features = ["serde"] }
+bitflags = { version = "2.3.3", features = ["serde"] }
 lazy_static = "1.4.0"
-poem = { version = "1.3.55", optional = true }
+poem = { version = "1.3.56", optional = true }
 sqlx = { git = "https://github.com/zert3x/sqlx", branch="feature/skip", features = ["mysql", "sqlite", "json", "chrono", "ipnetwork", "runtime-tokio-native-tls", "any"], optional = true }
-thiserror = "1.0.40"
+thiserror = "1.0.43"
 jsonwebtoken = "8.3.0"
 log = "0.4.19"
 async-trait = "0.1.71"
 
 [dev-dependencies]
-tokio = {version = "1.28.1", features = ["full"]}
+tokio = {version = "1.29.1", features = ["full"]}
 lazy_static = "1.4.0"
 rusty-hook = "0.11.2"
