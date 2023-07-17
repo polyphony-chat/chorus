@@ -23,7 +23,7 @@ impl Message {
     pub async fn send(
         user: &mut UserMeta,
         channel_id: Snowflake,
-        message: &mut MessageSendSchema,
+        mut message: MessageSendSchema,
         files: Option<Vec<PartialDiscordFileAttachment>>,
     ) -> Result<Message, crate::errors::ChorusError> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
@@ -33,7 +33,7 @@ impl Message {
                 request: Client::new()
                     .post(format!("{}/channels/{}/messages/", url_api, channel_id))
                     .bearer_auth(user.token())
-                    .body(to_string(message).unwrap()),
+                    .body(to_string(&message).unwrap()),
                 limit_type: LimitType::Channel(channel_id),
             };
             chorus_request.deserialize_response::<Message>(user).await
@@ -42,7 +42,7 @@ impl Message {
                 attachment.get_mut(index).unwrap().set_id(index as i16);
             }
             let mut form = reqwest::multipart::Form::new();
-            let payload_json = to_string(message).unwrap();
+            let payload_json = to_string(&message).unwrap();
             let payload_field = reqwest::multipart::Part::text(payload_json);
 
             form = form.part("payload_json", payload_field);
@@ -92,7 +92,7 @@ impl UserMeta {
      */
     pub async fn send_message(
         &mut self,
-        message: &mut MessageSendSchema,
+        message: MessageSendSchema,
         channel_id: Snowflake,
         files: Option<Vec<PartialDiscordFileAttachment>>,
     ) -> Result<Message, crate::errors::ChorusError> {
