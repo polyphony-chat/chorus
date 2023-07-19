@@ -1,8 +1,11 @@
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
-use crate::types;
 use crate::types::WebSocketEvent;
+use crate::types::{self, Snowflake};
 use async_trait::async_trait;
+use serde::Deserialize;
+use std::collections::HashMap;
+use std::fmt::Debug;
 use std::sync::Arc;
 
 use futures_util::stream::SplitSink;
@@ -274,6 +277,7 @@ pub struct Gateway {
     >,
     websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
+    store: HashMap<Snowflake, Box<dyn Send + Debug>>,
 }
 
 impl Gateway {
@@ -334,6 +338,7 @@ impl Gateway {
             websocket_send: shared_websocket_send.clone(),
             websocket_receive,
             kill_send: kill_send.clone(),
+            store: HashMap::new(),
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
