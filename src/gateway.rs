@@ -262,9 +262,9 @@ impl GatewayHandle {
 }
 
 pub struct Gateway {
-    pub events: Arc<Mutex<Events>>,
+    events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
-    pub websocket_send: Arc<
+    websocket_send: Arc<
         Mutex<
             SplitSink<
                 WebSocketStream<MaybeTlsStream<TcpStream>>,
@@ -272,7 +272,7 @@ pub struct Gateway {
             >,
         >,
     >,
-    pub websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
+    websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
 }
 
