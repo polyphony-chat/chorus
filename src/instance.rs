@@ -8,12 +8,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::api::{Limit, LimitType};
 use crate::errors::ChorusResult;
+use crate::gateway::{Gateway, GatewayHandle};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::UrlBundle;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 /**
 The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
 If `limits_information` is `None`, then the instance will not be rate limited.
@@ -23,6 +24,7 @@ pub struct Instance {
     pub instance_info: GeneralConfiguration,
     pub limits_information: Option<LimitsInformation>,
     pub client: Client,
+    pub gateway_handle: GatewayHandle,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,6 +61,7 @@ impl Instance {
             instance_info: GeneralConfiguration::default(),
             limits_information,
             client: Client::new(),
+            gateway_handle: Gateway::new(urls.wss).await.unwrap(),
         };
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
@@ -74,6 +77,15 @@ impl Instance {
             return Some(self.limits_information.as_ref().unwrap().ratelimits.clone());
         }
         None
+    }
+    pub(crate) async fn mock(&self) -> Self {
+        Instance {
+            urls: self.urls.clone(),
+            instance_info: self.instance_info.clone(),
+            limits_information: self.limits_information.clone(),
+            client: Client::new(),
+            gateway_handle: Gateway::new(self.urls.wss.clone()).await.unwrap(),
+        }
     }
 }
 
