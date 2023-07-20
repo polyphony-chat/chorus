@@ -4,9 +4,11 @@ use crate::types::WebSocketEvent;
 use crate::types::{self, Snowflake};
 use async_trait::async_trait;
 use serde::Deserialize;
+use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;
+use tokio::sync::watch;
 
 use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
@@ -165,6 +167,11 @@ pub struct GatewayHandle {
     pub handle: JoinHandle<()>,
     /// Tells gateway tasks to close
     kill_send: tokio::sync::broadcast::Sender<()>,
+    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
+}
+
+pub trait Updateable: 'static + Send + Sync {
+    fn id(&self) -> Snowflake;
 }
 
 impl GatewayHandle {
@@ -186,6 +193,27 @@ impl GatewayHandle {
             .send(message)
             .await
             .unwrap();
+    }
+
+    pub async fn observe<T: Updateable>(&self, object: T) -> watch::Receiver<T> {
+        let mut store = self.store.lock().await;
+        if let Some(channel) = store.get(&object.id()) {
+            let (_, rx) = channel
+                .downcast_ref::<(watch::Sender<T>, watch::Receiver<T>)>()
+                .unwrap_or_else(|| {
+                    panic!(
+                        "Snowflake {} already exists in the store, but it is not of type T.",
+                        object.id()
+                    )
+                });
+            rx.clone()
+        } else {
+            let id = object.id();
+            let channel = watch::channel(object);
+            let receiver = channel.1.clone();
+            store.insert(id, Box::new(channel));
+            receiver
+        }
     }
 
     /// Sends an identify event to the gateway
@@ -277,7 +305,7 @@ pub struct Gateway {
     >,
     websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
-    store: HashMap<Snowflake, Box<dyn Send + Debug>>,
+    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
 }
 
 impl Gateway {
@@ -328,6 +356,8 @@ impl Gateway {
         let events = Events::default();
         let shared_events = Arc::new(Mutex::new(events));
 
+        let store = Arc::new(Mutex::new(HashMap::new()));
+
         let mut gateway = Gateway {
             events: shared_events.clone(),
             heartbeat_handler: HeartbeatHandler::new(
@@ -338,7 +368,7 @@ impl Gateway {
             websocket_send: shared_websocket_send.clone(),
             websocket_receive,
             kill_send: kill_send.clone(),
-            store: HashMap::new(),
+            store: store.clone(),
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
@@ -352,6 +382,7 @@ impl Gateway {
             websocket_send: shared_websocket_send.clone(),
             handle,
             kill_send: kill_send.clone(),
+            store,
         })
     }
 
@@ -439,14 +470,13 @@ impl Gateway {
                         match event_name.as_str() {
                             $($name => {
                                 let event = &mut self.events.lock().await.$($path).+;
+                                match serde_json::from_str(gateway_payload.event_data.unwrap().get()) {
+                                    Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
+                                    Ok(message) => {
 
-                                let result =
-                                    Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                        .await;
-
-                                if let Err(err) = result {
-                                    warn!("Failed to parse gateway event {event_name} ({err})");
-                                }
+                                        event.notify(message).await
+                                    }
+                            }
                             },)*
                             "RESUMED" => (),
                             "SESSIONS_REPLACE" => {
@@ -486,7 +516,7 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_DELETE" => auto_moderation.rule_delete,
                     "AUTO_MODERATION_ACTION_EXECUTION" => auto_moderation.action_execution,
                     "CHANNEL_CREATE" => channel.create,
-                    "CHANNEL_UPDATE" => channel.update,
+                    "CHANNEL_UPDATE" => true channel.update,
                     "CHANNEL_UNREAD_UPDATE" => channel.unread_update,
                     "CHANNEL_DELETE" => channel.delete,
                     "CHANNEL_PINS_UPDATE" => channel.pins_update,
