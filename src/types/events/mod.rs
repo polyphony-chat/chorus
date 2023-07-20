@@ -95,3 +95,7 @@ pub struct GatewayReceivePayload<'a> {
 }
 
 impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
+
+pub(crate) trait UpdateMessage<T> {
+    fn update(&self, object: T) -> T;
+}
