@@ -169,6 +169,8 @@ pub struct GatewayHandle {
     store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
 }
 
+/// An entity type which is supposed to be updateable via the Gateway. [`UpdateMessage<T: Updateable>`]
+/// defines structs which hold the updated information for the Updateable.
 pub trait Updateable: 'static + Send + Sync {
     fn id(&self) -> Snowflake;
 }
