@@ -170,8 +170,7 @@ pub struct GatewayHandle {
     store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
 }
 
-/// An entity type which is supposed to be updateable via the Gateway. [`UpdateMessage<T: Updateable>`]
-/// defines structs which hold the updated information for the Updateable.
+/// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.
 pub trait Updateable: 'static + Send + Sync {
     fn id(&self) -> Snowflake;
 }
