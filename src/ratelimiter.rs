@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use log;
+use log::{self, debug};
 use reqwest::{Client, RequestBuilder, Response};
 use serde::Deserialize;
 use serde_json::from_str;
@@ -37,7 +37,10 @@ impl ChorusRequest {
             .execute(self.request.build().unwrap())
             .await
         {
-            Ok(result) => result,
+            Ok(result) => {
+                debug!("Request successful: {:?}", result);
+                result
+            }
             Err(error) => {
                 log::warn!("Request failed: {:?}", error);
                 return Err(ChorusError::RequestFailed {
@@ -430,6 +433,7 @@ impl ChorusRequest {
         user: &mut UserMeta,
     ) -> ChorusResult<T> {
         let response = self.send_request(user).await?;
+        debug!("Got response: {:?}", response);
         let response_text = match response.text().await {
             Ok(string) => string,
             Err(e) => {
@@ -446,8 +450,8 @@ impl ChorusRequest {
             Err(e) => {
                 return Err(ChorusError::InvalidResponse {
                     error: format!(
-                        "Error while trying to deserialize the JSON response into T: {}",
-                        e
+                        "Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
+                        e, response_text
                     ),
                 })
             }

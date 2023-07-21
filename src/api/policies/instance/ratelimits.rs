@@ -1,11 +1,13 @@
 use std::hash::Hash;
 
+use serde::{Deserialize, Serialize};
+
 use crate::types::Snowflake;
 
 /// The different types of ratelimits that can be applied to a request. Includes "Baseline"-variants
 /// for when the Snowflake is not yet known.
 /// See <https://discord.com/developers/docs/topics/rate-limits#rate-limits> for more information.
-#[derive(Clone, Copy, Eq, PartialEq, Debug, Default, Hash)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Default, Hash, Serialize, Deserialize)]
 pub enum LimitType {
     AuthRegister,
     AuthLogin,
@@ -25,7 +27,7 @@ pub enum LimitType {
 /// Unlike [`RateLimits`], this struct shows the current ratelimits, not the rate limit
 /// configuration for the instance.
 /// See <https://discord.com/developers/docs/topics/rate-limits#rate-limits> for more information.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Limit {
     pub bucket: LimitType,
     pub limit: u64,

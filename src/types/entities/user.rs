@@ -43,9 +43,9 @@ pub struct User {
     pub bio: Option<String>,
     pub theme_colors: Option<Vec<u8>>,
     pub phone: Option<String>,
-    pub nsfw_allowed: bool,
-    pub premium: bool,
-    pub purchased_flags: i32,
+    pub nsfw_allowed: Option<bool>,
+    pub premium: Option<bool>,
+    pub purchased_flags: Option<i32>,
     pub premium_usage_flags: Option<i32>,
     pub disabled: Option<bool>,
 }
