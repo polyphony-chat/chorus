@@ -10,7 +10,7 @@ backend = ["poem", "sqlx"]
 client = []
 
 [dependencies]
-tokio = {version = "1.29.1"}
+tokio = {version = "1.29.1", features = ["macros"]}
 serde = {version = "1.0.171", features = ["derive"]}
 serde_json = {version= "1.0.103", features = ["raw_value"]}
 serde-aux = "4.2.0"

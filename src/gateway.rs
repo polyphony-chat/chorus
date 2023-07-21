@@ -7,7 +7,9 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::watch;
+use tokio::time::sleep_until;
 
 use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
@@ -16,7 +18,6 @@ use futures_util::StreamExt;
 use log::{info, trace, warn};
 use native_tls::TlsConnector;
 use tokio::net::TcpStream;
-use tokio::sync::mpsc::error::TryRecvError;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 use tokio::task;
@@ -75,7 +76,7 @@ const GATEWAY_CALL_SYNC: u8 = 13;
 const GATEWAY_LAZY_REQUEST: u8 = 14;
 
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
-const HEARTBEAT_ACK_TIMEOUT: u128 = 2000;
+const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
 
 /// Represents a messsage received from the gateway. This will be either a [GatewayReceivePayload], containing events, or a [GatewayError].
 /// This struct is used internally when handling messages.
@@ -362,7 +363,7 @@ impl Gateway {
         let mut gateway = Gateway {
             events: shared_events.clone(),
             heartbeat_handler: HeartbeatHandler::new(
-                gateway_hello.heartbeat_interval,
+                Duration::from_millis(gateway_hello.heartbeat_interval),
                 shared_websocket_send.clone(),
                 kill_send.subscribe(),
             ),
@@ -671,8 +672,8 @@ impl Gateway {
 /// Handles sending heartbeats to the gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
 struct HeartbeatHandler {
-    /// The heartbeat interval in milliseconds
-    pub heartbeat_interval: u128,
+    /// How ofter heartbeats need to be sent at a minimum
+    pub heartbeat_interval: Duration,
     /// The send channel for the heartbeat thread
     pub send: Sender<HeartbeatThreadCommunication>,
     /// The handle of the thread
@@ -681,7 +682,7 @@ struct HeartbeatHandler {
 
 impl HeartbeatHandler {
     pub fn new(
-        heartbeat_interval: u128,
+        heartbeat_interval: Duration,
         websocket_tx: Arc<
             Mutex<
                 SplitSink<
@@ -725,7 +726,7 @@ impl HeartbeatHandler {
                 >,
             >,
         >,
-        heartbeat_interval: u128,
+        heartbeat_interval: Duration,
         mut receive: tokio::sync::mpsc::Receiver<HeartbeatThreadCommunication>,
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,
     ) {
@@ -734,47 +735,44 @@ impl HeartbeatHandler {
         let mut last_seq_number: Option<u64> = None;
 
         loop {
-            let should_shutdown = kill_receive.try_recv().is_ok();
-            if should_shutdown {
+            if kill_receive.try_recv().is_ok() {
                 trace!("GW: Closing heartbeat task");
                 break;
             }
 
-            let mut should_send;
+            let timeout = if last_heartbeat_acknowledged {
+                heartbeat_interval
+            } else {
+                // If the server hasn't acknowledged our heartbeat we should resend it
+                Duration::from_millis(HEARTBEAT_ACK_TIMEOUT)
+            };
 
-            let time_to_send = last_heartbeat_timestamp.elapsed().as_millis() >= heartbeat_interval;
+            let mut should_send = false;
 
-            should_send = time_to_send;
-
-            let received_communication: Result<HeartbeatThreadCommunication, TryRecvError> =
-                receive.try_recv();
-            if let Ok(communication) = received_communication {
-                // If we received a seq number update, use that as the last seq number
-                if communication.sequence_number.is_some() {
-                    last_seq_number = communication.sequence_number;
+            tokio::select! {
+                () = sleep_until(last_heartbeat_timestamp + timeout) => {
+                    should_send = true;
                 }
+                Some(communication) = receive.recv() => {
+                    // If we received a seq number update, use that as the last seq number
+                    if communication.sequence_number.is_some() {
+                        last_seq_number = communication.sequence_number;
+                    }
 
-                if let Some(op_code) = communication.op_code {
-                    match op_code {
-                        GATEWAY_HEARTBEAT => {
-                            // As per the api docs, if the server sends us a Heartbeat, that means we need to respond with a heartbeat immediately
-                            should_send = true;
+                    if let Some(op_code) = communication.op_code {
+                        match op_code {
+                            GATEWAY_HEARTBEAT => {
+                                // As per the api docs, if the server sends us a Heartbeat, that means we need to respond with a heartbeat immediately
+                                should_send = true;
+                            }
+                            GATEWAY_HEARTBEAT_ACK => {
+                                // The server received our heartbeat
+                                last_heartbeat_acknowledged = true;
+                            }
+                            _ => {}
                         }
-                        GATEWAY_HEARTBEAT_ACK => {
-                            // The server received our heartbeat
-                            last_heartbeat_acknowledged = true;
-                        }
-                        _ => {}
                     }
                 }
-            }
-
-            // If the server hasn't acknowledged our heartbeat we should resend it
-            if !last_heartbeat_acknowledged
-                && last_heartbeat_timestamp.elapsed().as_millis() > HEARTBEAT_ACK_TIMEOUT
-            {
-                should_send = true;
-                info!("GW: Timed out waiting for a heartbeat ack, resending");
             }
 
             if should_send {
