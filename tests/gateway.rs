@@ -1,5 +1,4 @@
 mod common;
-use std::default;
 
 use chorus::gateway::*;
 use chorus::types::{self, Channel};
@@ -41,14 +40,9 @@ async fn test_self_updating_structs() {
         name: Some("beepboop".to_string()),
         ..Default::default()
     };
-    Channel::modify(
-        &mut channel.clone(),
-        modify_data,
-        channel.id,
-        &mut bundle.user,
-    )
-    .await
-    .unwrap();
+    Channel::modify(channel, modify_data, channel.id, &mut bundle.user)
+        .await
+        .unwrap();
     let received_channel = channel_receiver.borrow();
     assert_eq!(received_channel.name.as_ref().unwrap(), "beepboop");
 }
