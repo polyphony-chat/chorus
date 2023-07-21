@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+use crate::gateway::Updateable;
 use crate::types::{
     entities::{GuildMember, User},
     utils::Snowflake,
@@ -63,6 +64,12 @@ pub struct Channel {
     pub total_message_sent: Option<i32>,
     pub user_limit: Option<i32>,
     pub video_quality_mode: Option<i32>,
+}
+
+impl Updateable for Channel {
+    fn id(&self) -> Snowflake {
+        self.id
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
