@@ -49,5 +49,6 @@ async fn test_self_updating_structs() {
     )
     .await
     .unwrap();
-    // assert_eq!(channel.name, Some("beepboop".to_string()));
+    let received_channel = channel_receiver.borrow();
+    assert_eq!(received_channel.name.as_ref().unwrap(), "beepboop");
 }
