@@ -1,9 +1,8 @@
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
-use crate::types::WebSocketEvent;
-use crate::types::{self, Snowflake};
+use crate::types::{self, Channel, ChannelUpdate, Snowflake};
+use crate::types::{UpdateMessage, WebSocketEvent};
 use async_trait::async_trait;
-use serde::Deserialize;
 use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -466,17 +465,26 @@ impl Gateway {
                 trace!("Gateway: Received {event_name}");
 
                 macro_rules! handle {
-                    ($($name:literal => $($path:ident).+),*) => {
+                    ($($name:literal => $($path:ident).+ $( $message_type:ty: $update_type:ty)?),*) => {
                         match event_name.as_str() {
                             $($name => {
                                 let event = &mut self.events.lock().await.$($path).+;
                                 match serde_json::from_str(gateway_payload.event_data.unwrap().get()) {
                                     Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
                                     Ok(message) => {
-
-                                        event.notify(message).await
+                                        $(
+                                            let message: $message_type = message;
+                                            if let Some(to_update) = self.store.lock().await.get(&message.id()) {
+                                                if let Some((tx, _)) = to_update.downcast_ref::<(watch::Sender<$update_type>, watch::Receiver<$update_type>)>() {
+                                                    tx.send_modify(|object| message.update(object));
+                                                } else {
+                                                    warn!("Received {} for {}, but it has been observed to be a different type!", $name, message.id())
+                                                }
+                                            }
+                                        )?
+                                        event.notify(message).await;
                                     }
-                            }
+                                }
                             },)*
                             "RESUMED" => (),
                             "SESSIONS_REPLACE" => {
@@ -516,7 +524,7 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_DELETE" => auto_moderation.rule_delete,
                     "AUTO_MODERATION_ACTION_EXECUTION" => auto_moderation.action_execution,
                     "CHANNEL_CREATE" => channel.create,
-                    "CHANNEL_UPDATE" => true channel.update,
+                    "CHANNEL_UPDATE" => channel.update ChannelUpdate: Channel,
                     "CHANNEL_UNREAD_UPDATE" => channel.unread_update,
                     "CHANNEL_DELETE" => channel.delete,
                     "CHANNEL_PINS_UPDATE" => channel.pins_update,
