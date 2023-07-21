@@ -26,6 +26,8 @@ pub use user::*;
 pub use voice::*;
 pub use webhooks::*;
 
+use super::Snowflake;
+
 mod application;
 mod auto_moderation;
 mod call;
@@ -96,6 +98,7 @@ pub struct GatewayReceivePayload<'a> {
 
 impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 
-pub(crate) trait UpdateMessage<T> {
-    fn update(&self, object: T) -> T;
+pub(crate) trait UpdateMessage<T>: Clone {
+    fn update(&self, object_to_update: &mut T);
+    fn id(&self) -> Snowflake;
 }

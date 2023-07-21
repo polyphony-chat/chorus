@@ -34,8 +34,11 @@ pub struct ChannelUpdate {
 impl WebSocketEvent for ChannelUpdate {}
 
 impl UpdateMessage<Channel> for ChannelUpdate {
-    fn update(&self, object: Channel) -> Channel {
+    fn update(&self, object: &mut Channel) {
         todo!("// TODO: Implement me :3")
+    }
+    fn id(&self) -> Snowflake {
+        self.channel.id
     }
 }
 
