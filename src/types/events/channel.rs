@@ -2,7 +2,6 @@ use crate::types::events::WebSocketEvent;
 use crate::types::{entities::Channel, Snowflake};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::{to_string, to_value};
 
 use super::UpdateMessage;
 
