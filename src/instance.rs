@@ -23,7 +23,7 @@ pub struct Instance {
     pub client: Client,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LimitsInformation {
     pub ratelimits: HashMap<LimitType, Limit>,
     pub configuration: RateLimits,
@@ -81,7 +81,7 @@ impl fmt::Display for Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UserMeta {
     pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,

@@ -10,7 +10,7 @@ use sqlx::{
     database::{HasArguments, HasValueRef},
     encode::IsNull,
     error::BoxDynError,
-    Decode, Encode, MySql,
+    Decode, MySql,
 };
 
 use crate::types::config::types::subconfigs::guild::{
@@ -139,7 +139,7 @@ pub enum GuildFeatures {
     InvitesClosed,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq)]
 pub struct GuildFeaturesList(Vec<GuildFeatures>);
 
 impl Deref for GuildFeaturesList {

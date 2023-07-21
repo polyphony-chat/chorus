@@ -1,6 +1,7 @@
 use reqwest::Client;
 use serde_json::to_string;
 
+use crate::types::AddChannelRecipientSchema;
 use crate::{
     api::LimitType,
     errors::{ChorusError, ChorusResult},
@@ -82,5 +83,55 @@ impl Channel {
         chorus_request
             .deserialize_response::<Vec<Message>>(user)
             .await
+    }
+
+    /// # Reference:
+    /// Read: <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
+    pub async fn add_channel_recipient(
+        &self,
+        recipient_id: Snowflake,
+        user: &mut UserMeta,
+        add_channel_recipient_schema: Option<AddChannelRecipientSchema>,
+    ) -> ChorusResult<()> {
+        let mut request = Client::new()
+            .put(format!(
+                "{}/channels/{}/recipients/{}/",
+                user.belongs_to.borrow().urls.api,
+                self.id,
+                recipient_id
+            ))
+            .bearer_auth(user.token());
+        if let Some(schema) = add_channel_recipient_schema {
+            request = request.body(to_string(&schema).unwrap());
+        }
+        ChorusRequest {
+            request,
+            limit_type: LimitType::Channel(self.id),
+        }
+        .handle_request_as_result(user)
+        .await
+    }
+
+    /// # Reference:
+    /// Read: <https://discord-userdoccers.vercel.app/resources/channel#remove-channel-recipient>
+    pub async fn remove_channel_recipient(
+        &self,
+        recipient_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let request = Client::new()
+            .delete(format!(
+                "{}/channels/{}/recipients/{}/",
+                user.belongs_to.borrow().urls.api,
+                self.id,
+                recipient_id
+            ))
+            .bearer_auth(user.token());
+        ChorusRequest {
+            request,
+            limit_type: LimitType::Channel(self.id),
+        }
+        .handle_request_as_result(user)
+        .await
     }
 }

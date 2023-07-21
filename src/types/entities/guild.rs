@@ -91,7 +91,7 @@ pub struct Guild {
 }
 
 /// See <https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user->
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildBan {
     pub user_id: Snowflake,
