@@ -2,6 +2,7 @@ use crate::types::events::WebSocketEvent;
 use crate::types::{entities::Channel, Snowflake};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::{to_string, to_value};
 
 use super::UpdateMessage;
 
@@ -34,8 +35,8 @@ pub struct ChannelUpdate {
 impl WebSocketEvent for ChannelUpdate {}
 
 impl UpdateMessage<Channel> for ChannelUpdate {
-    fn update(&self, object: &mut Channel) {
-        todo!("// TODO: Implement me :3")
+    fn update(&self, object_to_update: &mut Channel) {
+        *object_to_update = self.channel.clone();
     }
     fn id(&self) -> Snowflake {
         self.channel.id
