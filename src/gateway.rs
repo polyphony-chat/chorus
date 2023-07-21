@@ -416,6 +416,7 @@ impl Gateway {
 
     /// Deserializes and updates a dispatched event, when we already know its type;
     /// (Called for every event in handle_message)
+    #[allow(dead_code)] // TODO: Remove this allow annotation
     async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
         data: &'a str,
         event: &mut GatewayEvent<T>,
