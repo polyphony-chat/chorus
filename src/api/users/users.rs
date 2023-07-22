@@ -122,7 +122,8 @@ impl User {
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings/", url_api))
             .bearer_auth(token);
-        let mut user = UserMeta::shell(Rc::new(RefCell::new(instance.clone())), token.clone());
+        let mut user =
+            UserMeta::shell(Rc::new(RefCell::new(instance.clone())), token.clone()).await;
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
@@ -151,7 +152,7 @@ impl Instance {
     This function is a wrapper around [`User::get`].
      */
     pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
-        let mut user = UserMeta::shell(Rc::new(RefCell::new(self.clone())), token);
+        let mut user = UserMeta::shell(Rc::new(RefCell::new(self.clone())), token).await;
         let result = User::get(&mut user, id).await;
         if self.limits_information.is_some() {
             self.limits_information.as_mut().unwrap().ratelimits =

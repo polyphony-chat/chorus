@@ -1,3 +1,4 @@
+use chorus::gateway::Gateway;
 use chorus::{
     instance::{Instance, UserMeta},
     types::{
@@ -18,8 +19,8 @@ pub(crate) struct TestBundle {
     pub channel: Channel,
 }
 
+#[allow(unused)]
 impl TestBundle {
-    #[allow(unused)]
     pub(crate) async fn create_user(&mut self, username: &str) -> UserMeta {
         let register_schema = RegisterSchema {
             username: username.to_string(),
@@ -31,6 +32,16 @@ impl TestBundle {
             .register_account(&register_schema)
             .await
             .unwrap()
+    }
+    pub(crate) async fn clone_user_without_gateway(&self) -> UserMeta {
+        UserMeta {
+            belongs_to: self.user.belongs_to.clone(),
+            token: self.user.token.clone(),
+            limits: self.user.limits.clone(),
+            settings: self.user.settings.clone(),
+            object: self.user.object.clone(),
+            gateway: Gateway::new(self.instance.urls.wss.clone()).await.unwrap(),
+        }
     }
 }
 
