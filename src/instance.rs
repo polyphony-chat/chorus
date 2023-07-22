@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::api::{Limit, LimitType};
 use crate::errors::ChorusResult;
+use crate::gateway::{Gateway, GatewayHandle};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{GeneralConfiguration, User, UserSettings};
@@ -88,13 +89,14 @@ impl fmt::Display for Token {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct UserMeta {
     pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: UserSettings,
     pub object: User,
+    pub gateway: GatewayHandle,
 }
 
 impl UserMeta {
@@ -112,6 +114,7 @@ impl UserMeta {
         limits: Option<HashMap<LimitType, Limit>>,
         settings: UserSettings,
         object: User,
+        gateway: GatewayHandle,
     ) -> UserMeta {
         UserMeta {
             belongs_to,
@@ -119,19 +122,24 @@ impl UserMeta {
             limits,
             settings,
             object,
+            gateway,
         }
     }
 
     /// Creates a new 'shell' of a user. The user does not exist as an object, and exists so that you have
     /// a UserMeta object to make Rate Limited requests with. This is useful in scenarios like
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
-    /// need to make a RateLimited request.
-    pub(crate) fn shell(instance: Rc<RefCell<Instance>>, token: String) -> UserMeta {
+    /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
+    /// first.
+    pub(crate) async fn shell(instance: Rc<RefCell<Instance>>, token: String) -> UserMeta {
         let settings = UserSettings::default();
         let object = User::default();
+        let wss_url = instance.borrow().urls.wss.clone();
+        // Dummy gateway object
+        let gateway = Gateway::new(wss_url).await.unwrap();
         UserMeta {
-            belongs_to: instance.clone(),
             token,
+            belongs_to: instance.clone(),
             limits: instance
                 .borrow()
                 .limits_information
@@ -139,6 +147,7 @@ impl UserMeta {
                 .map(|info| info.ratelimits.clone()),
             settings,
             object,
+            gateway,
         }
     }
 }
