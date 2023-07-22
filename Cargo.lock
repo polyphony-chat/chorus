@@ -189,6 +189,7 @@ dependencies = [
  "async-trait",
  "base64 0.21.2",
  "bitflags 2.3.3",
+ "chorus-macros",
  "chrono",
  "custom_error",
  "futures-util",
@@ -213,6 +214,14 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "url",
+]
+
+[[package]]
+name = "chorus-macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn 2.0.26",
 ]
 
 [[package]]

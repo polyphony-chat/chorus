@@ -1,3 +1,4 @@
+use chorus_macros::Updateable;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_string_from_number;
@@ -9,7 +10,7 @@ use crate::types::{
     utils::Snowflake,
 };
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Updateable)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Channel {
     pub application_id: Option<Snowflake>,
@@ -64,12 +65,6 @@ pub struct Channel {
     pub total_message_sent: Option<i32>,
     pub user_limit: Option<i32>,
     pub video_quality_mode: Option<i32>,
-}
-
-impl Updateable for Channel {
-    fn id(&self) -> Snowflake {
-        self.id
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
