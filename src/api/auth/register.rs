@@ -3,6 +3,8 @@ use std::{cell::RefCell, rc::Rc};
 use reqwest::Client;
 use serde_json::to_string;
 
+use crate::gateway::Gateway;
+use crate::types::GatewayIdentifyPayload;
 use crate::{
     api::policies::instance::LimitType,
     errors::ChorusResult,
@@ -35,7 +37,8 @@ impl Instance {
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since register is an instance wide limit), which is why we are just cloning
         // the instances' limits to pass them on as user_rate_limits later.
-        let mut shell = UserMeta::shell(Rc::new(RefCell::new(self.clone())), "None".to_string());
+        let mut shell =
+            UserMeta::shell(Rc::new(RefCell::new(self.clone())), "None".to_string()).await;
         let token = chorus_request
             .deserialize_response::<Token>(&mut shell)
             .await?
@@ -45,12 +48,17 @@ impl Instance {
         }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
         let settings = UserMeta::get_settings(&token, &self.urls.api.clone(), self).await?;
+        let mut identify = GatewayIdentifyPayload::common();
+        let gateway = Gateway::new(self.urls.wss.clone()).await.unwrap();
+        identify.token = token.clone();
+        gateway.send_identify(identify).await;
         let user = UserMeta::new(
             Rc::new(RefCell::new(self.clone())),
             token.clone(),
             self.clone_limits_if_some(),
             settings,
             user_object,
+            gateway,
         );
         Ok(user)
     }
