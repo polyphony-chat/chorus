@@ -1,3 +1,3 @@
-pub use instance::limits::*;
+pub use instance::ratelimits::*;
 
 pub mod instance;

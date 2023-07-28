@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Updateable;
 pub use application::*;
 pub use auto_moderation::*;
 pub use call::*;
@@ -25,8 +26,9 @@ pub use thread::*;
 pub use user::*;
 pub use voice::*;
 pub use webhooks::*;
-
 pub use webrtc::*;
+
+use super::Snowflake;
 
 mod application;
 mod auto_moderation;
@@ -99,3 +101,23 @@ pub struct GatewayReceivePayload<'a> {
 }
 
 impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
+
+/// An [`UpdateMessage<T>`] represents a received Gateway Message which contains updated
+/// information for an [`Updateable`] of Type T.
+/// # Example:
+/// ```rs
+/// impl UpdateMessage<Channel> for ChannelUpdate {
+///     fn update(...) {...}
+///     fn id(...) {...}
+/// }
+/// ```
+/// This would imply, that the [`WebSocketEvent`] "[`ChannelUpdate`]" contains new/updated information
+/// about a [`Channel`]. The update method describes how this new information will be turned into
+/// a [`Channel`] object.
+pub(crate) trait UpdateMessage<T>: Clone
+where
+    T: Updateable,
+{
+    fn update(&self, object_to_update: &mut T);
+    fn id(&self) -> Snowflake;
+}

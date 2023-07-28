@@ -56,9 +56,9 @@ accepted, if it violates these guidelines or [our Code of Conduct](https://githu
   - [x] Channel creation
   - [x] Channel deletion
   - [x] [Channel management (name, description, icon, etc.)](https://github.com/polyphony-chat/chorus/issues/48)
-  - [ ] [Join and Leave Guilds](https://github.com/polyphony-chat/chorus/issues/45)
-  - [ ] [Start DMs](https://github.com/polyphony-chat/chorus/issues/45)
-  - [ ] [Group DM creation, deletion and member management](https://github.com/polyphony-chat/chorus/issues/89)
+  - [x] [Join and Leave Guilds](https://github.com/polyphony-chat/chorus/issues/45)
+  - [x] [Start DMs](https://github.com/polyphony-chat/chorus/issues/45)
+  - [x] [Group DM creation, deletion and member management](https://github.com/polyphony-chat/chorus/issues/89)
   - [ ] [Deleting messages](https://github.com/polyphony-chat/chorus/issues/91)
   - [ ] [Message threads](https://github.com/polyphony-chat/chorus/issues/90)
   - [x] [Reactions](https://github.com/polyphony-chat/chorus/issues/85)

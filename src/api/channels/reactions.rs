@@ -1,10 +1,11 @@
 use reqwest::Client;
 
 use crate::{
-    api::handle_request_as_result,
+    api::LimitType,
     errors::ChorusResult,
     instance::UserMeta,
-    types::{self, Snowflake},
+    ratelimiter::ChorusRequest,
+    types::{self, PublicUser, Snowflake},
 };
 
 /**
@@ -16,20 +17,15 @@ pub struct ReactionMeta {
 }
 
 impl ReactionMeta {
-    /**
-    Deletes all reactions for a message.
-    This endpoint requires the `MANAGE_MESSAGES` permission to be present on the current user.
-
-    # Arguments
-    * `user` - A mutable reference to a [`UserMeta`] instance.
-
-    # Returns
-    A `Result` [`()`] [`crate::errors::ChorusLibError`] if something went wrong.
-    Fires a `Message Reaction Remove All` Gateway event.
-
-    # Reference
-    See [https://discord.com/developers/docs/resources/channel#delete-all-reactions](https://discord.com/developers/docs/resources/channel#delete-all-reactions)
-     */
+    /// Deletes all reactions for a message.
+    /// This endpoint requires the `MANAGE_MESSAGES` permission to be present on the current user.
+    /// # Arguments
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// # Returns
+    /// A `Result` [`()`] [`crate::errors::ChorusLibError`] if something went wrong.
+    /// Fires a `Message Reaction Remove All` Gateway event.
+    /// # Reference
+    /// See [https://discord.com/developers/docs/resources/channel#delete-all-reactions](https://discord.com/developers/docs/resources/channel#delete-all-reactions)
     pub async fn delete_all(&self, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/",
@@ -37,26 +33,24 @@ impl ReactionMeta {
             self.channel_id,
             self.message_id
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: LimitType::Channel(self.channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
-    /**
-    Gets a list of users that reacted with a specific emoji to a message.
-
-    # Arguments
-    * `emoji` - A string slice containing the emoji to search for. The emoji must be URL Encoded or
-    the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
-    format name:id with the emoji name and emoji id.
-    * `user` - A mutable reference to a [`UserMeta`] instance.
-
-    # Returns
-    A Result that is [`Err(crate::errors::ChorusLibError)`] if something went wrong.
-
-    # Reference
-    See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
-     */
-    pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
+    /// Gets a list of users that reacted with a specific emoji to a message.
+    /// # Arguments
+    /// * `emoji` - A string slice containing the emoji to search for. The emoji must be URL Encoded or
+    /// the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
+    /// format name:id with the emoji name and emoji id.
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// # Returns
+    /// A Result that is [`Err(crate::errors::ChorusLibError)`] if something went wrong.
+    /// # Reference
+    /// See [https://discord.com/developers/docs/resources/channel#get-reactions](https://discord.com/developers/docs/resources/channel#get-reactions)
+    pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<Vec<PublicUser>> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
             user.belongs_to.borrow().urls.api,
@@ -64,27 +58,27 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let request = Client::new().get(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url).bearer_auth(user.token()),
+            limit_type: LimitType::Channel(self.channel_id),
+        };
+        chorus_request
+            .deserialize_response::<Vec<PublicUser>>(user)
+            .await
     }
 
-    /**
-    Deletes all the reactions for a given `emoji` on a message. This endpoint requires the
-    MANAGE_MESSAGES permission to be present on the current user.
-
-    # Arguments
-    * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
-    the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
-    format name:id with the emoji name and emoji id.
-    * `user` - A mutable reference to a [`UserMeta`] instance.
-
-    # Returns
-    A Result that is [`Err(crate::errors::ChorusLibError)`] if something went wrong.
-    Fires a `Message Reaction Remove Emoji` Gateway event.
-
-    # Reference
-    See [https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji](https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji)
-     */
+    /// Deletes all the reactions for a given `emoji` on a message. This endpoint requires the
+    /// MANAGE_MESSAGES permission to be present on the current user.
+    /// # Arguments
+    /// * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
+    /// the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
+    /// format name:id with the emoji name and emoji id.
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// # Returns
+    /// A Result that is [`Err(crate::errors::ChorusLibError)`] if something went wrong.
+    /// Fires a `Message Reaction Remove Emoji` Gateway event.
+    /// # Reference
+    /// See [https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji](https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji)
     pub async fn delete_emoji(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/",
@@ -93,29 +87,28 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: LimitType::Channel(self.channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
-    /**
-    Create a reaction for the message.
-
-    This endpoint requires the READ_MESSAGE_HISTORY permission
-    to be present on the current user. Additionally, if nobody else has reacted to the message using
-    this emoji, this endpoint requires the ADD_REACTIONS permission to be present on the current
-    user.
-     # Arguments
-    * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
-    the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
-    format name:id with the emoji name and emoji id.
-    * `user` - A mutable reference to a [`UserMeta`] instance.
-
-    # Returns
-    A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
-
-    # Reference
-    See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
-     */
+    /// Create a reaction for the message.
+    /// This endpoint requires the READ_MESSAGE_HISTORY permission
+    /// to be present on the current user. Additionally, if nobody else has reacted to the message using
+    /// this emoji, this endpoint requires the ADD_REACTIONS permission to be present on the current
+    /// user.
+    ///  # Arguments
+    /// * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
+    /// the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
+    /// format name:id with the emoji name and emoji id.
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// # Returns
+    /// A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
+    /// # Reference
+    /// See [https://discord.com/developers/docs/resources/channel#create-reaction](https://discord.com/developers/docs/resources/channel#create-reaction)
+    ///
     pub async fn create(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
@@ -124,26 +117,24 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let request = Client::new().put(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().put(url).bearer_auth(user.token()),
+            limit_type: LimitType::Channel(self.channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
-    /**
-    Delete a reaction the current user has made for the message.
-
-    # Arguments
-    * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
-    the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
-    format name:id with the emoji name and emoji id.
-    * `user` - A mutable reference to a [`UserMeta`] instance.
-
-    # Returns
-    A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
-    Fires a `Message Reaction Remove` Gateway event.
-
-    # Reference
-    See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
-     */
+    /// Delete a reaction the current user has made for the message.
+    /// # Arguments
+    /// * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
+    /// the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
+    /// format name:id with the emoji name and emoji id.
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// # Returns
+    /// A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
+    /// Fires a `Message Reaction Remove` Gateway event.
+    /// # Reference
+    /// See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
     pub async fn remove(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me/",
@@ -152,29 +143,26 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: LimitType::Channel(self.channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
-    /**
-    Delete a user's reaction to a message.
-
-    This endpoint requires the MANAGE_MESSAGES permission to be present on the current user.
-
-    # Arguments
-    * `user_id` - ID of the user whose reaction is to be deleted.
-    * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
-    the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
-    format name:id with the emoji name and emoji id.
-    * `user` - A mutable reference to a [`UserMeta`] instance.
-
-    # Returns
-    A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
-    Fires a Message Reaction Remove Gateway event.
-
-    # Reference
-    See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
-     */
+    /// Delete a user's reaction to a message.
+    /// This endpoint requires the MANAGE_MESSAGES permission to be present on the current user.
+    /// # Arguments
+    /// * `user_id` - ID of the user whose reaction is to be deleted.
+    /// * `emoji` - A string slice containing the emoji to delete. The `emoji` must be URL Encoded or
+    /// the request will fail with 10014: Unknown Emoji. To use custom emoji, you must encode it in the
+    /// format name:id with the emoji name and emoji id.
+    /// * `user` - A mutable reference to a [`UserMeta`] instance.
+    /// # Returns
+    /// A `Result` containing [`()`] or a [`crate::errors::ChorusLibError`].
+    /// Fires a Message Reaction Remove Gateway event.
+    /// # Reference
+    /// See [https://discord.com/developers/docs/resources/channel#delete-own-reaction](https://discord.com/developers/docs/resources/channel#delete-own-reaction)
     pub async fn delete_user(
         &self,
         user_id: Snowflake,
@@ -189,7 +177,10 @@ impl ReactionMeta {
             emoji,
             user_id
         );
-        let request = Client::new().delete(url).bearer_auth(user.token());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Channel).await
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).bearer_auth(user.token()),
+            limit_type: LimitType::Channel(self.channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 }
