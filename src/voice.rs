@@ -408,6 +408,7 @@ impl VoiceGateway {
 }
 
 /// Handles sending heartbeats to the voice gateway in another thread
+#[allow(dead_code)] // FIXME: Remove this, once all fields of VoiceHeartbeatHandler are used
 struct VoiceHeartbeatHandler {
     /// The heartbeat interval in milliseconds
     pub heartbeat_interval: Duration,
