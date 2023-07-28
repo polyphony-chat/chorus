@@ -1,14 +1,16 @@
+use chorus_macros::Updateable;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+use crate::gateway::Updateable;
 use crate::types::{
     entities::{GuildMember, User},
     utils::Snowflake,
 };
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Updateable)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Channel {
     pub application_id: Option<Snowflake>,

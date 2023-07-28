@@ -1,10 +1,14 @@
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
-use crate::types;
-use crate::types::WebSocketEvent;
+use crate::types::{self, Channel, ChannelUpdate, Snowflake};
+use crate::types::{UpdateMessage, WebSocketEvent};
 use async_trait::async_trait;
+use std::any::Any;
+use std::collections::HashMap;
+use std::fmt::Debug;
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::watch;
 use tokio::time::sleep_until;
 
 use futures_util::stream::SplitSink;
@@ -163,6 +167,12 @@ pub struct GatewayHandle {
     pub handle: JoinHandle<()>,
     /// Tells gateway tasks to close
     kill_send: tokio::sync::broadcast::Sender<()>,
+    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
+}
+
+/// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.
+pub trait Updateable: 'static + Send + Sync {
+    fn id(&self) -> Snowflake;
 }
 
 impl GatewayHandle {
@@ -184,6 +194,27 @@ impl GatewayHandle {
             .send(message)
             .await
             .unwrap();
+    }
+
+    pub async fn observe<T: Updateable>(&self, object: T) -> watch::Receiver<T> {
+        let mut store = self.store.lock().await;
+        if let Some(channel) = store.get(&object.id()) {
+            let (_, rx) = channel
+                .downcast_ref::<(watch::Sender<T>, watch::Receiver<T>)>()
+                .unwrap_or_else(|| {
+                    panic!(
+                        "Snowflake {} already exists in the store, but it is not of type T.",
+                        object.id()
+                    )
+                });
+            rx.clone()
+        } else {
+            let id = object.id();
+            let channel = watch::channel(object);
+            let receiver = channel.1.clone();
+            store.insert(id, Box::new(channel));
+            receiver
+        }
     }
 
     /// Sends an identify event to the gateway
@@ -263,9 +294,9 @@ impl GatewayHandle {
 }
 
 pub struct Gateway {
-    pub events: Arc<Mutex<Events>>,
+    events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
-    pub websocket_send: Arc<
+    websocket_send: Arc<
         Mutex<
             SplitSink<
                 WebSocketStream<MaybeTlsStream<TcpStream>>,
@@ -273,8 +304,9 @@ pub struct Gateway {
             >,
         >,
     >,
-    pub websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
+    websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
+    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
 }
 
 impl Gateway {
@@ -325,6 +357,8 @@ impl Gateway {
         let events = Events::default();
         let shared_events = Arc::new(Mutex::new(events));
 
+        let store = Arc::new(Mutex::new(HashMap::new()));
+
         let mut gateway = Gateway {
             events: shared_events.clone(),
             heartbeat_handler: HeartbeatHandler::new(
@@ -335,6 +369,7 @@ impl Gateway {
             websocket_send: shared_websocket_send.clone(),
             websocket_receive,
             kill_send: kill_send.clone(),
+            store: store.clone(),
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
@@ -348,6 +383,7 @@ impl Gateway {
             websocket_send: shared_websocket_send.clone(),
             handle,
             kill_send: kill_send.clone(),
+            store,
         })
     }
 
@@ -379,6 +415,7 @@ impl Gateway {
 
     /// Deserializes and updates a dispatched event, when we already know its type;
     /// (Called for every event in handle_message)
+    #[allow(dead_code)] // TODO: Remove this allow annotation
     async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
         data: &'a str,
         event: &mut GatewayEvent<T>,
@@ -431,17 +468,25 @@ impl Gateway {
                 trace!("Gateway: Received {event_name}");
 
                 macro_rules! handle {
-                    ($($name:literal => $($path:ident).+),*) => {
+                    ($($name:literal => $($path:ident).+ $( $message_type:ty: $update_type:ty)?),*) => {
                         match event_name.as_str() {
                             $($name => {
                                 let event = &mut self.events.lock().await.$($path).+;
-
-                                let result =
-                                    Gateway::handle_event(gateway_payload.event_data.unwrap().get(), event)
-                                        .await;
-
-                                if let Err(err) = result {
-                                    warn!("Failed to parse gateway event {event_name} ({err})");
+                                match serde_json::from_str(gateway_payload.event_data.unwrap().get()) {
+                                    Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
+                                    Ok(message) => {
+                                        $(
+                                            let message: $message_type = message;
+                                            if let Some(to_update) = self.store.lock().await.get(&message.id()) {
+                                                if let Some((tx, _)) = to_update.downcast_ref::<(watch::Sender<$update_type>, watch::Receiver<$update_type>)>() {
+                                                    tx.send_modify(|object| message.update(object));
+                                                } else {
+                                                    warn!("Received {} for {}, but it has been observed to be a different type!", $name, message.id())
+                                                }
+                                            }
+                                        )?
+                                        event.notify(message).await;
+                                    }
                                 }
                             },)*
                             "RESUMED" => (),
@@ -482,7 +527,7 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_DELETE" => auto_moderation.rule_delete,
                     "AUTO_MODERATION_ACTION_EXECUTION" => auto_moderation.action_execution,
                     "CHANNEL_CREATE" => channel.create,
-                    "CHANNEL_UPDATE" => channel.update,
+                    "CHANNEL_UPDATE" => channel.update ChannelUpdate: Channel,
                     "CHANNEL_UNREAD_UPDATE" => channel.unread_update,
                     "CHANNEL_DELETE" => channel.delete,
                     "CHANNEL_PINS_UPDATE" => channel.pins_update,

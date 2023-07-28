@@ -41,11 +41,11 @@ impl Channel {
     /// Modifies a channel with the provided data.
     /// Replaces self with the new channel object.
     pub async fn modify(
-        &mut self,
+        &self,
         modify_data: ChannelModifySchema,
         channel_id: Snowflake,
         user: &mut UserMeta,
-    ) -> ChorusResult<()> {
+    ) -> ChorusResult<Channel> {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .patch(format!(
@@ -57,9 +57,7 @@ impl Channel {
                 .body(to_string(&modify_data).unwrap()),
             limit_type: LimitType::Channel(channel_id),
         };
-        let new_channel = chorus_request.deserialize_response::<Channel>(user).await?;
-        let _ = std::mem::replace(self, new_channel);
-        Ok(())
+        chorus_request.deserialize_response::<Channel>(user).await
     }
 
     /// Fetches recent messages from a channel.
