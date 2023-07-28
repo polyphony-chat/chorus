@@ -65,7 +65,7 @@ impl Guild {
         Channel::create(user, self.id, schema).await
     }
 
-    // TODO: Docs: What is this endpoint?
+    /// Returns a list of the guild's channels
     pub async fn channels(&self, user: &mut UserMeta) -> ChorusResult<Vec<Channel>> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -96,8 +96,7 @@ impl Guild {
         };
     }
 
-    // TODO: Check if these docs are correct, Im not sure what this endpoint is
-    /// Fetches a given guild.
+    /// Fetches a guild by its id.
     pub async fn get(guild_id: Snowflake, user: &mut UserMeta) -> ChorusResult<Guild> {
         let chorus_request = ChorusRequest {
             request: Client::new()
