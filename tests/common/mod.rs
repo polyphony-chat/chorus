@@ -1,15 +1,16 @@
+use chorus::gateway::Gateway;
 use chorus::{
-    errors::ChorusResult,
     instance::{Instance, UserMeta},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
-        RegisterSchemaOptions, RoleCreateModifySchema, RoleObject,
+        RoleCreateModifySchema, RoleObject,
     },
     UrlBundle,
 };
 
+#[allow(dead_code)]
 #[derive(Debug)]
-pub struct TestBundle {
+pub(crate) struct TestBundle {
     pub urls: UrlBundle,
     pub user: UserMeta,
     pub instance: Instance,
@@ -18,21 +19,47 @@ pub struct TestBundle {
     pub channel: Channel,
 }
 
+#[allow(unused)]
+impl TestBundle {
+    pub(crate) async fn create_user(&mut self, username: &str) -> UserMeta {
+        let register_schema = RegisterSchema {
+            username: username.to_string(),
+            consent: true,
+            date_of_birth: Some("2000-01-01".to_string()),
+            ..Default::default()
+        };
+        self.instance
+            .register_account(&register_schema)
+            .await
+            .unwrap()
+    }
+    pub(crate) async fn clone_user_without_gateway(&self) -> UserMeta {
+        UserMeta {
+            belongs_to: self.user.belongs_to.clone(),
+            token: self.user.token.clone(),
+            limits: self.user.limits.clone(),
+            settings: self.user.settings.clone(),
+            object: self.user.object.clone(),
+            gateway: Gateway::new(self.instance.urls.wss.clone()).await.unwrap(),
+        }
+    }
+}
+
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
-pub async fn setup() -> TestBundle {
+pub(crate) async fn setup() -> TestBundle {
     let urls = UrlBundle::new(
         "http://localhost:3001/api".to_string(),
         "ws://localhost:3001".to_string(),
         "http://localhost:3001".to_string(),
     );
-    let mut instance = Instance::new(urls.clone()).await.unwrap();
+    let mut instance = Instance::new(urls.clone(), true).await.unwrap();
     // Requires the existance of the below user.
-    let reg = RegisterSchemaOptions {
+    let reg = RegisterSchema {
+        username: "integrationtestuser".into(),
+        consent: true,
         date_of_birth: Some("2000-01-01".to_string()),
-        ..RegisterSchema::builder("integrationtestuser", true)
-    }
-    .build()
-    .unwrap();
+        ..Default::default()
+    };
     let guild_create_schema = GuildCreateSchema {
         name: Some("Test-Guild!".to_string()),
         region: None,
@@ -94,7 +121,7 @@ pub async fn setup() -> TestBundle {
 
 // Teardown method to clean up after a test.
 #[allow(dead_code)]
-pub async fn teardown(mut bundle: TestBundle) {
+pub(crate) async fn teardown(mut bundle: TestBundle) {
     Guild::delete(&mut bundle.user, bundle.guild.id)
         .await
         .unwrap();

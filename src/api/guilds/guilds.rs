@@ -2,15 +2,11 @@ use reqwest::Client;
 use serde_json::from_str;
 use serde_json::to_string;
 
-use crate::api::deserialize_response;
-use crate::api::handle_request;
-use crate::api::handle_request_as_result;
-use crate::api::limits::Limits;
-use crate::errors::ChorusLibError;
+use crate::api::LimitType;
+use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
-use crate::instance::Instance;
 use crate::instance::UserMeta;
-use crate::limit::LimitedRequester;
+use crate::ratelimiter::ChorusRequest;
 use crate::types::Snowflake;
 use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema};
 
@@ -36,11 +32,14 @@ impl Guild {
         guild_create_schema: GuildCreateSchema,
     ) -> ChorusResult<Guild> {
         let url = format!("{}/guilds/", user.belongs_to.borrow().urls.api);
-        let request = reqwest::Client::new()
-            .post(url.clone())
-            .bearer_auth(user.token.clone())
-            .body(to_string(&guild_create_schema).unwrap());
-        deserialize_response::<Guild>(request, user, crate::api::limits::LimitType::Guild).await
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(url.clone())
+                .bearer_auth(user.token.clone())
+                .body(to_string(&guild_create_schema).unwrap()),
+            limit_type: LimitType::Global,
+        };
+        chorus_request.deserialize_response::<Guild>(user).await
     }
 
     /// Deletes a guild.
@@ -73,10 +72,13 @@ impl Guild {
             user.belongs_to.borrow().urls.api,
             guild_id
         );
-        let request = reqwest::Client::new()
-            .post(url.clone())
-            .bearer_auth(user.token.clone());
-        handle_request_as_result(request, user, crate::api::limits::LimitType::Guild).await
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(url.clone())
+                .bearer_auth(user.token.clone()),
+            limit_type: LimitType::Global,
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 
     /// Sends a request to create a new channel in the guild.
@@ -97,14 +99,7 @@ impl Guild {
         user: &mut UserMeta,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
-        Channel::_create(
-            &user.token,
-            self.id,
-            schema,
-            &mut user.limits,
-            &mut user.belongs_to.borrow_mut(),
-        )
-        .await
+        Channel::create(user, self.id, schema).await
     }
 
     /// Returns a `Result` containing a vector of `Channel` structs if the request was successful, or an `ChorusLibError` if there was an error.
@@ -117,20 +112,21 @@ impl Guild {
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
     pub async fn channels(&self, user: &mut UserMeta) -> ChorusResult<Vec<Channel>> {
-        let request = Client::new()
-            .get(format!(
-                "{}/guilds/{}/channels/",
-                user.belongs_to.borrow().urls.api,
-                self.id
-            ))
-            .bearer_auth(user.token());
-        let result = handle_request(request, user, crate::api::limits::LimitType::Channel)
-            .await
-            .unwrap();
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .get(format!(
+                    "{}/guilds/{}/channels/",
+                    user.belongs_to.borrow().urls.api,
+                    self.id
+                ))
+                .bearer_auth(user.token()),
+            limit_type: LimitType::Channel(self.id),
+        };
+        let result = chorus_request.send_request(user).await?;
         let stringed_response = match result.text().await {
             Ok(value) => value,
             Err(e) => {
-                return Err(ChorusLibError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponse {
                     error: e.to_string(),
                 });
             }
@@ -138,7 +134,7 @@ impl Guild {
         let _: Vec<Channel> = match from_str(&stringed_response) {
             Ok(result) => return Ok(result),
             Err(e) => {
-                return Err(ChorusLibError::InvalidResponseError {
+                return Err(ChorusError::InvalidResponse {
                     error: e.to_string(),
                 });
             }
@@ -155,35 +151,19 @@ impl Guild {
     /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
     /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
     ///
-    pub async fn get(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<Guild> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
-        Guild::_get(guild_id, &user.token, &mut user.limits, &mut belongs_to).await
-    }
-
-    /// For internal use. Does the same as the public get method, but does not require a second, mutable
-    /// borrow of `UserMeta::belongs_to`, when used in conjunction with other methods, which borrow `UserMeta::belongs_to`.
-    async fn _get(
-        guild_id: Snowflake,
-        token: &str,
-        limits_user: &mut Limits,
-        instance: &mut Instance,
-    ) -> ChorusResult<Guild> {
-        let request = Client::new()
-            .get(format!("{}/guilds/{}/", instance.urls.api, guild_id))
-            .bearer_auth(token);
-        let response = match LimitedRequester::send_request(
-            request,
-            crate::api::limits::LimitType::Guild,
-            instance,
-            limits_user,
-        )
-        .await
-        {
-            Ok(response) => response,
-            Err(e) => return Err(e),
+    pub async fn get(guild_id: Snowflake, user: &mut UserMeta) -> ChorusResult<Guild> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .get(format!(
+                    "{}/guilds/{}/",
+                    user.belongs_to.borrow().urls.api,
+                    guild_id
+                ))
+                .bearer_auth(user.token()),
+            limit_type: LimitType::Guild(guild_id),
         };
-        let guild: Guild = from_str(&response.text().await.unwrap()).unwrap();
-        Ok(guild)
+        let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        Ok(response)
     }
 }
 
@@ -207,48 +187,17 @@ impl Channel {
         guild_id: Snowflake,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
-        let mut belongs_to = user.belongs_to.borrow_mut();
-        Channel::_create(
-            &user.token,
-            guild_id,
-            schema,
-            &mut user.limits,
-            &mut belongs_to,
-        )
-        .await
-    }
-
-    async fn _create(
-        token: &str,
-        guild_id: Snowflake,
-        schema: ChannelCreateSchema,
-        limits_user: &mut Limits,
-        instance: &mut Instance,
-    ) -> ChorusResult<Channel> {
-        let request = Client::new()
-            .post(format!(
-                "{}/guilds/{}/channels/",
-                instance.urls.api, guild_id
-            ))
-            .bearer_auth(token)
-            .body(to_string(&schema).unwrap());
-        let result = match LimitedRequester::send_request(
-            request,
-            crate::api::limits::LimitType::Guild,
-            instance,
-            limits_user,
-        )
-        .await
-        {
-            Ok(result) => result,
-            Err(e) => return Err(e),
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/guilds/{}/channels/",
+                    user.belongs_to.borrow().urls.api,
+                    guild_id
+                ))
+                .bearer_auth(user.token())
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Guild(guild_id),
         };
-        match from_str::<Channel>(&result.text().await.unwrap()) {
-            Ok(object) => Ok(object),
-            Err(e) => Err(ChorusLibError::RequestErrorError {
-                url: format!("{}/guilds/{}/channels/", instance.urls.api, guild_id),
-                error: e.to_string(),
-            }),
-        }
+        chorus_request.deserialize_response::<Channel>(user).await
     }
 }

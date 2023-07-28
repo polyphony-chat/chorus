@@ -3,6 +3,8 @@ use crate::types::{entities::Channel, Snowflake};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use super::UpdateMessage;
+
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See https://discord.com/developers/docs/topics/gateway-events#channel-pins-update
 pub struct ChannelPinsUpdate {
@@ -30,6 +32,15 @@ pub struct ChannelUpdate {
 }
 
 impl WebSocketEvent for ChannelUpdate {}
+
+impl UpdateMessage<Channel> for ChannelUpdate {
+    fn update(&self, object_to_update: &mut Channel) {
+        *object_to_update = self.channel.clone();
+    }
+    fn id(&self) -> Snowflake {
+        self.channel.id
+    }
+}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Officially undocumented.

@@ -1,6 +1,6 @@
 use chorus::types::{
     self, Channel, GetChannelMessagesSchema, MessageSendSchema, PermissionFlags,
-    PermissionOverwrite, Snowflake,
+    PermissionOverwrite, PrivateChannelCreateSchema, RelationshipType, Snowflake,
 };
 
 mod common;
@@ -28,10 +28,11 @@ async fn delete_channel() {
 
 #[tokio::test]
 async fn modify_channel() {
+    const CHANNEL_NAME: &str = "beepboop";
     let mut bundle = common::setup().await;
     let channel = &mut bundle.channel;
     let modify_data: types::ChannelModifySchema = types::ChannelModifySchema {
-        name: Some("beepboop".to_string()),
+        name: Some(CHANNEL_NAME.to_string()),
         channel_type: None,
         topic: None,
         icon: None,
@@ -49,10 +50,10 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    Channel::modify(channel, modify_data, channel.id, &mut bundle.user)
+    let modified_channel = Channel::modify(channel, modify_data, channel.id, &mut bundle.user)
         .await
         .unwrap();
-    assert_eq!(channel.name, Some("beepboop".to_string()));
+    assert_eq!(modified_channel.name, Some(CHANNEL_NAME.to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([
         PermissionFlags::MANAGE_CHANNELS,
@@ -89,12 +90,11 @@ async fn get_channel_messages() {
         let _ = bundle
             .user
             .send_message(
-                &mut MessageSendSchema {
+                MessageSendSchema {
                     content: Some("A Message!".to_string()),
                     ..Default::default()
                 },
                 bundle.channel.id,
-                None,
             )
             .await
             .unwrap();
@@ -135,4 +135,82 @@ async fn get_channel_messages() {
     .is_empty());
 
     common::teardown(bundle).await
+}
+
+#[tokio::test]
+async fn create_dm() {
+    let mut bundle = common::setup().await;
+    let other_user = bundle.create_user("integrationtestuser2").await;
+    let user = &mut bundle.user;
+    let private_channel_create_schema = PrivateChannelCreateSchema {
+        recipients: Some(Vec::from([other_user.object.id])),
+        access_tokens: None,
+        nicks: None,
+    };
+    let dm_channel = user
+        .create_private_channel(private_channel_create_schema)
+        .await
+        .unwrap();
+    assert!(dm_channel.recipients.is_some());
+    assert_eq!(
+        dm_channel.recipients.as_ref().unwrap().get(0).unwrap().id,
+        other_user.object.id
+    );
+    assert_eq!(
+        dm_channel.recipients.as_ref().unwrap().get(1).unwrap().id,
+        user.object.id
+    );
+    common::teardown(bundle).await;
+}
+
+// #[tokio::test]
+// This test currently is broken due to an issue with the Spacebar Server.
+#[allow(dead_code)]
+async fn remove_add_person_from_to_dm() {
+    let mut bundle = common::setup().await;
+    let mut other_user = bundle.create_user("integrationtestuser2").await;
+    let mut third_user = bundle.create_user("integrationtestuser3").await;
+    let user = &mut bundle.user;
+    let private_channel_create_schema = PrivateChannelCreateSchema {
+        recipients: Some(Vec::from([other_user.object.id, third_user.object.id])),
+        access_tokens: None,
+        nicks: None,
+    };
+    let dm_channel = user
+        .create_private_channel(private_channel_create_schema)
+        .await
+        .unwrap(); // Creates the Channel and stores the response Channel object
+    dm_channel
+        .remove_channel_recipient(other_user.object.id, user)
+        .await
+        .unwrap();
+    assert!(dm_channel.recipients.as_ref().unwrap().get(1).is_none());
+    other_user
+        .modify_user_relationship(user.object.id, RelationshipType::Friends)
+        .await
+        .unwrap();
+    user.modify_user_relationship(other_user.object.id, RelationshipType::Friends)
+        .await
+        .unwrap();
+    third_user
+        .modify_user_relationship(user.object.id, RelationshipType::Friends)
+        .await
+        .unwrap();
+    user.modify_user_relationship(third_user.object.id, RelationshipType::Friends)
+        .await
+        .unwrap();
+    // Users 1-2 and 1-3 are now friends
+    dm_channel
+        .add_channel_recipient(other_user.object.id, user, None)
+        .await
+        .unwrap();
+    assert!(dm_channel.recipients.is_some());
+    assert_eq!(
+        dm_channel.recipients.as_ref().unwrap().get(0).unwrap().id,
+        other_user.object.id
+    );
+    assert_eq!(
+        dm_channel.recipients.as_ref().unwrap().get(1).unwrap().id,
+        user.object.id
+    );
 }
