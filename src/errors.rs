@@ -100,9 +100,9 @@ custom_error! {
     UnknownEncryptionModeError = "Server failed to decrypt data",
 
     // Errors when initiating a gateway connection
-    CannotConnectError{error: String} = "Cannot connect due to a tungstenite error: {error}",
-    NonHelloOnInitiateError{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
+    CannotConnect{error: String} = "Cannot connect due to a tungstenite error: {error}",
+    NonHelloOnInitiate{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
 
     // Other misc errors
-    UnexpectedOpcodeReceivedError{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}"
+    UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
 }
