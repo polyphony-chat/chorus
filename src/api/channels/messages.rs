@@ -10,7 +10,8 @@ use crate::ratelimiter::ChorusRequest;
 use crate::types::{Message, MessageSendSchema, Snowflake};
 
 impl Message {
-    /// Sends a message to the Spacebar server.
+    /// Sends a message in the channel with the provided channel_id.
+    /// Returns the sent message.
     pub async fn send(
         user: &mut UserMeta,
         channel_id: Snowflake,
@@ -68,14 +69,15 @@ impl Message {
 }
 
 impl UserMeta {
-    /// Sends a message to the Spacebar server.
+    /// Sends a message in the channel with the provided channel_id.
+    /// Returns the sent message.
     /// # Notes
     /// Shorthand call for Message::send()
     pub async fn send_message(
         &mut self,
         message: MessageSendSchema,
         channel_id: Snowflake,
-    ) -> ChorusResult<Message, crate::errors::ChorusError> {
+    ) -> ChorusResult<Message> {
         Message::send(self, channel_id, message).await
     }
 }

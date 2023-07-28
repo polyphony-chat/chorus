@@ -11,16 +11,6 @@ use crate::{
 
 impl types::Channel {
     /// Edits the permission overwrites for a channel.
-    ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `channel_id` - A string slice representing the ID of the channel.
-    /// * `overwrite` - A [`PermissionOverwrite`] instance representing the new permission overwrites.
-    ///
-    /// # Returns
-    ///
-    /// This function returns a result that is either [`Ok(())`] if the request is successful, or an [`Err(ChorusLibError)`].
     pub async fn edit_permissions(
         user: &mut UserMeta,
         channel_id: Snowflake,
@@ -48,16 +38,6 @@ impl types::Channel {
     }
 
     /// Deletes a permission overwrite for a channel.
-    ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `channel_id` - A string slice representing the ID of the channel.
-    /// * `overwrite_id` - A string slice representing the ID of the permission overwrite to delete.
-    ///
-    /// # Returns
-    ///
-    /// This function returns a Result that is either [`Ok(())`] if the request is successfulm or an [`Err(ChorusLibError)`].
     pub async fn delete_permission(
         user: &mut UserMeta,
         channel_id: Snowflake,

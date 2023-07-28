@@ -39,7 +39,7 @@ impl Channel {
     }
 
     /// Modifies a channel with the provided data.
-    /// Replaces self with the new channel object.
+    /// Returns the new Channel.
     pub async fn modify(
         &self,
         modify_data: ChannelModifySchema,
