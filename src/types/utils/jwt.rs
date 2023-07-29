@@ -1,4 +1,3 @@
-#[allow(missing_docs)]
 use crate::types::utils::Snowflake;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
