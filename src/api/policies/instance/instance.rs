@@ -6,8 +6,6 @@ use crate::types::GeneralConfiguration;
 
 impl Instance {
     /// Gets the instance policies schema.
-    /// # Errors
-    /// [`ChorusError`] - If the request fails.
     pub async fn general_configuration_schema(&self) -> ChorusResult<GeneralConfiguration> {
         let endpoint_url = self.urls.api.clone() + "/policies/instance/";
         let request = match self.client.get(&endpoint_url).send().await {

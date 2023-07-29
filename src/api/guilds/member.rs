@@ -9,17 +9,7 @@ use crate::{
 };
 
 impl types::GuildMember {
-    /// Retrieves a guild member by their ID.
-    ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `guild_id` - The ID of the guild.
-    /// * `member_id` - The ID of the member.
-    ///
-    /// # Returns
-    ///
-    /// A [`ChorusResult`] containing a [`GuildMember`] if the request succeeds.
+    /// Retrieves a guild member.
     pub async fn get(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -41,17 +31,6 @@ impl types::GuildMember {
     }
 
     /// Adds a role to a guild member.
-    ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a `UserMeta` instance.
-    /// * `guild_id` - The ID of the guild.
-    /// * `member_id` - The ID of the member.
-    /// * `role_id` - The ID of the role to add.
-    ///
-    /// # Returns
-    ///
-    /// A [`ChorusResult`] containing a [`crate::errors::ChorusError`] if the request fails, or `()` if the request succeeds.
     pub async fn add_role(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -73,17 +52,6 @@ impl types::GuildMember {
     }
 
     /// Removes a role from a guild member.
-    ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a `UserMeta` instance.
-    /// * `guild_id` - The ID of the guild.
-    /// * `member_id` - The ID of the member.
-    /// * `role_id` - The ID of the role to remove.
-    ///
-    /// # Returns
-    ///
-    /// A [`ChorusResult`] containing a [`crate::errors::ChorusError`] if the request fails, or `()` if the request succeeds.
     pub async fn remove_role(
         user: &mut UserMeta,
         guild_id: Snowflake,

@@ -12,21 +12,18 @@ use crate::{
 };
 
 impl UserMeta {
-    /// Get a user object by id, or get the current user.
+    /// Gets a user by id, or if the id is None, gets the current user.
     ///
-    /// # Arguments
-    ///
-    /// * `token` - A valid access token for the API.
-    /// * `url_api` - The URL to the API.
-    /// * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
-    ///
-    /// # Errors
-    ///
-    /// * [`ChorusError`] - If the request fails.
+    /// # Notes
+    /// This function is a wrapper around [`User::get`].
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         User::get(user, id).await
     }
 
+    /// Gets the user's settings.
+    ///
+    /// # Notes
+    /// This functions is a wrapper around [`User::get_settings`].
     pub async fn get_settings(
         token: &String,
         url_api: &String,
@@ -35,15 +32,7 @@ impl UserMeta {
         User::get_settings(token, url_api, instance).await
     }
 
-    /// Modify the current user's `UserObject`.
-    ///
-    /// # Arguments
-    ///
-    /// * `modify_schema` - A `UserModifySchema` object containing the fields to modify.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`ChorusError`] if the request fails or if a password is required but not provided.
+    /// Modifies the current user's representation. (See [`User`])
     pub async fn modify(&mut self, modify_schema: UserModifySchema) -> ChorusResult<User> {
         if modify_schema.new_password.is_some()
             || modify_schema.email.is_some()
@@ -67,15 +56,7 @@ impl UserMeta {
         Ok(user_updated)
     }
 
-    /// Sends a request to the server which deletes the user from the Instance.
-    ///
-    /// # Arguments
-    ///
-    /// * `self` - The `User` object to delete.
-    ///
-    /// # Returns
-    ///
-    /// Returns `()` if the user was successfully deleted, or a [`ChorusError`] if an error occurred.
+    /// Deletes the user from the Instance.
     pub async fn delete(mut self) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
@@ -92,6 +73,7 @@ impl UserMeta {
 }
 
 impl User {
+    /// Gets a user by id, or if the id is None, gets the current user.
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
         let url = if id.is_none() {
@@ -113,6 +95,7 @@ impl User {
         }
     }
 
+    /// Gets the user's settings.
     pub async fn get_settings(
         token: &String,
         url_api: &String,
@@ -140,14 +123,10 @@ impl User {
 }
 
 impl Instance {
-    // Get a user object by id, or get the current user.
-    // # Arguments
-    // * `token` - A valid access token for the API.
-    // * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
-    // # Errors
-    // * [`ChorusError`] - If the request fails.
-    // # Notes
-    // This function is a wrapper around [`User::get`].
+    /// Gets a user by id, or if the id is None, gets the current user.
+    ///
+    /// # Notes
+    /// This function is a wrapper around [`User::get`].
     pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
         let mut user = UserMeta::shell(Rc::new(RefCell::new(self.clone())), token).await;
         let result = User::get(&mut user, id).await;

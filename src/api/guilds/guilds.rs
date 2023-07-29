@@ -114,20 +114,7 @@ impl Guild {
 }
 
 impl Channel {
-    /// Sends a request to create a new channel in a guild.
-    ///
-    /// # Arguments
-    ///
-    /// * `token` - A Discord bot token.
-    /// * `url_api` - The base URL for the Discord API.
-    /// * `guild_id` - The ID of the guild where the channel will be created.
-    /// * `schema` - A `ChannelCreateSchema` struct containing the properties of the new channel.
-    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `ChorusLibError` if there was an error.
+    /// Creates a new channel in a guild.
     pub async fn create(
         user: &mut UserMeta,
         guild_id: Snowflake,

@@ -83,6 +83,9 @@ impl fmt::Display for Token {
 }
 
 #[derive(Debug)]
+/// A UserMeta is a representation of an authenticated user on an [Instance].
+/// It is used for most authenticated actions on a Spacebar server.
+/// It also has its own [Gateway] connection.
 pub struct UserMeta {
     pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,
@@ -101,6 +104,11 @@ impl UserMeta {
         self.token = token;
     }
 
+    /// Creates a new [UserMeta] from existing data.
+    ///
+    /// # Notes
+    /// This isn't the prefered way to create a UserMeta.
+    /// See [Instance::login_account] and [Instance::register_account] instead.
     pub fn new(
         belongs_to: Rc<RefCell<Instance>>,
         token: String,
