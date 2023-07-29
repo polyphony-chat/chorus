@@ -86,7 +86,7 @@ bitflags! {
         const DEBTABLE = 1 << 31;
         /// Can earn money using monetization features in guilds that have [`MonetizationEnabled`](crate::types::types::guild_configuration::GuildFeatures::MonetizationEnabled)
         const CREDITABLE = 1 << 32;
-        /// Can kick or ban guild or group DM members in the guilds/groups where they have KICK_MEMBERS or BAN_MEMBERS
+        /// Can kick or ban guild or group DM members in the guilds/groups where they have [`KICK_MEMBERS`](crate::types::PermissionFlags::KICK_MEMBERS) or [`BAN_MEMBERS`](crate::types::PermissionFlags::BAN_MEMBERS)
         const KICK_BAN_MEMBERS = 1 << 33;
         /// Can leave the guilds or group DMs that they joined on their own (one can always leave a guild or group DMs where they have been force-added)
         const SELF_LEAVE_GROUPS = 1 << 34;
