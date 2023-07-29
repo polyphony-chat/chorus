@@ -18,7 +18,7 @@ const EPOCH: i64 = 1420070400000;
 pub struct Snowflake(u64);
 
 impl Snowflake {
-    /// Generates a snowflake for the current epoch.
+    /// Generates a snowflake for the current timestamp, with worker id 0 and process id 1.
     pub fn generate() -> Self {
         const WORKER_ID: u64 = 0;
         const PROCESS_ID: u64 = 1;
