@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 /// Sent by the client to update its status and presence;
 /// See <https://discord.com/developers/docs/topics/gateway-events#update-presence>
 pub struct UpdatePresence {
-    /// unix time of when the client went idle, or none if client is not idle
+    /// Unix time of when the client went idle, or none if client is not idle.
     pub since: Option<u128>,
     /// the client's status (online, invisible, offline, dnd, idle..)
     pub status: UserStatus,
