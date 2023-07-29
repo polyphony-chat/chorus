@@ -63,7 +63,7 @@ impl ReactionMeta {
 
     /// Deletes all the reactions for a given emoji on a message.
     ///
-    /// This endpoint requires the MANAGE_MESSAGES permission.
+    /// This endpoint requires the `MANAGE_MESSAGES` permission.
     ///
     /// The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji.
     /// To use custom emoji, the format of the emoji string must be name:id.
@@ -89,13 +89,13 @@ impl ReactionMeta {
 
     /// Create a reaction on a message.
     ///
-    /// This endpoint requires the READ_MESSAGE_HISTORY permission.
+    /// This endpoint requires the `READ_MESSAGE_HISTORY` permission.
     ///
     /// Additionally, if nobody else has reacted to the message using this emoji,
-    /// this endpoint requires the ADD_REACTIONS permission.
+    /// this endpoint requires the `ADD_REACTIONS` permission.
     ///
     /// The emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji.
-    /// To use custom emoji, the format of the emoji string must be name:id.
+    /// To use custom emoji, the format of the emoji string must be `name:id`.
     ///
     /// # Reference
     /// See <https://discord.com/developers/docs/resources/channel#create-reaction>
@@ -140,12 +140,12 @@ impl ReactionMeta {
 
     /// Deletes a user's reaction to a message.
     ///
-    /// This endpoint requires the MANAGE_MESSAGES permission.
+    /// This endpoint requires the `MANAGE_MESSAGES` permission.
     ///
     /// The reaction emoji must be URL Encoded or the request will fail with 10014: Unknown Emoji.
     /// To use custom emoji, the format of the emoji string must be name:id.
     ///
-    /// Fires a Message Reaction Remove Gateway event.
+    /// Fires a `Message Reaction Remove` Gateway event.
     ///
     /// # Reference
     /// See <https://discord.com/developers/docs/resources/channel#delete-user-reaction>
