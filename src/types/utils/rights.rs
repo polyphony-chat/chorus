@@ -78,7 +78,7 @@ bitflags! {
         const USE_VIDEO = 1 << 27;
         /// Can use voice in guilds/channels that they have permissions
         const USE_VOICE = 1 << 28;
-        /// Can create user-specific invites in guilds that they have INVITE_USERS
+        /// Can create user-specific invites in guilds that they have the [`INVITE_USERS`] right in.
         const INVITE_USERS = 1 << 29;
         /// Can delete/disable own account
         const SELF_DELETE_DISABLE = 1 << 30;
