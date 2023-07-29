@@ -84,7 +84,7 @@ bitflags! {
         const SELF_DELETE_DISABLE = 1 << 30;
         /// Can use pay-to-use features once paid
         const DEBTABLE = 1 << 31;
-        /// Can earn money using monetization features in guilds that have MONETIZATION_ENABLED
+        /// Can earn money using monetization features in guilds that have [`MonetizationEnabled`](crate::types::types::guild_configuration::GuildFeatures::MonetizationEnabled)
         const CREDITABLE = 1 << 32;
         /// Can kick or ban guild or group DM members in the guilds/groups where they have KICK_MEMBERS or BAN_MEMBERS
         const KICK_BAN_MEMBERS = 1 << 33;
