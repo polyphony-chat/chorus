@@ -90,7 +90,7 @@ bitflags! {
         const KICK_BAN_MEMBERS = 1 << 33;
         /// Can leave the guilds or group DMs that they joined on their own (one can always leave a guild or group DMs where they have been force-added)
         const SELF_LEAVE_GROUPS = 1 << 34;
-        /// Inverts the presence confidentiality default (OPERATOR's presence is not routed by default, others' are) for a given user
+        /// Inverts the presence confidentiality default ([`OPERATOR`]'s presence is not routed by default, others' are) for a given user
         const PRESENCE = 1 << 35;
         /// Can mark discoverable guilds where they have permissions to mark as discoverable
         const SELF_ADD_DISCOVERABLE = 1 << 36;
