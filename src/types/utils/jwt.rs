@@ -1,7 +1,7 @@
+#[allow(missing_docs)]
+use crate::types::utils::Snowflake;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
-
-use crate::types::utils::Snowflake;
 
 pub fn generate_token(id: &Snowflake, email: String, jwt_key: &str) -> String {
     let claims = Claims::new(&email, id);
@@ -11,7 +11,9 @@ pub fn generate_token(id: &Snowflake, email: String, jwt_key: &str) -> String {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Claims {
+    /// When the token expires, unix epoch
     pub exp: i64,
+    /// When the token was issued
     pub iat: i64,
     pub email: String,
     pub id: String,

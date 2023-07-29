@@ -34,6 +34,7 @@ pub struct UrlBundle {
 }
 
 impl UrlBundle {
+    /// Creates a new UrlBundle from the relevant urls.
     pub fn new(api: String, wss: String, cdn: String) -> Self {
         Self {
             api: UrlBundle::parse_url(api),

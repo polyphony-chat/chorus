@@ -18,6 +18,7 @@ const EPOCH: i64 = 1420070400000;
 pub struct Snowflake(u64);
 
 impl Snowflake {
+    /// Generates a snowflake for the current epoch.
     pub fn generate() -> Self {
         const WORKER_ID: u64 = 0;
         const PROCESS_ID: u64 = 1;
@@ -31,6 +32,7 @@ impl Snowflake {
         Self(time as u64 | worker | process | increment)
     }
 
+    /// Returns the snowflake's timestamp
     pub fn timestamp(self) -> DateTime<Utc> {
         Utc.timestamp_millis_opt((self.0 >> 22) as i64 + EPOCH)
             .unwrap()
