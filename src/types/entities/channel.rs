@@ -138,7 +138,7 @@ pub enum ChannelType {
     GroupDm = 3,
     /// An organizational category that contains up to 50 channels
     GuildCategory = 4,
-    /// Similar to [GuildText], a channel that users can follow and crosspost into their own guild
+    /// Similar to [GuildText](ChannelType::GuildText), a channel that users can follow and crosspost into their own guild
     GuildNews = 5,
     /// A channel in which game developers can sell their game on Discord
     ///
@@ -151,11 +151,11 @@ pub enum ChannelType {
     EncryptedThreads = 8,
     // FIXME userdoccers says 9 is ThreadAlpha, was this changed?
     Transactional = 9,
-    /// A thread within a [GuildNews] channel
+    /// A thread within a [GuildNews](ChannelType::GuildNews) channel
     GuildNewsThread = 10,
-    /// A thread within a [GuildText], [GuildForum], or [GuildMedia] channel
+    /// A thread within a [GuildText](ChannelType::GuildText), [GuildForum](ChannelType::GuildForum), or [GuildMedia](ChannelType::GuildMedia) channel
     GuildPublicThread = 11,
-    /// A thread within a [GuildText] channel, that is only viewable by those invited and those with the [ManageThreads] permission
+    /// A thread within a [GuildText](ChannelType::GuildText) channel, that is only viewable by those invited and those with the [MANAGE_THREADS](crate::types::entities::PermissionFlags::MANAGE_THREADS) permission
     GuildPrivateThread = 12,
     /// A voice channel for hosting events with an audience in a guild
     GuildStageVoice = 13,
