@@ -72,9 +72,15 @@ pub struct Channel {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A tag that can be applied to a thread in a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel.
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/channel#forum-tag-object>
 pub struct Tag {
     pub id: Snowflake,
+    /// The name of the tag (max 20 characters)
     pub name: String,
+    /// Whether this tag can only be added to or removed from threads by members with the [MANAGE_THREADS](crate::types::PermissionFlags::MANAGE_THREADS) permission
     pub moderated: bool,
     pub emoji_id: Option<Snowflake>,
     pub emoji_name: Option<String>,
@@ -95,6 +101,8 @@ pub struct PermissionOverwrite {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/channel#thread-metadata-object>
 pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: i32,
@@ -105,6 +113,8 @@ pub struct ThreadMetadata {
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/channel#thread-member-object>
 pub struct ThreadMember {
     pub id: Option<Snowflake>,
     pub user_id: Option<Snowflake>,
@@ -114,6 +124,10 @@ pub struct ThreadMember {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Specifies the emoji to use as the default way to react to a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel post.
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/channel#default-reaction-object>
 pub struct DefaultReaction {
     #[serde(default)]
     pub emoji_id: Option<Snowflake>,

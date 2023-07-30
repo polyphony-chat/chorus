@@ -10,6 +10,9 @@ use crate::{
 
 impl types::GuildMember {
     /// Retrieves a guild member.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-member>
     pub async fn get(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -31,6 +34,9 @@ impl types::GuildMember {
     }
 
     /// Adds a role to a guild member.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#add-guild-member-role>
     pub async fn add_role(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -52,6 +58,9 @@ impl types::GuildMember {
     }
 
     /// Removes a role from a guild member.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member-role>
     pub async fn remove_role(
         user: &mut UserMeta,
         guild_id: Snowflake,

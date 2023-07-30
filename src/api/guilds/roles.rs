@@ -12,11 +12,12 @@ use crate::{
 impl types::RoleObject {
     /// Retrieves a list of roles for a given guild.
     ///
-    /// Returns Ok(None) if the guild has no roles.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-roles>
     pub async fn get_all(
         user: &mut UserMeta,
         guild_id: Snowflake,
-    ) -> ChorusResult<Option<Vec<RoleObject>>> {
+    ) -> ChorusResult<Vec<RoleObject>> {
         let url = format!(
             "{}/guilds/{}/roles/",
             user.belongs_to.borrow().urls.api,
@@ -30,13 +31,11 @@ impl types::RoleObject {
             .deserialize_response::<Vec<RoleObject>>(user)
             .await
             .unwrap();
-        if roles.is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(roles))
+        Ok(roles)
     }
 
     /// Retrieves a single role for a given guild.
+    // TODO: Couldn't find reference
     pub async fn get(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -58,6 +57,9 @@ impl types::RoleObject {
     }
 
     /// Creates a new role for a given guild.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild-role>
     pub async fn create(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -83,6 +85,9 @@ impl types::RoleObject {
     }
 
     /// Updates the position of a role in a given guild's hierarchy.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role-positions>
     pub async fn position_update(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -110,6 +115,9 @@ impl types::RoleObject {
     }
 
     /// Updates a role in a guild.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role>
     pub async fn update(
         user: &mut UserMeta,
         guild_id: Snowflake,

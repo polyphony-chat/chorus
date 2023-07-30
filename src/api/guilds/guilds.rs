@@ -12,6 +12,9 @@ use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema};
 
 impl Guild {
     /// Creates a new guild.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild>
     pub async fn create(
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
@@ -41,6 +44,9 @@ impl Guild {
     ///     Ok(_) => println!("Guild deleted successfully"),
     /// }
     /// ```
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild>
     pub async fn delete(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/delete/",
@@ -57,6 +63,14 @@ impl Guild {
     }
 
     /// Creates a new channel in a guild.
+    ///
+    /// Requires the [MANAGE_CHANNELS](crate::types::PermissionFlags::MANAGE_CHANNELS) permission.
+    ///
+    /// # Notes
+    /// This method is a wrapper for [Channel::create].
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
     pub async fn create_channel(
         &self,
         user: &mut UserMeta,
@@ -65,7 +79,12 @@ impl Guild {
         Channel::create(user, self.id, schema).await
     }
 
-    /// Returns a list of the guild's channels
+    /// Returns a list of the guild's channels.
+    ///
+    /// Doesn't include threads.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#get-guild-channels>
     pub async fn channels(&self, user: &mut UserMeta) -> ChorusResult<Vec<Channel>> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -97,6 +116,9 @@ impl Guild {
     }
 
     /// Fetches a guild by its id.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#get-channel>
     pub async fn get(guild_id: Snowflake, user: &mut UserMeta) -> ChorusResult<Guild> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -115,6 +137,11 @@ impl Guild {
 
 impl Channel {
     /// Creates a new channel in a guild.
+    ///
+    /// Requires the [MANAGE_CHANNELS](crate::types::PermissionFlags::MANAGE_CHANNELS) permission.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
     pub async fn create(
         user: &mut UserMeta,
         guild_id: Snowflake,
