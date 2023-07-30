@@ -12,6 +12,9 @@ use crate::{
 
 impl Channel {
     /// Retrieves a channel from the server.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#get-channel>
     pub async fn get(user: &mut UserMeta, channel_id: Snowflake) -> ChorusResult<Channel> {
         let url = user.belongs_to.borrow().urls.api.clone();
         let chorus_request = ChorusRequest {
@@ -24,6 +27,9 @@ impl Channel {
     }
 
     /// Deletes self.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel>
     pub async fn delete(self, user: &mut UserMeta) -> ChorusResult<()> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -40,6 +46,9 @@ impl Channel {
 
     /// Modifies a channel with the provided data.
     /// Returns the new Channel.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel>
     pub async fn modify(
         &self,
         modify_data: ChannelModifySchema,
@@ -61,6 +70,9 @@ impl Channel {
     }
 
     /// Fetches recent messages from a channel.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/message#get-messages>
     pub async fn messages(
         range: GetChannelMessagesSchema,
         channel_id: Snowflake,
@@ -83,8 +95,10 @@ impl Channel {
             .await
     }
 
+    /// Adds a recipient to a group DM.
+    ///
     /// # Reference:
-    /// Read: <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
     pub async fn add_channel_recipient(
         &self,
         recipient_id: Snowflake,
@@ -110,8 +124,10 @@ impl Channel {
         .await
     }
 
+    /// Removes a recipient from a group DM.
+    ///
     /// # Reference:
-    /// Read: <https://discord-userdoccers.vercel.app/resources/channel#remove-channel-recipient>
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#remove-channel-recipient>
     pub async fn remove_channel_recipient(
         &self,
         recipient_id: Snowflake,

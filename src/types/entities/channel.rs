@@ -12,6 +12,10 @@ use crate::types::{
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Updateable)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+/// Represents a guild of private channel
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/channel#channels-resource>
 pub struct Channel {
     pub application_id: Option<Snowflake>,
     #[cfg(feature = "sqlx")]
@@ -120,27 +124,55 @@ pub struct DefaultReaction {
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(i32)]
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/channel#channel-type>
 pub enum ChannelType {
     #[default]
+    /// A text channel within a guild
     GuildText = 0,
+    /// A private channel between two users
     Dm = 1,
+    /// A voice channel within a guild
     GuildVoice = 2,
+    /// A private channel between multiple users
     GroupDm = 3,
+    /// An organizational category that contains up to 50 channels
     GuildCategory = 4,
+    /// Similar to [GuildText], a channel that users can follow and crosspost into their own guild
     GuildNews = 5,
+    /// A channel in which game developers can sell their game on Discord
+    ///
+    /// # Note
+    /// Deprecated.
     GuildStore = 6,
+    // FIXME userdoccers says 7 is GuildLfg, is this a spacebar specific thing?
     Encrypted = 7,
+    // FIXME userdoccers says 8 is LfgGuildDm, is this a spacebar specific thing?
     EncryptedThreads = 8,
+    // FIXME userdoccers says 9 is ThreadAlpha, was this changed?
     Transactional = 9,
+    /// A thread within a [GuildNews] channel
     GuildNewsThread = 10,
+    /// A thread within a [GuildText], [GuildForum], or [GuildMedia] channel
     GuildPublicThread = 11,
+    /// A thread within a [GuildText] channel, that is only viewable by those invited and those with the [ManageThreads] permission
     GuildPrivateThread = 12,
+    /// A voice channel for hosting events with an audience in a guild
     GuildStageVoice = 13,
+    /// The main channel in a hub containing the listed guilds
     Directory = 14,
+    /// A channel that can only contain threads
     GuildForum = 15,
+    /// A channel that can only contain threads in a gallery view
+    GuildMedia = 16,
+    // TODO: Couldn't find reference
     TicketTracker = 33,
+    // TODO: Couldn't find reference
     Kanban = 34,
+    // TODO: Couldn't find reference
     VoicelessWhiteboard = 35,
+    // TODO: Couldn't find reference
     CustomStart = 64,
+    // TODO: Couldn't find reference
     Unhandled = 255,
 }

@@ -15,6 +15,7 @@ use crate::{
 
 impl Instance {
     /// Registers a new user on the server.
+    // TODO: Couldn't find reference
     pub async fn register_account(
         &mut self,
         register_schema: &RegisterSchema,

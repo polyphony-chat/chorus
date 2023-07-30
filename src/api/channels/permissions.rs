@@ -11,6 +11,9 @@ use crate::{
 
 impl types::Channel {
     /// Edits the permission overwrites for a channel.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel-permissions>
     pub async fn edit_permissions(
         user: &mut UserMeta,
         channel_id: Snowflake,
@@ -38,6 +41,9 @@ impl types::Channel {
     }
 
     /// Deletes a permission overwrite for a channel.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel-permission>
     pub async fn delete_permission(
         user: &mut UserMeta,
         channel_id: Snowflake,

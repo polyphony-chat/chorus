@@ -16,6 +16,10 @@ impl UserMeta {
     ///
     /// # Notes
     /// This function is a wrapper around [`User::get`].
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
+    /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         User::get(user, id).await
     }
@@ -33,6 +37,9 @@ impl UserMeta {
     }
 
     /// Modifies the current user's representation. (See [`User`])
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#modify-current-user>
     pub async fn modify(&mut self, modify_schema: UserModifySchema) -> ChorusResult<User> {
         if modify_schema.new_password.is_some()
             || modify_schema.email.is_some()
@@ -57,6 +64,9 @@ impl UserMeta {
     }
 
     /// Deletes the user from the Instance.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#disable-user>
     pub async fn delete(mut self) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
@@ -74,6 +84,10 @@ impl UserMeta {
 
 impl User {
     /// Gets a user by id, or if the id is None, gets the current user.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
+    /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
         let url = if id.is_none() {
@@ -96,6 +110,7 @@ impl User {
     }
 
     /// Gets the user's settings.
+    // TODO: Couldn't find reference
     pub async fn get_settings(
         token: &String,
         url_api: &String,
@@ -127,6 +142,10 @@ impl Instance {
     ///
     /// # Notes
     /// This function is a wrapper around [`User::get`].
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
+    /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
     pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
         let mut user = UserMeta::shell(Rc::new(RefCell::new(self.clone())), token).await;
         let result = User::get(&mut user, id).await;

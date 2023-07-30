@@ -12,6 +12,9 @@ use crate::types::{Message, MessageSendSchema, Snowflake};
 impl Message {
     /// Sends a message in the channel with the provided channel_id.
     /// Returns the sent message.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/message#create-message>
     pub async fn send(
         user: &mut UserMeta,
         channel_id: Snowflake,
@@ -71,8 +74,12 @@ impl Message {
 impl UserMeta {
     /// Sends a message in the channel with the provided channel_id.
     /// Returns the sent message.
+    ///
     /// # Notes
-    /// Shorthand call for Message::send()
+    /// Shorthand call for [`Message::send`]
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/message#create-message>
     pub async fn send_message(
         &mut self,
         message: MessageSendSchema,

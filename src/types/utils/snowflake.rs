@@ -11,6 +11,8 @@ use sqlx::Type;
 const EPOCH: i64 = 1420070400000;
 
 /// Unique identifier including a timestamp.
+///
+/// # Reference
 /// See <https://discord.com/developers/docs/reference#snowflakes>
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "sqlx", derive(Type))]
