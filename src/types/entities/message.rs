@@ -1,3 +1,5 @@
+
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
@@ -181,6 +183,8 @@ pub struct Reaction {
     pub count: u32,
     pub burst_count: u32,
     pub me: bool,
+    pub burst_me: bool,
+    pub burst_colors: Vec<String>,
     pub emoji: Emoji,
 
 }
