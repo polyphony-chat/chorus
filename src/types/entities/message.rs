@@ -186,7 +186,6 @@ pub struct Reaction {
     pub burst_me: bool,
     pub burst_colors: Vec<String>,
     pub emoji: Emoji,
-
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
