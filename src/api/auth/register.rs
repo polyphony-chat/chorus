@@ -15,7 +15,9 @@ use crate::{
 
 impl Instance {
     /// Registers a new user on the server.
-    // TODO: Couldn't find reference
+    ///
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#post-/auth/register/>
     pub async fn register_account(
         &mut self,
         register_schema: &RegisterSchema,
