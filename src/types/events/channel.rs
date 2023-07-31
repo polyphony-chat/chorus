@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use super::UpdateMessage;
 
 #[derive(Debug, Default, Deserialize, Serialize)]
-/// See https://discord.com/developers/docs/topics/gateway-events#channel-pins-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#channel-pins-update>
 pub struct ChannelPinsUpdate {
     pub guild_id: Option<Snowflake>,
     pub channel_id: Snowflake,
@@ -16,7 +16,7 @@ pub struct ChannelPinsUpdate {
 impl WebSocketEvent for ChannelPinsUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#channel-create
+/// See <https://discord.com/developers/docs/topics/gateway-events#channel-create>
 pub struct ChannelCreate {
     #[serde(flatten)]
     pub channel: Channel,
@@ -25,7 +25,7 @@ pub struct ChannelCreate {
 impl WebSocketEvent for ChannelCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#channel-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#channel-update>
 pub struct ChannelUpdate {
     #[serde(flatten)]
     pub channel: Channel,
@@ -53,7 +53,7 @@ pub struct ChannelUnreadUpdate {
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// Contains very few fields from [Channel]
-/// See also [ChannelUnreadUpdates]
+/// See also [ChannelUnreadUpdate]
 pub struct ChannelUnreadUpdateObject {
     pub id: Snowflake,
     pub last_message_id: Snowflake,
@@ -63,7 +63,7 @@ pub struct ChannelUnreadUpdateObject {
 impl WebSocketEvent for ChannelUnreadUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#channel-delete
+/// See <https://discord.com/developers/docs/topics/gateway-events#channel-delete>
 pub struct ChannelDelete {
     #[serde(flatten)]
     pub channel: Channel,

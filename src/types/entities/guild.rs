@@ -9,7 +9,7 @@ use crate::types::{
     utils::Snowflake,
 };
 
-/// See https://discord.com/developers/docs/resources/guild
+/// See <https://discord.com/developers/docs/resources/guild>
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Guild {
@@ -90,7 +90,7 @@ pub struct Guild {
     pub widget_enabled: Option<bool>,
 }
 
-/// See https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user-
+/// See <https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user->
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildBan {
@@ -99,7 +99,7 @@ pub struct GuildBan {
     pub reason: Option<String>,
 }
 
-/// See https://docs.spacebar.chat/routes/#cmp--schemas-invite
+/// See <https://docs.spacebar.chat/routes/#cmp--schemas-invite>
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildInvite {
@@ -134,7 +134,7 @@ pub struct GuildCreateResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
-/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object
+/// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object>
 pub struct GuildScheduledEvent {
     pub id: Snowflake,
     pub guild_id: Snowflake,
@@ -156,7 +156,7 @@ pub struct GuildScheduledEvent {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
 #[repr(u8)]
-/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-privacy-level
+/// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-privacy-level>
 pub enum GuildScheduledEventPrivacyLevel {
     #[default]
     GuildOnly = 2,
@@ -164,7 +164,7 @@ pub enum GuildScheduledEventPrivacyLevel {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
 #[repr(u8)]
-/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-status
+/// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-status>
 pub enum GuildScheduledEventStatus {
     #[default]
     Scheduled = 1,
@@ -175,7 +175,7 @@ pub enum GuildScheduledEventStatus {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
 #[repr(u8)]
-/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types
+/// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types>
 pub enum GuildScheduledEventEntityType {
     #[default]
     StageInstance = 1,
@@ -184,7 +184,7 @@ pub enum GuildScheduledEventEntityType {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
-/// See https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-metadata
+/// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-metadata>
 pub struct GuildScheduledEventEntityMetadata {
     pub location: Option<String>,
 }

@@ -14,15 +14,10 @@ use crate::{
 };
 
 impl Instance {
-    /// Registers a new user on the Spacebar server.
+    /// Registers a new user on the server.
     ///
-    /// # Arguments
-    ///
-    /// * `register_schema` - The [`RegisterSchema`] that contains all the information that is needed to register a new user.
-    ///
-    /// # Errors
-    ///
-    /// * [`ChorusLibError`] - If the server does not respond.
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#post-/auth/register/>
     pub async fn register_account(
         &mut self,
         register_schema: &RegisterSchema,

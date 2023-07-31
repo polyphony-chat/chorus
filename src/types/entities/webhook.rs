@@ -5,7 +5,7 @@ use crate::types::{
     utils::Snowflake,
 };
 
-/// See https://docs.spacebar.chat/routes/#cmp--schemas-webhook
+/// See <https://docs.spacebar.chat/routes/#cmp--schemas-webhook>
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Webhook {

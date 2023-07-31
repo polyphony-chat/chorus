@@ -292,6 +292,13 @@ impl ChorusRequest {
         }
     }
 
+    /// Gets the ratelimit configuration.
+    ///
+    /// # Notes
+    /// This is a spacebar only endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#get-/policies/instance/limits/>
     pub(crate) async fn get_limits_config(url_api: &str) -> ChorusResult<LimitsConfiguration> {
         let request = Client::new()
             .get(format!("{}/policies/instance/limits/", url_api))

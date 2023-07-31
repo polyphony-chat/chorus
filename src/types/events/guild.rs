@@ -10,7 +10,7 @@ use crate::types::{
 use super::PresenceUpdate;
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-create;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-create>;
 /// Received to give data about a guild;
 // This one is particularly painful, it can be a Guild object with an extra field or an unavailable guild object
 pub struct GuildCreate {
@@ -34,7 +34,7 @@ impl Default for GuildCreateDataOption {
 impl WebSocketEvent for GuildCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-add-guild-ban-add-event-fields;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-ban-add-guild-ban-add-event-fields>;
 /// Received to give info about a user being banned from a guild;
 pub struct GuildBanAdd {
     pub guild_id: Snowflake,
@@ -44,7 +44,7 @@ pub struct GuildBanAdd {
 impl WebSocketEvent for GuildBanAdd {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-ban-remove;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-ban-remove>;
 /// Received to give info about a user being unbanned from a guild;
 pub struct GuildBanRemove {
     pub guild_id: Snowflake,
@@ -54,7 +54,7 @@ pub struct GuildBanRemove {
 impl WebSocketEvent for GuildBanRemove {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-update;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-update>;
 /// Received to give info about a guild being updated;
 pub struct GuildUpdate {
     #[serde(flatten)]
@@ -64,7 +64,7 @@ pub struct GuildUpdate {
 impl WebSocketEvent for GuildUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-delete;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-delete>;
 /// Received to tell the client about a guild being deleted;
 pub struct GuildDelete {
     #[serde(flatten)]
@@ -74,7 +74,7 @@ pub struct GuildDelete {
 impl WebSocketEvent for GuildDelete {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-audit-log-entry-create;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-audit-log-entry-create>;
 /// Received to the client about an audit log entry being added;
 pub struct GuildAuditLogEntryCreate {
     #[serde(flatten)]
@@ -84,7 +84,7 @@ pub struct GuildAuditLogEntryCreate {
 impl WebSocketEvent for GuildAuditLogEntryCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-emojis-update;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-emojis-update>;
 /// Received to tell the client about a change to a guild's emoji list;
 pub struct GuildEmojisUpdate {
     pub guild_id: Snowflake,
@@ -94,7 +94,7 @@ pub struct GuildEmojisUpdate {
 impl WebSocketEvent for GuildEmojisUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-stickers-update;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-stickers-update>;
 /// Received to tell the client about a change to a guild's sticker list;
 pub struct GuildStickersUpdate {
     pub guild_id: Snowflake,
@@ -104,7 +104,7 @@ pub struct GuildStickersUpdate {
 impl WebSocketEvent for GuildStickersUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-integrations-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-integrations-update>
 pub struct GuildIntegrationsUpdate {
     pub guild_id: Snowflake,
 }
@@ -112,7 +112,7 @@ pub struct GuildIntegrationsUpdate {
 impl WebSocketEvent for GuildIntegrationsUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-add;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-member-add>;
 /// Received to tell the client about a user joining a guild;
 pub struct GuildMemberAdd {
     #[serde(flatten)]
@@ -123,7 +123,7 @@ pub struct GuildMemberAdd {
 impl WebSocketEvent for GuildMemberAdd {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-remove;
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-member-remove>;
 /// Received to tell the client about a user leaving a guild;
 pub struct GuildMemberRemove {
     pub guild_id: Snowflake,
@@ -133,7 +133,7 @@ pub struct GuildMemberRemove {
 impl WebSocketEvent for GuildMemberRemove {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-member-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-member-update>
 pub struct GuildMemberUpdate {
     pub guild_id: Snowflake,
     pub roles: Vec<Snowflake>,
@@ -151,7 +151,7 @@ pub struct GuildMemberUpdate {
 impl WebSocketEvent for GuildMemberUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-members-chunk
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-members-chunk>
 pub struct GuildMembersChunk {
     pub guild_id: Snowflake,
     pub members: Vec<GuildMember>,
@@ -165,7 +165,7 @@ pub struct GuildMembersChunk {
 impl WebSocketEvent for GuildMembersChunk {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-role-create
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-role-create>
 pub struct GuildRoleCreate {
     pub guild_id: Snowflake,
     pub role: RoleObject,
@@ -174,7 +174,7 @@ pub struct GuildRoleCreate {
 impl WebSocketEvent for GuildRoleCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-role-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-role-update>
 pub struct GuildRoleUpdate {
     pub guild_id: Snowflake,
     pub role: RoleObject,
@@ -183,7 +183,7 @@ pub struct GuildRoleUpdate {
 impl WebSocketEvent for GuildRoleUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-role-delete
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-role-delete>
 pub struct GuildRoleDelete {
     pub guild_id: Snowflake,
     pub role_id: Snowflake,
@@ -192,7 +192,7 @@ pub struct GuildRoleDelete {
 impl WebSocketEvent for GuildRoleDelete {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-create
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-create>
 pub struct GuildScheduledEventCreate {
     #[serde(flatten)]
     pub event: GuildScheduledEvent,
@@ -201,7 +201,7 @@ pub struct GuildScheduledEventCreate {
 impl WebSocketEvent for GuildScheduledEventCreate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-update>
 pub struct GuildScheduledEventUpdate {
     #[serde(flatten)]
     pub event: GuildScheduledEvent,
@@ -210,7 +210,7 @@ pub struct GuildScheduledEventUpdate {
 impl WebSocketEvent for GuildScheduledEventUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-delete
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-delete>
 pub struct GuildScheduledEventDelete {
     #[serde(flatten)]
     pub event: GuildScheduledEvent,
@@ -219,7 +219,7 @@ pub struct GuildScheduledEventDelete {
 impl WebSocketEvent for GuildScheduledEventDelete {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-user-add
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-user-add>
 pub struct GuildScheduledEventUserAdd {
     pub guild_scheduled_event_id: Snowflake,
     pub user_id: Snowflake,
@@ -229,7 +229,7 @@ pub struct GuildScheduledEventUserAdd {
 impl WebSocketEvent for GuildScheduledEventUserAdd {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-user-remove
+/// See <https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-user-remove>
 pub struct GuildScheduledEventUserRemove {
     pub guild_scheduled_event_id: Snowflake,
     pub user_id: Snowflake,

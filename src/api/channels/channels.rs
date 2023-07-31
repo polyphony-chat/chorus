@@ -11,6 +11,10 @@ use crate::{
 };
 
 impl Channel {
+    /// Retrieves a channel from the server.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#get-channel>
     pub async fn get(user: &mut UserMeta, channel_id: Snowflake) -> ChorusResult<Channel> {
         let url = user.belongs_to.borrow().urls.api.clone();
         let chorus_request = ChorusRequest {
@@ -22,19 +26,13 @@ impl Channel {
         chorus_request.deserialize_response::<Channel>(user).await
     }
 
-    /// Deletes a channel.
+    /// Deletes self.
     ///
-    /// # Arguments
+    /// Requires the [`MANAGE_CHANNELS`](crate::types::PermissionFlags::MANAGE_CHANNELS) permission in a guild, or
+    /// the [`MANAGE_THREADS`](crate::types::PermissionFlags::MANAGE_THREADS) permission if the channel is a thread.
     ///
-    /// * `token` - A string slice that holds the authorization token.
-    /// * `url_api` - A string slice that holds the URL of the API.
-    /// * `channel` - A `Channel` object that represents the channel to be deleted.
-    /// * `limits_user` - A mutable reference to a `Limits` object that represents the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` object that represents the instance's rate limits.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` that contains a `ChorusLibError` if an error occurred during the request, or `()` if the request was successful.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel>
     pub async fn delete(self, user: &mut UserMeta) -> ChorusResult<()> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -49,20 +47,20 @@ impl Channel {
         chorus_request.handle_request_as_result(user).await
     }
 
-    /// Modifies a channel.
+    /// Modifies a channel with the provided data.
+    /// Returns the new Channel.
     ///
-    /// # Arguments
+    /// Requires the [`MANAGE_CHANNELS`](crate::types::PermissionFlags::MANAGE_CHANNELS) permission in a guild.
     ///
-    /// * `modify_data` - A `ChannelModifySchema` object that represents the modifications to be made to the channel.
-    /// * `token` - A string slice that holds the authorization token.
-    /// * `url_api` - A string slice that holds the URL of the API.
-    /// * `channel_id` - A string slice that holds the ID of the channel to be modified.
-    /// * `limits_user` - A mutable reference to a `Limits` object that represents the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` object that represents the instance's rate limits.
+    /// If modifying permission overwrites, the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission is required.
+    /// Only permissions you have in the guild or parent channel (if applicable) can be allowed/denied
+    /// (unless you have a [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) overwrite in the channel).
     ///
-    /// # Returns
+    /// If modifying a thread and setting `archived` to `false`, when `locked` is also `false`, only the [`SEND_MESSAGES`](crate::types::PermissionFlags::SEND_MESSAGES) permission is required.
+    /// Otherwise, requires the [`MANAGE_THREADS`](crate::types::PermissionFlags::MANAGE_THREADS) permission. Requires the thread to have `archived` set to `false` or be set to `false` in the request.
     ///
-    /// A `Result` that contains a `Channel` object if the request was successful, or an `ChorusLibError` if an error occurred during the request.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel>
     pub async fn modify(
         &self,
         modify_data: ChannelModifySchema,
@@ -83,6 +81,15 @@ impl Channel {
         chorus_request.deserialize_response::<Channel>(user).await
     }
 
+    /// Fetches recent messages from a channel.
+    ///
+    /// If operating on a guild channel, this endpoint requires the [`VIEW_CHANNEL`](crate::types::PermissionFlags::VIEW_CHANNEL) permission.
+    ///
+    /// If the user is missing the [`READ_MESSAGE_HISTORY`](crate::types::PermissionFlags::READ_MESSAGE_HISTORY) permission,
+    /// this method returns an empty list.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/message#get-messages>
     pub async fn messages(
         range: GetChannelMessagesSchema,
         channel_id: Snowflake,
@@ -105,8 +112,10 @@ impl Channel {
             .await
     }
 
+    /// Adds a recipient to a group DM.
+    ///
     /// # Reference:
-    /// Read: <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
     pub async fn add_channel_recipient(
         &self,
         recipient_id: Snowflake,
@@ -132,8 +141,10 @@ impl Channel {
         .await
     }
 
+    /// Removes a recipient from a group DM.
+    ///
     /// # Reference:
-    /// Read: <https://discord-userdoccers.vercel.app/resources/channel#remove-channel-recipient>
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#remove-channel-recipient>
     pub async fn remove_channel_recipient(
         &self,
         recipient_id: Snowflake,

@@ -5,7 +5,7 @@ use crate::types::events::WebSocketEvent;
 use crate::types::utils::Snowflake;
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#user-update;
+/// See <https://discord.com/developers/docs/topics/gateway-events#user-update>;
 /// Sent to indicate updates to a user object; (name changes, discriminator changes, etc);
 pub struct UserUpdate {
     #[serde(flatten)]

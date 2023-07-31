@@ -6,7 +6,7 @@ use crate::types::{
     utils::Snowflake,
 };
 
-/// See https://docs.spacebar.chat/routes/#cmp--schemas-template
+/// See <https://docs.spacebar.chat/routes/#cmp--schemas-template>
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildTemplate {

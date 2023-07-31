@@ -4,6 +4,10 @@ use crate::types::{entities::User, utils::Snowflake};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+/// Represents a sticker that can be sent in messages.
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/sticker#sticker-object>
 pub struct Sticker {
     #[serde(default)]
     pub id: Snowflake,
@@ -23,6 +27,12 @@ pub struct Sticker {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// A partial sticker object.
+///
+/// Represents the smallest amount of data required to render a sticker.
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/sticker#sticker-item-object>
 pub struct StickerItem {
     pub id: Snowflake,
     pub name: String,

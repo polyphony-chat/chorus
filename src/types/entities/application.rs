@@ -8,6 +8,8 @@ use crate::types::{Team, User};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+/// # Reference
+/// See <https://discord.com/developers/docs/resources/application#application-resource>
 pub struct Application {
     pub id: Snowflake,
     pub name: String,
@@ -93,6 +95,8 @@ impl Application {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// # Reference
+/// See <https://discord.com/developers/docs/resources/application#install-params-object>
 pub struct InstallParams {
     pub scopes: Vec<String>,
     pub permissions: String,
@@ -100,21 +104,37 @@ pub struct InstallParams {
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+    /// # Reference
+    /// See <https://discord.com/developers/docs/resources/application#application-object-application-flags>
     pub struct ApplicationFlags: u64 {
+        /// Indicates if an app uses the Auto Moderation API
         const APPLICATION_AUTO_MODERATION_RULE_CREATE_BADGE = 1 << 6;
+        /// Intent required for bots in 100 or more servers to receive presence_update events
         const GATEWAY_PRESENCE = 1 << 12;
+        /// Intent required for bots in under 100 servers to receive presence_update events, found on the Bot page in your app's settings on discord.com
         const GATEWAY_PRESENCE_LIMITED = 1 << 13;
+        /// Intent required for bots in 100 or more servers to receive member-related events like guild_member_add.
+        /// See the list of member-related events under GUILD_MEMBERS
         const GATEWAY_GUILD_MEMBERS = 1 << 14;
+        /// Intent required for bots in under 100 servers to receive member-related events like guild_member_add, found on the Bot page in your app's settings on discord.com.
+        /// See the list of member-related events under GUILD_MEMBERS
         const GATEWAY_GUILD_MEMBERS_LIMITED = 1 << 15;
+        /// Indicates unusual growth of an app that prevents verification
         const VERIFICATION_PENDING_GUILD_LIMIT = 1 << 16;
+        /// Indicates if an app is embedded within the Discord client (currently unavailable publicly)
         const EMBEDDED = 1 << 17;
+        /// Intent required for bots in 100 or more servers to receive message content
         const GATEWAY_MESSAGE_CONTENT = 1 << 18;
+        /// Intent required for bots in under 100 servers to receive message content, found on the Bot page in your app's settings on discord.com
         const GATEWAY_MESSAGE_CONTENT_LIMITED = 1 << 19;
+        /// Indicates if an app has registered slash commands
         const APPLICATION_COMMAND_BADGE = 1 << 23;
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// # Reference
+/// See <https://discord.com/developers/docs/interactions/application-commands#application-command-object>
 pub struct ApplicationCommand {
     pub id: Snowflake,
     pub application_id: Snowflake,
@@ -124,6 +144,8 @@ pub struct ApplicationCommand {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// Reference
+/// See <https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure>
 pub struct ApplicationCommandOption {
     pub r#type: ApplicationCommandOptionType,
     pub name: String,
@@ -142,15 +164,24 @@ pub struct ApplicationCommandOptionChoice {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize_repr, Deserialize_repr)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(i32)]
+/// # Reference
+/// See <https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-types>
 pub enum ApplicationCommandOptionType {
     SubCommand = 1,
     SubCommandGroup = 2,
     String = 3,
+    /// Any integer between -2^53 and 2^53
     Integer = 4,
     Boolean = 5,
     User = 6,
+    /// Includes all channel types + categories
     Channel = 7,
     Role = 8,
+    /// Includes users and roles
+    Mentionable = 9,
+    /// Any double between -2^53 and 2^53
+    Number = 10,
+    Attachment = 11,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -168,7 +199,7 @@ pub struct ApplicationCommandInteractionDataOption {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
-/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-guild-application-command-permissions-structure
+/// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-guild-application-command-permissions-structure>
 pub struct GuildApplicationCommandPermissions {
     pub id: Snowflake,
     pub application_id: Snowflake,
@@ -177,7 +208,7 @@ pub struct GuildApplicationCommandPermissions {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
-/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure
+/// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure>
 pub struct ApplicationCommandPermission {
     pub id: Snowflake,
     #[serde(rename = "type")]
@@ -189,7 +220,7 @@ pub struct ApplicationCommandPermission {
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(u8)]
-/// See https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type
+/// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type>
 pub enum ApplicationCommandPermissionType {
     #[default]
     Role = 1,
