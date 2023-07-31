@@ -35,7 +35,9 @@ impl types::RoleObject {
     }
 
     /// Retrieves a single role for a given guild.
-    // TODO: Couldn't find reference
+    ///
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/roles/-role_id-/>
     pub async fn get(
         user: &mut UserMeta,
         guild_id: Snowflake,
