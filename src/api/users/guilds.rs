@@ -10,8 +10,10 @@ impl UserMeta {
     /// Leaves a given guild.
     ///
     /// # Reference:
-    /// Read <https://discord-userdoccers.vercel.app/resources/guild#leave-guild>
-    // TODO: Docs: What is lurking here?
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#leave-guild>
+    // TODO: Docs: What is "lurking" here?
+    // It is documented as "Whether the user is lurking in the guild",
+    // but that says nothing about what this field actually does / means
     pub async fn leave_guild(&mut self, guild_id: &Snowflake, lurking: bool) -> ChorusResult<()> {
         ChorusRequest {
             request: Client::new()

@@ -12,8 +12,11 @@ use crate::{
 impl UserMeta {
     /// Creates a DM channel or group DM channel.
     ///
+    /// One recipient creates or returns an existing DM channel,
+    /// none or multiple recipients create a group DM channel.
+    ///
     /// # Reference:
-    /// Read <https://discord-userdoccers.vercel.app/resources/channel#create-private-channel>
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-private-channel>
     pub async fn create_private_channel(
         &mut self,
         create_private_channel_schema: PrivateChannelCreateSchema,

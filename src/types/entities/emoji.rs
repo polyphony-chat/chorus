@@ -5,6 +5,8 @@ use crate::types::Snowflake;
 
 #[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/emoji#emoji-object>
 pub struct Emoji {
     pub id: Option<Snowflake>,
     pub name: Option<String>,

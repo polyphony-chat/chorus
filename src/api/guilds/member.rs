@@ -35,6 +35,8 @@ impl types::GuildMember {
 
     /// Adds a role to a guild member.
     ///
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
+    ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#add-guild-member-role>
     pub async fn add_role(
@@ -58,6 +60,8 @@ impl types::GuildMember {
     }
 
     /// Removes a role from a guild member.
+    ///
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member-role>

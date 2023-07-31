@@ -10,7 +10,13 @@ use crate::{
 };
 
 impl types::Channel {
-    /// Edits the permission overwrites for a channel.
+    /// Edits the permission overwrites for a user or role in a channel.
+    ///
+    /// Only usable for guild channels.
+    ///
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
+    /// Only permissions you have in the guild or parent channel (if applicable) can be allowed/denied
+    /// (unless you have a [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) overwrite in the channel).
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel-permissions>
@@ -40,7 +46,11 @@ impl types::Channel {
         chorus_request.handle_request_as_result(user).await
     }
 
-    /// Deletes a permission overwrite for a channel.
+    /// Deletes a permission overwrite for a user or role in a channel.
+    ///
+    /// Only usable for guild channels.
+    ///
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel-permission>

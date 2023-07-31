@@ -58,6 +58,8 @@ impl types::RoleObject {
 
     /// Creates a new role for a given guild.
     ///
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
+    ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild-role>
     pub async fn create(
@@ -85,6 +87,8 @@ impl types::RoleObject {
     }
 
     /// Updates the position of a role in a given guild's hierarchy.
+    ///
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role-positions>
@@ -115,6 +119,8 @@ impl types::RoleObject {
     }
 
     /// Updates a role in a guild.
+    ///
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role>

@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 use crate::types::{entities::PublicUser, Snowflake};
 
 #[derive(Debug, Deserialize, Default, Serialize, Clone, PartialEq, Eq)]
+/// Represents a participating user in a guild.
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/guild#guild-member-object>
 pub struct GuildMember {
     pub user: Option<PublicUser>,
     pub nick: Option<String>,

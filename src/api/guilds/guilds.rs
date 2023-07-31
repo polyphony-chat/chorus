@@ -32,6 +32,8 @@ impl Guild {
 
     /// Deletes a guild by its id.
     ///
+    /// User must be the owner.
+    ///
     /// # Example
     ///
     /// ```rs
@@ -118,7 +120,7 @@ impl Guild {
     /// Fetches a guild by its id.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#get-channel>
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild>
     pub async fn get(guild_id: Snowflake, user: &mut UserMeta) -> ChorusResult<Guild> {
         let chorus_request = ChorusRequest {
             request: Client::new()

@@ -11,10 +11,8 @@ impl UserMeta {
     ///
     /// Note that the session ID is required for guest invites.
     ///
-    /// May fire a Guild Create, Channel Create, and/or Relationship Add Gateway event.
-    ///
     /// # Reference:
-    /// Read <https://discord-userdoccers.vercel.app/resources/invite#accept-invite>
+    /// See <https://discord-userdoccers.vercel.app/resources/invite#accept-invite>
     pub async fn accept_invite(
         &mut self,
         invite_code: &str,
@@ -43,7 +41,7 @@ impl UserMeta {
     /// Note: Spacebar does not yet implement this endpoint.
     ///
     /// # Reference:
-    /// Read <https://discord-userdoccers.vercel.app/resources/invite#create-user-invite>
+    /// See <https://discord-userdoccers.vercel.app/resources/invite#create-user-invite>
     pub async fn create_user_invite(&mut self, code: Option<&str>) -> ChorusResult<Invite> {
         ChorusRequest {
             request: Client::new()
@@ -62,10 +60,10 @@ impl UserMeta {
     /// Creates a new invite for a guild channel or group DM.
     ///
     /// # Guild Channels
-    /// For guild channels, the endpoint
-    /// requires the CREATE_INSTANT_INVITE permission.
+    /// For guild channels, the endpoint requires the [`CREATE_INSTANT_INVITE`](crate::types::PermissionFlags::CRATE_INSTANT_INVITE) permission.
     ///
-    /// Guild channel invites also fire an Invite Create Gateway event.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/invite#create-channel-invite>
     pub async fn create_channel_invite(
         &mut self,
         create_channel_invite_schema: CreateChannelInviteSchema,

@@ -1,5 +1,3 @@
-
-
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
@@ -12,6 +10,10 @@ use crate::types::{
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+/// Represents a message sent in a channel.
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/message#message-object>
 pub struct Message {
     pub id: Snowflake,
     pub channel_id: Snowflake,
@@ -66,6 +68,8 @@ pub struct Message {
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
 pub struct MessageReference {
     pub message_id: Snowflake,
     pub channel_id: Snowflake,
@@ -201,6 +205,8 @@ pub enum Component {
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/message#message-activity-object>
 pub struct MessageActivity {
     #[serde(rename = "type")]
     pub activity_type: i64,

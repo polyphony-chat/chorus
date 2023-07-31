@@ -28,6 +28,9 @@ impl Channel {
 
     /// Deletes self.
     ///
+    /// Requires the [`MANAGE_CHANNEL`](crate::types::PermissionFlags::MANAGE_CHANNEL) permission in a guild, or
+    /// the [`MANAGE_THREADS`](crate::types::PermissionFlags::MANAGE_THREADS) permission if the channel is a thread.
+    ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel>
     pub async fn delete(self, user: &mut UserMeta) -> ChorusResult<()> {
@@ -46,6 +49,15 @@ impl Channel {
 
     /// Modifies a channel with the provided data.
     /// Returns the new Channel.
+    ///
+    /// Requires the [`MANAGE_CHANNEL`](crate::types::PermissionFlags::MANAGE_CHANNEL) permission in a guild.
+    ///
+    /// If modifying permission overwrites, the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission is required.
+    /// Only permissions you have in the guild or parent channel (if applicable) can be allowed/denied
+    /// (unless you have a [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) overwrite in the channel).
+    ///
+    /// If modifying a thread and setting `archived` to `false`, when `locked` is also `false`, only the [`SEND_MESSAGES`](crate::types::PermissionFlags::SEND_MESSAGES) permission is required.
+    /// Otherwise, requires the [`MANAGE_THREADS`](crate::types::PermissionFlags::MANAGE_THREADS) permission. Requires the thread to have `archived` set to `false` or be set to `false` in the request.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel>
@@ -70,6 +82,11 @@ impl Channel {
     }
 
     /// Fetches recent messages from a channel.
+    ///
+    /// If operating on a guild channel, this endpoint requires the [`VIEW_CHANNEL`](crate::types::PermissionFlags::VIEW_CHANNEL) permission.
+    ///
+    /// If the user is missing the [`READ_MESSAGE_HISTORY`](crate::types::PermissionFlags::READ_MESSAGE_HISTORY) permission,
+    /// this method returns an empty list.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/message#get-messages>
