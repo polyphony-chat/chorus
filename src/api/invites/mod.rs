@@ -60,7 +60,7 @@ impl UserMeta {
     /// Creates a new invite for a guild channel or group DM.
     ///
     /// # Guild Channels
-    /// For guild channels, the endpoint requires the [`CREATE_INSTANT_INVITE`](crate::types::PermissionFlags::CRATE_INSTANT_INVITE) permission.
+    /// For guild channels, the endpoint requires the [`CREATE_INSTANT_INVITE`](crate::types::PermissionFlags::CREATE_INSTANT_INVITE) permission.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/invite#create-channel-invite>

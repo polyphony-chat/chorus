@@ -28,7 +28,7 @@ impl Channel {
 
     /// Deletes self.
     ///
-    /// Requires the [`MANAGE_CHANNEL`](crate::types::PermissionFlags::MANAGE_CHANNEL) permission in a guild, or
+    /// Requires the [`MANAGE_CHANNELS`](crate::types::PermissionFlags::MANAGE_CHANNELS) permission in a guild, or
     /// the [`MANAGE_THREADS`](crate::types::PermissionFlags::MANAGE_THREADS) permission if the channel is a thread.
     ///
     /// # Reference
@@ -50,7 +50,7 @@ impl Channel {
     /// Modifies a channel with the provided data.
     /// Returns the new Channel.
     ///
-    /// Requires the [`MANAGE_CHANNEL`](crate::types::PermissionFlags::MANAGE_CHANNEL) permission in a guild.
+    /// Requires the [`MANAGE_CHANNELS`](crate::types::PermissionFlags::MANAGE_CHANNELS) permission in a guild.
     ///
     /// If modifying permission overwrites, the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission is required.
     /// Only permissions you have in the guild or parent channel (if applicable) can be allowed/denied
