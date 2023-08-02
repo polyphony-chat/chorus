@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -21,14 +23,14 @@ pub struct Integration {
     pub expire_behaviour: Option<u8>,
     pub expire_grace_period: Option<u16>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<User>,
+    pub user: Option<Arc<Mutex<User>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub account: IntegrationAccount,
     pub synced_at: Option<DateTime<Utc>>,
     pub subscriber_count: Option<f64>,
     pub revoked: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub application: Option<Application>,
+    pub application: Option<Arc<Mutex<Application>>>,
     pub scopes: Option<Vec<String>>,
 }
 

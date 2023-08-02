@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::User;
@@ -15,7 +17,7 @@ pub struct Emoji {
     #[cfg(not(feature = "sqlx"))]
     pub roles: Option<Vec<Snowflake>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<User>,
+    pub user: Option<Arc<Mutex<User>>>,
     pub require_colons: Option<bool>,
     pub managed: Option<bool>,
     pub animated: Option<bool>,

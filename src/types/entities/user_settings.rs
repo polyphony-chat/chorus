@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -73,7 +75,7 @@ pub struct UserSettings {
     #[cfg(not(feature = "sqlx"))]
     pub restricted_guilds: Vec<String>,
     pub show_current_game: bool,
-    pub status: UserStatus,
+    pub status: Arc<Mutex<UserStatus>>,
     pub stream_notifications_enabled: bool,
     pub theme: UserTheme,
     pub timezone_offset: i16,
@@ -109,7 +111,7 @@ impl Default for UserSettings {
             render_reactions: true,
             restricted_guilds: Default::default(),
             show_current_game: true,
-            status: UserStatus::Online,
+            status: Arc::new(Mutex::new(UserStatus::Online)),
             stream_notifications_enabled: false,
             theme: UserTheme::Dark,
             timezone_offset: 0,
@@ -149,5 +151,5 @@ pub struct GuildFolder {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginResult {
     pub token: String,
-    pub settings: UserSettings,
+    pub settings: Arc<Mutex<UserSettings>>,
 }

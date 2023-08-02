@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -14,7 +16,7 @@ pub struct VoiceState {
     pub guild: Option<Guild>,
     pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
-    pub member: Option<GuildMember>,
+    pub member: Option<Arc<Mutex<GuildMember>>>,
     pub session_id: Snowflake,
     pub token: Option<String>,
     pub deaf: bool,

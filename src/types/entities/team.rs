@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::User;
@@ -19,5 +21,5 @@ pub struct TeamMember {
     pub membership_state: u8,
     pub permissions: Vec<String>,
     pub team_id: Snowflake,
-    pub user: User,
+    pub user: Arc<Mutex<User>>,
 }
