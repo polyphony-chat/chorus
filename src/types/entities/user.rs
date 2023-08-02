@@ -91,7 +91,7 @@ impl From<User> for PublicUser {
 const CUSTOM_USER_FLAG_OFFSET: u64 = 1 << 32;
 
 bitflags::bitflags! {
-    #[derive(Debug, Clone, Copy,  Serialize, Deserialize)]
+    #[derive(Debug, Clone, Copy,  Serialize, Deserialize, PartialEq, Eq, Hash)]
     #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
     pub struct UserFlags: u64 {
         const DISCORD_EMPLOYEE = 1 << 0;

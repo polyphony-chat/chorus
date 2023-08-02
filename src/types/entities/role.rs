@@ -53,7 +53,7 @@ pub struct RoleTags {
 }
 
 bitflags! {
-    #[derive(Debug, Default, Clone, Hash, Serialize, Deserialize)]
+    #[derive(Debug, Default, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
     /// Permissions limit what users of certain roles can do on a Guild to Guild basis.
     ///
     /// # Reference:

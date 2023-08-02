@@ -168,7 +168,7 @@ pub struct DefaultReaction {
     pub emoji_name: Option<String>,
 }
 
-#[derive(Default, Clone, Copy, Debug, Serialize_repr, Deserialize_repr, PartialEq)]
+#[derive(Default, Clone, Copy, Debug, Serialize_repr, Deserialize_repr, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(i32)]

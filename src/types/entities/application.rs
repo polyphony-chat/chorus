@@ -105,7 +105,7 @@ pub struct InstallParams {
 }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy,  Serialize, Deserialize)]
+    #[derive(Debug, Clone, Copy,  Serialize, Deserialize, PartialEq, Eq, Hash)]
     /// # Reference
     /// See <https://discord.com/developers/docs/resources/application#application-object-application-flags>
     pub struct ApplicationFlags: u64 {
@@ -163,7 +163,7 @@ pub struct ApplicationCommandOptionChoice {
     pub value: Value,
 }
 
-#[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(i32)]
 /// # Reference
@@ -219,7 +219,7 @@ pub struct ApplicationCommandPermission {
     pub permission: bool,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(u8)]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type>
