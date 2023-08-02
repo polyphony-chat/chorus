@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -6,7 +8,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use crate::types::utils::Snowflake;
 use crate::types::{Team, User};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// # Reference
 /// See <https://discord.com/developers/docs/resources/application#application-resource>
@@ -25,7 +27,7 @@ pub struct Application {
     pub bot_require_code_grant: bool,
     pub verify_key: String,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub owner: User,
+    pub owner: Arc<Mutex<User>>,
     pub flags: u64,
     #[cfg(feature = "sqlx")]
     pub redirect_uris: Option<sqlx::types::Json<Vec<String>>>,
@@ -47,7 +49,7 @@ pub struct Application {
     #[cfg(feature = "sqlx")]
     pub install_params: Option<sqlx::types::Json<InstallParams>>,
     #[cfg(not(feature = "sqlx"))]
-    pub install_params: Option<InstallParams>,
+    pub install_params: Option<Arc<Mutex<InstallParams>>>,
     pub terms_of_service_url: Option<String>,
     pub privacy_policy_url: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
@@ -94,7 +96,7 @@ impl Application {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// # Reference
 /// See <https://discord.com/developers/docs/resources/application#install-params-object>
 pub struct InstallParams {
@@ -103,7 +105,7 @@ pub struct InstallParams {
 }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Copy,  Serialize, Deserialize)]
     /// # Reference
     /// See <https://discord.com/developers/docs/resources/application#application-object-application-flags>
     pub struct ApplicationFlags: u64 {
@@ -132,7 +134,7 @@ bitflags! {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// # Reference
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-object>
 pub struct ApplicationCommand {
@@ -140,10 +142,10 @@ pub struct ApplicationCommand {
     pub application_id: Snowflake,
     pub name: String,
     pub description: String,
-    pub options: Vec<ApplicationCommandOption>,
+    pub options: Vec<Arc<Mutex<ApplicationCommandOption>>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Reference
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure>
 pub struct ApplicationCommandOption {
@@ -152,16 +154,16 @@ pub struct ApplicationCommandOption {
     pub description: String,
     pub required: bool,
     pub choices: Vec<ApplicationCommandOptionChoice>,
-    pub options: Vec<ApplicationCommandOption>,
+    pub options: Arc<Mutex<Vec<ApplicationCommandOption>>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApplicationCommandOptionChoice {
     pub name: String,
     pub value: Value,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(i32)]
 /// # Reference
@@ -184,30 +186,30 @@ pub enum ApplicationCommandOptionType {
     Attachment = 11,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApplicationCommandInteractionData {
     pub id: Snowflake,
     pub name: String,
-    pub options: Vec<ApplicationCommandInteractionDataOption>,
+    pub options: Vec<Arc<Mutex<ApplicationCommandInteractionDataOption>>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApplicationCommandInteractionDataOption {
     pub name: String,
     pub value: Value,
-    pub options: Vec<ApplicationCommandInteractionDataOption>,
+    pub options: Vec<Arc<Mutex<ApplicationCommandInteractionDataOption>>>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-guild-application-command-permissions-structure>
 pub struct GuildApplicationCommandPermissions {
     pub id: Snowflake,
     pub application_id: Snowflake,
     pub guild_id: Snowflake,
-    pub permissions: Vec<ApplicationCommandPermission>,
+    pub permissions: Vec<Arc<Mutex<ApplicationCommandPermission>>>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure>
 pub struct ApplicationCommandPermission {
     pub id: Snowflake,
@@ -217,7 +219,7 @@ pub struct ApplicationCommandPermission {
     pub permission: bool,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(u8)]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type>

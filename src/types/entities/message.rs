@@ -8,7 +8,7 @@ use crate::types::{
     utils::Snowflake,
 };
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// Represents a message sent in a channel.
 ///
@@ -67,7 +67,7 @@ pub struct Message {
     pub role_subscription_data: Option<RoleSubscriptionData>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
 pub struct MessageReference {
@@ -77,7 +77,7 @@ pub struct MessageReference {
     pub fail_if_not_exists: Option<bool>,
 }
 
-#[derive(Debug, PartialEq, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct MessageInteraction {
     pub id: Snowflake,
     #[serde(rename = "type")]
@@ -87,7 +87,7 @@ pub struct MessageInteraction {
     pub member: Option<GuildMember>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AllowedMention {
     parse: Vec<AllowedMentionType>,
     roles: Vec<Snowflake>,
@@ -95,7 +95,7 @@ pub struct AllowedMention {
     replied_user: bool,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AllowedMentionType {
     Roles,
@@ -103,7 +103,7 @@ pub enum AllowedMentionType {
     Everyone,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChannelMention {
     pub id: Snowflake,
     pub guild_id: Snowflake,
@@ -112,7 +112,7 @@ pub struct ChannelMention {
     name: String,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Embed {
     title: Option<String>,
     #[serde(rename = "type")]
@@ -130,14 +130,14 @@ pub struct Embed {
     fields: Option<Vec<EmbedField>>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbedFooter {
     text: String,
     icon_url: Option<String>,
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbedImage {
     url: String,
     proxy_url: String,
@@ -145,7 +145,7 @@ pub struct EmbedImage {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbedThumbnail {
     url: String,
     proxy_url: Option<String>,
@@ -153,7 +153,7 @@ pub struct EmbedThumbnail {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct EmbedVideo {
     url: Option<String>,
     proxy_url: Option<String>,
@@ -161,13 +161,13 @@ struct EmbedVideo {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbedProvider {
     name: Option<String>,
     url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbedAuthor {
     name: String,
     url: Option<String>,
@@ -175,14 +175,14 @@ pub struct EmbedAuthor {
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbedField {
     name: String,
     value: String,
     inline: Option<bool>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Reaction {
     pub count: u32,
     pub burst_count: u32,
@@ -192,7 +192,7 @@ pub struct Reaction {
     pub emoji: Emoji,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Component {
     ActionRow = 1,
     Button = 2,
@@ -204,7 +204,7 @@ pub enum Component {
     ChannelSelect = 8,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/message#message-activity-object>
 pub struct MessageActivity {

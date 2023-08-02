@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::User;
 use crate::types::Snowflake;
 
-#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/emoji#emoji-object>

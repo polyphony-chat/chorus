@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -10,7 +12,7 @@ use crate::types::{
 };
 
 /// See <https://discord.com/developers/docs/resources/guild>
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Guild {
     pub afk_channel_id: Option<Snowflake>,
@@ -25,13 +27,13 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub bans: Option<Vec<GuildBan>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub channels: Option<Vec<Channel>>,
+    pub channels: Option<Vec<Arc<Mutex<Channel>>>>,
     pub default_message_notifications: Option<i32>,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[serde(default)]
-    pub emojis: Vec<Emoji>,
+    pub emojis: Vec<Arc<Mutex<Emoji>>>,
     pub explicit_content_filter: Option<i32>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
     pub features: Option<GuildFeaturesList>,
@@ -91,7 +93,7 @@ pub struct Guild {
 }
 
 /// See <https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user->
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildBan {
     pub user_id: Snowflake,
@@ -100,7 +102,7 @@ pub struct GuildBan {
 }
 
 /// See <https://docs.spacebar.chat/routes/#cmp--schemas-invite>
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildInvite {
     pub code: String,
@@ -122,13 +124,13 @@ pub struct GuildInvite {
     pub vanity_url: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct UnavailableGuild {
     id: Snowflake,
     unavailable: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct GuildCreateResponse {
     pub id: Snowflake,
 }

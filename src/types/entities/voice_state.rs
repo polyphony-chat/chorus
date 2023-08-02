@@ -7,7 +7,7 @@ use crate::types::{
 };
 
 /// See <https://docs.spacebar.chat/routes/#cmp--schemas-voicestate>
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct VoiceState {
     pub guild_id: Option<Snowflake>,

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::PermissionOverwrite, Snowflake};
 
-#[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub struct ChannelCreateSchema {
     pub name: String,
@@ -27,7 +27,7 @@ pub struct ChannelCreateSchema {
     pub video_quality_mode: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialEq, PartialOrd)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 #[serde(rename_all = "snake_case")]
 pub struct ChannelModifySchema {
     pub name: Option<String>,

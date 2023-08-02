@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::PublicUser, Snowflake};
 
-#[derive(Debug, Deserialize, Default, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Default, Serialize, Clone)]
 /// Represents a participating user in a guild.
 ///
 /// # Reference

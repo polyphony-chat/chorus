@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::User, utils::Snowflake};
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// Represents a sticker that can be sent in messages.
 ///
@@ -26,7 +26,7 @@ pub struct Sticker {
     pub sort_value: Option<u8>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// A partial sticker object.
 ///
 /// Represents the smallest amount of data required to render a sticker.

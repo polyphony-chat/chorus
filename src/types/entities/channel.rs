@@ -10,7 +10,7 @@ use crate::types::{
     utils::Snowflake,
 };
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Updateable)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, Updateable)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// Represents a guild of private channel
 ///
@@ -71,7 +71,41 @@ pub struct Channel {
     pub video_quality_mode: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+impl PartialEq for Channel {
+    fn eq(&self, other: &Self) -> bool {
+        self.application_id == other.application_id
+            && self.bitrate == other.bitrate
+            && self.channel_type == other.channel_type
+            && self.created_at == other.created_at
+            && self.default_auto_archive_duration == other.default_auto_archive_duration
+            && self.default_forum_layout == other.default_forum_layout
+            && self.default_sort_order == other.default_sort_order
+            && self.default_thread_rate_limit_per_user == other.default_thread_rate_limit_per_user
+            && self.flags == other.flags
+            && self.guild_id == other.guild_id
+            && self.icon == other.icon
+            && self.id == other.id
+            && self.last_message_id == other.last_message_id
+            && self.last_pin_timestamp == other.last_pin_timestamp
+            && self.managed == other.managed
+            && self.member_count == other.member_count
+            && self.message_count == other.message_count
+            && self.name == other.name
+            && self.nsfw == other.nsfw
+            && self.owner_id == other.owner_id
+            && self.parent_id == other.parent_id
+            && self.permissions == other.permissions
+            && self.position == other.position
+            && self.rate_limit_per_user == other.rate_limit_per_user
+            && self.rtc_region == other.rtc_region
+            && self.topic == other.topic
+            && self.total_message_sent == other.total_message_sent
+            && self.user_limit == other.user_limit
+            && self.video_quality_mode == other.video_quality_mode
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 /// A tag that can be applied to a thread in a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel.
 ///
 /// # Reference
@@ -86,7 +120,7 @@ pub struct Tag {
     pub emoji_name: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PermissionOverwrite {
     pub id: Snowflake,
     #[serde(rename = "type")]
@@ -100,7 +134,7 @@ pub struct PermissionOverwrite {
     pub deny: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#thread-metadata-object>
 pub struct ThreadMetadata {
@@ -112,7 +146,7 @@ pub struct ThreadMetadata {
     pub create_timestamp: Option<String>,
 }
 
-#[derive(Default, Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Deserialize, Serialize, Clone)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#thread-member-object>
 pub struct ThreadMember {
@@ -123,7 +157,7 @@ pub struct ThreadMember {
     pub member: Option<GuildMember>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 /// Specifies the emoji to use as the default way to react to a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel post.
 ///
 /// # Reference
@@ -134,7 +168,7 @@ pub struct DefaultReaction {
     pub emoji_name: Option<String>,
 }
 
-#[derive(Default, Clone, Copy, Debug, Serialize_repr, Deserialize_repr, PartialEq, Eq)]
+#[derive(Default, Clone, Copy, Debug, Serialize_repr, Deserialize_repr, PartialEq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(i32)]
