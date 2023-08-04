@@ -1,5 +1,6 @@
 use crate::types::events::WebSocketEvent;
-use crate::types::{entities::Channel, Snowflake};
+use crate::types::{entities::Channel, JsonField, Snowflake};
+use chorus_macros::JsonField;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -24,17 +25,19 @@ pub struct ChannelCreate {
 
 impl WebSocketEvent for ChannelCreate {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-update>
 pub struct ChannelUpdate {
     #[serde(flatten)]
     pub channel: Channel,
+    #[serde(skip)]
+    pub json: String,
 }
 
 impl WebSocketEvent for ChannelUpdate {}
 
 impl UpdateMessage<Channel> for ChannelUpdate {
-    fn update(&self, object_to_update: &mut Channel) {
+    fn update(&mut self, object_to_update: &mut Channel) {
         *object_to_update = self.channel.clone();
     }
     fn id(&self) -> Snowflake {
