@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 use reqwest::Client;
 use serde_json::to_string;
@@ -45,7 +46,7 @@ impl Instance {
             login_result.token,
             self.clone_limits_if_some(),
             login_result.settings,
-            object,
+            Arc::new(Mutex::new(object)),
             gateway,
         );
         Ok(user)

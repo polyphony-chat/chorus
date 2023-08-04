@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use std::{cell::RefCell, rc::Rc};
 
 use reqwest::Client;
@@ -51,8 +52,8 @@ impl Instance {
             Rc::new(RefCell::new(self.clone())),
             token.clone(),
             self.clone_limits_if_some(),
-            settings,
-            user_object,
+            Arc::new(Mutex::new(settings)),
+            Arc::new(Mutex::new(user_object)),
             gateway,
         );
         Ok(user)
