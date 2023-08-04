@@ -297,6 +297,8 @@ impl GatewayHandle {
     }
 }
 
+/// The value of `store`s [`HashMap`] is a [`tokio::sync::watch::channel<T: Updateable>`]. See the
+/// [`Updateable`] trait for more information.
 pub struct Gateway {
     events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
