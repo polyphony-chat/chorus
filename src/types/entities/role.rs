@@ -26,7 +26,7 @@ pub struct RoleObject {
     pub tags: Option<RoleTags>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RoleSubscriptionData {
     pub role_subscription_listing_id: Snowflake,
     pub tier_name: String,

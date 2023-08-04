@@ -58,7 +58,7 @@ pub struct InviteGuild {
 
 /// See <https://discord-userdoccers.vercel.app/resources/guild#nsfw-level> for an explanation on what
 /// the levels mean.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum NSFWLevel {
     Default = 0,

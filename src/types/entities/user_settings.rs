@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum UserStatus {
@@ -21,7 +21,7 @@ impl std::fmt::Display for UserStatus {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum UserTheme {
@@ -119,7 +119,7 @@ impl Default for UserSettings {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct CustomStatus {
     pub emoji_id: Option<String>,
@@ -129,7 +129,7 @@ pub struct CustomStatus {
     pub text: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FriendSourceFlags {
     pub all: bool,
 }
