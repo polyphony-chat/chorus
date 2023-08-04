@@ -152,6 +152,10 @@ impl GatewayMessage {
 /// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
 /// implemented types with the trait [`WebSocketEvent`]
 /// Using this handle you can also send Gateway Events directly.
+///
+/// # Store
+/// The value of `store`s [`HashMap`] is a [`tokio::sync::watch::channel<T: Updateable>`]. See the
+/// [`Updateable`] trait for more information.
 #[derive(Debug)]
 pub struct GatewayHandle {
     pub url: String,
