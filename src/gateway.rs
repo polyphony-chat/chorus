@@ -476,7 +476,7 @@ impl Gateway {
                                     Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
                                     Ok(message) => {
                                         $(
-                                            let message: $message_type = message;
+                                            let mut message: $message_type = message;
                                             if let Some(to_update) = self.store.lock().await.get(&message.id()) {
                                                 if let Some((tx, _)) = to_update.downcast_ref::<(watch::Sender<$update_type>, watch::Receiver<$update_type>)>() {
                                                     tx.send_modify(|object| message.update(object));
