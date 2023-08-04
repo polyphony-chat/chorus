@@ -115,7 +115,7 @@ impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 /// a [`Channel`] object.
 pub(crate) trait UpdateMessage<T>: Clone + JsonField
 where
-    T: Updateable + Serialize + DeserializeOwned,
+    T: Updateable + Serialize + DeserializeOwned + Clone,
 {
     fn update(&mut self, object_to_update: &mut T) {
         update_object(self.get_json(), object_to_update)
