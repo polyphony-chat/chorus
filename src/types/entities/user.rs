@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub struct UserData {
     pub valid_tokens_since: DateTime<Utc>,
@@ -15,7 +15,7 @@ impl User {
         PublicUser::from(self)
     }
 }
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct User {
     pub id: Snowflake,
@@ -50,7 +50,7 @@ pub struct User {
     pub disabled: Option<bool>,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PublicUser {
     pub id: Snowflake,
     pub username: Option<String>,

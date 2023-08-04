@@ -96,7 +96,7 @@ impl Application {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// # Reference
 /// See <https://discord.com/developers/docs/resources/application#install-params-object>
 pub struct InstallParams {
@@ -157,7 +157,7 @@ pub struct ApplicationCommandOption {
     pub options: Arc<Mutex<Vec<ApplicationCommandOption>>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ApplicationCommandOptionChoice {
     pub name: String,
     pub value: Value,
@@ -209,7 +209,7 @@ pub struct GuildApplicationCommandPermissions {
     pub permissions: Vec<Arc<Mutex<ApplicationCommandPermission>>>,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure>
 pub struct ApplicationCommandPermission {
     pub id: Snowflake,
