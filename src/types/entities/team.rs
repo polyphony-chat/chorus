@@ -1,9 +1,11 @@
+use std::sync::{Arc, Mutex};
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::User;
 use crate::types::Snowflake;
 
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Team {
     pub icon: Option<String>,
@@ -14,10 +16,10 @@ pub struct Team {
     pub owner_user_id: Snowflake,
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TeamMember {
     pub membership_state: u8,
     pub permissions: Vec<String>,
     pub team_id: Snowflake,
-    pub user: User,
+    pub user: Arc<Mutex<User>>,
 }

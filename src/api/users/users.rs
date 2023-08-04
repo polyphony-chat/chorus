@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use std::{cell::RefCell, rc::Rc};
 
 use reqwest::Client;
@@ -59,7 +60,7 @@ impl UserMeta {
             .deserialize_response::<User>(self)
             .await
             .unwrap();
-        let _ = std::mem::replace(&mut self.object, user_updated.clone());
+        self.object = Arc::new(Mutex::new(user_updated.clone()));
         Ok(user_updated)
     }
 

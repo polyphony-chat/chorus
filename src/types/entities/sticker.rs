@@ -1,8 +1,10 @@
+use std::sync::{Arc, Mutex};
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::User, utils::Snowflake};
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// Represents a sticker that can be sent in messages.
 ///
@@ -22,7 +24,7 @@ pub struct Sticker {
     pub available: Option<bool>,
     pub guild_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<User>,
+    pub user: Option<Arc<Mutex<User>>>,
     pub sort_value: Option<u8>,
 }
 

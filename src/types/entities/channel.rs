@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use chorus_macros::Updateable;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -10,7 +12,7 @@ use crate::types::{
     utils::Snowflake,
 };
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Updateable)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, Updateable)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// Represents a guild of private channel
 ///
@@ -46,7 +48,7 @@ pub struct Channel {
     pub last_pin_timestamp: Option<String>,
     pub managed: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub member: Option<ThreadMember>,
+    pub member: Option<Arc<Mutex<ThreadMember>>>,
     pub member_count: Option<i32>,
     pub message_count: Option<i32>,
     pub name: Option<String>,
@@ -56,12 +58,12 @@ pub struct Channel {
     #[cfg(feature = "sqlx")]
     pub permission_overwrites: Option<sqlx::types::Json<Vec<PermissionOverwrite>>>,
     #[cfg(not(feature = "sqlx"))]
-    pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    pub permission_overwrites: Option<Vec<Arc<Mutex<PermissionOverwrite>>>>,
     pub permissions: Option<String>,
     pub position: Option<i32>,
     pub rate_limit_per_user: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub recipients: Option<Vec<User>>,
+    pub recipients: Option<Vec<Arc<Mutex<User>>>>,
     pub rtc_region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub thread_metadata: Option<ThreadMetadata>,
@@ -71,7 +73,41 @@ pub struct Channel {
     pub video_quality_mode: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+impl PartialEq for Channel {
+    fn eq(&self, other: &Self) -> bool {
+        self.application_id == other.application_id
+            && self.bitrate == other.bitrate
+            && self.channel_type == other.channel_type
+            && self.created_at == other.created_at
+            && self.default_auto_archive_duration == other.default_auto_archive_duration
+            && self.default_forum_layout == other.default_forum_layout
+            && self.default_sort_order == other.default_sort_order
+            && self.default_thread_rate_limit_per_user == other.default_thread_rate_limit_per_user
+            && self.flags == other.flags
+            && self.guild_id == other.guild_id
+            && self.icon == other.icon
+            && self.id == other.id
+            && self.last_message_id == other.last_message_id
+            && self.last_pin_timestamp == other.last_pin_timestamp
+            && self.managed == other.managed
+            && self.member_count == other.member_count
+            && self.message_count == other.message_count
+            && self.name == other.name
+            && self.nsfw == other.nsfw
+            && self.owner_id == other.owner_id
+            && self.parent_id == other.parent_id
+            && self.permissions == other.permissions
+            && self.position == other.position
+            && self.rate_limit_per_user == other.rate_limit_per_user
+            && self.rtc_region == other.rtc_region
+            && self.topic == other.topic
+            && self.total_message_sent == other.total_message_sent
+            && self.user_limit == other.user_limit
+            && self.video_quality_mode == other.video_quality_mode
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 /// A tag that can be applied to a thread in a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel.
 ///
 /// # Reference
@@ -112,7 +148,7 @@ pub struct ThreadMetadata {
     pub create_timestamp: Option<String>,
 }
 
-#[derive(Default, Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Deserialize, Serialize, Clone)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#thread-member-object>
 pub struct ThreadMember {
@@ -120,7 +156,7 @@ pub struct ThreadMember {
     pub user_id: Option<Snowflake>,
     pub join_timestamp: Option<String>,
     pub flags: Option<u64>,
-    pub member: Option<GuildMember>,
+    pub member: Option<Arc<Mutex<GuildMember>>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -134,7 +170,7 @@ pub struct DefaultReaction {
     pub emoji_name: Option<String>,
 }
 
-#[derive(Default, Clone, Copy, Debug, Serialize_repr, Deserialize_repr, PartialEq, Eq)]
+#[derive(Default, Clone, Copy, Debug, Serialize_repr, Deserialize_repr, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(i32)]

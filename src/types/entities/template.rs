@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +9,7 @@ use crate::types::{
 };
 
 /// See <https://docs.spacebar.chat/routes/#cmp--schemas-template>
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildTemplate {
     pub code: String,
@@ -16,13 +18,13 @@ pub struct GuildTemplate {
     pub usage_count: Option<u64>,
     pub creator_id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub creator: User,
+    pub creator: Arc<Mutex<User>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub source_guild_id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub source_guild: Vec<Guild>,
+    pub source_guild: Vec<Arc<Mutex<Guild>>>,
     // Unsure how a {recursive: Guild} looks like, might be a Vec?
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub serialized_source_guild: Vec<Guild>,
+    pub serialized_source_guild: Vec<Arc<Mutex<Guild>>>,
 }

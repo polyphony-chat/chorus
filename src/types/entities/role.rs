@@ -34,7 +34,7 @@ pub struct RoleSubscriptionData {
     pub is_renewal: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 /// See <https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure>
 pub struct RoleTags {
     #[serde(default)]
@@ -53,7 +53,7 @@ pub struct RoleTags {
 }
 
 bitflags! {
-    #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    #[derive(Debug, Default, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
     /// Permissions limit what users of certain roles can do on a Guild to Guild basis.
     ///
     /// # Reference:

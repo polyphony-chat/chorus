@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
@@ -6,7 +8,7 @@ use crate::types::utils::Snowflake;
 /// See <https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object>
 pub struct AuditLogEntry {
     pub target_id: Option<String>,
-    pub changes: Option<Vec<AuditLogChange>>,
+    pub changes: Option<Vec<Arc<Mutex<AuditLogChange>>>>,
     pub user_id: Option<Snowflake>,
     pub id: Snowflake,
     // to:do implement an enum for these types
