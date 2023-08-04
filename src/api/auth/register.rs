@@ -52,8 +52,8 @@ impl Instance {
             Rc::new(RefCell::new(self.clone())),
             token.clone(),
             self.clone_limits_if_some(),
-            Arc::new(Mutex::new(settings)),
-            Arc::new(Mutex::new(user_object)),
+            Arc::new(RwLock::new(settings)),
+            Arc::new(RwLock::new(user_object)),
             gateway,
         );
         Ok(user)

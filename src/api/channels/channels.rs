@@ -62,7 +62,6 @@ impl Channel {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel>
     pub async fn modify(
-        &self,
         modify_data: ChannelModifySchema,
         channel_id: Snowflake,
         user: &mut UserMeta,

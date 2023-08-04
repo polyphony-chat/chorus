@@ -50,7 +50,7 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    let modified_channel = Channel::modify(channel, modify_data, channel.id, &mut bundle.user)
+    let modified_channel = Channel::modify(modify_data, channel.id, &mut bundle.user)
         .await
         .unwrap();
     assert_eq!(modified_channel.name, Some(CHANNEL_NAME.to_string()));
@@ -59,7 +59,7 @@ async fn modify_channel() {
         PermissionFlags::MANAGE_CHANNELS,
         PermissionFlags::MANAGE_MESSAGES,
     ]));
-    let user_id: types::Snowflake = bundle.user.object.lock().unwrap().id;
+    let user_id: types::Snowflake = bundle.user.object.read().unwrap().id;
     let permission_override = PermissionOverwrite {
         id: user_id,
         overwrite_type: "1".to_string(),
@@ -144,7 +144,7 @@ async fn create_dm() {
     let other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
     let private_channel_create_schema = PrivateChannelCreateSchema {
-        recipients: Some(Vec::from([other_user.object.lock().unwrap().id])),
+        recipients: Some(Vec::from([other_user.object.read().unwrap().id])),
         access_tokens: None,
         nicks: None,
     };
@@ -160,11 +160,11 @@ async fn create_dm() {
             .unwrap()
             .get(0)
             .unwrap()
-            .lock()
+            .read()
             .unwrap()
             .id
             .clone(),
-        other_user.object.lock().unwrap().id
+        other_user.object.read().unwrap().id
     );
     assert_eq!(
         dm_channel
@@ -173,11 +173,11 @@ async fn create_dm() {
             .unwrap()
             .get(1)
             .unwrap()
-            .lock()
+            .read()
             .unwrap()
             .id
             .clone(),
-        user.object.lock().unwrap().id.clone()
+        user.object.read().unwrap().id.clone()
     );
     common::teardown(bundle).await;
 }
@@ -189,9 +189,9 @@ async fn remove_add_person_from_to_dm() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
     let mut third_user = bundle.create_user("integrationtestuser3").await;
-    let third_user_id = third_user.object.lock().unwrap().id;
-    let other_user_id = other_user.object.lock().unwrap().id;
-    let user_id = bundle.user.object.lock().unwrap().id;
+    let third_user_id = third_user.object.read().unwrap().id;
+    let other_user_id = other_user.object.read().unwrap().id;
+    let user_id = bundle.user.object.read().unwrap().id;
     let user = &mut bundle.user;
     let private_channel_create_schema = PrivateChannelCreateSchema {
         recipients: Some(Vec::from([other_user_id, third_user_id])),
@@ -234,7 +234,7 @@ async fn remove_add_person_from_to_dm() {
             .unwrap()
             .get(0)
             .unwrap()
-            .lock()
+            .read()
             .unwrap()
             .id,
         other_user_id
@@ -246,7 +246,7 @@ async fn remove_add_person_from_to_dm() {
             .unwrap()
             .get(1)
             .unwrap()
-            .lock()
+            .read()
             .unwrap()
             .id,
         user_id

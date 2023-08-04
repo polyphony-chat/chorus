@@ -46,7 +46,7 @@ impl Instance {
             login_result.token,
             self.clone_limits_if_some(),
             login_result.settings,
-            Arc::new(Mutex::new(object)),
+            Arc::new(RwLock::new(object)),
             gateway,
         );
         Ok(user)
