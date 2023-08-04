@@ -7,12 +7,17 @@ async fn test_get_mutual_relationships() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
+    let username = user.object.lock().unwrap().username.clone();
+    let discriminator = user.object.lock().unwrap().discriminator.clone();
     let other_user_id: types::Snowflake = other_user.object.lock().unwrap().id;
     let friend_request_schema = types::FriendRequestSendSchema {
-        username: user.object.lock().unwrap().username.clone(),
-        discriminator: Some(user.object.lock().unwrap().discriminator.clone()),
+        username,
+        discriminator: Some(discriminator),
     };
-    let _ = other_user.send_friend_request(friend_request_schema).await;
+    other_user
+        .send_friend_request(friend_request_schema)
+        .await
+        .unwrap();
     let relationships = user.get_mutual_relationships(other_user_id).await.unwrap();
     println!("{:?}", relationships);
     common::teardown(bundle).await
