@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -27,13 +27,13 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub bans: Option<Vec<GuildBan>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub channels: Option<Vec<Arc<Mutex<Channel>>>>,
+    pub channels: Option<Vec<Arc<RwLock<Channel>>>>,
     pub default_message_notifications: Option<i32>,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[serde(default)]
-    pub emojis: Vec<Arc<Mutex<Emoji>>>,
+    pub emojis: Vec<Arc<RwLock<Emoji>>>,
     pub explicit_content_filter: Option<i32>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
     pub features: Option<GuildFeaturesList>,
@@ -42,7 +42,7 @@ pub struct Guild {
     pub icon_hash: Option<String>,
     pub id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub invites: Option<Vec<Arc<Mutex<GuildInvite>>>>,
+    pub invites: Option<Vec<Arc<RwLock<GuildInvite>>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub joined_at: Option<String>,
     pub large: Option<bool>,
@@ -68,7 +68,7 @@ pub struct Guild {
     pub public_updates_channel_id: Option<Snowflake>,
     pub region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub roles: Option<Vec<Arc<Mutex<RoleObject>>>>,
+    pub roles: Option<Vec<Arc<RwLock<RoleObject>>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub rules_channel: Option<String>,
     pub rules_channel_id: Option<Snowflake>,
@@ -81,13 +81,13 @@ pub struct Guild {
     pub vanity_url_code: Option<String>,
     pub verification_level: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub voice_states: Option<Vec<Arc<Mutex<VoiceState>>>>,
+    pub voice_states: Option<Vec<Arc<RwLock<VoiceState>>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub webhooks: Option<Vec<Arc<Mutex<Webhook>>>>,
+    pub webhooks: Option<Vec<Arc<RwLock<Webhook>>>>,
     #[cfg(feature = "sqlx")]
     pub welcome_screen: Option<sqlx::types::Json<WelcomeScreenObject>>,
     #[cfg(not(feature = "sqlx"))]
-    pub welcome_screen: Option<Arc<Mutex<WelcomeScreenObject>>>,
+    pub welcome_screen: Option<Arc<RwLock<WelcomeScreenObject>>>,
     pub widget_channel_id: Option<Snowflake>,
     pub widget_enabled: Option<bool>,
 }
@@ -113,11 +113,11 @@ pub struct GuildInvite {
     pub created_at: DateTime<Utc>,
     pub expires_at: Option<DateTime<Utc>>,
     pub guild_id: Snowflake,
-    pub guild: Option<Arc<Mutex<Guild>>>,
+    pub guild: Option<Arc<RwLock<Guild>>>,
     pub channel_id: Snowflake,
-    pub channel: Option<Arc<Mutex<Channel>>>,
+    pub channel: Option<Arc<RwLock<Channel>>>,
     pub inviter_id: Option<Snowflake>,
-    pub inviter: Option<Arc<Mutex<User>>>,
+    pub inviter: Option<Arc<RwLock<User>>>,
     pub target_user_id: Option<Snowflake>,
     pub target_user: Option<String>,
     pub target_user_type: Option<i32>,
@@ -151,7 +151,7 @@ pub struct GuildScheduledEvent {
     pub entity_type: GuildScheduledEventEntityType,
     pub entity_id: Option<Snowflake>,
     pub entity_metadata: Option<GuildScheduledEventEntityMetadata>,
-    pub creator: Option<Arc<Mutex<User>>>,
+    pub creator: Option<Arc<RwLock<User>>>,
     pub user_count: Option<u64>,
     pub image: Option<String>,
 }

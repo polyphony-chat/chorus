@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -70,7 +70,7 @@ pub enum NSFWLevel {
 /// See <https://discord-userdoccers.vercel.app/resources/invite#invite-stage-instance-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InviteStageInstance {
-    pub members: Vec<Arc<Mutex<GuildMember>>>,
+    pub members: Vec<Arc<RwLock<GuildMember>>>,
     pub participant_count: i32,
     pub speaker_count: i32,
     pub topic: String,

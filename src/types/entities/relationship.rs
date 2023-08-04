@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,7 @@ pub struct Relationship {
     #[serde(rename = "type")]
     pub relationship_type: RelationshipType,
     pub nickname: Option<String>,
-    pub user: Arc<Mutex<PublicUser>>,
+    pub user: Arc<RwLock<PublicUser>>,
     pub since: Option<DateTime<Utc>>,
 }
 
