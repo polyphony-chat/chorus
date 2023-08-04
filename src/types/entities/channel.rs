@@ -122,7 +122,7 @@ pub struct Tag {
     pub emoji_name: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd)]
 pub struct PermissionOverwrite {
     pub id: Snowflake,
     #[serde(rename = "type")]
@@ -136,7 +136,7 @@ pub struct PermissionOverwrite {
     pub deny: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#thread-metadata-object>
 pub struct ThreadMetadata {
@@ -159,7 +159,7 @@ pub struct ThreadMember {
     pub member: Option<Arc<Mutex<GuildMember>>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Specifies the emoji to use as the default way to react to a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel post.
 ///
 /// # Reference

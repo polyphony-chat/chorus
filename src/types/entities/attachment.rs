@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// # Reference
 /// See <https://discord.com/developers/docs/resources/channel#attachment-object>

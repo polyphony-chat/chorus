@@ -28,7 +28,7 @@ pub struct Sticker {
     pub sort_value: Option<u8>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 /// A partial sticker object.
 ///
 /// Represents the smallest amount of data required to render a sticker.

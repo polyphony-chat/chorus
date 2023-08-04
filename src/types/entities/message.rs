@@ -67,7 +67,7 @@ pub struct Message {
     pub role_subscription_data: Option<RoleSubscriptionData>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
 pub struct MessageReference {
@@ -87,7 +87,7 @@ pub struct MessageInteraction {
     pub member: Option<GuildMember>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct AllowedMention {
     parse: Vec<AllowedMentionType>,
     roles: Vec<Snowflake>,
@@ -95,7 +95,7 @@ pub struct AllowedMention {
     replied_user: bool,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AllowedMentionType {
     Roles,
@@ -103,7 +103,7 @@ pub enum AllowedMentionType {
     Everyone,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChannelMention {
     pub id: Snowflake,
     pub guild_id: Snowflake,
@@ -130,14 +130,14 @@ pub struct Embed {
     fields: Option<Vec<EmbedField>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EmbedFooter {
     text: String,
     icon_url: Option<String>,
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EmbedImage {
     url: String,
     proxy_url: String,
@@ -145,7 +145,7 @@ pub struct EmbedImage {
     width: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EmbedThumbnail {
     url: String,
     proxy_url: Option<String>,
@@ -153,7 +153,7 @@ pub struct EmbedThumbnail {
     width: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 struct EmbedVideo {
     url: Option<String>,
     proxy_url: Option<String>,
@@ -161,13 +161,13 @@ struct EmbedVideo {
     width: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EmbedProvider {
     name: Option<String>,
     url: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EmbedAuthor {
     name: String,
     url: Option<String>,
@@ -175,7 +175,7 @@ pub struct EmbedAuthor {
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EmbedField {
     name: String,
     value: String,
@@ -192,7 +192,7 @@ pub struct Reaction {
     pub emoji: Emoji,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum Component {
     ActionRow = 1,
     Button = 2,
@@ -204,7 +204,7 @@ pub enum Component {
     ChannelSelect = 8,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/message#message-activity-object>
 pub struct MessageActivity {
