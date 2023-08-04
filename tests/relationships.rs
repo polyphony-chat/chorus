@@ -23,9 +23,11 @@ async fn test_get_relationships() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
+    let username = user.object.lock().unwrap().username.clone();
+    let discriminator = user.object.lock().unwrap().discriminator.clone();
     let friend_request_schema = types::FriendRequestSendSchema {
-        username: user.object.lock().unwrap().username.clone(),
-        discriminator: Some(user.object.lock().unwrap().discriminator.clone()),
+        username,
+        discriminator: Some(discriminator),
     };
     other_user
         .send_friend_request(friend_request_schema)
