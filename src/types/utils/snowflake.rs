@@ -17,7 +17,7 @@ const EPOCH: i64 = 1420070400000;
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "sqlx", derive(Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
-pub struct Snowflake(u64);
+pub struct Snowflake(pub u64);
 
 impl Snowflake {
     /// Generates a snowflake for the current timestamp, with worker id 0 and process id 1.
@@ -50,6 +50,15 @@ impl Default for Snowflake {
 impl Display for Snowflake {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl<T> From<T> for Snowflake
+where
+    T: Into<u64>,
+{
+    fn from(item: T) -> Self {
+        Self(item.into())
     }
 }
 
