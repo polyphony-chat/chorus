@@ -17,7 +17,7 @@ const EPOCH: i64 = 1420070400000;
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "sqlx", derive(Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
-pub struct Snowflake(u64);
+pub struct Snowflake(pub u64);
 
 impl Snowflake {
     /// Generates a snowflake for the current timestamp, with worker id 0 and process id 1.
