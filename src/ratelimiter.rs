@@ -237,6 +237,9 @@ impl ChorusRequest {
     ///     reset to the rate limit limit.
     /// 2. The remaining rate limit is decreased by 1.
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
+        if user.belongs_to.borrow().limits_information.is_none() {
+            return;
+        }
         let instance_dictated_limits = [
             &LimitType::AuthLogin,
             &LimitType::AuthRegister,
