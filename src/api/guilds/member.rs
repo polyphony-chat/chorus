@@ -19,7 +19,7 @@ impl types::GuildMember {
         member_id: Snowflake,
     ) -> ChorusResult<GuildMember> {
         let url = format!(
-            "{}/guilds/{}/members/{}/",
+            "{}/guilds/{}/members/{}",
             user.belongs_to.borrow().urls.api,
             guild_id,
             member_id
@@ -46,7 +46,7 @@ impl types::GuildMember {
         role_id: Snowflake,
     ) -> ChorusResult<()> {
         let url = format!(
-            "{}/guilds/{}/members/{}/roles/{}/",
+            "{}/guilds/{}/members/{}/roles/{}",
             user.belongs_to.borrow().urls.api,
             guild_id,
             member_id,
@@ -72,7 +72,7 @@ impl types::GuildMember {
         role_id: Snowflake,
     ) -> Result<(), crate::errors::ChorusError> {
         let url = format!(
-            "{}/guilds/{}/members/{}/roles/{}/",
+            "{}/guilds/{}/members/{}/roles/{}",
             user.belongs_to.borrow().urls.api,
             guild_id,
             member_id,

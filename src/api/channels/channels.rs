@@ -19,7 +19,7 @@ impl Channel {
         let url = user.belongs_to.borrow().urls.api.clone();
         let chorus_request = ChorusRequest {
             request: Client::new()
-                .get(format!("{}/channels/{}/", url, channel_id))
+                .get(format!("{}/channels/{}", url, channel_id))
                 .bearer_auth(user.token()),
             limit_type: LimitType::Channel(channel_id),
         };
@@ -37,7 +37,7 @@ impl Channel {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .delete(format!(
-                    "{}/channels/{}/",
+                    "{}/channels/{}",
                     user.belongs_to.borrow().urls.api,
                     self.id
                 ))
@@ -70,7 +70,7 @@ impl Channel {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .patch(format!(
-                    "{}/channels/{}/",
+                    "{}/channels/{}",
                     user.belongs_to.borrow().urls.api,
                     channel_id
                 ))
@@ -124,7 +124,7 @@ impl Channel {
     ) -> ChorusResult<()> {
         let mut request = Client::new()
             .put(format!(
-                "{}/channels/{}/recipients/{}/",
+                "{}/channels/{}/recipients/{}",
                 user.belongs_to.borrow().urls.api,
                 self.id,
                 recipient_id
@@ -152,7 +152,7 @@ impl Channel {
     ) -> ChorusResult<()> {
         let request = Client::new()
             .delete(format!(
-                "{}/channels/{}/recipients/{}/",
+                "{}/channels/{}/recipients/{}",
                 user.belongs_to.borrow().urls.api,
                 self.id,
                 recipient_id

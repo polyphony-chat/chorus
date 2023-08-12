@@ -18,7 +18,7 @@ impl UserMeta {
         ChorusRequest {
             request: Client::new()
                 .delete(format!(
-                    "{}/users/@me/guilds/{}/",
+                    "{}/users/@me/guilds/{}",
                     self.belongs_to.borrow().urls.api,
                     guild_id
                 ))

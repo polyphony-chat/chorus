@@ -49,7 +49,7 @@ impl UserMeta {
             return Err(ChorusError::PasswordRequired);
         }
         let request = Client::new()
-            .patch(format!("{}/users/@me/", self.belongs_to.borrow().urls.api))
+            .patch(format!("{}/users/@me", self.belongs_to.borrow().urls.api))
             .body(to_string(&modify_schema).unwrap())
             .bearer_auth(self.token());
         let chorus_request = ChorusRequest {
@@ -71,7 +71,7 @@ impl UserMeta {
     pub async fn delete(mut self) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
-                "{}/users/@me/delete/",
+                "{}/users/@me/delete",
                 self.belongs_to.borrow().urls.api
             ))
             .bearer_auth(self.token());
@@ -92,7 +92,7 @@ impl User {
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
         let url = if id.is_none() {
-            format!("{}/users/@me/", url_api)
+            format!("{}/users/@me", url_api)
         } else {
             format!("{}/users/{}", url_api, id.unwrap())
         };
@@ -120,7 +120,7 @@ impl User {
         instance: &mut Instance,
     ) -> ChorusResult<UserSettings> {
         let request: reqwest::RequestBuilder = Client::new()
-            .get(format!("{}/users/@me/settings/", url_api))
+            .get(format!("{}/users/@me/settings", url_api))
             .bearer_auth(token);
         let mut user =
             UserMeta::shell(Rc::new(RefCell::new(instance.clone())), token.clone()).await;
