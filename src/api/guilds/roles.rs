@@ -19,7 +19,7 @@ impl types::RoleObject {
         guild_id: Snowflake,
     ) -> ChorusResult<Vec<RoleObject>> {
         let url = format!(
-            "{}/guilds/{}/roles/",
+            "{}/guilds/{}/roles",
             user.belongs_to.borrow().urls.api,
             guild_id
         );
@@ -44,7 +44,7 @@ impl types::RoleObject {
         role_id: Snowflake,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
-            "{}/guilds/{}/roles/{}/",
+            "{}/guilds/{}/roles/{}",
             user.belongs_to.borrow().urls.api,
             guild_id,
             role_id
@@ -70,7 +70,7 @@ impl types::RoleObject {
         role_create_schema: RoleCreateModifySchema,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
-            "{}/guilds/{}/roles/",
+            "{}/guilds/{}/roles",
             user.belongs_to.borrow().urls.api,
             guild_id
         );
@@ -100,7 +100,7 @@ impl types::RoleObject {
         role_position_update_schema: RolePositionUpdateSchema,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
-            "{}/guilds/{}/roles/",
+            "{}/guilds/{}/roles",
             user.belongs_to.borrow().urls.api,
             guild_id
         );

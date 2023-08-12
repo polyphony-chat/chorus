@@ -23,7 +23,7 @@ impl ReactionMeta {
     /// See <https://discord.com/developers/docs/resources/channel#delete-all-reactions>
     pub async fn delete_all(&self, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
-            "{}/channels/{}/messages/{}/reactions/",
+            "{}/channels/{}/messages/{}/reactions",
             user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id
@@ -44,7 +44,7 @@ impl ReactionMeta {
     /// See <https://discord.com/developers/docs/resources/channel#get-reactions>
     pub async fn get(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<Vec<PublicUser>> {
         let url = format!(
-            "{}/channels/{}/messages/{}/reactions/{}/",
+            "{}/channels/{}/messages/{}/reactions/{}",
             user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id,
@@ -70,7 +70,7 @@ impl ReactionMeta {
     /// See <https://discord.com/developers/docs/resources/channel#delete-all-reactions-for-emoji>
     pub async fn delete_emoji(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
-            "{}/channels/{}/messages/{}/reactions/{}/",
+            "{}/channels/{}/messages/{}/reactions/{}",
             user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id,
@@ -97,7 +97,7 @@ impl ReactionMeta {
     /// See <https://discord.com/developers/docs/resources/channel#create-reaction>
     pub async fn create(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
-            "{}/channels/{}/messages/{}/reactions/{}/@me/",
+            "{}/channels/{}/messages/{}/reactions/{}/@me",
             user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id,
@@ -119,7 +119,7 @@ impl ReactionMeta {
     /// See <https://discord.com/developers/docs/resources/channel#delete-own-reaction>
     pub async fn remove(&self, emoji: &str, user: &mut UserMeta) -> ChorusResult<()> {
         let url = format!(
-            "{}/channels/{}/messages/{}/reactions/{}/@me/",
+            "{}/channels/{}/messages/{}/reactions/{}/@me",
             user.belongs_to.borrow().urls.api,
             self.channel_id,
             self.message_id,

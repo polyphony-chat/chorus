@@ -21,7 +21,7 @@ impl UserMeta {
         user_id: Snowflake,
     ) -> ChorusResult<Vec<types::PublicUser>> {
         let url = format!(
-            "{}/users/{}/relationships/",
+            "{}/users/{}/relationships",
             self.belongs_to.borrow().urls.api,
             user_id
         );
@@ -40,7 +40,7 @@ impl UserMeta {
     /// See <https://luna.gitlab.io/discord-unofficial-docs/relationships.html#get-users-me-relationships>
     pub async fn get_relationships(&mut self) -> ChorusResult<Vec<types::Relationship>> {
         let url = format!(
-            "{}/users/@me/relationships/",
+            "{}/users/@me/relationships",
             self.belongs_to.borrow().urls.api
         );
         let chorus_request = ChorusRequest {
@@ -61,7 +61,7 @@ impl UserMeta {
         schema: FriendRequestSendSchema,
     ) -> ChorusResult<()> {
         let url = format!(
-            "{}/users/@me/relationships/",
+            "{}/users/@me/relationships",
             self.belongs_to.borrow().urls.api
         );
         let body = to_string(&schema).unwrap();
@@ -85,7 +85,7 @@ impl UserMeta {
             RelationshipType::None => {
                 let chorus_request = ChorusRequest {
                     request: Client::new()
-                        .delete(format!("{}/users/@me/relationships/{}/", api_url, user_id))
+                        .delete(format!("{}/users/@me/relationships/{}", api_url, user_id))
                         .bearer_auth(self.token()),
                     limit_type: LimitType::Global,
                 };
@@ -99,7 +99,7 @@ impl UserMeta {
                 };
                 let chorus_request = ChorusRequest {
                     request: Client::new()
-                        .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
+                        .put(format!("{}/users/@me/relationships/{}", api_url, user_id))
                         .bearer_auth(self.token())
                         .body(to_string(&body).unwrap()),
                     limit_type: LimitType::Global,
@@ -114,7 +114,7 @@ impl UserMeta {
                 };
                 let chorus_request = ChorusRequest {
                     request: Client::new()
-                        .put(format!("{}/users/@me/relationships/{}/", api_url, user_id))
+                        .put(format!("{}/users/@me/relationships/{}", api_url, user_id))
                         .bearer_auth(self.token())
                         .body(to_string(&body).unwrap()),
                     limit_type: LimitType::Global,
@@ -131,7 +131,7 @@ impl UserMeta {
     /// See <https://luna.gitlab.io/discord-unofficial-docs/relationships.html#delete-users-me-relationships-peer-id>
     pub async fn remove_relationship(&mut self, user_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
-            "{}/users/@me/relationships/{}/",
+            "{}/users/@me/relationships/{}",
             self.belongs_to.borrow().urls.api,
             user_id
         );
