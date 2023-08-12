@@ -5,28 +5,21 @@ use crate::{
     errors::ChorusResult,
     instance::UserMeta,
     ratelimiter::ChorusRequest,
-    types::{self, Snowflake},
+    types::{self, GuildMember, Snowflake},
 };
 
 impl types::GuildMember {
-    /// Retrieves a guild member by their ID.
+    /// Retrieves a guild member.
     ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `guild_id` - The ID of the guild.
-    /// * `member_id` - The ID of the member.
-    ///
-    /// # Returns
-    ///
-    /// A [`Result`] containing a [`GuildMember`] if the request succeeds, or a [`ChorusLibError`] if the request fails.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-member>
     pub async fn get(
         user: &mut UserMeta,
         guild_id: Snowflake,
         member_id: Snowflake,
-    ) -> ChorusResult<types::GuildMember> {
+    ) -> ChorusResult<GuildMember> {
         let url = format!(
-            "{}/guilds/{}/members/{}/",
+            "{}/guilds/{}/members/{}",
             user.belongs_to.borrow().urls.api,
             guild_id,
             member_id
@@ -36,22 +29,16 @@ impl types::GuildMember {
             limit_type: LimitType::Guild(guild_id),
         };
         chorus_request
-            .deserialize_response::<types::GuildMember>(user)
+            .deserialize_response::<GuildMember>(user)
             .await
     }
 
     /// Adds a role to a guild member.
     ///
-    /// # Arguments
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
-    /// * `user` - A mutable reference to a `UserMeta` instance.
-    /// * `guild_id` - The ID of the guild.
-    /// * `member_id` - The ID of the member.
-    /// * `role_id` - The ID of the role to add.
-    ///
-    /// # Returns
-    ///
-    /// An `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#add-guild-member-role>
     pub async fn add_role(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -59,7 +46,7 @@ impl types::GuildMember {
         role_id: Snowflake,
     ) -> ChorusResult<()> {
         let url = format!(
-            "{}/guilds/{}/members/{}/roles/{}/",
+            "{}/guilds/{}/members/{}/roles/{}",
             user.belongs_to.borrow().urls.api,
             guild_id,
             member_id,
@@ -74,16 +61,10 @@ impl types::GuildMember {
 
     /// Removes a role from a guild member.
     ///
-    /// # Arguments
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
-    /// * `user` - A mutable reference to a `UserMeta` instance.
-    /// * `guild_id` - The ID of the guild.
-    /// * `member_id` - The ID of the member.
-    /// * `role_id` - The ID of the role to remove.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` containing a `ChorusLibError` if the request fails, or `()` if the request succeeds.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member-role>
     pub async fn remove_role(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -91,7 +72,7 @@ impl types::GuildMember {
         role_id: Snowflake,
     ) -> Result<(), crate::errors::ChorusError> {
         let url = format!(
-            "{}/guilds/{}/members/{}/roles/{}/",
+            "{}/guilds/{}/members/{}/roles/{}",
             user.belongs_to.borrow().urls.api,
             guild_id,
             member_id,

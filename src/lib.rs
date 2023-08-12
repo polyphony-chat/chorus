@@ -16,15 +16,25 @@ pub mod types;
 pub mod voice;
 
 #[derive(Clone, Default, Debug, PartialEq, Eq)]
-/// A URLBundle is a struct which bundles together the API-, Gateway- and CDN-URLs of a Spacebar
-/// instance.
+/// A URLBundle bundles together the API-, Gateway- and CDN-URLs of a Spacebar instance.
+///
+/// # Notes
+/// All the urls can be found on the /api/policies/instance/domains endpoint of a spacebar server
 pub struct UrlBundle {
+    /// The api's url.
+    /// Ex: `https://old.server.spacebar.chat/api`
     pub api: String,
+    /// The gateway websocket url.
+    /// Note that because this is a websocket url, it will always start with `wss://` or `ws://`
+    /// Ex: `wss://gateway.old.server.spacebar.chat`
     pub wss: String,
+    /// The CDN's url.
+    /// Ex: `https://cdn.old.server.spacebar.chat`
     pub cdn: String,
 }
 
 impl UrlBundle {
+    /// Creates a new UrlBundle from the relevant urls.
     pub fn new(api: String, wss: String, cdn: String) -> Self {
         Self {
             api: UrlBundle::parse_url(api),
@@ -33,9 +43,10 @@ impl UrlBundle {
         }
     }
 
-    /// parse(url: String) parses a URL using the Url library and formats it in a standardized
-    /// way. If no protocol is given, HTTP (not HTTPS) is assumed.
-    /// # Example:
+    /// Parses a URL using the Url library and formats it in a standardized way.
+    /// If no protocol is given, HTTP (not HTTPS) is assumed.
+    ///
+    /// # Examples:
     /// ```rs
     /// let url = parse_url("localhost:3000");
     /// ```

@@ -10,17 +10,16 @@ use crate::{
 };
 
 impl types::Channel {
-    /// Edits the permission overwrites for a channel.
+    /// Edits the permission overwrites for a user or role in a channel.
     ///
-    /// # Arguments
+    /// Only usable for guild channels.
     ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `channel_id` - A string slice representing the ID of the channel.
-    /// * `overwrite` - A [`PermissionOverwrite`] instance representing the new permission overwrites.
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
+    /// Only permissions you have in the guild or parent channel (if applicable) can be allowed/denied
+    /// (unless you have a [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) overwrite in the channel).
     ///
-    /// # Returns
-    ///
-    /// This function returns a result that is either [`Ok(())`] if the request is successful, or an [`Err(ChorusLibError)`].
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel-permissions>
     pub async fn edit_permissions(
         user: &mut UserMeta,
         channel_id: Snowflake,
@@ -47,17 +46,14 @@ impl types::Channel {
         chorus_request.handle_request_as_result(user).await
     }
 
-    /// Deletes a permission overwrite for a channel.
+    /// Deletes a permission overwrite for a user or role in a channel.
     ///
-    /// # Arguments
+    /// Only usable for guild channels.
     ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `channel_id` - A string slice representing the ID of the channel.
-    /// * `overwrite_id` - A string slice representing the ID of the permission overwrite to delete.
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
-    /// # Returns
-    ///
-    /// This function returns a Result that is either [`Ok(())`] if the request is successfulm or an [`Err(ChorusLibError)`].
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel-permission>
     pub async fn delete_permission(
         user: &mut UserMeta,
         channel_id: Snowflake,

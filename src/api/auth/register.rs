@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use std::{cell::RefCell, rc::Rc};
 
 use reqwest::Client;
@@ -14,15 +15,10 @@ use crate::{
 };
 
 impl Instance {
-    /// Registers a new user on the Spacebar server.
+    /// Registers a new user on the server.
     ///
-    /// # Arguments
-    ///
-    /// * `register_schema` - The [`RegisterSchema`] that contains all the information that is needed to register a new user.
-    ///
-    /// # Errors
-    ///
-    /// * [`ChorusLibError`] - If the server does not respond.
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#post-/auth/register/>
     pub async fn register_account(
         &mut self,
         register_schema: &RegisterSchema,
@@ -56,8 +52,8 @@ impl Instance {
             Rc::new(RefCell::new(self.clone())),
             token.clone(),
             self.clone_limits_if_some(),
-            settings,
-            user_object,
+            Arc::new(Mutex::new(settings)),
+            Arc::new(Mutex::new(user_object)),
             gateway,
         );
         Ok(user)

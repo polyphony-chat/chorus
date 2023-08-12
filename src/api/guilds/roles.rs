@@ -6,30 +6,20 @@ use crate::{
     errors::{ChorusError, ChorusResult},
     instance::UserMeta,
     ratelimiter::ChorusRequest,
-    types::{self, RoleCreateModifySchema, RoleObject, Snowflake},
+    types::{self, RoleCreateModifySchema, RoleObject, RolePositionUpdateSchema, Snowflake},
 };
 
 impl types::RoleObject {
-    /// Retrieves all roles for a given guild.
+    /// Retrieves a list of roles for a given guild.
     ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `guild_id` - The ID of the guild to retrieve roles from.
-    ///
-    /// # Returns
-    ///
-    /// An `Option` containing a `Vec` of [`RoleObject`]s if roles were found, or `None` if no roles were found.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-roles>
     pub async fn get_all(
         user: &mut UserMeta,
         guild_id: Snowflake,
-    ) -> ChorusResult<Option<Vec<RoleObject>>> {
+    ) -> ChorusResult<Vec<RoleObject>> {
         let url = format!(
-            "{}/guilds/{}/roles/",
+            "{}/guilds/{}/roles",
             user.belongs_to.borrow().urls.api,
             guild_id
         );
@@ -41,34 +31,20 @@ impl types::RoleObject {
             .deserialize_response::<Vec<RoleObject>>(user)
             .await
             .unwrap();
-        if roles.is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(roles))
+        Ok(roles)
     }
 
     /// Retrieves a single role for a given guild.
     ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `guild_id` - The ID of the guild to retrieve the role from.
-    /// * `role_id` - The ID of the role to retrieve.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` containing the retrieved [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/roles/-role_id-/>
     pub async fn get(
         user: &mut UserMeta,
         guild_id: Snowflake,
         role_id: Snowflake,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
-            "{}/guilds/{}/roles/{}/",
+            "{}/guilds/{}/roles/{}",
             user.belongs_to.borrow().urls.api,
             guild_id,
             role_id
@@ -84,26 +60,17 @@ impl types::RoleObject {
 
     /// Creates a new role for a given guild.
     ///
-    /// # Arguments
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `guild_id` - The ID of the guild to create the role in.
-    /// * `role_create_schema` - A [`RoleCreateModifySchema`] instance containing the properties of the role to be created.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` containing the newly created [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild-role>
     pub async fn create(
         user: &mut UserMeta,
         guild_id: Snowflake,
         role_create_schema: RoleCreateModifySchema,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
-            "{}/guilds/{}/roles/",
+            "{}/guilds/{}/roles",
             user.belongs_to.borrow().urls.api,
             guild_id
         );
@@ -121,28 +88,19 @@ impl types::RoleObject {
             .await
     }
 
-    /// Updates the position of a role in the guild's hierarchy.
+    /// Updates the position of a role in a given guild's hierarchy.
     ///
-    /// # Arguments
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `guild_id` - The ID of the guild to update the role position in.
-    /// * `role_position_update_schema` - A [`RolePositionUpdateSchema`] instance containing the new position of the role.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` containing the updated [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role-positions>
     pub async fn position_update(
         user: &mut UserMeta,
         guild_id: Snowflake,
-        role_position_update_schema: types::RolePositionUpdateSchema,
+        role_position_update_schema: RolePositionUpdateSchema,
     ) -> ChorusResult<RoleObject> {
         let url = format!(
-            "{}/guilds/{}/roles/",
+            "{}/guilds/{}/roles",
             user.belongs_to.borrow().urls.api,
             guild_id
         );
@@ -164,20 +122,10 @@ impl types::RoleObject {
 
     /// Updates a role in a guild.
     ///
-    /// # Arguments
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `guild_id` - The ID of the guild to update the role in.
-    /// * `role_id` - The ID of the role to update.
-    /// * `role_create_schema` - A [`RoleCreateModifySchema`] instance containing the new properties of the role.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` containing the updated [`RoleObject`] if successful, or a [`ChorusLibError`] if the request fails or if the response is invalid.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ChorusLibError`] if the request fails or if the response is invalid.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role>
     pub async fn update(
         user: &mut UserMeta,
         guild_id: Snowflake,

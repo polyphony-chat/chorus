@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 use reqwest::Client;
 use serde_json::to_string;
@@ -12,6 +13,10 @@ use crate::ratelimiter::ChorusRequest;
 use crate::types::{GatewayIdentifyPayload, LoginResult, LoginSchema};
 
 impl Instance {
+    /// Logs into an existing account on the spacebar server.
+    ///
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#post-/auth/login/>
     pub async fn login_account(&mut self, login_schema: &LoginSchema) -> ChorusResult<UserMeta> {
         let endpoint_url = self.urls.api.clone() + "/auth/login";
         let chorus_request = ChorusRequest {
@@ -41,7 +46,7 @@ impl Instance {
             login_result.token,
             self.clone_limits_if_some(),
             login_result.settings,
-            object,
+            Arc::new(Mutex::new(object)),
             gateway,
         );
         Ok(user)

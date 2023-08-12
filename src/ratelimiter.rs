@@ -237,6 +237,9 @@ impl ChorusRequest {
     ///     reset to the rate limit limit.
     /// 2. The remaining rate limit is decreased by 1.
     fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
+        if user.belongs_to.borrow().limits_information.is_none() {
+            return;
+        }
         let instance_dictated_limits = [
             &LimitType::AuthLogin,
             &LimitType::AuthRegister,
@@ -292,6 +295,13 @@ impl ChorusRequest {
         }
     }
 
+    /// Gets the ratelimit configuration.
+    ///
+    /// # Notes
+    /// This is a spacebar only endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#get-/policies/instance/limits/>
     pub(crate) async fn get_limits_config(url_api: &str) -> ChorusResult<LimitsConfiguration> {
         let request = Client::new()
             .get(format!("{}/policies/instance/limits/", url_api))

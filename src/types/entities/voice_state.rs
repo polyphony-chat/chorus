@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -6,15 +8,15 @@ use crate::types::{
     utils::Snowflake,
 };
 
-/// See https://docs.spacebar.chat/routes/#cmp--schemas-voicestate
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+/// See <https://docs.spacebar.chat/routes/#cmp--schemas-voicestate>
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct VoiceState {
     pub guild_id: Option<Snowflake>,
     pub guild: Option<Guild>,
     pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
-    pub member: Option<GuildMember>,
+    pub member: Option<Arc<Mutex<GuildMember>>>,
     pub session_id: Snowflake,
     pub token: Option<String>,
     pub deaf: bool,

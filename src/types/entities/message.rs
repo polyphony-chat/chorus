@@ -8,8 +8,12 @@ use crate::types::{
     utils::Snowflake,
 };
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+/// Represents a message sent in a channel.
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/message#message-object>
 pub struct Message {
     pub id: Snowflake,
     pub channel_id: Snowflake,
@@ -64,6 +68,8 @@ pub struct Message {
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
 pub struct MessageReference {
     pub message_id: Snowflake,
     pub channel_id: Snowflake,
@@ -71,7 +77,7 @@ pub struct MessageReference {
     pub fail_if_not_exists: Option<bool>,
 }
 
-#[derive(Debug, PartialEq, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct MessageInteraction {
     pub id: Snowflake,
     #[serde(rename = "type")]
@@ -106,7 +112,7 @@ pub struct ChannelMention {
     name: String,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Embed {
     title: Option<String>,
     #[serde(rename = "type")]
@@ -176,10 +182,13 @@ pub struct EmbedField {
     inline: Option<bool>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Reaction {
-    pub count: i32,
+    pub count: u32,
+    pub burst_count: u32,
     pub me: bool,
+    pub burst_me: bool,
+    pub burst_colors: Vec<String>,
     pub emoji: Emoji,
 }
 
@@ -196,6 +205,8 @@ pub enum Component {
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/message#message-activity-object>
 pub struct MessageActivity {
     #[serde(rename = "type")]
     pub activity_type: i64,

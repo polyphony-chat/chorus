@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use std::{cell::RefCell, rc::Rc};
 
 use reqwest::Client;
@@ -12,22 +13,22 @@ use crate::{
 };
 
 impl UserMeta {
-    /// Get a user object by id, or get the current user.
+    /// Gets a user by id, or if the id is None, gets the current user.
     ///
-    /// # Arguments
+    /// # Notes
+    /// This function is a wrapper around [`User::get`].
     ///
-    /// * `token` - A valid access token for the API.
-    /// * `url_api` - The URL to the API.
-    /// * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
-    /// * `instance_limits` - The [`Limits`] of the instance.
-    ///
-    /// # Errors
-    ///
-    /// * [`ChorusLibError`] - If the request fails.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
+    /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         User::get(user, id).await
     }
 
+    /// Gets the user's settings.
+    ///
+    /// # Notes
+    /// This functions is a wrapper around [`User::get_settings`].
     pub async fn get_settings(
         token: &String,
         url_api: &String,
@@ -36,15 +37,10 @@ impl UserMeta {
         User::get_settings(token, url_api, instance).await
     }
 
-    /// Modify the current user's `UserObject`.
+    /// Modifies the current user's representation. (See [`User`])
     ///
-    /// # Arguments
-    ///
-    /// * `modify_schema` - A `UserModifySchema` object containing the fields to modify.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `ChorusLibError` if the request fails or if a password is required but not provided.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#modify-current-user>
     pub async fn modify(&mut self, modify_schema: UserModifySchema) -> ChorusResult<User> {
         if modify_schema.new_password.is_some()
             || modify_schema.email.is_some()
@@ -53,7 +49,7 @@ impl UserMeta {
             return Err(ChorusError::PasswordRequired);
         }
         let request = Client::new()
-            .patch(format!("{}/users/@me/", self.belongs_to.borrow().urls.api))
+            .patch(format!("{}/users/@me", self.belongs_to.borrow().urls.api))
             .body(to_string(&modify_schema).unwrap())
             .bearer_auth(self.token());
         let chorus_request = ChorusRequest {
@@ -64,23 +60,18 @@ impl UserMeta {
             .deserialize_response::<User>(self)
             .await
             .unwrap();
-        let _ = std::mem::replace(&mut self.object, user_updated.clone());
+        self.object = Arc::new(Mutex::new(user_updated.clone()));
         Ok(user_updated)
     }
 
-    /// Sends a request to the server which deletes the user from the Instance.
+    /// Deletes the user from the Instance.
     ///
-    /// # Arguments
-    ///
-    /// * `self` - The `User` object to delete.
-    ///
-    /// # Returns
-    ///
-    /// Returns `()` if the user was successfully deleted, or a `ChorusLibError` if an error occurred.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#disable-user>
     pub async fn delete(mut self) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
-                "{}/users/@me/delete/",
+                "{}/users/@me/delete",
                 self.belongs_to.borrow().urls.api
             ))
             .bearer_auth(self.token());
@@ -93,10 +84,15 @@ impl UserMeta {
 }
 
 impl User {
+    /// Gets a user by id, or if the id is None, gets the current user.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
+    /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
     pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
         let url = if id.is_none() {
-            format!("{}/users/@me/", url_api)
+            format!("{}/users/@me", url_api)
         } else {
             format!("{}/users/{}", url_api, id.unwrap())
         };
@@ -114,13 +110,17 @@ impl User {
         }
     }
 
+    /// Gets the user's settings.
+    ///
+    /// # Reference
+    /// See <https://luna.gitlab.io/discord-unofficial-docs/user_settings.html#get-users-me-settings>
     pub async fn get_settings(
         token: &String,
         url_api: &String,
         instance: &mut Instance,
     ) -> ChorusResult<UserSettings> {
         let request: reqwest::RequestBuilder = Client::new()
-            .get(format!("{}/users/@me/settings/", url_api))
+            .get(format!("{}/users/@me/settings", url_api))
             .bearer_auth(token);
         let mut user =
             UserMeta::shell(Rc::new(RefCell::new(instance.clone())), token.clone()).await;
@@ -141,16 +141,14 @@ impl User {
 }
 
 impl Instance {
-    /**
-    Get a user object by id, or get the current user.
-    # Arguments
-    * `token` - A valid access token for the API.
-    * `id` - The id of the user that will be retrieved. If this is None, the current user will be retrieved.
-    # Errors
-    * [`ChorusLibError`] - If the request fails.
-    # Notes
-    This function is a wrapper around [`User::get`].
-     */
+    /// Gets a user by id, or if the id is None, gets the current user.
+    ///
+    /// # Notes
+    /// This function is a wrapper around [`User::get`].
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
+    /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
     pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
         let mut user = UserMeta::shell(Rc::new(RefCell::new(self.clone())), token).await;
         let result = User::get(&mut user, id).await;

@@ -1,9 +1,15 @@
+use std::sync::{Arc, Mutex};
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::User, utils::Snowflake};
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+/// Represents a sticker that can be sent in messages.
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/sticker#sticker-object>
 pub struct Sticker {
     #[serde(default)]
     pub id: Snowflake,
@@ -18,11 +24,17 @@ pub struct Sticker {
     pub available: Option<bool>,
     pub guild_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<User>,
+    pub user: Option<Arc<Mutex<User>>>,
     pub sort_value: Option<u8>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// A partial sticker object.
+///
+/// Represents the smallest amount of data required to render a sticker.
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/sticker#sticker-item-object>
 pub struct StickerItem {
     pub id: Snowflake,
     pub name: String,

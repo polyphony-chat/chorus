@@ -11,27 +11,15 @@ use crate::types::Snowflake;
 use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema};
 
 impl Guild {
-    /// Creates a new guild with the given parameters.
+    /// Creates a new guild.
     ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to the user creating the guild.
-    /// * `instance` - A mutable reference to the instance where the guild will be created.
-    /// * `guild_create_schema` - A reference to the schema containing the guild creation parameters.
-    ///
-    /// # Returns
-    ///
-    /// A `Result<Guild>` containing the object of the newly created guild, or an error if the request fails.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `ChorusLibError` if the request fails.
-    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild>
     pub async fn create(
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
     ) -> ChorusResult<Guild> {
-        let url = format!("{}/guilds/", user.belongs_to.borrow().urls.api);
+        let url = format!("{}/guilds", user.belongs_to.borrow().urls.api);
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(url.clone())
@@ -42,17 +30,9 @@ impl Guild {
         chorus_request.deserialize_response::<Guild>(user).await
     }
 
-    /// Deletes a guild.
+    /// Deletes a guild by its id.
     ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a `User` instance.
-    /// * `instance` - A mutable reference to an `Instance` instance.
-    /// * `guild_id` - ID of the guild to delete.
-    ///
-    /// # Returns
-    ///
-    /// An `Result` containing an `ChorusLibError` if an error occurred during the request, otherwise `()`.
+    /// User must be the owner.
     ///
     /// # Example
     ///
@@ -61,14 +41,17 @@ impl Guild {
     /// let mut instance = Instance::new();
     /// let guild_id = String::from("1234567890");
     ///
-    /// match Guild::delete(&mut user, &mut instance, guild_id) {
-    ///     Some(e) => println!("Error deleting guild: {:?}", e),
-    ///     None => println!("Guild deleted successfully"),
+    /// match Guild::delete(&mut user, guild_id) {
+    ///     Err(e) => println!("Error deleting guild: {:?}", e),
+    ///     Ok(_) => println!("Guild deleted successfully"),
     /// }
     /// ```
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild>
     pub async fn delete(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
-            "{}/guilds/{}/delete/",
+            "{}/guilds/{}/delete",
             user.belongs_to.borrow().urls.api,
             guild_id
         );
@@ -81,19 +64,15 @@ impl Guild {
         chorus_request.handle_request_as_result(user).await
     }
 
-    /// Sends a request to create a new channel in the guild.
+    /// Creates a new channel in a guild.
     ///
-    /// # Arguments
+    /// Requires the [MANAGE_CHANNELS](crate::types::PermissionFlags::MANAGE_CHANNELS) permission.
     ///
-    /// * `url_api` - The base URL for the Discord API.
-    /// * `token` - A Discord bot token.
-    /// * `schema` - A `ChannelCreateSchema` struct containing the properties of the new channel.
-    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
+    /// # Notes
+    /// This method is a wrapper for [Channel::create].
     ///
-    /// # Returns
-    ///
-    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `ChorusLibError` if there was an error.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
     pub async fn create_channel(
         &self,
         user: &mut UserMeta,
@@ -102,20 +81,17 @@ impl Guild {
         Channel::create(user, self.id, schema).await
     }
 
-    /// Returns a `Result` containing a vector of `Channel` structs if the request was successful, or an `ChorusLibError` if there was an error.
+    /// Returns a list of the guild's channels.
     ///
-    /// # Arguments
+    /// Doesn't include threads.
     ///
-    /// * `url_api` - A string slice that holds the URL of the API.
-    /// * `token` - A string slice that holds the authorization token.
-    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
-    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#get-guild-channels>
     pub async fn channels(&self, user: &mut UserMeta) -> ChorusResult<Vec<Channel>> {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(format!(
-                    "{}/guilds/{}/channels/",
+                    "{}/guilds/{}/channels",
                     user.belongs_to.borrow().urls.api,
                     self.id
                 ))
@@ -141,21 +117,15 @@ impl Guild {
         };
     }
 
-    /// Returns a `Result` containing a `Guild` struct if the request was successful, or an `ChorusLibError` if there was an error.
+    /// Fetches a guild by its id.
     ///
-    /// # Arguments
-    ///
-    /// * `url_api` - A string slice that holds the URL of the API.
-    /// * `guild_id` - ID of the guild.
-    /// * `token` - A string slice that holds the authorization token.
-    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
-    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild>
     pub async fn get(guild_id: Snowflake, user: &mut UserMeta) -> ChorusResult<Guild> {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(format!(
-                    "{}/guilds/{}/",
+                    "{}/guilds/{}",
                     user.belongs_to.borrow().urls.api,
                     guild_id
                 ))
@@ -168,20 +138,12 @@ impl Guild {
 }
 
 impl Channel {
-    /// Sends a request to create a new channel in a guild.
+    /// Creates a new channel in a guild.
     ///
-    /// # Arguments
+    /// Requires the [MANAGE_CHANNELS](crate::types::PermissionFlags::MANAGE_CHANNELS) permission.
     ///
-    /// * `token` - A Discord bot token.
-    /// * `url_api` - The base URL for the Discord API.
-    /// * `guild_id` - The ID of the guild where the channel will be created.
-    /// * `schema` - A `ChannelCreateSchema` struct containing the properties of the new channel.
-    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `ChorusLibError` if there was an error.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
     pub async fn create(
         user: &mut UserMeta,
         guild_id: Snowflake,
@@ -190,7 +152,7 @@ impl Channel {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(format!(
-                    "{}/guilds/{}/channels/",
+                    "{}/guilds/{}/channels",
                     user.belongs_to.borrow().urls.api,
                     guild_id
                 ))

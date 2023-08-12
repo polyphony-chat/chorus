@@ -11,7 +11,7 @@ async fn create_accept_invite() {
         .await
         .is_err());
     let invite = user
-        .create_guild_invite(create_channel_invite_schema, channel.id)
+        .create_channel_invite(create_channel_invite_schema, channel.id)
         .await
         .unwrap();
 

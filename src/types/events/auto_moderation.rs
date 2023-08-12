@@ -6,7 +6,7 @@ use crate::types::{
 };
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-create
+/// See <https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-create>
 pub struct AutoModerationRuleCreate {
     #[serde(flatten)]
     pub rule: AutoModerationRule,
@@ -15,7 +15,7 @@ pub struct AutoModerationRuleCreate {
 impl WebSocketEvent for AutoModerationRuleCreate {}
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-update
+/// See <https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-update>
 pub struct AutoModerationRuleUpdate {
     #[serde(flatten)]
     pub rule: AutoModerationRule,
@@ -24,7 +24,7 @@ pub struct AutoModerationRuleUpdate {
 impl WebSocketEvent for AutoModerationRuleUpdate {}
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-delete
+/// See <https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-delete>
 pub struct AutoModerationRuleDelete {
     #[serde(flatten)]
     pub rule: AutoModerationRule,
@@ -33,7 +33,7 @@ pub struct AutoModerationRuleDelete {
 impl WebSocketEvent for AutoModerationRuleDelete {}
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// See https://discord.com/developers/docs/topics/gateway-events#auto-moderation-action-execution
+/// See <https://discord.com/developers/docs/topics/gateway-events#auto-moderation-action-execution>
 pub struct AutoModerationActionExecution {
     pub guild_id: Snowflake,
     pub action: AutoModerationAction,

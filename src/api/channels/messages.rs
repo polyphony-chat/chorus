@@ -4,22 +4,28 @@ use reqwest::{multipart, Client};
 use serde_json::to_string;
 
 use crate::api::LimitType;
+use crate::errors::ChorusResult;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{Message, MessageSendSchema, Snowflake};
 
 impl Message {
+    /// Sends a message in the channel with the provided channel_id.
+    /// Returns the sent message.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/message#create-message>
     pub async fn send(
         user: &mut UserMeta,
         channel_id: Snowflake,
         mut message: MessageSendSchema,
-    ) -> Result<Message, crate::errors::ChorusError> {
+    ) -> ChorusResult<Message> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
 
         if message.attachments.is_none() {
             let chorus_request = ChorusRequest {
                 request: Client::new()
-                    .post(format!("{}/channels/{}/messages/", url_api, channel_id))
+                    .post(format!("{}/channels/{}/messages", url_api, channel_id))
                     .bearer_auth(user.token())
                     .body(to_string(&message).unwrap()),
                 limit_type: LimitType::Channel(channel_id),
@@ -55,7 +61,7 @@ impl Message {
 
             let chorus_request = ChorusRequest {
                 request: Client::new()
-                    .post(format!("{}/channels/{}/messages/", url_api, channel_id))
+                    .post(format!("{}/channels/{}/messages", url_api, channel_id))
                     .bearer_auth(user.token())
                     .multipart(form),
                 limit_type: LimitType::Channel(channel_id),
@@ -66,11 +72,19 @@ impl Message {
 }
 
 impl UserMeta {
+    /// Sends a message in the channel with the provided channel_id.
+    /// Returns the sent message.
+    ///
+    /// # Notes
+    /// Shorthand call for [`Message::send`]
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/message#create-message>
     pub async fn send_message(
         &mut self,
         message: MessageSendSchema,
         channel_id: Snowflake,
-    ) -> Result<Message, crate::errors::ChorusError> {
+    ) -> ChorusResult<Message> {
         Message::send(self, channel_id, message).await
     }
 }

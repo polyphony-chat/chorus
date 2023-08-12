@@ -78,7 +78,7 @@ const GATEWAY_LAZY_REQUEST: u8 = 14;
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
 const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
 
-/// Represents a messsage received from the gateway. This will be either a [GatewayReceivePayload], containing events, or a [GatewayError].
+/// Represents a messsage received from the gateway. This will be either a [types::GatewayReceivePayload], containing events, or a [GatewayError].
 /// This struct is used internally when handling messages.
 #[derive(Clone, Debug)]
 pub struct GatewayMessage {
@@ -150,7 +150,7 @@ impl GatewayMessage {
 
 /// Represents a handle to a Gateway connection. A Gateway connection will create observable
 /// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
-/// implemented [Types] with the trait [`WebSocketEvent`]
+/// implemented types with the trait [`WebSocketEvent`]
 /// Using this handle you can also send Gateway Events directly.
 #[derive(Debug)]
 pub struct GatewayHandle {

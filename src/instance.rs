@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -15,10 +16,8 @@ use crate::types::{GeneralConfiguration, User, UserSettings};
 use crate::UrlBundle;
 
 #[derive(Debug, Clone)]
-/**
-The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
-If `limits_information` is `None`, then the instance will not be rate limited.
- */
+/// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
+/// If `limits_information` is `None`, then the instance will not be rate limited.
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
@@ -33,12 +32,7 @@ pub struct LimitsInformation {
 }
 
 impl Instance {
-    /// Creates a new [`Instance`].
-    /// # Arguments
-    /// * `urls` - The [`URLBundle`] that contains all the URLs that are needed to connect to the Spacebar server.
-    /// * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
-    /// # Errors
-    /// * [`InstanceError`] - If the instance cannot be created.
+    /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle), where `limited` is whether or not to automatically use rate limits.
     pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
         let limits_information;
         if limited {
@@ -90,12 +84,15 @@ impl fmt::Display for Token {
 }
 
 #[derive(Debug)]
+/// A UserMeta is a representation of an authenticated user on an [Instance].
+/// It is used for most authenticated actions on a Spacebar server.
+/// It also has its own [Gateway] connection.
 pub struct UserMeta {
     pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,
     pub limits: Option<HashMap<LimitType, Limit>>,
-    pub settings: UserSettings,
-    pub object: User,
+    pub settings: Arc<Mutex<UserSettings>>,
+    pub object: Arc<Mutex<User>>,
     pub gateway: GatewayHandle,
 }
 
@@ -108,12 +105,17 @@ impl UserMeta {
         self.token = token;
     }
 
+    /// Creates a new [UserMeta] from existing data.
+    ///
+    /// # Notes
+    /// This isn't the prefered way to create a UserMeta.
+    /// See [Instance::login_account] and [Instance::register_account] instead.
     pub fn new(
         belongs_to: Rc<RefCell<Instance>>,
         token: String,
         limits: Option<HashMap<LimitType, Limit>>,
-        settings: UserSettings,
-        object: User,
+        settings: Arc<Mutex<UserSettings>>,
+        object: Arc<Mutex<User>>,
         gateway: GatewayHandle,
     ) -> UserMeta {
         UserMeta {
@@ -132,8 +134,8 @@ impl UserMeta {
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
     pub(crate) async fn shell(instance: Rc<RefCell<Instance>>, token: String) -> UserMeta {
-        let settings = UserSettings::default();
-        let object = User::default();
+        let settings = Arc::new(Mutex::new(UserSettings::default()));
+        let object = Arc::new(Mutex::new(User::default()));
         let wss_url = instance.borrow().urls.wss.clone();
         // Dummy gateway object
         let gateway = Gateway::new(wss_url).await.unwrap();
