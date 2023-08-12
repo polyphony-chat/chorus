@@ -19,7 +19,7 @@ impl Guild {
         user: &mut UserMeta,
         guild_create_schema: GuildCreateSchema,
     ) -> ChorusResult<Guild> {
-        let url = format!("{}/guilds/", user.belongs_to.borrow().urls.api);
+        let url = format!("{}/guilds", user.belongs_to.borrow().urls.api);
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(url.clone())
@@ -51,7 +51,7 @@ impl Guild {
     /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild>
     pub async fn delete(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
-            "{}/guilds/{}/delete/",
+            "{}/guilds/{}/delete",
             user.belongs_to.borrow().urls.api,
             guild_id
         );
@@ -91,7 +91,7 @@ impl Guild {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(format!(
-                    "{}/guilds/{}/channels/",
+                    "{}/guilds/{}/channels",
                     user.belongs_to.borrow().urls.api,
                     self.id
                 ))
@@ -125,7 +125,7 @@ impl Guild {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(format!(
-                    "{}/guilds/{}/",
+                    "{}/guilds/{}",
                     user.belongs_to.borrow().urls.api,
                     guild_id
                 ))
@@ -152,7 +152,7 @@ impl Channel {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(format!(
-                    "{}/guilds/{}/channels/",
+                    "{}/guilds/{}/channels",
                     user.belongs_to.borrow().urls.api,
                     guild_id
                 ))

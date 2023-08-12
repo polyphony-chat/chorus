@@ -21,7 +21,7 @@ impl UserMeta {
         let mut request = ChorusRequest {
             request: Client::new()
                 .post(format!(
-                    "{}/invites/{}/",
+                    "{}/invites/{}",
                     self.belongs_to.borrow().urls.api,
                     invite_code
                 ))
@@ -46,7 +46,7 @@ impl UserMeta {
         ChorusRequest {
             request: Client::new()
                 .post(format!(
-                    "{}/users/@me/invites/",
+                    "{}/users/@me/invites",
                     self.belongs_to.borrow().urls.api
                 ))
                 .body(to_string(&code).unwrap())
@@ -72,7 +72,7 @@ impl UserMeta {
         ChorusRequest {
             request: Client::new()
                 .post(format!(
-                    "{}/channels/{}/invites/",
+                    "{}/channels/{}/invites",
                     self.belongs_to.borrow().urls.api,
                     channel_id
                 ))
