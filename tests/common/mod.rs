@@ -1,3 +1,5 @@
+use std::sync::{Arc, RwLock};
+
 use chorus::gateway::Gateway;
 use chorus::{
     instance::{Instance, UserMeta},
@@ -14,9 +16,9 @@ pub(crate) struct TestBundle {
     pub urls: UrlBundle,
     pub user: UserMeta,
     pub instance: Instance,
-    pub guild: Guild,
-    pub role: RoleObject,
-    pub channel: Channel,
+    pub guild: Arc<RwLock<Guild>>,
+    pub role: Arc<RwLock<RoleObject>>,
+    pub channel: Arc<RwLock<Channel>>,
 }
 
 #[allow(unused)]
@@ -113,17 +115,16 @@ pub(crate) async fn setup() -> TestBundle {
         urls,
         user,
         instance,
-        guild,
-        role,
-        channel,
+        guild: Arc::new(RwLock::new(guild)),
+        role: Arc::new(RwLock::new(role)),
+        channel: Arc::new(RwLock::new(channel)),
     }
 }
 
 // Teardown method to clean up after a test.
 #[allow(dead_code)]
 pub(crate) async fn teardown(mut bundle: TestBundle) {
-    Guild::delete(&mut bundle.user, bundle.guild.id)
-        .await
-        .unwrap();
+    let id = bundle.guild.read().unwrap().id;
+    Guild::delete(&mut bundle.user, id).await.unwrap();
     bundle.user.delete().await.unwrap()
 }

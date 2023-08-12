@@ -29,18 +29,30 @@ async fn test_gateway_authenticate() {
 #[tokio::test]
 async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
-    let channel_updater = bundle.user.gateway.observe(bundle.channel).await;
+    let channel_updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
     let received_channel = channel_updater.borrow().clone();
-    assert_eq!(received_channel, bundle.channel);
+    assert_eq!(
+        *received_channel.read().unwrap(),
+        *bundle.channel.read().unwrap()
+    );
     let channel = &mut bundle.channel;
     let modify_data = types::ChannelModifySchema {
         name: Some("beepboop".to_string()),
         ..Default::default()
     };
-    Channel::modify(channel, modify_data, channel.id, &mut bundle.user)
-        .await
-        .unwrap();
+    let channel_id = channel.read().unwrap().id;
+    Channel::modify(
+        channel.read().as_ref().unwrap(),
+        modify_data,
+        channel_id,
+        &mut bundle.user,
+    )
+    .await
+    .unwrap();
     let received_channel = channel_updater.borrow();
-    assert_eq!(received_channel.name.as_ref().unwrap(), "beepboop");
+    assert_eq!(
+        received_channel.read().unwrap().name.as_ref().unwrap(),
+        "beepboop"
+    );
     common::teardown(bundle).await
 }

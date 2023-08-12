@@ -8,11 +8,11 @@ mod common;
 #[tokio::test]
 async fn get_channel() {
     let mut bundle = common::setup().await;
-    let bundle_channel = bundle.channel.clone();
+    let bundle_channel = bundle.channel.read().unwrap();
     let bundle_user = &mut bundle.user;
 
     assert_eq!(
-        bundle_channel,
+        *bundle_channel,
         Channel::get(bundle_user, bundle_channel.id).await.unwrap()
     );
     common::teardown(bundle).await
@@ -21,7 +21,7 @@ async fn get_channel() {
 #[tokio::test]
 async fn delete_channel() {
     let mut bundle = common::setup().await;
-    let result = Channel::delete(bundle.channel.clone(), &mut bundle.user).await;
+    let result = Channel::delete(*bundle.channel.write().unwrap(), &mut bundle.user).await;
     assert!(result.is_ok());
     common::teardown(bundle).await
 }
@@ -50,16 +50,21 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    let modified_channel = Channel::modify(channel, modify_data, channel.id, &mut bundle.user)
-        .await
-        .unwrap();
+    let modified_channel = Channel::modify(
+        channel.read().as_ref().unwrap(),
+        modify_data,
+        channel.read().unwrap().id,
+        &mut bundle.user,
+    )
+    .await
+    .unwrap();
     assert_eq!(modified_channel.name, Some(CHANNEL_NAME.to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([
         PermissionFlags::MANAGE_CHANNELS,
         PermissionFlags::MANAGE_MESSAGES,
     ]));
-    let user_id: types::Snowflake = bundle.user.object.read().unwrap().id;
+    let user_id: types::Snowflake = bundle.user.read().unwrap().object.read().unwrap().id;
     let permission_override = PermissionOverwrite {
         id: user_id,
         overwrite_type: "1".to_string(),
