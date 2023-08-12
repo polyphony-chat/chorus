@@ -67,6 +67,7 @@ impl Channel {
         channel_id: Snowflake,
         user: &mut UserMeta,
     ) -> ChorusResult<Channel> {
+        // FIXME: Do not return a Channel.
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .patch(format!(
