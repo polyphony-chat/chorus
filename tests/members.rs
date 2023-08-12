@@ -7,7 +7,7 @@ async fn add_remove_role() -> ChorusResult<()> {
     let mut bundle = common::setup().await;
     let guild = bundle.guild.id;
     let role = bundle.role.id;
-    let member_id = bundle.user.object.lock().unwrap().id;
+    let member_id = bundle.user.object.read().unwrap().id;
     GuildMember::add_role(&mut bundle.user, guild, member_id, role).await?;
     let member = GuildMember::get(&mut bundle.user, guild, member_id)
         .await

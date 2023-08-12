@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use chorus_macros::Updateable;
 use chrono::Utc;
@@ -48,7 +48,7 @@ pub struct Channel {
     pub last_pin_timestamp: Option<String>,
     pub managed: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub member: Option<Arc<Mutex<ThreadMember>>>,
+    pub member: Option<Arc<RwLock<ThreadMember>>>,
     pub member_count: Option<i32>,
     pub message_count: Option<i32>,
     pub name: Option<String>,
@@ -58,12 +58,12 @@ pub struct Channel {
     #[cfg(feature = "sqlx")]
     pub permission_overwrites: Option<sqlx::types::Json<Vec<PermissionOverwrite>>>,
     #[cfg(not(feature = "sqlx"))]
-    pub permission_overwrites: Option<Vec<Arc<Mutex<PermissionOverwrite>>>>,
+    pub permission_overwrites: Option<Vec<Arc<RwLock<PermissionOverwrite>>>>,
     pub permissions: Option<String>,
     pub position: Option<i32>,
     pub rate_limit_per_user: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub recipients: Option<Vec<Arc<Mutex<User>>>>,
+    pub recipients: Option<Vec<Arc<RwLock<User>>>>,
     pub rtc_region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub thread_metadata: Option<ThreadMetadata>,
@@ -156,7 +156,7 @@ pub struct ThreadMember {
     pub user_id: Option<Snowflake>,
     pub join_timestamp: Option<String>,
     pub flags: Option<u64>,
-    pub member: Option<Arc<Mutex<GuildMember>>>,
+    pub member: Option<Arc<RwLock<GuildMember>>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]

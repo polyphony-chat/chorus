@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
@@ -22,10 +22,10 @@ pub struct Webhook {
     pub application_id: Snowflake,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<Arc<Mutex<User>>>,
+    pub user: Option<Arc<RwLock<User>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub source_guild: Option<Arc<Mutex<Guild>>>,
+    pub source_guild: Option<Arc<RwLock<Guild>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 }

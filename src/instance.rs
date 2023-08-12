@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -91,8 +91,8 @@ pub struct UserMeta {
     pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,
     pub limits: Option<HashMap<LimitType, Limit>>,
-    pub settings: Arc<Mutex<UserSettings>>,
-    pub object: Arc<Mutex<User>>,
+    pub settings: Arc<RwLock<UserSettings>>,
+    pub object: Arc<RwLock<User>>,
     pub gateway: GatewayHandle,
 }
 
@@ -114,8 +114,8 @@ impl UserMeta {
         belongs_to: Rc<RefCell<Instance>>,
         token: String,
         limits: Option<HashMap<LimitType, Limit>>,
-        settings: Arc<Mutex<UserSettings>>,
-        object: Arc<Mutex<User>>,
+        settings: Arc<RwLock<UserSettings>>,
+        object: Arc<RwLock<User>>,
         gateway: GatewayHandle,
     ) -> UserMeta {
         UserMeta {
@@ -134,8 +134,8 @@ impl UserMeta {
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
     pub(crate) async fn shell(instance: Rc<RefCell<Instance>>, token: String) -> UserMeta {
-        let settings = Arc::new(Mutex::new(UserSettings::default()));
-        let object = Arc::new(Mutex::new(User::default()));
+        let settings = Arc::new(RwLock::new(UserSettings::default()));
+        let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.borrow().urls.wss.clone();
         // Dummy gateway object
         let gateway = Gateway::new(wss_url).await.unwrap();
