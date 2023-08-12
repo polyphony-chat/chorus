@@ -29,7 +29,7 @@ async fn test_gateway_authenticate() {
 #[tokio::test]
 async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
-    let channel_updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
+    let channel_updater = bundle.user.gateway.observe(bundle.channel).await;
     let received_channel = channel_updater.borrow().clone();
     assert_eq!(received_channel, bundle.channel);
     let channel = &mut bundle.channel;

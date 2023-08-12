@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use tokio::sync::watch;
 use tokio::time::sleep_until;
@@ -196,20 +196,26 @@ impl GatewayHandle {
             .unwrap();
     }
 
-    pub async fn observe<T: Updateable>(&self, object: T) -> watch::Receiver<T> {
+    pub async fn observe<T: Updateable>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> watch::Receiver<Arc<RwLock<T>>> {
         let mut store = self.store.lock().await;
-        if let Some(channel) = store.get(&object.id()) {
+        if let Some(channel) = store.get(&object.clone().read().unwrap().id()) {
             let (_, rx) = channel
-                .downcast_ref::<(watch::Sender<T>, watch::Receiver<T>)>()
+                .downcast_ref::<(
+                    watch::Sender<Arc<RwLock<T>>>,
+                    watch::Receiver<Arc<RwLock<T>>>,
+                )>()
                 .unwrap_or_else(|| {
                     panic!(
                         "Snowflake {} already exists in the store, but it is not of type T.",
-                        object.id()
+                        object.read().unwrap().id()
                     )
                 });
             rx.clone()
         } else {
-            let id = object.id();
+            let id = object.read().unwrap().id();
             let channel = watch::channel(object);
             let receiver = channel.1.clone();
             store.insert(id, Box::new(channel));
