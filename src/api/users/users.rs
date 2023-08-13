@@ -21,8 +21,8 @@ impl UserMeta {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
     /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
-    pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
-        User::get(user, id).await
+    pub async fn get(&mut self, id: Option<&String>) -> ChorusResult<User> {
+        User::get(self, id).await
     }
 
     /// Gets the user's settings.
@@ -56,12 +56,7 @@ impl UserMeta {
             request,
             limit_type: LimitType::default(),
         };
-        let user_updated = chorus_request
-            .deserialize_response::<User>(self)
-            .await
-            .unwrap();
-        self.object = Arc::new(RwLock::new(user_updated.clone()));
-        Ok(user_updated)
+        chorus_request.deserialize_response::<User>(self).await
     }
 
     /// Deletes the user from the Instance.
@@ -104,7 +99,11 @@ impl User {
         match chorus_request.send_request(user).await {
             Ok(result) => {
                 let result_text = result.text().await.unwrap();
-                Ok(serde_json::from_str::<User>(&result_text).unwrap())
+                let api_user = serde_json::from_str::<User>(&result_text).unwrap();
+                user.gateway
+                    .observe(Arc::new(RwLock::new(api_user.clone())))
+                    .await;
+                Ok(api_user)
             }
             Err(e) => Err(e),
         }
