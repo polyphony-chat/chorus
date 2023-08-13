@@ -66,7 +66,6 @@ impl Channel {
         modify_data: ChannelModifySchema,
         user: &mut UserMeta,
     ) -> ChorusResult<Channel> {
-        // FIXME: Do not return a Channel.
         let channel_id = self.id;
         let chorus_request = ChorusRequest {
             request: Client::new()
