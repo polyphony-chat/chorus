@@ -17,12 +17,12 @@ async fn create_and_get_roles() {
         position: None,
         color: None,
     };
-    let guild = bundle.guild.id;
-    let role = types::RoleObject::create(&mut bundle.user, guild, role_create_schema)
+    let guild_id = bundle.guild.read().unwrap().id;
+    let role = types::RoleObject::create(&mut bundle.user, guild_id, role_create_schema)
         .await
         .unwrap();
 
-    let expected = types::RoleObject::get_all(&mut bundle.user, guild)
+    let expected = types::RoleObject::get_all(&mut bundle.user, guild_id)
         .await
         .unwrap()[2]
         .clone();
@@ -34,9 +34,9 @@ async fn create_and_get_roles() {
 #[tokio::test]
 async fn get_singular_role() {
     let mut bundle = common::setup().await;
-    let guild_id = bundle.guild.id;
-    let role_id = bundle.role.id;
-    let role = bundle.role.clone();
+    let guild_id = bundle.guild.read().unwrap().id;
+    let role_id = bundle.role.read().unwrap().id;
+    let role = bundle.role.read().unwrap().clone();
     let same_role = chorus::types::RoleObject::get(&mut bundle.user, guild_id, role_id)
         .await
         .unwrap();

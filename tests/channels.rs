@@ -8,11 +8,11 @@ mod common;
 #[tokio::test]
 async fn get_channel() {
     let mut bundle = common::setup().await;
-    let bundle_channel = bundle.channel.read().unwrap();
+    let bundle_channel = bundle.channel.read().unwrap().clone();
     let bundle_user = &mut bundle.user;
 
     assert_eq!(
-        *bundle_channel,
+        bundle_channel,
         Channel::get(bundle_user, bundle_channel.id).await.unwrap()
     );
     common::teardown(bundle).await
@@ -21,7 +21,8 @@ async fn get_channel() {
 #[tokio::test]
 async fn delete_channel() {
     let mut bundle = common::setup().await;
-    let result = Channel::delete(*bundle.channel.write().unwrap(), &mut bundle.user).await;
+    let channel_guard = bundle.channel.write().unwrap().clone();
+    let result = Channel::delete(channel_guard, &mut bundle.user).await;
     assert!(result.is_ok());
     common::teardown(bundle).await
 }
@@ -30,7 +31,7 @@ async fn delete_channel() {
 async fn modify_channel() {
     const CHANNEL_NAME: &str = "beepboop";
     let mut bundle = common::setup().await;
-    let channel = &mut bundle.channel;
+    let channel = &mut bundle.channel.read().unwrap().clone();
     let modify_data: types::ChannelModifySchema = types::ChannelModifySchema {
         name: Some(CHANNEL_NAME.to_string()),
         channel_type: None,
@@ -50,37 +51,28 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    let modified_channel = Channel::modify(
-        channel.read().as_ref().unwrap(),
-        modify_data,
-        channel.read().unwrap().id,
-        &mut bundle.user,
-    )
-    .await
-    .unwrap();
+    let modified_channel = Channel::modify(channel, modify_data, &mut bundle.user)
+        .await
+        .unwrap();
     assert_eq!(modified_channel.name, Some(CHANNEL_NAME.to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([
         PermissionFlags::MANAGE_CHANNELS,
         PermissionFlags::MANAGE_MESSAGES,
     ]));
-    let user_id: types::Snowflake = bundle.user.read().unwrap().object.read().unwrap().id;
+    let user_id: types::Snowflake = bundle.user.object.read().unwrap().id;
     let permission_override = PermissionOverwrite {
         id: user_id,
         overwrite_type: "1".to_string(),
         allow: permission_override,
         deny: "0".to_string(),
     };
+    let channel_id: Snowflake = bundle.channel.read().unwrap().id;
+    Channel::edit_permissions(&mut bundle.user, channel_id, permission_override.clone())
+        .await
+        .unwrap();
 
-    Channel::edit_permissions(
-        &mut bundle.user,
-        bundle.channel.id,
-        permission_override.clone(),
-    )
-    .await
-    .unwrap();
-
-    Channel::delete_permission(&mut bundle.user, bundle.channel.id, permission_override.id)
+    Channel::delete_permission(&mut bundle.user, channel_id, permission_override.id)
         .await
         .unwrap();
 
@@ -90,7 +82,7 @@ async fn modify_channel() {
 #[tokio::test]
 async fn get_channel_messages() {
     let mut bundle = common::setup().await;
-
+    let channel_id: Snowflake = bundle.channel.read().unwrap().id;
     // First create some messages to read
     for _ in 0..10 {
         let _ = bundle
@@ -100,7 +92,7 @@ async fn get_channel_messages() {
                     content: Some("A Message!".to_string()),
                     ..Default::default()
                 },
-                bundle.channel.id,
+                channel_id,
             )
             .await
             .unwrap();
@@ -109,7 +101,7 @@ async fn get_channel_messages() {
     assert_eq!(
         Channel::messages(
             GetChannelMessagesSchema::before(Snowflake::generate()),
-            bundle.channel.id,
+            channel_id,
             &mut bundle.user,
         )
         .await
@@ -133,7 +125,7 @@ async fn get_channel_messages() {
 
     assert!(Channel::messages(
         GetChannelMessagesSchema::after(Snowflake::generate()),
-        bundle.channel.id,
+        channel_id,
         &mut bundle.user,
     )
     .await

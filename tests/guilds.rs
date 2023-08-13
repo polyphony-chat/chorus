@@ -27,9 +27,7 @@ async fn guild_creation_deletion() {
 #[tokio::test]
 async fn get_channels() {
     let mut bundle = common::setup().await;
-    println!(
-        "{:?}",
-        bundle.guild.channels(&mut bundle.user).await.unwrap()
-    );
+    let guild = bundle.guild.read().unwrap().clone();
+    println!("{:?}", guild.channels(&mut bundle.user).await.unwrap());
     common::teardown(bundle).await;
 }

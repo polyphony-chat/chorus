@@ -12,11 +12,8 @@ async fn send_message() {
         content: Some("A Message!".to_string()),
         ..Default::default()
     };
-    let _ = bundle
-        .user
-        .send_message(message, bundle.channel.id)
-        .await
-        .unwrap();
+    let channel = bundle.channel.read().unwrap().clone();
+    let _ = bundle.user.send_message(message, channel.id).await.unwrap();
     common::teardown(bundle).await
 }
 
@@ -50,13 +47,9 @@ async fn send_message_attachment() {
         attachments: Some(vec![attachment.clone()]),
         ..Default::default()
     };
-
+    let channel = bundle.channel.read().unwrap().clone();
     let vec_attach = vec![attachment.clone()];
     let _arg = Some(&vec_attach);
-    bundle
-        .user
-        .send_message(message, bundle.channel.id)
-        .await
-        .unwrap();
+    bundle.user.send_message(message, channel.id).await.unwrap();
     common::teardown(bundle).await
 }
