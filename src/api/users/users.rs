@@ -1,4 +1,3 @@
-use std::sync::{Arc, RwLock};
 use std::{cell::RefCell, rc::Rc};
 
 use reqwest::Client;
