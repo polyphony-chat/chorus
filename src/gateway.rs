@@ -199,11 +199,14 @@ impl GatewayHandle {
     pub async fn observe<T: Updateable + Clone>(
         &self,
         object: Arc<RwLock<T>>,
-    ) -> watch::Receiver<T> {
+    ) -> watch::Receiver<Arc<RwLock<T>>> {
         let mut store = self.store.lock().await;
         if let Some(channel) = store.get(&object.clone().read().unwrap().id()) {
             let (_, rx) = channel
-                .downcast_ref::<(watch::Sender<T>, watch::Receiver<T>)>()
+                .downcast_ref::<(
+                    watch::Sender<Arc<RwLock<T>>>,
+                    watch::Receiver<Arc<RwLock<T>>>,
+                )>()
                 .unwrap_or_else(|| {
                     panic!(
                         "Snowflake {} already exists in the store, but it is not of type T.",
@@ -213,7 +216,7 @@ impl GatewayHandle {
             rx.clone()
         } else {
             let id = object.read().unwrap().id();
-            let channel = watch::channel(object.read().unwrap().clone());
+            let channel = watch::channel(object);
             let receiver = channel.1.clone();
             store.insert(id, Box::new(channel));
             receiver
@@ -481,8 +484,11 @@ impl Gateway {
                                         $(
                                             let message: $message_type = message;
                                             if let Some(to_update) = self.store.lock().await.get(&message.id()) {
-                                                if let Some((tx, _)) = to_update.downcast_ref::<(watch::Sender<$update_type>, watch::Receiver<$update_type>)>() {
-                                                    tx.send_modify(|object| message.update(object));
+                                                if let Some((tx, _)) = to_update.downcast_ref::<(watch::Sender<Arc<RwLock<$update_type>>>, watch::Receiver<Arc<RwLock<$update_type>>>)>() {
+                                                    // `object` is the current value of the `watch::channel`. It's being passed into `message.update()` to be modified
+                                                    // within the closure function. Then, this closure is passed to the `tx.send_modify()` method which applies the
+                                                    // modification to the current value of the watch channel.
+                                                    tx.send_modify(|object| message.update(object.clone()));
                                                 } else {
                                                     warn!("Received {} for {}, but it has been observed to be a different type!", $name, message.id())
                                                 }
