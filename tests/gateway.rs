@@ -30,12 +30,19 @@ async fn test_gateway_authenticate() {
 async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
     let channel_updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
-    let received_channel = channel_updater.borrow().clone();
+    let received_channel = channel_updater.borrow().clone().read().unwrap().clone();
     assert_eq!(received_channel, bundle.channel.read().unwrap().clone());
 
     let updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
     assert_eq!(
-        updater.borrow().clone().name.unwrap(),
+        updater
+            .borrow()
+            .clone()
+            .read()
+            .unwrap()
+            .clone()
+            .name
+            .unwrap(),
         bundle.channel.read().unwrap().clone().name.unwrap()
     );
 
@@ -49,7 +56,7 @@ async fn test_self_updating_structs() {
         .unwrap();
 
     assert_eq!(
-        updater.borrow().clone().name.unwrap(),
+        updater.borrow().read().unwrap().clone().name.unwrap(),
         "selfupdating".to_string()
     );
 
