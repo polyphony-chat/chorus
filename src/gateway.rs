@@ -196,17 +196,14 @@ impl GatewayHandle {
             .unwrap();
     }
 
-    pub async fn observe<T: Updateable>(
+    pub async fn observe<T: Updateable + Clone>(
         &self,
         object: Arc<RwLock<T>>,
-    ) -> watch::Receiver<Arc<RwLock<T>>> {
+    ) -> watch::Receiver<T> {
         let mut store = self.store.lock().await;
         if let Some(channel) = store.get(&object.clone().read().unwrap().id()) {
             let (_, rx) = channel
-                .downcast_ref::<(
-                    watch::Sender<Arc<RwLock<T>>>,
-                    watch::Receiver<Arc<RwLock<T>>>,
-                )>()
+                .downcast_ref::<(watch::Sender<T>, watch::Receiver<T>)>()
                 .unwrap_or_else(|| {
                     panic!(
                         "Snowflake {} already exists in the store, but it is not of type T.",
@@ -216,7 +213,7 @@ impl GatewayHandle {
             rx.clone()
         } else {
             let id = object.read().unwrap().id();
-            let channel = watch::channel(object);
+            let channel = watch::channel(object.read().unwrap().clone());
             let receiver = channel.1.clone();
             store.insert(id, Box::new(channel));
             receiver

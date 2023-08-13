@@ -1,7 +1,7 @@
 mod common;
 
 use chorus::gateway::*;
-use chorus::types::{self, Channel};
+use chorus::types::{self, Channel, ChannelModifySchema};
 
 #[tokio::test]
 /// Tests establishing a connection (hello and heartbeats) on the local gateway;
@@ -31,28 +31,27 @@ async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
     let channel_updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
     let received_channel = channel_updater.borrow().clone();
+    assert_eq!(received_channel, bundle.channel.read().unwrap().clone());
+
+    let updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
     assert_eq!(
-        *received_channel.read().unwrap(),
-        *bundle.channel.read().unwrap()
+        updater.borrow().clone().name.unwrap(),
+        bundle.channel.read().unwrap().clone().name.unwrap()
     );
-    let channel = &mut bundle.channel;
-    let modify_data = types::ChannelModifySchema {
-        name: Some("beepboop".to_string()),
+
+    let channel = bundle.channel.read().unwrap().clone();
+    let modify_schema = ChannelModifySchema {
+        name: Some("selfupdating".to_string()),
         ..Default::default()
     };
-    let channel_id = channel.read().unwrap().id;
-    Channel::modify(
-        channel.read().as_ref().unwrap(),
-        modify_data,
-        channel_id,
-        &mut bundle.user,
-    )
-    .await
-    .unwrap();
-    let received_channel = channel_updater.borrow();
+    Channel::modify(&channel, modify_schema, &mut bundle.user)
+        .await
+        .unwrap();
+
     assert_eq!(
-        received_channel.read().unwrap().name.as_ref().unwrap(),
-        "beepboop"
+        updater.borrow().clone().name.unwrap(),
+        "selfupdating".to_string()
     );
+
     common::teardown(bundle).await
 }
