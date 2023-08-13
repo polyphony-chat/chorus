@@ -21,7 +21,7 @@ impl UserMeta {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
     /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
-    pub async fn get(&mut self, id: Option<&String>) -> ChorusResult<User> {
+    pub async fn get_user(&mut self, id: Option<&String>) -> ChorusResult<User> {
         User::get(self, id).await
     }
 
@@ -99,11 +99,7 @@ impl User {
         match chorus_request.send_request(user).await {
             Ok(result) => {
                 let result_text = result.text().await.unwrap();
-                let api_user = serde_json::from_str::<User>(&result_text).unwrap();
-                user.gateway
-                    .observe(Arc::new(RwLock::new(api_user.clone())))
-                    .await;
-                Ok(api_user)
+                Ok(serde_json::from_str::<User>(&result_text).unwrap())
             }
             Err(e) => Err(e),
         }
