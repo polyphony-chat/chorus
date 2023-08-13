@@ -1,3 +1,5 @@
+use std::sync::{Arc, RwLock};
+
 use crate::types::events::WebSocketEvent;
 use crate::types::{entities::Channel, Snowflake};
 use chrono::{DateTime, Utc};
@@ -34,8 +36,9 @@ pub struct ChannelUpdate {
 impl WebSocketEvent for ChannelUpdate {}
 
 impl UpdateMessage<Channel> for ChannelUpdate {
-    fn update(&self, object_to_update: &mut Channel) {
-        *object_to_update = self.channel.clone();
+    fn update(&self, object_to_update: Arc<RwLock<Channel>>) {
+        let mut write = object_to_update.write().unwrap();
+        *write = self.channel.clone();
     }
     fn id(&self) -> Snowflake {
         self.channel.id

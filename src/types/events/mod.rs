@@ -1,3 +1,5 @@
+use std::sync::{Arc, RwLock};
+
 use serde::{Deserialize, Serialize};
 
 pub use application::*;
@@ -113,6 +115,6 @@ pub(crate) trait UpdateMessage<T>: Clone
 where
     T: Updateable,
 {
-    fn update(&self, object_to_update: &mut T);
+    fn update(&self, object_to_update: Arc<RwLock<T>>);
     fn id(&self) -> Snowflake;
 }
