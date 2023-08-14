@@ -22,6 +22,8 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 
+use crate::gateway::Updateable;
+
 mod application;
 mod attachment;
 mod audit_log;
@@ -45,3 +47,7 @@ mod user;
 mod user_settings;
 mod voice_state;
 mod webhook;
+
+pub(crate) trait Composite<T: Updateable> {
+    fn watch_whole(self) -> Self;
+}
