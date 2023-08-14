@@ -1,9 +1,11 @@
 use std::sync::{Arc, RwLock};
 
+use chorus_macros::Updateable;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+use crate::gateway::Updateable;
 use crate::types::types::guild_configuration::GuildFeaturesList;
 use crate::types::{
     entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
@@ -12,7 +14,7 @@ use crate::types::{
 };
 
 /// See <https://discord.com/developers/docs/resources/guild>
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Guild {
     pub afk_channel_id: Option<Snowflake>,
