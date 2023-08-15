@@ -125,7 +125,9 @@ pub struct Tag {
     pub emoji_name: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Updateable)]
+#[derive(
+    Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Updateable, Composite,
+)]
 pub struct PermissionOverwrite {
     pub id: Snowflake,
     #[serde(rename = "type")]

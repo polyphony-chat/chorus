@@ -1,16 +1,17 @@
 use std::sync::{Arc, RwLock};
 
-use chorus_macros::Updateable;
+use chorus_macros::{Composite, Updateable};
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Updateable;
+use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::{
     entities::{Guild, User},
     utils::Snowflake,
+    Composite,
 };
 
 /// See <https://docs.spacebar.chat/routes/#cmp--schemas-webhook>
-#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable, Composite)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Webhook {
     pub id: Snowflake,
