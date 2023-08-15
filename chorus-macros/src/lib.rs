@@ -105,7 +105,7 @@ pub fn composite_derive(input: TokenStream) -> TokenStream {
                 let expanded = quote! {
                     #[async_trait::async_trait(?Send)]
                     impl<T: Updateable + Clone> Composite<T> for #ident {
-                        async fn watch_whole(self, gateway: &GatewayHandle) -> Self {
+                        async fn watch_whole(self, gateway: &(impl GatewayObject + ?Sized)) -> Self {
                             Self {
                                 #(#field_exprs,)*
                             }

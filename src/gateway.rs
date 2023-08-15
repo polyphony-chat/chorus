@@ -180,32 +180,16 @@ pub trait Updateable: 'static + Send + Sync {
     fn id(&self) -> Snowflake;
 }
 
-impl GatewayHandle {
-    /// Sends json to the gateway with an opcode
-    async fn send_json_event(&self, op_code: u8, to_send: serde_json::Value) {
-        let gateway_payload = types::GatewaySendPayload {
-            op_code,
-            event_data: Some(to_send),
-            sequence_number: None,
-        };
-
-        let payload_json = serde_json::to_string(&gateway_payload).unwrap();
-
-        let message = tokio_tungstenite::tungstenite::Message::text(payload_json);
-
-        self.websocket_send
-            .lock()
-            .await
-            .send(message)
-            .await
-            .unwrap();
-    }
-
-    pub async fn observe<T: Updateable + Clone + Composite<T>>(
+#[async_trait(?Send)]
+pub trait GatewayObject {
+    fn store(&self) -> Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>;
+    fn events(&self) -> Arc<Mutex<Events>>;
+    async fn observe<T: Updateable + Clone + Composite<T>>(
         &self,
         object: Arc<RwLock<T>>,
     ) -> watch::Receiver<Arc<RwLock<T>>> {
-        let mut store = self.store.lock().await;
+        let store = self.store();
+        let mut store = store.lock().await;
         let id = object.read().unwrap().id();
         if let Some(channel) = store.get(&id) {
             let (_, rx) = channel
@@ -230,14 +214,57 @@ impl GatewayHandle {
             receiver
         }
     }
-
-    pub async fn observe_and_get<T: Updateable + Clone + Composite<T>>(
+    async fn observe_and_get<T: Updateable + Clone + Composite<T>>(
         &self,
         object: Arc<RwLock<T>>,
     ) -> Arc<RwLock<T>> {
         let channel = self.observe(object.clone()).await;
         let object = channel.borrow().clone();
         object
+    }
+}
+
+#[async_trait(?Send)]
+impl GatewayObject for GatewayHandle {
+    fn store(&self) -> Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>> {
+        self.store.clone()
+    }
+
+    fn events(&self) -> Arc<Mutex<Events>> {
+        self.events.clone()
+    }
+}
+
+#[async_trait(?Send)]
+impl GatewayObject for Gateway {
+    fn store(&self) -> Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>> {
+        self.store.clone()
+    }
+
+    fn events(&self) -> Arc<Mutex<Events>> {
+        self.events.clone()
+    }
+}
+
+impl GatewayHandle {
+    /// Sends json to the gateway with an opcode
+    async fn send_json_event(&self, op_code: u8, to_send: serde_json::Value) {
+        let gateway_payload = types::GatewaySendPayload {
+            op_code,
+            event_data: Some(to_send),
+            sequence_number: None,
+        };
+
+        let payload_json = serde_json::to_string(&gateway_payload).unwrap();
+
+        let message = tokio_tungstenite::tungstenite::Message::text(payload_json);
+
+        self.websocket_send
+            .lock()
+            .await
+            .send(message)
+            .await
+            .unwrap();
     }
 
     /// Sends an identify event to the gateway

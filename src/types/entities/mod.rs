@@ -22,7 +22,7 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::{GatewayObject, Updateable};
 use async_trait::async_trait;
 use std::sync::{Arc, RwLock};
 
@@ -52,11 +52,11 @@ mod webhook;
 
 #[async_trait(?Send)]
 pub trait Composite<T: Updateable + Clone> {
-    async fn watch_whole(self, gateway: &GatewayHandle) -> Self;
+    async fn watch_whole(self, gateway: &(impl GatewayObject + ?Sized)) -> Self;
 
     async fn option_observe_fn(
         value: Option<Arc<RwLock<T>>>,
-        gateway: &GatewayHandle,
+        gateway: &(impl GatewayObject + ?Sized),
     ) -> Option<Arc<RwLock<T>>>
     where
         T: Composite<T>,
@@ -71,7 +71,7 @@ pub trait Composite<T: Updateable + Clone> {
 
     async fn option_vec_observe_fn(
         value: Option<Vec<Arc<RwLock<T>>>>,
-        gateway: &GatewayHandle,
+        gateway: &(impl GatewayObject + ?Sized),
     ) -> Option<Vec<Arc<RwLock<T>>>>
     where
         T: Composite<T>,
@@ -87,7 +87,10 @@ pub trait Composite<T: Updateable + Clone> {
         }
     }
 
-    async fn value_observe_fn(value: Arc<RwLock<T>>, gateway: &GatewayHandle) -> Arc<RwLock<T>>
+    async fn value_observe_fn(
+        value: Arc<RwLock<T>>,
+        gateway: &(impl GatewayObject + ?Sized),
+    ) -> Arc<RwLock<T>>
     where
         T: Composite<T>,
     {
@@ -96,7 +99,7 @@ pub trait Composite<T: Updateable + Clone> {
 
     async fn vec_observe_fn(
         value: Vec<Arc<RwLock<T>>>,
-        gateway: &GatewayHandle,
+        gateway: &(impl GatewayObject + ?Sized),
     ) -> Vec<Arc<RwLock<T>>>
     where
         T: Composite<T>,
