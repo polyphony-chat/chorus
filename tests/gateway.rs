@@ -29,35 +29,30 @@ async fn test_gateway_authenticate() {
 #[tokio::test]
 async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
-    let channel_updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
-    let received_channel = channel_updater.borrow().clone().read().unwrap().clone();
+    let received_channel = bundle
+        .user
+        .gateway
+        .observe_and_into_inner(bundle.channel.clone())
+        .await;
 
     assert_eq!(received_channel, bundle.channel.read().unwrap().clone());
 
-    let updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
-    assert_eq!(
-        updater
-            .borrow()
-            .clone()
-            .read()
-            .unwrap()
-            .clone()
-            .name
-            .unwrap(),
-        bundle.channel.read().unwrap().clone().name.unwrap()
-    );
-
-    let channel = bundle.channel.read().unwrap().clone();
     let modify_schema = ChannelModifySchema {
         name: Some("selfupdating".to_string()),
         ..Default::default()
     };
-    Channel::modify(&channel, modify_schema, &mut bundle.user)
+    received_channel
+        .modify(modify_schema, &mut bundle.user)
         .await
         .unwrap();
-
     assert_eq!(
-        updater.borrow().read().unwrap().clone().name.unwrap(),
+        bundle
+            .user
+            .gateway
+            .observe_and_into_inner(bundle.channel.clone())
+            .await
+            .name
+            .unwrap(),
         "selfupdating".to_string()
     );
 
