@@ -58,28 +58,22 @@ pub fn composite_derive(input: TokenStream) -> TokenStream {
         let observe = attrs.iter().any(|attr| attr.path().is_ident("observe"));
         let observe_vec = attrs.iter().any(|attr| attr.path().is_ident("observe_vec"));
 
-        let field_is_arc_rwlock = true;
-
-        if field_is_arc_rwlock {
-            match (observe_option, observe_option_vec, observe, observe_vec) {
-                (true, _, _, _) => quote! {
-                    #field_name: Self::option_observe_fn(self.#field_name, gateway).await
-                },
-                (_, true, _, _) => quote! {
-                    #field_name: Self::option_vec_observe_fn(self.#field_name, gateway).await
-                },
-                (_, _, true, _) => quote! {
-                    #field_name: Self::value_observe_fn(self.#field_name, gateway).await
-                },
-                (_, _, _, true) => quote! {
-                    #field_name: Self::vec_observe_fn(self.#field_name, gateway).await
-                },
-                _ => quote! {
-                    #field_name: self.#field_name
-                },
-            }
-        } else {
-            panic!("Fields must be of type Arc<RwLock<T: Updateable>>");
+        match (observe_option, observe_option_vec, observe, observe_vec) {
+            (true, _, _, _) => quote! {
+                #field_name: Self::option_observe_fn(self.#field_name, gateway).await
+            },
+            (_, true, _, _) => quote! {
+                #field_name: Self::option_vec_observe_fn(self.#field_name, gateway).await
+            },
+            (_, _, true, _) => quote! {
+                #field_name: Self::value_observe_fn(self.#field_name, gateway).await
+            },
+            (_, _, _, true) => quote! {
+                #field_name: Self::vec_observe_fn(self.#field_name, gateway).await
+            },
+            _ => quote! {
+                #field_name: self.#field_name
+            },
         }
     };
 
