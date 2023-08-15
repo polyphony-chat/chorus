@@ -51,7 +51,7 @@ mod voice_state;
 mod webhook;
 
 #[async_trait]
-pub(crate) trait Composite<T: Updateable + Clone> {
+pub trait Composite<T: Updateable + Clone> {
     async fn watch_whole(self, gateway: &GatewayHandle) -> Self;
 
     async fn option_observe_fn(
