@@ -51,9 +51,7 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    let modified_channel = Channel::modify(channel, modify_data, &mut bundle.user)
-        .await
-        .unwrap();
+    let modified_channel = channel.modify(modify_data, &mut bundle.user).await.unwrap();
     assert_eq!(modified_channel.name, Some(CHANNEL_NAME.to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([

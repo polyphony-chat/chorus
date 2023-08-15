@@ -18,6 +18,25 @@ pub fn updateable_macro_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
+#[proc_macro_derive(JsonField)]
+pub fn jsonfield_macro_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+
+    let name = &ast.ident;
+    // No need for macro hygiene, we're only using this in chorus
+    quote! {
+        impl JsonField for #name {
+            fn get_json(&self) -> String {
+                self.json.clone()
+            }
+            fn set_json(&mut self, json: String) {
+                self.json = json;
+            }
+        }
+    }
+    .into()
+}
+
 #[proc_macro_attribute]
 pub fn observe_option(_args: TokenStream, input: TokenStream) -> TokenStream {
     input

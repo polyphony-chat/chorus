@@ -152,6 +152,10 @@ impl GatewayMessage {
 /// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
 /// implemented types with the trait [`WebSocketEvent`]
 /// Using this handle you can also send Gateway Events directly.
+///
+/// # Store
+/// The value of `store`s [`HashMap`] is a [`tokio::sync::watch::channel<T: Updateable>`]. See the
+/// [`Updateable`] trait for more information.
 #[derive(Debug)]
 pub struct GatewayHandle {
     pub url: String,
@@ -311,6 +315,8 @@ impl GatewayHandle {
     }
 }
 
+/// The value of `store`s [`HashMap`] is a [`tokio::sync::watch::channel<T: Updateable>`]. See the
+/// [`Updateable`] trait for more information.
 pub struct Gateway {
     events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
@@ -494,7 +500,7 @@ impl Gateway {
                                     Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
                                     Ok(message) => {
                                         $(
-                                            let message: $message_type = message;
+                                            let mut message: $message_type = message;
                                             if let Some(to_update) = self.store.lock().await.get(&message.id()) {
                                                 if let Some((tx, _)) = to_update.downcast_ref::<(watch::Sender<Arc<RwLock<$update_type>>>, watch::Receiver<Arc<RwLock<$update_type>>>)>() {
                                                     // `object` is the current value of the `watch::channel`. It's being passed into `message.update()` to be modified
