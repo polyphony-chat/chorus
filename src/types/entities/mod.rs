@@ -23,6 +23,7 @@ pub use voice_state::*;
 pub use webhook::*;
 
 use crate::gateway::Updateable;
+use std::sync::{Arc, RwLock};
 
 mod application;
 mod attachment;
@@ -50,4 +51,23 @@ mod webhook;
 
 pub(crate) trait Composite<T: Updateable> {
     fn watch_whole(self) -> Self;
+    fn option_observe_fn(value: Option<Arc<RwLock<T>>>) -> Option<Arc<RwLock<T>>> {
+        // Perform your logic here...
+        value
+    }
+
+    fn option_vec_observe_fn(value: Option<Vec<Arc<RwLock<T>>>>) -> Option<Vec<Arc<RwLock<T>>>> {
+        // Perform your logic here...
+        value
+    }
+
+    fn value_observe_fn(value: Arc<RwLock<T>>) -> Arc<RwLock<T>> {
+        // Perform your logic here...
+        value
+    }
+
+    fn vec_observe_fn(value: Vec<Arc<RwLock<T>>>) -> Vec<Arc<RwLock<T>>> {
+        // Perform your logic here...
+        value
+    }
 }
