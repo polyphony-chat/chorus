@@ -31,10 +31,8 @@ async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
     let channel_updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
     let received_channel = channel_updater.borrow().clone().read().unwrap().clone();
-    let something =
-        Composite::<Channel>::watch_whole(received_channel.clone(), &bundle.user.gateway);
+
     assert_eq!(received_channel, bundle.channel.read().unwrap().clone());
-    drop(something);
 
     let updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
     assert_eq!(
