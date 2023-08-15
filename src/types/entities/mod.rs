@@ -22,7 +22,8 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 
-use crate::gateway::Updateable;
+use crate::gateway::{GatewayHandle, Updateable};
+use async_trait::async_trait;
 use std::sync::{Arc, RwLock};
 
 mod application;
@@ -49,25 +50,48 @@ mod user_settings;
 mod voice_state;
 mod webhook;
 
-pub(crate) trait Composite<T: Updateable> {
-    fn watch_whole(self) -> Self;
-    fn option_observe_fn(value: Option<Arc<RwLock<T>>>) -> Option<Arc<RwLock<T>>> {
-        // Perform your logic here...
-        value
+#[async_trait]
+pub(crate) trait Composite<T: Updateable + Clone> {
+    async fn watch_whole(self, gateway: &GatewayHandle) -> Self;
+
+    async fn option_observe_fn(
+        value: Option<Arc<RwLock<T>>>,
+        gateway: &GatewayHandle,
+    ) -> Option<Arc<RwLock<T>>> {
+        if let Some(value) = value {
+            Some(gateway.observe_and_get(value).await)
+        } else {
+            None
+        }
     }
 
-    fn option_vec_observe_fn(value: Option<Vec<Arc<RwLock<T>>>>) -> Option<Vec<Arc<RwLock<T>>>> {
-        // Perform your logic here...
-        value
+    async fn option_vec_observe_fn(
+        value: Option<Vec<Arc<RwLock<T>>>>,
+        gateway: &GatewayHandle,
+    ) -> Option<Vec<Arc<RwLock<T>>>> {
+        if let Some(value) = value {
+            let mut vec = Vec::new();
+            for component in value.into_iter() {
+                vec.push(gateway.observe_and_get(component).await);
+            }
+            Some(vec)
+        } else {
+            None
+        }
     }
 
-    fn value_observe_fn(value: Arc<RwLock<T>>) -> Arc<RwLock<T>> {
-        // Perform your logic here...
-        value
+    async fn value_observe_fn(value: Arc<RwLock<T>>, gateway: &GatewayHandle) -> Arc<RwLock<T>> {
+        gateway.observe_and_get(value).await
     }
 
-    fn vec_observe_fn(value: Vec<Arc<RwLock<T>>>) -> Vec<Arc<RwLock<T>>> {
-        // Perform your logic here...
-        value
+    async fn vec_observe_fn(
+        value: Vec<Arc<RwLock<T>>>,
+        gateway: &GatewayHandle,
+    ) -> Vec<Arc<RwLock<T>>> {
+        let mut vec = Vec::new();
+        for component in value.into_iter() {
+            vec.push(gateway.observe_and_get(component).await);
+        }
+        vec
     }
 }
