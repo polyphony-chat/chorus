@@ -1,6 +1,6 @@
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
-use crate::types::{self, Channel, ChannelUpdate, Snowflake};
+use crate::types::{self, Channel, ChannelUpdate, Composite, Snowflake};
 use crate::types::{UpdateMessage, WebSocketEvent};
 use async_trait::async_trait;
 use std::any::Any;
@@ -196,12 +196,13 @@ impl GatewayHandle {
             .unwrap();
     }
 
-    pub async fn observe<T: Updateable + Clone>(
+    pub async fn observe<T: Updateable + Clone + Composite<T>>(
         &self,
         object: Arc<RwLock<T>>,
     ) -> watch::Receiver<Arc<RwLock<T>>> {
         let mut store = self.store.lock().await;
-        if let Some(channel) = store.get(&object.clone().read().unwrap().id()) {
+        let id = object.read().unwrap().id();
+        if let Some(channel) = store.get(&id) {
             let (_, rx) = channel
                 .downcast_ref::<(
                     watch::Sender<Arc<RwLock<T>>>,
@@ -216,18 +217,20 @@ impl GatewayHandle {
             rx.clone()
         } else {
             let id = object.read().unwrap().id();
-            let channel = watch::channel(object);
+            let object = object.read().unwrap().clone();
+            let object = object.clone().watch_whole(self).await;
+            let channel = watch::channel(Arc::new(RwLock::new(object)));
             let receiver = channel.1.clone();
             store.insert(id, Box::new(channel));
             receiver
         }
     }
 
-    pub async fn observe_and_get<T: Updateable + Clone>(
+    pub async fn observe_and_get<T: Updateable + Clone + Composite<T>>(
         &self,
         object: Arc<RwLock<T>>,
     ) -> Arc<RwLock<T>> {
-        let channel = self.observe(object).await;
+        let channel = self.observe(object.clone()).await;
         let object = channel.borrow().clone();
         object
     }
