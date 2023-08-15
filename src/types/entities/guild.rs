@@ -1,20 +1,21 @@
 use std::sync::{Arc, RwLock};
 
-use chorus_macros::Updateable;
+use chorus_macros::{observe_option_vec, Composite, Updateable};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::gateway::Updateable;
+use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::types::guild_configuration::GuildFeaturesList;
 use crate::types::{
     entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
     interfaces::WelcomeScreenObject,
     utils::Snowflake,
+    Composite,
 };
 
 /// See <https://discord.com/developers/docs/resources/guild>
-#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable, Composite)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Guild {
     pub afk_channel_id: Option<Snowflake>,
@@ -29,6 +30,7 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub bans: Option<Vec<GuildBan>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    #[observe_option_vec]
     pub channels: Option<Vec<Arc<RwLock<Channel>>>>,
     pub default_message_notifications: Option<i32>,
     pub description: Option<String>,
