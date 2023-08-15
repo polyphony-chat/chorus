@@ -223,6 +223,15 @@ impl GatewayHandle {
         }
     }
 
+    pub async fn observe_and_get<T: Updateable + Clone>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> Arc<RwLock<T>> {
+        let channel = self.observe(object).await;
+        let object = channel.borrow().clone();
+        object
+    }
+
     /// Sends an identify event to the gateway
     pub async fn send_identify(&self, to_send: types::GatewayIdentifyPayload) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
