@@ -1,7 +1,7 @@
 mod common;
 
 use chorus::gateway::*;
-use chorus::types::{self, Channel, ChannelModifySchema};
+use chorus::types::{self, Channel, ChannelModifySchema, Composite};
 
 #[tokio::test]
 /// Tests establishing a connection (hello and heartbeats) on the local gateway;
@@ -31,7 +31,10 @@ async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
     let channel_updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
     let received_channel = channel_updater.borrow().clone().read().unwrap().clone();
+    let something =
+        Composite::<Channel>::watch_whole(received_channel.clone(), &bundle.user.gateway);
     assert_eq!(received_channel, bundle.channel.read().unwrap().clone());
+    drop(something);
 
     let updater = bundle.user.gateway.observe(bundle.channel.clone()).await;
     assert_eq!(
