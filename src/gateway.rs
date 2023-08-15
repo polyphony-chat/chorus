@@ -201,7 +201,7 @@ impl GatewayHandle {
             .unwrap();
     }
 
-    pub async fn observe<T: Updateable + Clone + Composite<T>>(
+    pub async fn observer_channel<T: Updateable + Clone + Composite<T>>(
         &self,
         object: Arc<RwLock<T>>,
     ) -> watch::Receiver<Arc<RwLock<T>>> {
@@ -235,8 +235,17 @@ impl GatewayHandle {
         &self,
         object: Arc<RwLock<T>>,
     ) -> Arc<RwLock<T>> {
-        let channel = self.observe(object.clone()).await;
+        let channel = self.observer_channel(object.clone()).await;
         let object = channel.borrow().clone();
+        object
+    }
+
+    pub async fn observe_and_into_inner<T: Updateable + Clone + Composite<T>>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> T {
+        let channel = self.observer_channel(object.clone()).await;
+        let object = channel.borrow().clone().read().unwrap().clone();
         object
     }
 
