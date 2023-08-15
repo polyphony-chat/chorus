@@ -58,27 +58,21 @@ pub fn composite_derive(input: TokenStream) -> TokenStream {
         let observe = attrs.iter().any(|attr| attr.path().is_ident("observe"));
         let observe_vec = attrs.iter().any(|attr| attr.path().is_ident("observe_vec"));
 
-        let field_is_arc_rwlock = if let syn::Type::Path(type_path) = &field.ty {
-            type_path.path.segments.last().map_or(false, |segment| {
-                segment.ident == "Arc" || segment.ident == "RwLock"
-            })
-        } else {
-            false
-        };
+        let field_is_arc_rwlock = true;
 
         if field_is_arc_rwlock {
             match (observe_option, observe_option_vec, observe, observe_vec) {
                 (true, _, _, _) => quote! {
-                    #field_name: option_observe_fn(self.#field_name)
+                    #field_name: Self::option_observe_fn(self.#field_name, gateway).await
                 },
                 (_, true, _, _) => quote! {
-                    #field_name: option_vec_observe_fn(self.#field_name)
+                    #field_name: Self::option_vec_observe_fn(self.#field_name, gateway).await
                 },
                 (_, _, true, _) => quote! {
-                    #field_name: value_observe_fn(self.#field_name)
+                    #field_name: Self::value_observe_fn(self.#field_name, gateway).await
                 },
                 (_, _, _, true) => quote! {
-                    #field_name: vec_observe_fn(self.#field_name)
+                    #field_name: Self::vec_observe_fn(self.#field_name, gateway).await
                 },
                 _ => quote! {
                     #field_name: self.#field_name
@@ -95,10 +89,10 @@ pub fn composite_derive(input: TokenStream) -> TokenStream {
                 let field_exprs = named.iter().map(process_field);
 
                 let ident = &input.ident;
-
                 let expanded = quote! {
-                    impl<T: Updateable> Composite<T> for #ident {
-                        fn watch_whole(self) -> Self {
+                    #[async_trait::async_trait]
+                    impl<T: Updateable + Clone> Composite<T> for #ident {
+                        async fn watch_whole(self, gateway: &GatewayHandle) -> Self {
                             Self {
                                 #(#field_exprs,)*
                             }
