@@ -1,7 +1,7 @@
 mod common;
 
 use chorus::gateway::*;
-use chorus::types::{self, Channel, ChannelModifySchema, Guild};
+use chorus::types::{self, Channel, ChannelModifySchema};
 
 #[tokio::test]
 /// Tests establishing a connection (hello and heartbeats) on the local gateway;
@@ -63,6 +63,3 @@ async fn test_self_updating_structs() {
 
     common::teardown(bundle).await
 }
-
-#[tokio::test]
-async fn test_recursive_self_updating_structs() {}

@@ -4,7 +4,7 @@ use chorus_macros::{Composite, Updateable};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::{GatewayObject, Updateable};
+use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::{
     entities::{Guild, GuildMember},
     utils::Snowflake,
