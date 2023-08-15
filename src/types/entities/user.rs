@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
 
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::{GatewayObject, Updateable};
 use crate::types::{utils::Snowflake, Composite};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]

@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use chorus_macros::{Composite, Updateable};
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::{GatewayObject, Updateable};
 use crate::types::entities::User;
 use crate::types::{Composite, Snowflake};
 

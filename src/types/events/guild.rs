@@ -1,13 +1,17 @@
+use std::sync::{Arc, RwLock};
+
+use chorus_macros::JsonField;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Guild, PublicUser, UnavailableGuild};
 use crate::types::events::WebSocketEvent;
 use crate::types::{
-    AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, RoleObject, Snowflake, Sticker,
+    AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, JsonField, RoleObject, Snowflake,
+    Sticker,
 };
 
-use super::PresenceUpdate;
+use super::{PresenceUpdate, UpdateMessage};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-create>;
@@ -164,14 +168,33 @@ pub struct GuildMembersChunk {
 
 impl WebSocketEvent for GuildMembersChunk {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-role-create>
 pub struct GuildRoleCreate {
     pub guild_id: Snowflake,
     pub role: RoleObject,
+    #[serde(skip)]
+    pub json: String,
 }
 
 impl WebSocketEvent for GuildRoleCreate {}
+
+impl UpdateMessage<Guild> for GuildRoleCreate {
+    fn id(&self) -> Snowflake {
+        self.role.id
+    }
+
+    fn update(&mut self, object_to_update: std::sync::Arc<std::sync::RwLock<Guild>>) {
+        let mut write = object_to_update.write().unwrap();
+        if write.roles.is_some() {
+            write
+                .roles
+                .as_mut()
+                .unwrap()
+                .push(Arc::new(RwLock::new(self.role.clone())));
+        }
+    }
+}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-role-update>
