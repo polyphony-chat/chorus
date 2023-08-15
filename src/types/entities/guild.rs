@@ -1,6 +1,6 @@
 use std::sync::{Arc, RwLock};
 
-use chorus_macros::{observe_option_vec, Composite, Updateable};
+use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -37,6 +37,7 @@ pub struct Guild {
     pub discovery_splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[serde(default)]
+    #[observe_vec]
     pub emojis: Vec<Arc<RwLock<Emoji>>>,
     pub explicit_content_filter: Option<i32>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
@@ -46,7 +47,7 @@ pub struct Guild {
     pub icon_hash: Option<String>,
     pub id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub invites: Option<Vec<Arc<RwLock<GuildInvite>>>>,
+    pub invites: Option<Vec<GuildInvite>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub joined_at: Option<String>,
     pub large: Option<bool>,
@@ -72,6 +73,7 @@ pub struct Guild {
     pub public_updates_channel_id: Option<Snowflake>,
     pub region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    #[observe_option_vec]
     pub roles: Option<Vec<Arc<RwLock<RoleObject>>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub rules_channel: Option<String>,
@@ -85,13 +87,15 @@ pub struct Guild {
     pub vanity_url_code: Option<String>,
     pub verification_level: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    #[observe_option_vec]
     pub voice_states: Option<Vec<Arc<RwLock<VoiceState>>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    #[observe_option_vec]
     pub webhooks: Option<Vec<Arc<RwLock<Webhook>>>>,
     #[cfg(feature = "sqlx")]
     pub welcome_screen: Option<sqlx::types::Json<WelcomeScreenObject>>,
     #[cfg(not(feature = "sqlx"))]
-    pub welcome_screen: Option<Arc<RwLock<WelcomeScreenObject>>>,
+    pub welcome_screen: Option<WelcomeScreenObject>,
     pub widget_channel_id: Option<Snowflake>,
     pub widget_enabled: Option<bool>,
 }

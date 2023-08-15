@@ -1,15 +1,17 @@
 use std::sync::{Arc, RwLock};
 
+use chorus_macros::Updateable;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Updateable;
 use crate::types::{
     entities::{Guild, GuildMember},
     utils::Snowflake,
 };
 
 /// See <https://docs.spacebar.chat/routes/#cmp--schemas-voicestate>
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct VoiceState {
     pub guild_id: Option<Snowflake>,
@@ -27,5 +29,5 @@ pub struct VoiceState {
     pub self_video: bool,
     pub suppress: bool,
     pub request_to_speak_timestamp: Option<DateTime<Utc>>,
-    pub id: Option<Snowflake>,
+    pub id: Snowflake,
 }

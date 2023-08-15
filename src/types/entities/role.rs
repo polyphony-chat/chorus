@@ -1,10 +1,12 @@
 use bitflags::bitflags;
+use chorus_macros::Updateable;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::{deserialize_option_number_from_string, deserialize_string_from_number};
 
+use crate::gateway::Updateable;
 use crate::types::utils::Snowflake;
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Updateable)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// See <https://discord.com/developers/docs/topics/permissions#role-object>
 pub struct RoleObject {
