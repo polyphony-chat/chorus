@@ -84,7 +84,7 @@ pub fn composite_derive(input: TokenStream) -> TokenStream {
 
                 let ident = &input.ident;
                 let expanded = quote! {
-                    #[async_trait::async_trait]
+                    #[async_trait::async_trait(?Send)]
                     impl<T: Updateable + Clone> Composite<T> for #ident {
                         async fn watch_whole(self, gateway: &GatewayHandle) -> Self {
                             Self {
