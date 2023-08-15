@@ -1,7 +1,8 @@
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
-use crate::types::{self, Channel, ChannelUpdate, Composite, Snowflake};
-use crate::types::{UpdateMessage, WebSocketEvent};
+use crate::types::{
+    self, Channel, ChannelUpdate, Composite, JsonField, Snowflake, UpdateMessage, WebSocketEvent,
+};
 use async_trait::async_trait;
 use std::any::Any;
 use std::collections::HashMap;
@@ -496,7 +497,8 @@ impl Gateway {
                         match event_name.as_str() {
                             $($name => {
                                 let event = &mut self.events.lock().await.$($path).+;
-                                match serde_json::from_str(gateway_payload.event_data.unwrap().get()) {
+                                let json = gateway_payload.event_data.unwrap().get();
+                                match serde_json::from_str(json) {
                                     Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
                                     Ok(message) => {
                                         $(
@@ -506,6 +508,7 @@ impl Gateway {
                                                     // `object` is the current value of the `watch::channel`. It's being passed into `message.update()` to be modified
                                                     // within the closure function. Then, this closure is passed to the `tx.send_modify()` method which applies the
                                                     // modification to the current value of the watch channel.
+                                                    message.set_json(json.to_string());
                                                     tx.send_modify(|object| message.update(object.clone()));
                                                 } else {
                                                     warn!("Received {} for {}, but it has been observed to be a different type!", $name, message.id())
