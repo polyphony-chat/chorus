@@ -1,7 +1,7 @@
 mod common;
 
 use chorus::gateway::*;
-use chorus::types::{self, Channel, ChannelModifySchema, Composite};
+use chorus::types::{self, Channel, ChannelModifySchema};
 
 #[tokio::test]
 /// Tests establishing a connection (hello and heartbeats) on the local gateway;
