@@ -1,7 +1,8 @@
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
 use crate::types::{
-    self, Channel, ChannelUpdate, Composite, JsonField, Snowflake, UpdateMessage, WebSocketEvent,
+    self, Channel, ChannelUpdate, Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField,
+    RoleObject, Snowflake, UpdateMessage, WebSocketEvent,
 };
 use async_trait::async_trait;
 use std::any::Any;
@@ -231,6 +232,8 @@ impl GatewayHandle {
         }
     }
 
+    /// Recursively observes and updates all updateable fields on the struct T. Returns an object
+    /// with all of its observable fields being observed.
     pub async fn observe_and_get<T: Updateable + Clone + Composite<T>>(
         &self,
         object: Arc<RwLock<T>>,
@@ -240,6 +243,8 @@ impl GatewayHandle {
         object
     }
 
+    /// Recursively observes and updates all updateable fields on the struct T. Returns an object `T`
+    /// with all of its observable fields being observed.
     pub async fn observe_and_into_inner<T: Updateable + Clone + Composite<T>>(
         &self,
         object: Arc<RwLock<T>>,
@@ -592,8 +597,8 @@ impl Gateway {
                     "GUILD_MEMBER_REMOVE" => guild.member_remove,
                     "GUILD_MEMBER_UPDATE" => guild.member_update,
                     "GUILD_MEMBERS_CHUNK" => guild.members_chunk,
-                    "GUILD_ROLE_CREATE" => guild.role_create,
-                    "GUILD_ROLE_UPDATE" => guild.role_update,
+                    "GUILD_ROLE_CREATE" => guild.role_create GuildRoleCreate: Guild,
+                    "GUILD_ROLE_UPDATE" => guild.role_update GuildRoleUpdate: RoleObject,
                     "GUILD_ROLE_DELETE" => guild.role_delete,
                     "GUILD_SCHEDULED_EVENT_CREATE" => guild.role_scheduled_event_create,
                     "GUILD_SCHEDULED_EVENT_UPDATE" => guild.role_scheduled_event_update,
