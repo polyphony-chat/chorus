@@ -170,7 +170,7 @@ pub struct GatewayHandle {
     pub handle: JoinHandle<()>,
     /// Tells gateway tasks to close
     kill_send: tokio::sync::broadcast::Sender<()>,
-    store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
+    pub(crate) store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
 }
 
 /// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.
@@ -215,7 +215,7 @@ impl GatewayHandle {
                 )
             });
             let ptr = Arc::into_raw(object.clone());
-            unsafe { println!("{:?}", Arc::from_raw(ptr as *const RwLock<T>).clone()) };
+            //unsafe { println!("{:?}", Arc::from_raw(ptr as *const RwLock<T>).clone()) };
             unsafe { Arc::from_raw(ptr as *const RwLock<T>).clone() }
         } else {
             let id = object.read().unwrap().id();
@@ -499,13 +499,16 @@ impl Gateway {
                                     Ok(message) => {
                                         $(
                                             let mut message: $message_type = message;
-                                            if let Some(to_update) = self.store.lock().await.get(&message.id()) {
+                                            let mut store = self.store.lock().await;
+                                            if let Some(to_update) = store.get(&message.id()) {
                                                 let object = to_update.clone();
                                                 let inner_object = object.read().unwrap();
                                                 if let Some(_) = inner_object.downcast_ref::<$update_type>() {
                                                     let ptr = Arc::into_raw(object.clone());
                                                     let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<$update_type>).clone() };
                                                     drop(inner_object);
+                                                    store.insert(message.id(), downcasted.clone());
+                                                    println!("yippie");
                                                     message.set_json(json.to_string());
                                                     message.update(downcasted.clone());
                                                 } else {
