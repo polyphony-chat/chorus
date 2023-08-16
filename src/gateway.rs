@@ -10,7 +10,6 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use tokio::sync::watch;
 use tokio::time::sleep_until;
 
 use futures_util::stream::SplitSink;
@@ -150,14 +149,12 @@ impl GatewayMessage {
     }
 }
 
+pub type ObservableObject = dyn Send + Sync + Any;
+
 /// Represents a handle to a Gateway connection. A Gateway connection will create observable
 /// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
 /// implemented types with the trait [`WebSocketEvent`]
 /// Using this handle you can also send Gateway Events directly.
-///
-/// # Store
-/// The value of `store`s [`HashMap`] is a [`tokio::sync::watch::channel<T: Updateable>`]. See the
-/// [`Updateable`] trait for more information.
 #[derive(Debug)]
 pub struct GatewayHandle {
     pub url: String,
@@ -173,7 +170,7 @@ pub struct GatewayHandle {
     pub handle: JoinHandle<()>,
     /// Tells gateway tasks to close
     kill_send: tokio::sync::broadcast::Sender<()>,
-    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
+    store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
 }
 
 /// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.
@@ -202,55 +199,42 @@ impl GatewayHandle {
             .unwrap();
     }
 
-    pub async fn observer_channel<T: Updateable + Clone + Composite<T>>(
+    pub async fn observe<T: Updateable + Clone + Debug + Composite<T>>(
         &self,
         object: Arc<RwLock<T>>,
-    ) -> watch::Receiver<Arc<RwLock<T>>> {
+    ) -> Arc<RwLock<T>> {
         let mut store = self.store.lock().await;
         let id = object.read().unwrap().id();
         if let Some(channel) = store.get(&id) {
-            let (_, rx) = channel
-                .downcast_ref::<(
-                    watch::Sender<Arc<RwLock<T>>>,
-                    watch::Receiver<Arc<RwLock<T>>>,
-                )>()
-                .unwrap_or_else(|| {
-                    panic!(
-                        "Snowflake {} already exists in the store, but it is not of type T.",
-                        object.read().unwrap().id()
-                    )
-                });
-            rx.clone()
+            let object = channel.clone();
+            let inner_object = object.read().unwrap();
+            inner_object.downcast_ref::<T>().unwrap_or_else(|| {
+                panic!(
+                    "Snowflake {} already exists in the store, but it is not of type T.",
+                    id
+                )
+            });
+            let ptr = Arc::into_raw(object.clone());
+            unsafe { println!("{:?}", Arc::from_raw(ptr as *const RwLock<T>).clone()) };
+            unsafe { Arc::from_raw(ptr as *const RwLock<T>).clone() }
         } else {
             let id = object.read().unwrap().id();
             let object = object.read().unwrap().clone();
             let object = object.clone().watch_whole(self).await;
-            let channel = watch::channel(Arc::new(RwLock::new(object)));
-            let receiver = channel.1.clone();
-            store.insert(id, Box::new(channel));
-            receiver
+            let wrapped = Arc::new(RwLock::new(object));
+            store.insert(id, wrapped.clone());
+            wrapped
         }
-    }
-
-    /// Recursively observes and updates all updateable fields on the struct T. Returns an object
-    /// with all of its observable fields being observed.
-    pub async fn observe_and_get<T: Updateable + Clone + Composite<T>>(
-        &self,
-        object: Arc<RwLock<T>>,
-    ) -> Arc<RwLock<T>> {
-        let channel = self.observer_channel(object.clone()).await;
-        let object = channel.borrow().clone();
-        object
     }
 
     /// Recursively observes and updates all updateable fields on the struct T. Returns an object `T`
     /// with all of its observable fields being observed.
-    pub async fn observe_and_into_inner<T: Updateable + Clone + Composite<T>>(
+    pub async fn observe_and_into_inner<T: Updateable + Clone + Debug + Composite<T>>(
         &self,
         object: Arc<RwLock<T>>,
     ) -> T {
-        let channel = self.observer_channel(object.clone()).await;
-        let object = channel.borrow().clone().read().unwrap().clone();
+        let channel = self.observe(object.clone()).await;
+        let object = channel.read().unwrap().clone();
         object
     }
 
@@ -330,8 +314,6 @@ impl GatewayHandle {
     }
 }
 
-/// The value of `store`s [`HashMap`] is a [`tokio::sync::watch::channel<T: Updateable>`]. See the
-/// [`Updateable`] trait for more information.
 pub struct Gateway {
     events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
@@ -345,7 +327,7 @@ pub struct Gateway {
     >,
     websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
-    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
+    store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
 }
 
 impl Gateway {
@@ -518,12 +500,14 @@ impl Gateway {
                                         $(
                                             let mut message: $message_type = message;
                                             if let Some(to_update) = self.store.lock().await.get(&message.id()) {
-                                                if let Some((tx, _)) = to_update.downcast_ref::<(watch::Sender<Arc<RwLock<$update_type>>>, watch::Receiver<Arc<RwLock<$update_type>>>)>() {
-                                                    // `object` is the current value of the `watch::channel`. It's being passed into `message.update()` to be modified
-                                                    // within the closure function. Then, this closure is passed to the `tx.send_modify()` method which applies the
-                                                    // modification to the current value of the watch channel.
+                                                let object = to_update.clone();
+                                                let inner_object = object.read().unwrap();
+                                                if let Some(_) = inner_object.downcast_ref::<$update_type>() {
+                                                    let ptr = Arc::into_raw(object.clone());
+                                                    let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<$update_type>).clone() };
+                                                    drop(inner_object);
                                                     message.set_json(json.to_string());
-                                                    tx.send_modify(|object| message.update(object.clone()));
+                                                    message.update(downcasted.clone());
                                                 } else {
                                                     warn!("Received {} for {}, but it has been observed to be a different type!", $name, message.id())
                                                 }
