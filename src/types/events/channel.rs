@@ -42,9 +42,6 @@ impl UpdateMessage<Channel> for ChannelUpdate {
     fn update(&mut self, object_to_update: Arc<RwLock<Channel>>) {
         let mut write = object_to_update.write().unwrap();
         *write = self.channel.clone();
-        drop(write);
-        println!("{:?}", self.channel.name);
-        assert_eq!(self.channel.name, object_to_update.read().unwrap().name);
     }
     fn id(&self) -> Snowflake {
         self.channel.id
