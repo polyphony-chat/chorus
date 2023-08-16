@@ -3,6 +3,7 @@ use std::sync::{Arc, RwLock};
 use chorus_macros::{Composite, Updateable};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 
 use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::{

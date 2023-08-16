@@ -5,6 +5,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::fmt::Debug;
 
 use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::{

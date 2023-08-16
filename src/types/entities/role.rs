@@ -2,6 +2,7 @@ use bitflags::bitflags;
 use chorus_macros::{Composite, Updateable};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::{deserialize_option_number_from_string, deserialize_string_from_number};
+use std::fmt::Debug;
 
 use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::{utils::Snowflake, Composite};

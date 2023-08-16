@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
 use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};

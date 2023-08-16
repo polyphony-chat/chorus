@@ -24,6 +24,7 @@ pub use webhook::*;
 
 use crate::gateway::{GatewayHandle, Updateable};
 use async_trait::async_trait;
+use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
 mod application;
@@ -51,7 +52,7 @@ mod voice_state;
 mod webhook;
 
 #[async_trait(?Send)]
-pub trait Composite<T: Updateable + Clone> {
+pub trait Composite<T: Updateable + Clone + Debug> {
     async fn watch_whole(self, gateway: &GatewayHandle) -> Self;
 
     async fn option_observe_fn(
@@ -59,11 +60,12 @@ pub trait Composite<T: Updateable + Clone> {
         gateway: &GatewayHandle,
     ) -> Option<Arc<RwLock<T>>>
     where
-        T: Composite<T>,
+        T: Composite<T> + Debug,
     {
+        println!("Processed option value.");
         if let Some(value) = value {
             let value = value.clone();
-            Some(gateway.observe_and_get(value).await)
+            Some(gateway.observe(value).await)
         } else {
             None
         }
@@ -76,10 +78,11 @@ pub trait Composite<T: Updateable + Clone> {
     where
         T: Composite<T>,
     {
+        println!("Processed option vec value.");
         if let Some(value) = value {
             let mut vec = Vec::new();
             for component in value.into_iter() {
-                vec.push(gateway.observe_and_get(component).await);
+                vec.push(gateway.observe(component).await);
             }
             Some(vec)
         } else {
@@ -91,7 +94,8 @@ pub trait Composite<T: Updateable + Clone> {
     where
         T: Composite<T>,
     {
-        gateway.observe_and_get(value).await
+        println!("Processed value.");
+        gateway.observe(value).await
     }
 
     async fn vec_observe_fn(
@@ -101,9 +105,10 @@ pub trait Composite<T: Updateable + Clone> {
     where
         T: Composite<T>,
     {
+        println!("Processed vec value.");
         let mut vec = Vec::new();
         for component in value.into_iter() {
-            vec.push(gateway.observe_and_get(component).await);
+            vec.push(gateway.observe(component).await);
         }
         vec
     }

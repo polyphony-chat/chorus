@@ -2,6 +2,7 @@ use chorus_macros::{Composite, Updateable};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
+use std::fmt::Debug;
 
 use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::{utils::Snowflake, Composite};
