@@ -50,7 +50,7 @@ impl UserMeta {
         let request = Client::new()
             .patch(format!("{}/users/@me", self.belongs_to.borrow().urls.api))
             .body(to_string(&modify_schema).unwrap())
-            .bearer_auth(self.token());
+            .header("Authorization", self.token());
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
@@ -68,7 +68,7 @@ impl UserMeta {
                 "{}/users/@me/delete",
                 self.belongs_to.borrow().urls.api
             ))
-            .bearer_auth(self.token());
+            .header("Authorization", self.token());
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
@@ -90,7 +90,9 @@ impl User {
         } else {
             format!("{}/users/{}", url_api, id.unwrap())
         };
-        let request = reqwest::Client::new().get(url).bearer_auth(user.token());
+        let request = reqwest::Client::new()
+            .get(url)
+            .header("Authorization", user.token());
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
@@ -115,7 +117,7 @@ impl User {
     ) -> ChorusResult<UserSettings> {
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings", url_api))
-            .bearer_auth(token);
+            .header("Authorization", token);
         let mut user =
             UserMeta::shell(Rc::new(RefCell::new(instance.clone())), token.clone()).await;
         let chorus_request = ChorusRequest {

@@ -26,7 +26,7 @@ impl Message {
             let chorus_request = ChorusRequest {
                 request: Client::new()
                     .post(format!("{}/channels/{}/messages", url_api, channel_id))
-                    .bearer_auth(user.token())
+                    .header("Authorization", user.token())
                     .body(to_string(&message).unwrap()),
                 limit_type: LimitType::Channel(channel_id),
             };
@@ -62,7 +62,7 @@ impl Message {
             let chorus_request = ChorusRequest {
                 request: Client::new()
                     .post(format!("{}/channels/{}/messages", url_api, channel_id))
-                    .bearer_auth(user.token())
+                    .header("Authorization", user.token())
                     .multipart(form),
                 limit_type: LimitType::Channel(channel_id),
             };

@@ -29,7 +29,9 @@ impl ReactionMeta {
             self.message_id
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().delete(url).bearer_auth(user.token()),
+            request: Client::new()
+                .delete(url)
+                .header("Authorization", user.token()),
             limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -51,7 +53,7 @@ impl ReactionMeta {
             emoji
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).bearer_auth(user.token()),
+            request: Client::new().get(url).header("Authorization", user.token()),
             limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request
@@ -77,7 +79,9 @@ impl ReactionMeta {
             emoji
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().delete(url).bearer_auth(user.token()),
+            request: Client::new()
+                .delete(url)
+                .header("Authorization", user.token()),
             limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -104,7 +108,7 @@ impl ReactionMeta {
             emoji
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().put(url).bearer_auth(user.token()),
+            request: Client::new().put(url).header("Authorization", user.token()),
             limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -126,7 +130,9 @@ impl ReactionMeta {
             emoji
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().delete(url).bearer_auth(user.token()),
+            request: Client::new()
+                .delete(url)
+                .header("Authorization", user.token()),
             limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -156,7 +162,9 @@ impl ReactionMeta {
             user_id
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().delete(url).bearer_auth(user.token()),
+            request: Client::new()
+                .delete(url)
+                .header("Authorization", user.token()),
             limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await

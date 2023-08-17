@@ -23,7 +23,7 @@ impl Guild {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(url.clone())
-                .bearer_auth(user.token.clone())
+                .header("Authorization", user.token.clone())
                 .body(to_string(&guild_create_schema).unwrap()),
             limit_type: LimitType::Global,
         };
@@ -58,7 +58,7 @@ impl Guild {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(url.clone())
-                .bearer_auth(user.token.clone()),
+                .header("Authorization", user.token.clone()),
             limit_type: LimitType::Global,
         };
         chorus_request.handle_request_as_result(user).await
@@ -95,7 +95,7 @@ impl Guild {
                     user.belongs_to.borrow().urls.api,
                     self.id
                 ))
-                .bearer_auth(user.token()),
+                .header("Authorization", user.token()),
             limit_type: LimitType::Channel(self.id),
         };
         let result = chorus_request.send_request(user).await?;
@@ -129,7 +129,7 @@ impl Guild {
                     user.belongs_to.borrow().urls.api,
                     guild_id
                 ))
-                .bearer_auth(user.token()),
+                .header("Authorization", user.token()),
             limit_type: LimitType::Guild(guild_id),
         };
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
@@ -156,7 +156,7 @@ impl Channel {
                     user.belongs_to.borrow().urls.api,
                     guild_id
                 ))
-                .bearer_auth(user.token())
+                .header("Authorization", user.token())
                 .body(to_string(&schema).unwrap()),
             limit_type: LimitType::Guild(guild_id),
         };

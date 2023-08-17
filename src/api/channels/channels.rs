@@ -20,7 +20,7 @@ impl Channel {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(format!("{}/channels/{}", url, channel_id))
-                .bearer_auth(user.token()),
+                .header("Authorization", user.token()),
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.deserialize_response::<Channel>(user).await
@@ -41,7 +41,7 @@ impl Channel {
                     user.belongs_to.borrow().urls.api,
                     self.id
                 ))
-                .bearer_auth(user.token()),
+                .header("Authorization", user.token()),
             limit_type: LimitType::Channel(self.id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -74,7 +74,7 @@ impl Channel {
                     user.belongs_to.borrow().urls.api,
                     channel_id
                 ))
-                .bearer_auth(user.token())
+                .header("Authorization", user.token())
                 .body(to_string(&modify_data).unwrap()),
             limit_type: LimitType::Channel(channel_id),
         };
@@ -102,7 +102,7 @@ impl Channel {
                     user.belongs_to.borrow().urls.api,
                     channel_id
                 ))
-                .bearer_auth(user.token())
+                .header("Authorization", user.token())
                 .query(&range),
             limit_type: Default::default(),
         };
@@ -129,7 +129,7 @@ impl Channel {
                 self.id,
                 recipient_id
             ))
-            .bearer_auth(user.token());
+            .header("Authorization", user.token());
         if let Some(schema) = add_channel_recipient_schema {
             request = request.body(to_string(&schema).unwrap());
         }
@@ -157,7 +157,7 @@ impl Channel {
                 self.id,
                 recipient_id
             ))
-            .bearer_auth(user.token());
+            .header("Authorization", user.token());
         ChorusRequest {
             request,
             limit_type: LimitType::Channel(self.id),
