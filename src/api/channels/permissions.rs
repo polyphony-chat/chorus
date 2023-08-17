@@ -40,7 +40,10 @@ impl types::Channel {
             }
         };
         let chorus_request = ChorusRequest {
-            request: Client::new().put(url).bearer_auth(user.token()).body(body),
+            request: Client::new()
+                .put(url)
+                .header("Authorization", user.token())
+                .body(body),
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -66,7 +69,9 @@ impl types::Channel {
             overwrite_id
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().delete(url).bearer_auth(user.token()),
+            request: Client::new()
+                .delete(url)
+                .header("Authorization", user.token()),
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await

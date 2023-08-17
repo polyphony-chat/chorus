@@ -24,7 +24,7 @@ impl types::RoleObject {
             guild_id
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).bearer_auth(user.token()),
+            request: Client::new().get(url).header("Authorization", user.token()),
             limit_type: LimitType::Guild(guild_id),
         };
         let roles = chorus_request
@@ -50,7 +50,7 @@ impl types::RoleObject {
             role_id
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).bearer_auth(user.token()),
+            request: Client::new().get(url).header("Authorization", user.token()),
             limit_type: LimitType::Guild(guild_id),
         };
         chorus_request
@@ -80,7 +80,10 @@ impl types::RoleObject {
             }
         })?;
         let chorus_request = ChorusRequest {
-            request: Client::new().post(url).bearer_auth(user.token()).body(body),
+            request: Client::new()
+                .post(url)
+                .header("Authorization", user.token())
+                .body(body),
             limit_type: LimitType::Guild(guild_id),
         };
         chorus_request
@@ -111,7 +114,7 @@ impl types::RoleObject {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .patch(url)
-                .bearer_auth(user.token())
+                .header("Authorization", user.token())
                 .body(body),
             limit_type: LimitType::Guild(guild_id),
         };
@@ -146,7 +149,7 @@ impl types::RoleObject {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .patch(url)
-                .bearer_auth(user.token())
+                .header("Authorization", user.token())
                 .body(body),
             limit_type: LimitType::Guild(guild_id),
         };

@@ -22,7 +22,7 @@ impl UserMeta {
                     self.belongs_to.borrow().urls.api,
                     guild_id
                 ))
-                .bearer_auth(self.token())
+                .header("Authorization", self.token())
                 .body(to_string(&lurking).unwrap()),
             limit_type: crate::api::LimitType::Guild(*guild_id),
         }

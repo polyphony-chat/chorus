@@ -25,7 +25,7 @@ impl UserMeta {
         ChorusRequest {
             request: Client::new()
                 .post(url)
-                .bearer_auth(self.token())
+                .header("Authorization", self.token())
                 .body(to_string(&create_private_channel_schema).unwrap()),
             limit_type: LimitType::Global,
         }
