@@ -207,16 +207,28 @@ impl GatewayHandle {
         let id = object.read().unwrap().id();
         if let Some(channel) = store.get(&id) {
             let object = channel.clone();
-            let inner_object = object.read().unwrap();
-            inner_object.downcast_ref::<T>().unwrap_or_else(|| {
-                panic!(
-                    "Snowflake {} already exists in the store, but it is not of type T.",
-                    id
-                )
-            });
+            drop(store);
+            object
+                .read()
+                .unwrap()
+                .downcast_ref::<T>()
+                .unwrap_or_else(|| {
+                    panic!(
+                        "Snowflake {} already exists in the store, but it is not of type T.",
+                        id
+                    )
+                });
             let ptr = Arc::into_raw(object.clone());
-            //unsafe { println!("{:?}", Arc::from_raw(ptr as *const RwLock<T>).clone()) };
-            unsafe { Arc::from_raw(ptr as *const RwLock<T>).clone() }
+            // SAFETY:
+            // - We have just checked that the typeid of the `dyn Any ...` matches that of `T`.
+            // - This operation doesn't read or write any shared data, and thus cannot cause a data race
+            // - The reference count is not being modified
+            let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<T>).clone() };
+            let object = downcasted.read().unwrap().clone();
+
+            let watched_object = object.watch_whole(self).await;
+            *downcasted.write().unwrap() = watched_object;
+            downcasted
         } else {
             let id = object.read().unwrap().id();
             let object = object.read().unwrap().clone();
@@ -499,16 +511,18 @@ impl Gateway {
                                     Ok(message) => {
                                         $(
                                             let mut message: $message_type = message;
-                                            let mut store = self.store.lock().await;
+                                            let store = self.store.lock().await;
                                             if let Some(to_update) = store.get(&message.id()) {
                                                 let object = to_update.clone();
                                                 let inner_object = object.read().unwrap();
                                                 if let Some(_) = inner_object.downcast_ref::<$update_type>() {
                                                     let ptr = Arc::into_raw(object.clone());
+                                                    // SAFETY:
+                                                    // - We have just checked that the typeid of the `dyn Any ...` matches that of `T`.
+                                                    // - This operation doesn't read or write any shared data, and thus cannot cause a data race
+                                                    // - The reference count is not being modified
                                                     let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<$update_type>).clone() };
                                                     drop(inner_object);
-                                                    store.insert(message.id(), downcasted.clone());
-                                                    println!("yippie");
                                                     message.set_json(json.to_string());
                                                     message.update(downcasted.clone());
                                                 } else {
