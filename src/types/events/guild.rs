@@ -217,8 +217,8 @@ impl UpdateMessage<RoleObject> for GuildRoleUpdate {
     fn update(&mut self, object_to_update: Arc<RwLock<RoleObject>>) {
         println!("Processing Role Update. Name: {}", self.role.name);
         let mut write = object_to_update.write().unwrap();
-        // FIXME: The result of this update never gets saved in the store of GatewayHandle... This is why shit no work
         *write = self.role.clone();
+        println!("Updated role: Name: {}", write.name);
     }
 }
 
