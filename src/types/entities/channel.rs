@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use chorus_macros::{observe_option_vec, Composite, Updateable};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -47,7 +47,7 @@ pub struct Channel {
     pub icon: Option<String>,
     pub id: Snowflake,
     pub last_message_id: Option<Snowflake>,
-    pub last_pin_timestamp: Option<String>,
+    pub last_pin_timestamp: Option<DateTime<Utc>>,
     pub managed: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member: Option<ThreadMember>,
