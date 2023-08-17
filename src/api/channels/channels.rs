@@ -64,9 +64,9 @@ impl Channel {
     pub async fn modify(
         &self,
         modify_data: ChannelModifySchema,
-        channel_id: Snowflake,
         user: &mut UserMeta,
     ) -> ChorusResult<Channel> {
+        let channel_id = self.id;
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .patch(format!(

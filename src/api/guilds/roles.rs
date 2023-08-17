@@ -120,13 +120,13 @@ impl types::RoleObject {
             .await
     }
 
-    /// Updates a role in a guild.
+    /// Modifies a role in a guild.
     ///
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role>
-    pub async fn update(
+    pub async fn modify(
         user: &mut UserMeta,
         guild_id: Snowflake,
         role_id: Snowflake,

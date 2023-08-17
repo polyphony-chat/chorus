@@ -1,4 +1,3 @@
-use std::sync::{Arc, Mutex};
 use std::{cell::RefCell, rc::Rc};
 
 use reqwest::Client;
@@ -21,8 +20,8 @@ impl UserMeta {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
     /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
-    pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
-        User::get(user, id).await
+    pub async fn get_user(&mut self, id: Option<&String>) -> ChorusResult<User> {
+        User::get(self, id).await
     }
 
     /// Gets the user's settings.
@@ -56,12 +55,7 @@ impl UserMeta {
             request,
             limit_type: LimitType::default(),
         };
-        let user_updated = chorus_request
-            .deserialize_response::<User>(self)
-            .await
-            .unwrap();
-        self.object = Arc::new(Mutex::new(user_updated.clone()));
-        Ok(user_updated)
+        chorus_request.deserialize_response::<User>(self).await
     }
 
     /// Deletes the user from the Instance.

@@ -1,14 +1,15 @@
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
-use crate::types::{self, Channel, ChannelUpdate, Snowflake};
-use crate::types::{UpdateMessage, WebSocketEvent};
+use crate::types::{
+    self, Channel, ChannelUpdate, Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField,
+    RoleObject, Snowflake, UpdateMessage, WebSocketEvent,
+};
 use async_trait::async_trait;
 use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use tokio::sync::watch;
 use tokio::time::sleep_until;
 
 use futures_util::stream::SplitSink;
@@ -148,6 +149,8 @@ impl GatewayMessage {
     }
 }
 
+pub type ObservableObject = dyn Send + Sync + Any;
+
 /// Represents a handle to a Gateway connection. A Gateway connection will create observable
 /// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
 /// implemented types with the trait [`WebSocketEvent`]
@@ -167,7 +170,7 @@ pub struct GatewayHandle {
     pub handle: JoinHandle<()>,
     /// Tells gateway tasks to close
     kill_send: tokio::sync::broadcast::Sender<()>,
-    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
+    pub(crate) store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
 }
 
 /// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.
@@ -196,25 +199,55 @@ impl GatewayHandle {
             .unwrap();
     }
 
-    pub async fn observe<T: Updateable>(&self, object: T) -> watch::Receiver<T> {
+    pub async fn observe<T: Updateable + Clone + Debug + Composite<T>>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> Arc<RwLock<T>> {
         let mut store = self.store.lock().await;
-        if let Some(channel) = store.get(&object.id()) {
-            let (_, rx) = channel
-                .downcast_ref::<(watch::Sender<T>, watch::Receiver<T>)>()
+        let id = object.read().unwrap().id();
+        if let Some(channel) = store.get(&id) {
+            let object = channel.clone();
+            drop(store);
+            object
+                .read()
+                .unwrap()
+                .downcast_ref::<T>()
                 .unwrap_or_else(|| {
                     panic!(
                         "Snowflake {} already exists in the store, but it is not of type T.",
-                        object.id()
+                        id
                     )
                 });
-            rx.clone()
+            let ptr = Arc::into_raw(object.clone());
+            // SAFETY:
+            // - We have just checked that the typeid of the `dyn Any ...` matches that of `T`.
+            // - This operation doesn't read or write any shared data, and thus cannot cause a data race
+            // - The reference count is not being modified
+            let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<T>).clone() };
+            let object = downcasted.read().unwrap().clone();
+
+            let watched_object = object.watch_whole(self).await;
+            *downcasted.write().unwrap() = watched_object;
+            downcasted
         } else {
-            let id = object.id();
-            let channel = watch::channel(object);
-            let receiver = channel.1.clone();
-            store.insert(id, Box::new(channel));
-            receiver
+            let id = object.read().unwrap().id();
+            let object = object.read().unwrap().clone();
+            let object = object.clone().watch_whole(self).await;
+            let wrapped = Arc::new(RwLock::new(object));
+            store.insert(id, wrapped.clone());
+            wrapped
         }
+    }
+
+    /// Recursively observes and updates all updateable fields on the struct T. Returns an object `T`
+    /// with all of its observable fields being observed.
+    pub async fn observe_and_into_inner<T: Updateable + Clone + Debug + Composite<T>>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> T {
+        let channel = self.observe(object.clone()).await;
+        let object = channel.read().unwrap().clone();
+        object
     }
 
     /// Sends an identify event to the gateway
@@ -306,7 +339,7 @@ pub struct Gateway {
     >,
     websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
-    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
+    store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
 }
 
 impl Gateway {
@@ -472,14 +505,26 @@ impl Gateway {
                         match event_name.as_str() {
                             $($name => {
                                 let event = &mut self.events.lock().await.$($path).+;
-                                match serde_json::from_str(gateway_payload.event_data.unwrap().get()) {
+                                let json = gateway_payload.event_data.unwrap().get();
+                                match serde_json::from_str(json) {
                                     Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
                                     Ok(message) => {
                                         $(
-                                            let message: $message_type = message;
-                                            if let Some(to_update) = self.store.lock().await.get(&message.id()) {
-                                                if let Some((tx, _)) = to_update.downcast_ref::<(watch::Sender<$update_type>, watch::Receiver<$update_type>)>() {
-                                                    tx.send_modify(|object| message.update(object));
+                                            let mut message: $message_type = message;
+                                            let store = self.store.lock().await;
+                                            if let Some(to_update) = store.get(&message.id()) {
+                                                let object = to_update.clone();
+                                                let inner_object = object.read().unwrap();
+                                                if let Some(_) = inner_object.downcast_ref::<$update_type>() {
+                                                    let ptr = Arc::into_raw(object.clone());
+                                                    // SAFETY:
+                                                    // - We have just checked that the typeid of the `dyn Any ...` matches that of `T`.
+                                                    // - This operation doesn't read or write any shared data, and thus cannot cause a data race
+                                                    // - The reference count is not being modified
+                                                    let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<$update_type>).clone() };
+                                                    drop(inner_object);
+                                                    message.set_json(json.to_string());
+                                                    message.update(downcasted.clone());
                                                 } else {
                                                     warn!("Received {} for {}, but it has been observed to be a different type!", $name, message.id())
                                                 }
@@ -553,8 +598,8 @@ impl Gateway {
                     "GUILD_MEMBER_REMOVE" => guild.member_remove,
                     "GUILD_MEMBER_UPDATE" => guild.member_update,
                     "GUILD_MEMBERS_CHUNK" => guild.members_chunk,
-                    "GUILD_ROLE_CREATE" => guild.role_create,
-                    "GUILD_ROLE_UPDATE" => guild.role_update,
+                    "GUILD_ROLE_CREATE" => guild.role_create GuildRoleCreate: Guild,
+                    "GUILD_ROLE_UPDATE" => guild.role_update GuildRoleUpdate: RoleObject,
                     "GUILD_ROLE_DELETE" => guild.role_delete,
                     "GUILD_SCHEDULED_EVENT_CREATE" => guild.role_scheduled_event_create,
                     "GUILD_SCHEDULED_EVENT_UPDATE" => guild.role_scheduled_event_update,

@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
@@ -24,7 +24,7 @@ pub struct Sticker {
     pub available: Option<bool>,
     pub guild_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<Arc<Mutex<User>>>,
+    pub user: Option<Arc<RwLock<User>>>,
     pub sort_value: Option<u8>,
 }
 

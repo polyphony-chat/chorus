@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
@@ -21,5 +21,5 @@ pub struct TeamMember {
     pub membership_state: u8,
     pub permissions: Vec<String>,
     pub team_id: Snowflake,
-    pub user: Arc<Mutex<User>>,
+    pub user: Arc<RwLock<User>>,
 }

@@ -1,3 +1,8 @@
+use std::sync::{Arc, RwLock};
+
+use std::collections::HashMap;
+
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 pub use application::*;
@@ -19,6 +24,7 @@ pub use ready::*;
 pub use relationship::*;
 pub use request_members::*;
 pub use resume::*;
+use serde_json::{from_str, from_value, to_value, Value};
 pub use session::*;
 pub use stage_instance::*;
 pub use thread::*;
@@ -109,10 +115,31 @@ impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 /// This would imply, that the [`WebSocketEvent`] "[`ChannelUpdate`]" contains new/updated information
 /// about a [`Channel`]. The update method describes how this new information will be turned into
 /// a [`Channel`] object.
-pub(crate) trait UpdateMessage<T>: Clone
+pub(crate) trait UpdateMessage<T>: Clone + JsonField
 where
-    T: Updateable,
+    T: Updateable + Serialize + DeserializeOwned + Clone,
 {
-    fn update(&self, object_to_update: &mut T);
+    fn update(&mut self, object_to_update: Arc<RwLock<T>>) {
+        update_object(self.get_json(), object_to_update)
+    }
     fn id(&self) -> Snowflake;
+}
+
+pub(crate) trait JsonField: Clone {
+    fn set_json(&mut self, json: String);
+    fn get_json(&self) -> String;
+}
+
+/// Only applicable for events where the Update struct is the same as the Entity struct
+pub(crate) fn update_object(
+    value: String,
+    object: Arc<RwLock<(impl Updateable + Serialize + DeserializeOwned + Clone)>>,
+) {
+    let data_from_event: HashMap<String, Value> = from_str(&value).unwrap();
+    let mut original_data: HashMap<String, Value> =
+        from_value(to_value(object.clone()).unwrap()).unwrap();
+    for (updated_entry_key, updated_entry_value) in data_from_event.into_iter() {
+        original_data.insert(updated_entry_key.clone(), updated_entry_value);
+    }
+    *object.write().unwrap() = from_value(to_value(original_data).unwrap()).unwrap();
 }

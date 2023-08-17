@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +10,7 @@ use crate::types::{entities::PublicUser, Snowflake};
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/guild#guild-member-object>
 pub struct GuildMember {
-    pub user: Option<Arc<Mutex<PublicUser>>>,
+    pub user: Option<Arc<RwLock<PublicUser>>>,
     pub nick: Option<String>,
     pub avatar: Option<String>,
     pub roles: Vec<Snowflake>,
