@@ -26,7 +26,7 @@ impl UserMeta {
             user_id
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).bearer_auth(self.token()),
+            request: Client::new().get(url).header("Authorization", self.token()),
             limit_type: LimitType::Global,
         };
         chorus_request
@@ -44,7 +44,7 @@ impl UserMeta {
             self.belongs_to.borrow().urls.api
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).bearer_auth(self.token()),
+            request: Client::new().get(url).header("Authorization", self.token()),
             limit_type: LimitType::Global,
         };
         chorus_request
@@ -66,7 +66,10 @@ impl UserMeta {
         );
         let body = to_string(&schema).unwrap();
         let chorus_request = ChorusRequest {
-            request: Client::new().post(url).bearer_auth(self.token()).body(body),
+            request: Client::new()
+                .post(url)
+                .header("Authorization", self.token())
+                .body(body),
             limit_type: LimitType::Global,
         };
         chorus_request.handle_request_as_result(self).await
@@ -86,7 +89,7 @@ impl UserMeta {
                 let chorus_request = ChorusRequest {
                     request: Client::new()
                         .delete(format!("{}/users/@me/relationships/{}", api_url, user_id))
-                        .bearer_auth(self.token()),
+                        .header("Authorization", self.token()),
                     limit_type: LimitType::Global,
                 };
                 chorus_request.handle_request_as_result(self).await
@@ -100,7 +103,7 @@ impl UserMeta {
                 let chorus_request = ChorusRequest {
                     request: Client::new()
                         .put(format!("{}/users/@me/relationships/{}", api_url, user_id))
-                        .bearer_auth(self.token())
+                        .header("Authorization", self.token())
                         .body(to_string(&body).unwrap()),
                     limit_type: LimitType::Global,
                 };
@@ -115,7 +118,7 @@ impl UserMeta {
                 let chorus_request = ChorusRequest {
                     request: Client::new()
                         .put(format!("{}/users/@me/relationships/{}", api_url, user_id))
-                        .bearer_auth(self.token())
+                        .header("Authorization", self.token())
                         .body(to_string(&body).unwrap()),
                     limit_type: LimitType::Global,
                 };
@@ -136,7 +139,9 @@ impl UserMeta {
             user_id
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().delete(url).bearer_auth(self.token()),
+            request: Client::new()
+                .delete(url)
+                .header("Authorization", self.token()),
             limit_type: LimitType::Global,
         };
         chorus_request.handle_request_as_result(self).await

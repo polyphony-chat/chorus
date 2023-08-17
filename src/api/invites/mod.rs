@@ -25,7 +25,7 @@ impl UserMeta {
                     self.belongs_to.borrow().urls.api,
                     invite_code
                 ))
-                .bearer_auth(self.token()),
+                .header("Authorization", self.token()),
             limit_type: super::LimitType::Global,
         };
         if session_id.is_some() {
@@ -50,7 +50,7 @@ impl UserMeta {
                     self.belongs_to.borrow().urls.api
                 ))
                 .body(to_string(&code).unwrap())
-                .bearer_auth(self.token()),
+                .header("Authorization", self.token()),
             limit_type: super::LimitType::Global,
         }
         .deserialize_response::<Invite>(self)
@@ -76,7 +76,7 @@ impl UserMeta {
                     self.belongs_to.borrow().urls.api,
                     channel_id
                 ))
-                .bearer_auth(self.token())
+                .header("Authorization", self.token())
                 .body(to_string(&create_channel_invite_schema).unwrap()),
             limit_type: super::LimitType::Channel(channel_id),
         }
