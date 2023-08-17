@@ -62,7 +62,6 @@ pub trait Composite<T: Updateable + Clone + Debug> {
     where
         T: Composite<T> + Debug,
     {
-        println!("Processed option value.");
         if let Some(value) = value {
             let value = value.clone();
             Some(gateway.observe(value).await)
@@ -78,7 +77,6 @@ pub trait Composite<T: Updateable + Clone + Debug> {
     where
         T: Composite<T>,
     {
-        println!("Processed option vec value.");
         if let Some(value) = value {
             let mut vec = Vec::new();
             for component in value.into_iter() {
@@ -94,7 +92,6 @@ pub trait Composite<T: Updateable + Clone + Debug> {
     where
         T: Composite<T>,
     {
-        println!("Processed value.");
         gateway.observe(value).await
     }
 
@@ -105,7 +102,6 @@ pub trait Composite<T: Updateable + Clone + Debug> {
     where
         T: Composite<T>,
     {
-        println!("Processed vec value.");
         let mut vec = Vec::new();
         for component in value.into_iter() {
             vec.push(gateway.observe(component).await);
