@@ -94,7 +94,6 @@ async fn test_recursive_self_updating_structs() {
         .observe(Arc::new(RwLock::new(role.clone())))
         .await;
     // Update Guild and check for Guild
-    let guild = bundle.user.gateway.observe(guild.clone()).await;
     let inner_guild = guild.read().unwrap().clone();
     assert!(inner_guild.roles.is_some());
     // Update the Role
@@ -102,8 +101,16 @@ async fn test_recursive_self_updating_structs() {
     RoleObject::modify(&mut bundle.user, guild_id, role.id, role_create_schema)
         .await
         .unwrap();
+    let role_inner = bundle
+        .user
+        .gateway
+        .observe_and_into_inner(Arc::new(RwLock::new(role.clone())))
+        .await;
+    assert_eq!(role_inner.name, "yippieee");
     // Check if the change propagated
-    let guild_roles = guild.read().unwrap().clone().roles;
+    let guild = bundle.user.gateway.observe(bundle.guild.clone()).await;
+    let inner_guild = guild.read().unwrap().clone();
+    let guild_roles = inner_guild.roles;
     let guild_role = guild_roles.unwrap();
     let guild_role_inner = guild_role.get(0).unwrap().read().unwrap().clone();
     assert_eq!(guild_role_inner.name, "yippieee".to_string());
