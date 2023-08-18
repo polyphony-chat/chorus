@@ -628,6 +628,7 @@ impl Gateway {
                     "STAGE_INSTANCE_CREATE" => stage_instance.create,
                     "STAGE_INSTANCE_UPDATE" => stage_instance.update,
                     "STAGE_INSTANCE_DELETE" => stage_instance.delete,
+                    "TYPING_START" => user.typing_start,
                     "USER_UPDATE" => user.update,
                     "USER_GUILD_SETTINGS_UPDATE" => user.guild_settings_update,
                     "VOICE_STATE_UPDATE" => voice.state_update,
@@ -972,7 +973,7 @@ mod events {
         pub update: GatewayEvent<types::UserUpdate>,
         pub guild_settings_update: GatewayEvent<types::UserGuildSettingsUpdate>,
         pub presence_update: GatewayEvent<types::PresenceUpdate>,
-        pub typing_start_event: GatewayEvent<types::TypingStartEvent>,
+        pub typing_start: GatewayEvent<types::TypingStartEvent>,
     }
 
     #[derive(Default, Debug)]
