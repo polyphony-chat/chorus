@@ -507,7 +507,7 @@ impl Gateway {
                                 let event = &mut self.events.lock().await.$($path).+;
                                 let json = gateway_payload.event_data.unwrap().get();
                                 match serde_json::from_str(json) {
-                                    Err(err) => warn!("Failed to parse gateway event {event_name} ({err}): {:?}", json.clone()),
+                                    Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
                                     Ok(message) => {
                                         $(
                                             let mut message: $message_type = message;
@@ -543,7 +543,7 @@ impl Gateway {
                                         warn!(
                                             "Failed to parse gateway event {} ({})",
                                             event_name,
-                                            err,
+                                            err
                                         );
                                         return;
                                     }
