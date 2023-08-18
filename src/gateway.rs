@@ -1,8 +1,9 @@
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
 use crate::types::{
-    self, Channel, ChannelUpdate, Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField,
-    RoleObject, Snowflake, UpdateMessage, WebSocketEvent,
+    self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelUpdate,
+    Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject, Snowflake,
+    UpdateMessage, WebSocketEvent,
 };
 use async_trait::async_trait;
 use std::any::Any;
@@ -512,7 +513,13 @@ impl Gateway {
                                         $(
                                             let mut message: $message_type = message;
                                             let store = self.store.lock().await;
-                                            if let Some(to_update) = store.get(&message.id()) {
+                                            let id = if message.id().is_some() {
+                                                message.id().unwrap()
+                                            } else {
+                                                event.notify(message).await;
+                                                return;
+                                            };
+                                            if let Some(to_update) = store.get(&id) {
                                                 let object = to_update.clone();
                                                 let inner_object = object.read().unwrap();
                                                 if let Some(_) = inner_object.downcast_ref::<$update_type>() {
@@ -526,7 +533,7 @@ impl Gateway {
                                                     message.set_json(json.to_string());
                                                     message.update(downcasted.clone());
                                                 } else {
-                                                    warn!("Received {} for {}, but it has been observed to be a different type!", $name, message.id())
+                                                    warn!("Received {} for {}, but it has been observed to be a different type!", $name, id)
                                                 }
                                             }
                                         )?
@@ -568,13 +575,13 @@ impl Gateway {
                     "READY_SUPPLEMENTAL" => session.ready_supplemental,
                     "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => application.command_permissions_update,
                     "AUTO_MODERATION_RULE_CREATE" =>auto_moderation.rule_create,
-                    "AUTO_MODERATION_RULE_UPDATE" =>auto_moderation.rule_update, // TODO
+                    "AUTO_MODERATION_RULE_UPDATE" =>auto_moderation.rule_update AutoModerationRuleUpdate: AutoModerationRule,
                     "AUTO_MODERATION_RULE_DELETE" => auto_moderation.rule_delete,
                     "AUTO_MODERATION_ACTION_EXECUTION" => auto_moderation.action_execution,
-                    "CHANNEL_CREATE" => channel.create, // TODO
+                    "CHANNEL_CREATE" => channel.create, // Could be processed if handle_message returned a Result<(), SomeError>, as channel.guild_id is Option
                     "CHANNEL_UPDATE" => channel.update ChannelUpdate: Channel,
                     "CHANNEL_UNREAD_UPDATE" => channel.unread_update,
-                    "CHANNEL_DELETE" => channel.delete, // TODO
+                    "CHANNEL_DELETE" => channel.delete, // Same as CHANNEL_CREATE
                     "CHANNEL_PINS_UPDATE" => channel.pins_update,
                     "CALL_CREATE" => call.create,
                     "CALL_UPDATE" => call.update,
