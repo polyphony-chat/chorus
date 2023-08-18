@@ -507,7 +507,7 @@ impl Gateway {
                                 let event = &mut self.events.lock().await.$($path).+;
                                 let json = gateway_payload.event_data.unwrap().get();
                                 match serde_json::from_str(json) {
-                                    Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
+                                    Err(err) => warn!("Failed to parse gateway event {event_name} ({err}): {:?}", json.clone()),
                                     Ok(message) => {
                                         $(
                                             let mut message: $message_type = message;
@@ -543,7 +543,7 @@ impl Gateway {
                                         warn!(
                                             "Failed to parse gateway event {} ({})",
                                             event_name,
-                                            err
+                                            err,
                                         );
                                         return;
                                     }
@@ -628,6 +628,7 @@ impl Gateway {
                     "STAGE_INSTANCE_CREATE" => stage_instance.create,
                     "STAGE_INSTANCE_UPDATE" => stage_instance.update,
                     "STAGE_INSTANCE_DELETE" => stage_instance.delete,
+                    "TYPING_START" => user.typing_start,
                     "USER_UPDATE" => user.update,
                     "USER_GUILD_SETTINGS_UPDATE" => user.guild_settings_update,
                     "VOICE_STATE_UPDATE" => voice.state_update,
@@ -972,7 +973,7 @@ mod events {
         pub update: GatewayEvent<types::UserUpdate>,
         pub guild_settings_update: GatewayEvent<types::UserGuildSettingsUpdate>,
         pub presence_update: GatewayEvent<types::PresenceUpdate>,
-        pub typing_start_event: GatewayEvent<types::TypingStartEvent>,
+        pub typing_start: GatewayEvent<types::TypingStartEvent>,
     }
 
     #[derive(Default, Debug)]
