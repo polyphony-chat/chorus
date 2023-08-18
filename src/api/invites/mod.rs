@@ -31,6 +31,7 @@ impl UserMeta {
         if session_id.is_some() {
             request.request = request
                 .request
+                .header("Content-Type", "application/json")
                 .body(to_string(session_id.unwrap()).unwrap());
         }
         request.deserialize_response::<Invite>(self).await
@@ -50,7 +51,8 @@ impl UserMeta {
                     self.belongs_to.borrow().urls.api
                 ))
                 .body(to_string(&code).unwrap())
-                .header("Authorization", self.token()),
+                .header("Authorization", self.token())
+                .header("Content-Type", "application/json"),
             limit_type: super::LimitType::Global,
         }
         .deserialize_response::<Invite>(self)
@@ -77,6 +79,7 @@ impl UserMeta {
                     channel_id
                 ))
                 .header("Authorization", self.token())
+                .header("Content-Type", "application/json")
                 .body(to_string(&create_channel_invite_schema).unwrap()),
             limit_type: super::LimitType::Channel(channel_id),
         }

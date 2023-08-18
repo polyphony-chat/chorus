@@ -69,6 +69,7 @@ impl UserMeta {
             request: Client::new()
                 .post(url)
                 .header("Authorization", self.token())
+                .header("Content-Type", "application/json")
                 .body(body),
             limit_type: LimitType::Global,
         };

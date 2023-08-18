@@ -83,6 +83,7 @@ impl types::RoleObject {
             request: Client::new()
                 .post(url)
                 .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
                 .body(body),
             limit_type: LimitType::Guild(guild_id),
         };
@@ -115,6 +116,7 @@ impl types::RoleObject {
             request: Client::new()
                 .patch(url)
                 .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
                 .body(body),
             limit_type: LimitType::Guild(guild_id),
         };
@@ -150,6 +152,7 @@ impl types::RoleObject {
             request: Client::new()
                 .patch(url)
                 .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
                 .body(body),
             limit_type: LimitType::Guild(guild_id),
         };

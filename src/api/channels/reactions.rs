@@ -108,7 +108,10 @@ impl ReactionMeta {
             emoji
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().put(url).header("Authorization", user.token()),
+            request: Client::new()
+                .put(url)
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
             limit_type: LimitType::Channel(self.channel_id),
         };
         chorus_request.handle_request_as_result(user).await
