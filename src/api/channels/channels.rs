@@ -75,6 +75,7 @@ impl Channel {
                     channel_id
                 ))
                 .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
                 .body(to_string(&modify_data).unwrap()),
             limit_type: LimitType::Channel(channel_id),
         };
@@ -129,7 +130,8 @@ impl Channel {
                 self.id,
                 recipient_id
             ))
-            .header("Authorization", user.token());
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json");
         if let Some(schema) = add_channel_recipient_schema {
             request = request.body(to_string(&schema).unwrap());
         }

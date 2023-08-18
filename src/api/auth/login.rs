@@ -22,7 +22,8 @@ impl Instance {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(endpoint_url)
-                .body(to_string(login_schema).unwrap()),
+                .body(to_string(login_schema).unwrap())
+                .header("Content-Type", "application/json"),
             limit_type: LimitType::AuthLogin,
         };
         // We do not have a user yet, and the UserRateLimits will not be affected by a login

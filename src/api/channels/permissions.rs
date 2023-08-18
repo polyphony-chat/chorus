@@ -43,6 +43,7 @@ impl types::Channel {
             request: Client::new()
                 .put(url)
                 .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
                 .body(body),
             limit_type: LimitType::Channel(channel_id),
         };

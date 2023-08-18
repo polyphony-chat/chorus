@@ -26,6 +26,7 @@ impl UserMeta {
             request: Client::new()
                 .post(url)
                 .header("Authorization", self.token())
+                .header("Content-Type", "application/json")
                 .body(to_string(&create_private_channel_schema).unwrap()),
             limit_type: LimitType::Global,
         }

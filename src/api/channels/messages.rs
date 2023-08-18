@@ -27,7 +27,8 @@ impl Message {
                 request: Client::new()
                     .post(format!("{}/channels/{}/messages", url_api, channel_id))
                     .header("Authorization", user.token())
-                    .body(to_string(&message).unwrap()),
+                    .body(to_string(&message).unwrap())
+                    .header("Content-Type", "application/json"),
                 limit_type: LimitType::Channel(channel_id),
             };
             chorus_request.deserialize_response::<Message>(user).await

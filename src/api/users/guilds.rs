@@ -23,6 +23,7 @@ impl UserMeta {
                     guild_id
                 ))
                 .header("Authorization", self.token())
+                .header("Content-Type", "application/json")
                 .body(to_string(&lurking).unwrap()),
             limit_type: crate::api::LimitType::Guild(*guild_id),
         }
