@@ -21,7 +21,7 @@ pub struct Invite {
     pub flags: Option<i32>,
     pub guild: Option<InviteGuild>,
     pub guild_id: Option<Snowflake>,
-    pub guild_scheduled_event: Option<GuildScheduledEvent>,
+    pub guild_scheduled_event: Option<Arc<RwLock<GuildScheduledEvent>>>,
     #[serde(rename = "type")]
     pub invite_type: Option<i32>,
     pub inviter: Option<User>,

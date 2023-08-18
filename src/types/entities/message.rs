@@ -1,3 +1,5 @@
+use std::sync::{Arc, RwLock};
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
@@ -84,7 +86,7 @@ pub struct MessageInteraction {
     pub interaction_type: u8,
     pub name: String,
     pub user: User,
-    pub member: Option<GuildMember>,
+    pub member: Option<Arc<RwLock<GuildMember>>>,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
