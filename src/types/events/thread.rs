@@ -1,8 +1,11 @@
+use chorus_macros::JsonField;
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Channel, ThreadMember};
 use crate::types::events::WebSocketEvent;
-use crate::types::Snowflake;
+use crate::types::{JsonField, Snowflake};
+
+use super::UpdateMessage;
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#thread-create>
@@ -13,14 +16,22 @@ pub struct ThreadCreate {
 
 impl WebSocketEvent for ThreadCreate {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#thread-update>
 pub struct ThreadUpdate {
     #[serde(flatten)]
     pub thread: Channel,
+    #[serde(skip)]
+    pub json: String,
 }
 
 impl WebSocketEvent for ThreadUpdate {}
+
+impl UpdateMessage<Channel> for ThreadUpdate {
+    fn id(&self) -> Option<Snowflake> {
+        Some(self.thread.id)
+    }
+}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#thread-delete>
