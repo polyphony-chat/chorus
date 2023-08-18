@@ -1,9 +1,9 @@
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
 use crate::types::{
-    self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelUpdate,
-    Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject, Snowflake,
-    UpdateMessage, WebSocketEvent,
+    self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
+    ChannelUpdate, Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject,
+    Snowflake, ThreadUpdate, UpdateMessage, WebSocketEvent,
 };
 use async_trait::async_trait;
 use std::any::Any;
@@ -578,16 +578,16 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_UPDATE" =>auto_moderation.rule_update AutoModerationRuleUpdate: AutoModerationRule,
                     "AUTO_MODERATION_RULE_DELETE" => auto_moderation.rule_delete,
                     "AUTO_MODERATION_ACTION_EXECUTION" => auto_moderation.action_execution,
-                    "CHANNEL_CREATE" => channel.create, // Could be processed if handle_message returned a Result<(), SomeError>, as channel.guild_id is Option
+                    "CHANNEL_CREATE" => channel.create ChannelCreate: Guild,
                     "CHANNEL_UPDATE" => channel.update ChannelUpdate: Channel,
                     "CHANNEL_UNREAD_UPDATE" => channel.unread_update,
-                    "CHANNEL_DELETE" => channel.delete, // Same as CHANNEL_CREATE
+                    "CHANNEL_DELETE" => channel.delete ChannelDelete: Guild,
                     "CHANNEL_PINS_UPDATE" => channel.pins_update,
                     "CALL_CREATE" => call.create,
                     "CALL_UPDATE" => call.update,
                     "CALL_DELETE" => call.delete,
                     "THREAD_CREATE" => thread.create, // TODO
-                    "THREAD_UPDATE" => thread.update, // TODO
+                    "THREAD_UPDATE" => thread.update ThreadUpdate: Channel,
                     "THREAD_DELETE" => thread.delete, // TODO
                     "THREAD_LIST_SYNC" => thread.list_sync, // TODO
                     "THREAD_MEMBER_UPDATE" => thread.member_update, // TODO
@@ -596,8 +596,8 @@ impl Gateway {
                     "GUILD_UPDATE" => guild.update, // TODO
                     "GUILD_DELETE" => guild.delete, // TODO
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => guild.audit_log_entry_create,
-                    "GUILD_BAN_ADD" => guild.ban_add,
-                    "GUILD_BAN_REMOVE" => guild.ban_remove,
+                    "GUILD_BAN_ADD" => guild.ban_add, // TODO
+                    "GUILD_BAN_REMOVE" => guild.ban_remove, // TODO
                     "GUILD_EMOJIS_UPDATE" => guild.emojis_update, // TODO
                     "GUILD_STICKERS_UPDATE" => guild.stickers_update, // TODO
                     "GUILD_INTEGRATIONS_UPDATE" => guild.integrations_update,
