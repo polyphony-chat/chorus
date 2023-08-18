@@ -13,7 +13,7 @@ pub struct SessionsReplace {
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Session info for the current user
 pub struct Session {
-    pub activities: Vec<Activity>,
+    pub activities: Option<Vec<Activity>>,
     pub client_info: ClientInfo,
     pub session_id: String,
     pub status: String,
@@ -24,7 +24,7 @@ pub struct Session {
 /// {"client":"web","os":"other","version":0}
 // Note: I don't think this one exists yet? Though I might've made a mistake and this might be a duplicate
 pub struct ClientInfo {
-    pub client: String,
+    pub client: Option<String>,
     pub os: String,
     pub version: u8,
 }
