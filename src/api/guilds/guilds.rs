@@ -24,6 +24,7 @@ impl Guild {
             request: Client::new()
                 .post(url.clone())
                 .header("Authorization", user.token.clone())
+                .header("Content-Type", "application/json")
                 .body(to_string(&guild_create_schema).unwrap()),
             limit_type: LimitType::Global,
         };
@@ -58,7 +59,8 @@ impl Guild {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(url.clone())
-                .header("Authorization", user.token.clone()),
+                .header("Authorization", user.token.clone())
+                .header("Content-Type", "application/json"),
             limit_type: LimitType::Global,
         };
         chorus_request.handle_request_as_result(user).await
@@ -157,6 +159,7 @@ impl Channel {
                     guild_id
                 ))
                 .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
                 .body(to_string(&schema).unwrap()),
             limit_type: LimitType::Guild(guild_id),
         };

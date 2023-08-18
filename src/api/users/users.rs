@@ -50,7 +50,8 @@ impl UserMeta {
         let request = Client::new()
             .patch(format!("{}/users/@me", self.belongs_to.borrow().urls.api))
             .body(to_string(&modify_schema).unwrap())
-            .header("Authorization", self.token());
+            .header("Authorization", self.token())
+            .header("Content-Type", "application/json");
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
@@ -68,7 +69,8 @@ impl UserMeta {
                 "{}/users/@me/delete",
                 self.belongs_to.borrow().urls.api
             ))
-            .header("Authorization", self.token());
+            .header("Authorization", self.token())
+            .header("Content-Type", "application/json");
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
