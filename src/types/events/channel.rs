@@ -43,8 +43,8 @@ impl UpdateMessage<Channel> for ChannelUpdate {
         let mut write = object_to_update.write().unwrap();
         *write = self.channel.clone();
     }
-    fn id(&self) -> Snowflake {
-        self.channel.id
+    fn id(&self) -> Option<Snowflake> {
+        Some(self.channel.id)
     }
 }
 
