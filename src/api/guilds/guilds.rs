@@ -7,8 +7,8 @@ use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::Snowflake;
-use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema};
+use crate::types::{Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema};
+use crate::types::{GuildBan, Snowflake};
 
 impl Guild {
     /// Creates a new guild.
@@ -135,6 +135,30 @@ impl Guild {
             limit_type: LimitType::Guild(guild_id),
         };
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        Ok(response)
+    }
+
+    pub async fn create_ban(
+        guild_id: Snowflake,
+        user_id: Snowflake,
+        schema: GuildBanCreateSchema,
+        user: &mut UserMeta,
+    ) -> ChorusResult<GuildBan> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .put(format!(
+                    "{}/guilds/{}/bans/{}",
+                    user.belongs_to.borrow().urls.api,
+                    guild_id,
+                    user_id
+                ))
+                .header("Authorization", user.token())
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Guild(guild_id),
+        };
+        let response = chorus_request
+            .deserialize_response::<GuildBan>(user)
+            .await?;
         Ok(response)
     }
 }
