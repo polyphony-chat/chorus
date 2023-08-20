@@ -1,7 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
-use crate::types::Snowflake;
+use crate::types::types::guild_configuration::GuildFeatures;
+use crate::types::{
+    ExplicitContentFilterLevel, MessageNotificationLevel, Snowflake, SystemChannelFlags,
+    VerificationLevel,
+};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -40,5 +44,15 @@ pub struct GuildModifySchema {
     pub region: Option<String>,
     pub afk_channel_id: Option<Snowflake>,
     pub afk_timeout: Option<u16>,
-    pub verification_level: Option<u8>,
+    pub verification_level: Option<VerificationLevel>,
+    pub default_message_notifications: Option<MessageNotificationLevel>,
+    pub explicit_content_filter: Option<ExplicitContentFilterLevel>,
+    pub features: Option<Vec<GuildFeatures>>,
+    pub system_channel_id: Option<Snowflake>,
+    pub system_channel_flags: Option<SystemChannelFlags>,
+    pub rules_channel_id: Option<Snowflake>,
+    pub public_updates_channel_id: Option<Snowflake>,
+    pub safety_alerts_channel_id: Option<Snowflake>,
+    pub preferred_locale: Option<String>,
+    pub premium_progress_bar_enabled: Option<bool>,
 }
