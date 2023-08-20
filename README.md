@@ -37,6 +37,7 @@ Chorus is a Rust library that allows developers to interact with multiple Spaceb
 
 ## Contributing
 
+If you'd like to contribute new functionality, check out [The 'Meta'-issues.](https://github.com/polyphony-chat/chorus/issues?q=is%3Aissue+label%3A%22Type%3A+Meta%22+) They contain a comprehensive list of all features which are yet missing for full Discord.com compatibility.
 If you would like to contribute, please feel free to open an Issue with the idea you have, or a
 Pull Request. Please keep our [contribution guidelines](https://github.com/polyphony-chat/.github/blob/main/CONTRIBUTION_GUIDELINES.md) in mind. Your contribution might not be
 accepted, if it violates these guidelines or [our Code of Conduct](https://github.com/polyphony-chat/.github/blob/main/CODE_OF_CONDUCT.md).
