@@ -83,7 +83,7 @@ pub struct Guild {
     pub splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub stickers: Option<Vec<Sticker>>,
-    pub system_channel_flags: Option<SystemChannelFlags>,
+    pub system_channel_flags: Option<u64>,
     pub system_channel_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub vanity_url_code: Option<String>,
