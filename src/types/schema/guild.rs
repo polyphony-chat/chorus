@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
+use crate::types::Snowflake;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -23,4 +24,21 @@ pub struct GuildCreateSchema {
 pub struct GuildBanCreateSchema {
     pub delete_message_days: Option<u8>,
     pub delete_message_seconds: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuildModifySchema {
+    pub name: Option<String>,
+    pub icon: Option<Vec<u8>>,
+    pub banner: Option<Vec<u8>>,
+    pub home_header: Option<Vec<u8>>,
+    pub splash: Option<Vec<u8>>,
+    pub discovery_splash: Option<Vec<u8>>,
+    pub owner_id: Option<Snowflake>,
+    pub description: Option<String>,
+    pub region: Option<String>,
+    pub afk_channel_id: Option<Snowflake>,
+    pub afk_timeout: Option<u16>,
+    pub verification_level: Option<u8>,
 }
