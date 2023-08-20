@@ -1,4 +1,4 @@
-use chorus::types::{Guild, GuildCreateSchema};
+use chorus::types::{CreateChannelInviteSchema, Guild, GuildBanCreateSchema, GuildCreateSchema};
 
 mod common;
 
@@ -30,4 +30,31 @@ async fn get_channels() {
     let guild = bundle.guild.read().unwrap().clone();
     println!("{:?}", guild.channels(&mut bundle.user).await.unwrap());
     common::teardown(bundle).await;
+}
+
+#[tokio::test]
+async fn guild_create_ban() {
+    // TODO: When routes exist to check if user x is on guild y, add this as an assertion to check
+    // if Spacebar actually bans the user.
+    let mut bundle = common::setup().await;
+    let channel = bundle.channel.read().unwrap().clone();
+    let mut other_user = bundle.create_user("testuser1312").await;
+    let user = &mut bundle.user;
+    let create_channel_invite_schema = CreateChannelInviteSchema::default();
+    let guild = bundle.guild.read().unwrap().clone();
+    let invite = user
+        .create_channel_invite(create_channel_invite_schema, channel.id)
+        .await
+        .unwrap();
+    other_user.accept_invite(&invite.code, None).await.unwrap();
+    let other_user_id = other_user.object.read().unwrap().id;
+    Guild::create_ban(
+        guild.id,
+        other_user_id,
+        GuildBanCreateSchema::default(),
+        &mut bundle.user,
+    )
+    .await
+    .unwrap();
+    common::teardown(bundle).await
 }
