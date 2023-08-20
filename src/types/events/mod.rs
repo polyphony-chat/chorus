@@ -122,7 +122,7 @@ where
     fn update(&mut self, object_to_update: Arc<RwLock<T>>) {
         update_object(self.get_json(), object_to_update)
     }
-    fn id(&self) -> Snowflake;
+    fn id(&self) -> Option<Snowflake>;
 }
 
 pub(crate) trait JsonField: Clone {

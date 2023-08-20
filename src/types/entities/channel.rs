@@ -16,7 +16,7 @@ use crate::types::{
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, Updateable, Composite)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
-/// Represents a guild of private channel
+/// Represents a guild or private channel
 ///
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#channels-resource>

@@ -180,8 +180,8 @@ pub struct GuildRoleCreate {
 impl WebSocketEvent for GuildRoleCreate {}
 
 impl UpdateMessage<Guild> for GuildRoleCreate {
-    fn id(&self) -> Snowflake {
-        self.guild_id
+    fn id(&self) -> Option<Snowflake> {
+        Some(self.guild_id)
     }
 
     fn update(&mut self, object_to_update: Arc<RwLock<Guild>>) {
@@ -210,15 +210,13 @@ pub struct GuildRoleUpdate {
 impl WebSocketEvent for GuildRoleUpdate {}
 
 impl UpdateMessage<RoleObject> for GuildRoleUpdate {
-    fn id(&self) -> Snowflake {
-        self.role.id
+    fn id(&self) -> Option<Snowflake> {
+        Some(self.role.id)
     }
 
     fn update(&mut self, object_to_update: Arc<RwLock<RoleObject>>) {
-        println!("Processing Role Update. Name: {}", self.role.name);
         let mut write = object_to_update.write().unwrap();
         *write = self.role.clone();
-        println!("Updated role: Name: {}", write.name);
     }
 }
 

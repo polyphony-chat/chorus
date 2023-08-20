@@ -1,11 +1,13 @@
 use std::sync::{Arc, RwLock};
 
+use crate::gateway::Updateable;
+use chorus_macros::Updateable;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::utils::Snowflake;
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object>
 pub struct AutoModerationRule {
     pub id: Snowflake,
