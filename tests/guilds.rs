@@ -1,4 +1,6 @@
-use chorus::types::{CreateChannelInviteSchema, Guild, GuildBanCreateSchema, GuildCreateSchema};
+use chorus::types::{
+    CreateChannelInviteSchema, Guild, GuildBanCreateSchema, GuildCreateSchema, GuildModifySchema,
+};
 
 mod common;
 
@@ -64,5 +66,20 @@ async fn guild_create_ban() {
     )
     .await
     .is_err());
+    common::teardown(bundle).await
+}
+
+#[tokio::test]
+async fn modify_guild() {
+    let mut bundle = common::setup().await;
+    let schema = GuildModifySchema {
+        name: Some("Mycoolguild".to_string()),
+        ..Default::default()
+    };
+    let guild_id = bundle.guild.read().unwrap().id;
+    let result = Guild::modify(guild_id, schema, &mut bundle.user)
+        .await
+        .unwrap();
+    assert_eq!(result.name.unwrap(), "Mycoolguild".to_string());
     common::teardown(bundle).await
 }

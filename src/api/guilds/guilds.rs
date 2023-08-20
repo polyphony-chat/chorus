@@ -7,7 +7,9 @@ use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema};
+use crate::types::{
+    Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema, GuildModifySchema,
+};
 use crate::types::{GuildBan, Snowflake};
 
 impl Guild {
@@ -159,6 +161,28 @@ impl Guild {
         let response = chorus_request
             .deserialize_response::<GuildBan>(user)
             .await?;
+        Ok(response)
+    }
+
+    /// # Reference
+    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild>
+    pub async fn modify(
+        guild_id: Snowflake,
+        schema: GuildModifySchema,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Guild> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/guilds/{}",
+                    user.belongs_to.borrow().urls.api,
+                    guild_id,
+                ))
+                .header("Authorization", user.token())
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Guild(guild_id),
+        };
+        let response = chorus_request.deserialize_response::<Guild>(user).await?;
         Ok(response)
     }
 }
