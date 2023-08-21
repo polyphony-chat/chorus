@@ -1,7 +1,7 @@
 use reqwest::Client;
 use serde_json::to_string;
 
-use crate::types::AddChannelRecipientSchema;
+use crate::types::{AddChannelRecipientSchema, ModifyChannelPositionsSchema};
 use crate::{
     api::LimitType,
     errors::{ChorusError, ChorusResult},
@@ -163,6 +163,32 @@ impl Channel {
         ChorusRequest {
             request,
             limit_type: LimitType::Channel(self.id),
+        }
+        .handle_request_as_result(user)
+        .await
+    }
+
+    /// Modifies the positions of a set of channel objects for the guild. Requires the `MANAGE_CHANNELS` permission.
+    /// Only channels to be modified are required.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-guild-channel-positions>
+    pub async fn modify_positions(
+        schema: Vec<ModifyChannelPositionsSchema>,
+        guild_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let request = Client::new()
+            .patch(format!(
+                "{}/guilds/{}/channels",
+                user.belongs_to.borrow().urls.api,
+                guild_id
+            ))
+            .header("Authorization", user.token())
+            .body(to_string(&schema).unwrap());
+        ChorusRequest {
+            request,
+            limit_type: LimitType::Guild(guild_id),
         }
         .handle_request_as_result(user)
         .await

@@ -148,3 +148,12 @@ pub struct AddChannelRecipientSchema {
     pub access_token: Option<String>,
     pub nick: Option<String>,
 }
+
+/// See <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
+pub struct ModifyChannelPositionsSchema {
+    pub id: Snowflake,
+    pub position: Option<u32>,
+    pub lock_permissions: Option<bool>,
+    pub parent_id: Option<Snowflake>,
+}
