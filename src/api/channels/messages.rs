@@ -8,7 +8,7 @@ use crate::errors::{ChorusError, ChorusResult};
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    Message, MessageSearchEndpoint, MessageSearchQuery, MessageSendSchema, Snowflake,
+    Channel, Message, MessageSearchEndpoint, MessageSearchQuery, MessageSendSchema, Snowflake,
 };
 
 impl Message {
@@ -128,24 +128,6 @@ impl Message {
             ),
         })
     }
-
-    /// Returns messages without the reactions key that match a search query in the channel.
-    /// The messages that are direct results will have an extra hit key set to true.
-    /// If operating on a guild channel, this endpoint requires the `READ_MESSAGE_HISTORY`
-    /// permission to be present on the current user.
-    ///
-    /// If the guild/channel you are searching is not yet indexed, the endpoint will return a 202 accepted response.
-    /// In this case, the method will return a [`ChorusError::InvalidResponse`] error.
-    ///
-    /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
-    pub async fn search_messages(
-        channel_id: Snowflake,
-        query: MessageSearchQuery,
-        user: &mut UserMeta,
-    ) -> ChorusResult<Vec<Message>> {
-        Message::search(MessageSearchEndpoint::Channel(channel_id), query, user).await
-    }
 }
 
 fn search_error(result_text: String) -> ChorusError {
@@ -172,5 +154,25 @@ impl UserMeta {
         channel_id: Snowflake,
     ) -> ChorusResult<Message> {
         Message::send(self, channel_id, message).await
+    }
+}
+
+impl Channel {
+    /// Returns messages without the reactions key that match a search query in the channel.
+    /// The messages that are direct results will have an extra hit key set to true.
+    /// If operating on a guild channel, this endpoint requires the `READ_MESSAGE_HISTORY`
+    /// permission to be present on the current user.
+    ///
+    /// If the guild/channel you are searching is not yet indexed, the endpoint will return a 202 accepted response.
+    /// In this case, the method will return a [`ChorusError::InvalidResponse`] error.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
+    pub async fn search_messages(
+        channel_id: Snowflake,
+        query: MessageSearchQuery,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Vec<Message>> {
+        Message::search(MessageSearchEndpoint::Channel(channel_id), query, user).await
     }
 }
