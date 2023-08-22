@@ -364,6 +364,62 @@ impl Message {
         };
         chorus_request.deserialize_response::<Message>(user).await
     }
+
+    /// Deletes a message. If operating on a guild channel and trying to delete a message that was not sent by the current user,
+    /// this endpoint requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
+    pub async fn delete(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .delete(format!(
+                    "{}/channels/{}/messages/{}",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
+    }
+
+    /// Deletes multiple messages in a single request. This endpoint can only be used on guild channels and requires the MANAGE_MESSAGES permission.
+    /// Returns a 204 empty response on success.
+    ///
+    /// **This endpoint will not delete messages older than 2 weeks, and will fail if any message provided is older than that or if any duplicate message IDs are provided.**
+    ///
+    /// **This endpoint is not usable by user accounts.** (At least according to Discord.com. Spacebar behaviour may differ.)
+    ///
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#bulk-delete-messages>
+    pub async fn bulk_delete(
+        channel_id: Snowflake,
+        messages: Vec<Snowflake>,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        if messages.len() < 2 {
+            return Err(ChorusError::InvalidArguments {
+                error: "`messages` must contain at least 2 entries.".to_string(),
+            });
+        }
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/messages/bulk-delete",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&messages).unwrap()),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
+    }
 }
 
 fn search_error(result_text: String) -> ChorusError {
