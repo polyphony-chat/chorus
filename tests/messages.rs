@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{BufReader, Read};
 
-use chorus::types::{self, Guild, MessageSearchQuery};
+use chorus::types::{self, Guild, Message, MessageSearchQuery};
 
 mod common;
 
@@ -98,4 +98,43 @@ async fn search_messages() {
         .unwrap();
     assert!(!query_result.is_empty());
     assert_eq!(query_result.get(0).unwrap().id, message.id);
+}
+
+#[tokio::test]
+async fn test_stickies() {
+    let mut bundle = common::setup().await;
+    let message = types::MessageSendSchema {
+        content: Some("A Message!".to_string()),
+        ..Default::default()
+    };
+    let channel = bundle.channel.read().unwrap().clone();
+    let message = bundle.user.send_message(message, channel.id).await.unwrap();
+    assert_eq!(
+        Message::get_sticky(channel.id, &mut bundle.user)
+            .await
+            .unwrap(),
+        Vec::<Message>::new()
+    );
+    Message::sticky(channel.id, message.id, &mut bundle.user)
+        .await
+        .unwrap();
+    assert_eq!(
+        Message::get_sticky(channel.id, &mut bundle.user)
+            .await
+            .unwrap()
+            .get(0)
+            .unwrap()
+            .id,
+        message.id
+    );
+    Message::unsticky(channel.id, message.id, &mut bundle.user)
+        .await
+        .unwrap();
+    assert_eq!(
+        Message::get_sticky(channel.id, &mut bundle.user)
+            .await
+            .unwrap(),
+        Vec::<Message>::new()
+    );
+    common::teardown(bundle).await
 }
