@@ -101,6 +101,7 @@ impl Message {
                     endpoint
                 ))
                 .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
                 .body(to_string(&query).unwrap()),
         };
         let result = request.send_request(user).await?;
@@ -127,6 +128,77 @@ impl Message {
                 code, retry_after
             ),
         })
+    }
+
+    /// Returns all pinned messages in the channel as a Vector of message objects without the reactions key.
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#get-pinned-messages>
+    pub async fn get_sticky(
+        channel_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Vec<Message>> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .get(format!(
+                    "{}/channels/{}/pins",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request
+            .deserialize_response::<Vec<Message>>(user)
+            .await
+    }
+
+    /// Pins a message in a channel. Requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
+    /// The max pinned messages is 50.
+    ///
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#pin-message>
+    pub async fn sticky(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .put(format!(
+                    "{}/channels/{}/pins/{}",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
+    }
+
+    /// Unpins a message in a channel. Requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#unpin-message>
+    pub async fn unsticky(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .delete(format!(
+                    "{}/channels/{}/pins/{}",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 }
 
