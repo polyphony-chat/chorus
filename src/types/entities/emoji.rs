@@ -29,14 +29,13 @@ pub struct Emoji {
 
 impl PartialEq for Emoji {
     fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-            && self.name == other.name
-            && self.roles == other.roles
-            && self.roles == other.roles
-            && self.require_colons == other.require_colons
-            && self.managed == other.managed
-            && self.animated == other.animated
-            && self.available == other.available
+        !(self.id != other.id
+            || self.name != other.name
+            || self.roles != other.roles
+            || self.require_colons != other.require_colons
+            || self.managed != other.managed
+            || self.animated != other.animated
+            || self.available != other.available)
     }
 }
 
