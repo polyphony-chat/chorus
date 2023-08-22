@@ -73,7 +73,7 @@ pub(crate) async fn setup() -> TestBundle {
     };
     let channel_create_schema = ChannelCreateSchema {
         name: "testchannel".to_string(),
-        channel_type: Some(0),
+        channel_type: Some(chorus::types::ChannelType::GuildText),
         topic: None,
         icon: None,
         bitrate: None,

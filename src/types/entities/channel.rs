@@ -176,10 +176,22 @@ pub struct DefaultReaction {
     pub emoji_name: Option<String>,
 }
 
-#[derive(Default, Clone, Copy, Debug, Serialize_repr, Deserialize_repr, PartialEq, Eq, Hash)]
+#[derive(
+    Default,
+    Clone,
+    Copy,
+    Debug,
+    Serialize_repr,
+    Deserialize_repr,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(i32)]
+#[repr(u32)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#channel-type>
 pub enum ChannelType {
