@@ -420,6 +420,28 @@ impl Message {
         };
         chorus_request.handle_request_as_result(user).await
     }
+
+    /// Acknowledges the currently pinned messages in a channel. Returns a 204 empty response on success.
+    ///
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#acknowledge-pinned-messages>
+    pub async fn acknowledge_pinned(
+        channel_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/pins/ack",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
+    }
 }
 
 fn search_error(result_text: String) -> ChorusError {
