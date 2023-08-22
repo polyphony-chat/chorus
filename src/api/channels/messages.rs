@@ -1,7 +1,7 @@
 use http::header::CONTENT_DISPOSITION;
 use http::HeaderMap;
 use reqwest::{multipart, Client};
-use serde_json::{from_str, to_string, to_value};
+use serde_json::{from_value, to_string, Value};
 
 use crate::api::LimitType;
 use crate::errors::{ChorusError, ChorusResult};
@@ -104,20 +104,20 @@ impl Message {
                 .body(to_string(&query).unwrap()),
         };
         let result = request.send_request(user).await?;
-        let result_text = result.text().await.unwrap();
-        if let Ok(response) = from_str::<Vec<Message>>(&result_text) {
-            return Ok(response);
+        let result_json = result.json::<Value>().await.unwrap();
+        if !result_json.is_object() {
+            return Err(search_error(result_json.to_string()));
         }
-        if to_value(result_text.clone()).is_err() {
-            return Err(search_error(result_text));
+        let value_map = result_json.as_object().unwrap();
+        if let Some(messages) = value_map.get("messages") {
+            if let Ok(response) = from_value::<Vec<Vec<Message>>>(messages.clone()) {
+                let result_messages: Vec<Message> = response.into_iter().flatten().collect();
+                return Ok(result_messages);
+            }
         }
-        let result_value = to_value(result_text.clone()).unwrap();
-        if !result_value.is_object() {
-            return Err(search_error(result_text));
-        }
-        let value_map = result_value.as_object().unwrap();
+        // The code below might be incorrect. We'll cross that bridge when we come to it
         if !value_map.contains_key("code") || !value_map.contains_key("retry_after") {
-            return Err(search_error(result_text));
+            return Err(search_error(result_json.to_string()));
         }
         let code = value_map.get("code").unwrap().as_u64().unwrap();
         let retry_after = value_map.get("retry_after").unwrap().as_u64().unwrap();
