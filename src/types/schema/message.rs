@@ -103,3 +103,10 @@ pub struct CreateGreetMessage {
     pub allowed_mentions: Option<AllowedMention>,
     pub message_reference: Option<MessageReference>,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct MessageAck {
+    pub token: Option<String>,
+    pub manual: Option<bool>,
+    pub mention_count: Option<u32>,
+}

@@ -8,7 +8,7 @@ use crate::errors::{ChorusError, ChorusResult};
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    Channel, CreateGreetMessage, Message, MessageSearchEndpoint, MessageSearchQuery,
+    Channel, CreateGreetMessage, Message, MessageAck, MessageSearchEndpoint, MessageSearchQuery,
     MessageSendSchema, Snowflake,
 };
 
@@ -247,6 +247,40 @@ impl Message {
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.deserialize_response::<Message>(user).await
+    }
+
+    /// Sets the channel's latest acknowledged message (marks a message as read) for the current user.
+    /// The message ID parameter does not need to be a valid message ID, but it must be a valid snowflake.
+    /// If the message ID is being set to a message sent prior to the latest acknowledged one,
+    /// manual should be true or the resulting read state update should be ignored by clients (but is still saved), resulting in undefined behavior.
+    /// In this case, mention_count should also be set to the amount of mentions unacknowledged as it is not automatically calculated by Discord.
+    ///
+    /// Returns an optional token, which can be used as the new `ack` token for following `ack`s.
+    ///
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#acknowledge-message>
+    pub async fn acknowledge(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        schema: MessageAck,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Option<String>> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/messages/{}/ack",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request
+            .deserialize_response::<Option<String>>(user)
+            .await
     }
 }
 
