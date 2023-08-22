@@ -200,6 +200,30 @@ impl Message {
         };
         chorus_request.handle_request_as_result(user).await
     }
+
+    /// Returns a specific message object in the channel.
+    /// If operating on a guild channel, this endpoint requires the `READ_MESSAGE_HISTORY` permission to be present on the current user.
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#get-message>
+    pub async fn get(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Message> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .get(format!(
+                    "{}/channels/{}/messages/{}",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.deserialize_response::<Message>(user).await
+    }
 }
 
 fn search_error(result_text: String) -> ChorusError {
