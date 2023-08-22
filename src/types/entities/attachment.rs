@@ -31,7 +31,7 @@ pub struct Attachment {
     pub content: Option<Vec<u8>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PartialDiscordFileAttachment {
     pub id: Option<i16>,
     pub filename: String,

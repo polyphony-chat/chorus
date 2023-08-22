@@ -114,7 +114,7 @@ pub struct ChannelMention {
     name: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Embed {
     title: Option<String>,
     #[serde(rename = "type")]
@@ -132,14 +132,14 @@ pub struct Embed {
     fields: Option<Vec<EmbedField>>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EmbedFooter {
     text: String,
     icon_url: Option<String>,
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct EmbedImage {
     url: String,
     proxy_url: String,
@@ -147,7 +147,7 @@ pub struct EmbedImage {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct EmbedThumbnail {
     url: String,
     proxy_url: Option<String>,
@@ -155,7 +155,7 @@ pub struct EmbedThumbnail {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 struct EmbedVideo {
     url: Option<String>,
     proxy_url: Option<String>,
@@ -163,13 +163,13 @@ struct EmbedVideo {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct EmbedProvider {
     name: Option<String>,
     url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct EmbedAuthor {
     name: String,
     url: Option<String>,
@@ -177,7 +177,7 @@ pub struct EmbedAuthor {
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct EmbedField {
     name: String,
     value: String,

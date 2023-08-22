@@ -1,6 +1,7 @@
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 
+use crate::types::ChannelType;
 use crate::types::{entities::PermissionOverwrite, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
@@ -8,7 +9,7 @@ use crate::types::{entities::PermissionOverwrite, Snowflake};
 pub struct ChannelCreateSchema {
     pub name: String,
     #[serde(rename = "type")]
-    pub channel_type: Option<u8>,
+    pub channel_type: Option<ChannelType>,
     pub topic: Option<String>,
     pub icon: Option<String>,
     pub bitrate: Option<i32>,
