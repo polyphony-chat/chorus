@@ -39,32 +39,60 @@ impl std::fmt::Display for MessageSearchEndpoint {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
 /// Represents a Message Search Query JSON Body.
 /// The `channel_id` field is not applicable when using the `GET /channels/{channel.id}/messages/search` endpoint.
 ///
 /// # Reference:
 /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
 pub struct MessageSearchQuery {
-    attachment_extension: Option<Vec<String>>,
-    attachment_filename: Option<Vec<String>>,
-    author_id: Option<Vec<Snowflake>>,
-    author_type: Option<Vec<String>>,
-    channel_id: Option<Vec<Snowflake>>,
-    command_id: Option<Vec<Snowflake>>,
-    content: Option<String>,
-    embed_provider: Option<Vec<String>>,
-    embed_type: Option<Vec<String>>,
-    has: Option<Vec<String>>,
-    include_nsfw: Option<bool>,
-    limit: Option<i32>,
-    link_hostname: Option<Vec<String>>,
-    max_id: Option<String>,
-    mention_everyone: Option<bool>,
-    mentions: Option<Vec<Snowflake>>,
-    min_id: Option<String>,
-    offset: Option<i32>,
-    pinned: Option<bool>,
-    sort_by: Option<String>,
-    sort_order: Option<String>,
+    pub attachment_extension: Option<Vec<String>>,
+    pub attachment_filename: Option<Vec<String>>,
+    pub author_id: Option<Vec<Snowflake>>,
+    pub author_type: Option<Vec<String>>,
+    pub channel_id: Option<Vec<Snowflake>>,
+    pub command_id: Option<Vec<Snowflake>>,
+    pub content: Option<String>,
+    pub embed_provider: Option<Vec<String>>,
+    pub embed_type: Option<Vec<String>>,
+    pub has: Option<Vec<String>>,
+    pub include_nsfw: Option<bool>,
+    pub limit: Option<i32>,
+    pub link_hostname: Option<Vec<String>>,
+    pub max_id: Option<String>,
+    pub mention_everyone: Option<bool>,
+    pub mentions: Option<Vec<Snowflake>>,
+    pub min_id: Option<String>,
+    pub offset: Option<i32>,
+    pub pinned: Option<bool>,
+    pub sort_by: Option<String>,
+    pub sort_order: Option<String>,
+}
+
+impl std::default::Default for MessageSearchQuery {
+    fn default() -> Self {
+        Self {
+            attachment_extension: Default::default(),
+            attachment_filename: Default::default(),
+            author_id: Default::default(),
+            author_type: Default::default(),
+            channel_id: Default::default(),
+            command_id: Default::default(),
+            content: Default::default(),
+            embed_provider: Default::default(),
+            embed_type: Default::default(),
+            has: Default::default(),
+            include_nsfw: Some(false),
+            limit: Some(25),
+            link_hostname: Default::default(),
+            max_id: Default::default(),
+            mention_everyone: Default::default(),
+            mentions: Default::default(),
+            min_id: Default::default(),
+            offset: Some(0),
+            pinned: Default::default(),
+            sort_by: Default::default(),
+            sort_order: Default::default(),
+        }
+    }
 }
