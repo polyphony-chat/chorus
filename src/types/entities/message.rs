@@ -104,7 +104,7 @@ impl PartialEq for Message {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
 pub struct MessageReference {
@@ -124,7 +124,7 @@ pub struct MessageInteraction {
     pub member: Option<Arc<RwLock<GuildMember>>>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, PartialOrd, Ord)]
 pub struct AllowedMention {
     parse: Vec<AllowedMentionType>,
     roles: Vec<Snowflake>,
@@ -132,7 +132,7 @@ pub struct AllowedMention {
     replied_user: bool,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 pub enum AllowedMentionType {
     Roles,
@@ -149,7 +149,7 @@ pub struct ChannelMention {
     name: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd)]
 pub struct Embed {
     title: Option<String>,
     #[serde(rename = "type")]
@@ -167,14 +167,14 @@ pub struct Embed {
     fields: Option<Vec<EmbedField>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct EmbedFooter {
     text: String,
     icon_url: Option<String>,
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct EmbedImage {
     url: String,
     proxy_url: String,
@@ -182,7 +182,7 @@ pub struct EmbedImage {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct EmbedThumbnail {
     url: String,
     proxy_url: Option<String>,
@@ -190,7 +190,7 @@ pub struct EmbedThumbnail {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 struct EmbedVideo {
     url: Option<String>,
     proxy_url: Option<String>,
@@ -198,13 +198,13 @@ struct EmbedVideo {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct EmbedProvider {
     name: Option<String>,
     url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct EmbedAuthor {
     name: String,
     url: Option<String>,
@@ -212,14 +212,14 @@ pub struct EmbedAuthor {
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
 pub struct EmbedField {
     name: String,
     value: String,
     inline: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, PartialEq)]
 pub struct Reaction {
     pub count: u32,
     pub burst_count: u32,
@@ -229,7 +229,7 @@ pub struct Reaction {
     pub emoji: Emoji,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
 pub enum Component {
     ActionRow = 1,
     Button = 2,

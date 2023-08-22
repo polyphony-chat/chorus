@@ -8,7 +8,8 @@ use crate::errors::{ChorusError, ChorusResult};
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    Channel, Message, MessageSearchEndpoint, MessageSearchQuery, MessageSendSchema, Snowflake,
+    Channel, CreateGreetMessage, Message, MessageAck, MessageModifySchema, MessageSearchEndpoint,
+    MessageSearchQuery, MessageSendSchema, Snowflake,
 };
 
 impl Message {
@@ -223,6 +224,223 @@ impl Message {
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.deserialize_response::<Message>(user).await
+    }
+
+    /// Posts a greet message to a channel. This endpoint requires the channel is a DM channel or you reply to a system message.
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#create-greet-message>
+    pub async fn create_greet(
+        channel_id: Snowflake,
+        schema: CreateGreetMessage,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Message> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/messages/greet",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.deserialize_response::<Message>(user).await
+    }
+
+    /// Sets the channel's latest acknowledged message (marks a message as read) for the current user.
+    /// The message ID parameter does not need to be a valid message ID, but it must be a valid snowflake.
+    /// If the message ID is being set to a message sent prior to the latest acknowledged one,
+    /// manual should be true or the resulting read state update should be ignored by clients (but is still saved), resulting in undefined behavior.
+    /// In this case, mention_count should also be set to the amount of mentions unacknowledged as it is not automatically calculated by Discord.
+    ///
+    /// Returns an optional token, which can be used as the new `ack` token for following `ack`s.
+    ///
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#acknowledge-message>
+    pub async fn acknowledge(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        schema: MessageAck,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Option<String>> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/messages/{}/ack",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request
+            .deserialize_response::<Option<String>>(user)
+            .await
+    }
+
+    /// Crossposts a message in a News Channel to following channels.
+    /// This endpoint requires the `SEND_MESSAGES` permission, if the current user sent the message,
+    /// or additionally the `MANAGE_MESSAGES` permission, for all other messages, to be present for the current user.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/message#crosspost-message>
+    pub async fn crosspost(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Message> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/messages/{}/crosspost",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.deserialize_response::<Message>(user).await
+    }
+
+    /// Hides a message from the feed of the guild the channel belongs to. Returns a 204 empty response on success.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/message#hide-message-from-guild-feed>
+    pub async fn hide_from_guild_feed(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .delete(format!(
+                    "{}/channels/{}/messages/{}/hide-guild-feed",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
+    }
+
+    /// Edits a previously sent message. All fields can be edited by the original message author.
+    /// Other users can only edit flags and only if they have the MANAGE_MESSAGES permission in the corresponding channel.
+    /// When specifying flags, ensure to include all previously set flags/bits in addition to ones that you are modifying.
+    /// When the content field is edited, the mentions array in the message object will be reconstructed from scratch based on the new content.
+    /// The allowed_mentions field of the edit request controls how this happens.
+    /// If there is no explicit allowed_mentions in the edit request, the content will be parsed with default allowances, that is,
+    /// without regard to whether or not an allowed_mentions was present in the request that originally created the message.
+    ///
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#edit-message>
+    pub async fn modify(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        schema: MessageModifySchema,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Message> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/channels/{}/messages/{}",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.deserialize_response::<Message>(user).await
+    }
+
+    /// Deletes a message. If operating on a guild channel and trying to delete a message that was not sent by the current user,
+    /// this endpoint requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
+    pub async fn delete(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .delete(format!(
+                    "{}/channels/{}/messages/{}",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
+    }
+
+    /// Deletes multiple messages in a single request. This endpoint can only be used on guild channels and requires the MANAGE_MESSAGES permission.
+    /// Returns a 204 empty response on success.
+    ///
+    /// **This endpoint will not delete messages older than 2 weeks, and will fail if any message provided is older than that or if any duplicate message IDs are provided.**
+    ///
+    /// **This endpoint is not usable by user accounts.** (At least according to Discord.com. Spacebar behaviour may differ.)
+    ///
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#bulk-delete-messages>
+    pub async fn bulk_delete(
+        channel_id: Snowflake,
+        messages: Vec<Snowflake>,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        if messages.len() < 2 {
+            return Err(ChorusError::InvalidArguments {
+                error: "`messages` must contain at least 2 entries.".to_string(),
+            });
+        }
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/messages/bulk-delete",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&messages).unwrap()),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
+    }
+
+    /// Acknowledges the currently pinned messages in a channel. Returns a 204 empty response on success.
+    ///
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#acknowledge-pinned-messages>
+    pub async fn acknowledge_pinned(
+        channel_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/pins/ack",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 }
 

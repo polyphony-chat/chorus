@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{
     AllowedMention, Component, Embed, MessageReference, PartialDiscordFileAttachment,
 };
-use crate::types::Snowflake;
+use crate::types::{Attachment, Snowflake};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -95,4 +95,31 @@ impl std::default::Default for MessageSearchQuery {
             sort_order: Default::default(),
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CreateGreetMessage {
+    pub sticker_ids: Vec<Snowflake>,
+    pub allowed_mentions: Option<AllowedMention>,
+    pub message_reference: Option<MessageReference>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct MessageAck {
+    pub token: Option<String>,
+    pub manual: Option<bool>,
+    pub mention_count: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
+pub struct MessageModifySchema {
+    content: Option<String>,
+    embeds: Option<Vec<Embed>>,
+    embed: Option<Embed>,
+    allowed_mentions: Option<AllowedMention>,
+    components: Option<Vec<Component>>,
+    flags: Option<i32>,
+    files: Option<Vec<u8>>,
+    payload_json: Option<String>,
+    attachments: Option<Vec<Attachment>>,
 }
