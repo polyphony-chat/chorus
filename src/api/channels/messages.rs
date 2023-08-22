@@ -282,6 +282,29 @@ impl Message {
             .deserialize_response::<Option<String>>(user)
             .await
     }
+
+    /// Crossposts a message in a News Channel to following channels.
+    /// This endpoint requires the `SEND_MESSAGES` permission, if the current user sent the message,
+    /// or additionally the `MANAGE_MESSAGES` permission, for all other messages, to be present for the current user.
+    pub async fn crosspost(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Message> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/messages/{}/crosspost",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.deserialize_response::<Message>(user).await
+    }
 }
 
 fn search_error(result_text: String) -> ChorusError {
