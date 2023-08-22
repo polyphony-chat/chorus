@@ -286,6 +286,9 @@ impl Message {
     /// Crossposts a message in a News Channel to following channels.
     /// This endpoint requires the `SEND_MESSAGES` permission, if the current user sent the message,
     /// or additionally the `MANAGE_MESSAGES` permission, for all other messages, to be present for the current user.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/message#crosspost-message>
     pub async fn crosspost(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -304,6 +307,30 @@ impl Message {
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.deserialize_response::<Message>(user).await
+    }
+
+    /// Hides a message from the feed of the guild the channel belongs to. Returns a 204 empty response on success.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/message#hide-message-from-guild-feed>
+    pub async fn hide_from_guild_feed(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .delete(format!(
+                    "{}/channels/{}/messages/{}/hide-guild-feed",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.handle_request_as_result(user).await
     }
 }
 
