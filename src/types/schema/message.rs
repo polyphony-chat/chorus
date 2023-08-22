@@ -96,3 +96,10 @@ impl std::default::Default for MessageSearchQuery {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CreateGreetMessage {
+    pub sticker_ids: Vec<Snowflake>,
+    pub allowed_mentions: Option<AllowedMention>,
+    pub message_reference: Option<MessageReference>,
+}

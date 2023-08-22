@@ -104,7 +104,7 @@ impl PartialEq for Message {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
 pub struct MessageReference {
@@ -124,7 +124,7 @@ pub struct MessageInteraction {
     pub member: Option<Arc<RwLock<GuildMember>>>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, PartialOrd, Ord)]
 pub struct AllowedMention {
     parse: Vec<AllowedMentionType>,
     roles: Vec<Snowflake>,
@@ -132,7 +132,7 @@ pub struct AllowedMention {
     replied_user: bool,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 pub enum AllowedMentionType {
     Roles,

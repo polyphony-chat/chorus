@@ -8,7 +8,8 @@ use crate::errors::{ChorusError, ChorusResult};
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    Channel, Message, MessageSearchEndpoint, MessageSearchQuery, MessageSendSchema, Snowflake,
+    Channel, CreateGreetMessage, Message, MessageSearchEndpoint, MessageSearchQuery,
+    MessageSendSchema, Snowflake,
 };
 
 impl Message {
@@ -220,6 +221,29 @@ impl Message {
                 ))
                 .header("Authorization", user.token())
                 .header("Content-Type", "application/json"),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.deserialize_response::<Message>(user).await
+    }
+
+    /// Posts a greet message to a channel. This endpoint requires the channel is a DM channel or you reply to a system message.
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#create-greet-message>
+    pub async fn create_greet(
+        channel_id: Snowflake,
+        schema: CreateGreetMessage,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Message> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/channels/{}/messages/greet",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&schema).unwrap()),
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.deserialize_response::<Message>(user).await
