@@ -8,8 +8,8 @@ use crate::errors::{ChorusError, ChorusResult};
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    Channel, CreateGreetMessage, Message, MessageAck, MessageSearchEndpoint, MessageSearchQuery,
-    MessageSendSchema, Snowflake,
+    Channel, CreateGreetMessage, Message, MessageAck, MessageModifySchema, MessageSearchEndpoint,
+    MessageSearchQuery, MessageSendSchema, Snowflake,
 };
 
 impl Message {
@@ -331,6 +331,38 @@ impl Message {
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await
+    }
+
+    /// Edits a previously sent message. All fields can be edited by the original message author.
+    /// Other users can only edit flags and only if they have the MANAGE_MESSAGES permission in the corresponding channel.
+    /// When specifying flags, ensure to include all previously set flags/bits in addition to ones that you are modifying.
+    /// When the content field is edited, the mentions array in the message object will be reconstructed from scratch based on the new content.
+    /// The allowed_mentions field of the edit request controls how this happens.
+    /// If there is no explicit allowed_mentions in the edit request, the content will be parsed with default allowances, that is,
+    /// without regard to whether or not an allowed_mentions was present in the request that originally created the message.
+    ///
+    /// # Reference:
+    /// See: <https://discord-userdoccers.vercel.app/resources/message#edit-message>
+    pub async fn modify(
+        channel_id: Snowflake,
+        message_id: Snowflake,
+        schema: MessageModifySchema,
+        user: &mut UserMeta,
+    ) -> ChorusResult<Message> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/channels/{}/messages/{}",
+                    user.belongs_to.borrow().urls.api,
+                    channel_id,
+                    message_id
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Channel(channel_id),
+        };
+        chorus_request.deserialize_response::<Message>(user).await
     }
 }
 
