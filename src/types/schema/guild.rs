@@ -1,3 +1,5 @@
+use std::default;
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
@@ -55,4 +57,23 @@ pub struct GuildModifySchema {
     pub safety_alerts_channel_id: Option<Snowflake>,
     pub preferred_locale: Option<String>,
     pub premium_progress_bar_enabled: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd)]
+pub struct GetUserGuildSchema {
+    pub before: Option<Snowflake>,
+    pub after: Option<Snowflake>,
+    pub limit: Option<u8>,
+    pub with_counts: Option<bool>,
+}
+
+impl std::default::Default for GetUserGuildSchema {
+    fn default() -> Self {
+        Self {
+            before: Default::default(),
+            after: Default::default(),
+            limit: Some(200),
+            with_counts: Some(false),
+        }
+    }
 }
