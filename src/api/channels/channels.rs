@@ -33,15 +33,23 @@ impl Channel {
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel>
-    pub async fn delete(self, user: &mut ChorusUser) -> ChorusResult<()> {
+    pub async fn delete(
+        self,
+        audit_log_reason: Option<String>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<()> {
+        let mut request = Client::new()
+            .delete(format!(
+                "{}/channels/{}",
+                user.belongs_to.borrow().urls.api,
+                self.id
+            ))
+            .header("Authorization", user.token());
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(format!(
-                    "{}/channels/{}",
-                    user.belongs_to.borrow().urls.api,
-                    self.id
-                ))
-                .header("Authorization", user.token()),
+            request,
             limit_type: LimitType::Channel(self.id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -64,19 +72,24 @@ impl Channel {
     pub async fn modify(
         &self,
         modify_data: ChannelModifySchema,
+        audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<Channel> {
         let channel_id = self.id;
+        let mut request = Client::new()
+            .patch(format!(
+                "{}/channels/{}",
+                user.belongs_to.borrow().urls.api,
+                channel_id
+            ))
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json")
+            .body(to_string(&modify_data).unwrap());
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .patch(format!(
-                    "{}/channels/{}",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&modify_data).unwrap()),
+            request,
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.deserialize_response::<Channel>(user).await

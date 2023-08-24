@@ -20,9 +20,10 @@ impl types::Channel {
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel-permissions>
-    pub async fn edit_permissions(
+    pub async fn modify_permissions(
         user: &mut ChorusUser,
         channel_id: Snowflake,
+        audit_log_reason: Option<String>,
         overwrite: PermissionOverwrite,
     ) -> ChorusResult<()> {
         let url = format!(
@@ -39,12 +40,16 @@ impl types::Channel {
                 });
             }
         };
+        let mut request = Client::new()
+            .put(url)
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json")
+            .body(body);
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .put(url)
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(body),
+            request,
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await

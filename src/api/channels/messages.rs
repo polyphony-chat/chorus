@@ -162,18 +162,23 @@ impl Message {
     pub async fn sticky(
         channel_id: Snowflake,
         message_id: Snowflake,
+        audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
+        let mut request = Client::new()
+            .put(format!(
+                "{}/channels/{}/pins/{}",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+                message_id
+            ))
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json");
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .put(format!(
-                    "{}/channels/{}/pins/{}",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
+            request,
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -185,18 +190,23 @@ impl Message {
     pub async fn unsticky(
         channel_id: Snowflake,
         message_id: Snowflake,
+        audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
+        let mut request = Client::new()
+            .delete(format!(
+                "{}/channels/{}/pins/{}",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+                message_id
+            ))
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json");
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(format!(
-                    "{}/channels/{}/pins/{}",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
+            request,
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -370,18 +380,23 @@ impl Message {
     pub async fn delete(
         channel_id: Snowflake,
         message_id: Snowflake,
+        audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
+        let mut request = Client::new()
+            .delete(format!(
+                "{}/channels/{}/messages/{}",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+                message_id
+            ))
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json");
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(format!(
-                    "{}/channels/{}/messages/{}",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
+            request,
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await
@@ -399,6 +414,7 @@ impl Message {
     pub async fn bulk_delete(
         channel_id: Snowflake,
         messages: Vec<Snowflake>,
+        audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         if messages.len() < 2 {
@@ -406,16 +422,20 @@ impl Message {
                 error: "`messages` must contain at least 2 entries.".to_string(),
             });
         }
+        let mut request = Client::new()
+            .post(format!(
+                "{}/channels/{}/messages/bulk-delete",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+            ))
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json")
+            .body(to_string(&messages).unwrap());
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(format!(
-                    "{}/channels/{}/messages/bulk-delete",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&messages).unwrap()),
+            request,
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await

@@ -198,17 +198,22 @@ impl Channel {
         user: &mut ChorusUser,
         guild_id: Snowflake,
         schema: ChannelCreateSchema,
+        audit_log_reason: Option<String>,
     ) -> ChorusResult<Channel> {
+        let mut request = Client::new()
+            .post(format!(
+                "{}/guilds/{}/channels",
+                user.belongs_to.borrow().urls.api,
+                guild_id
+            ))
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json")
+            .body(to_string(&schema).unwrap());
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(format!(
-                    "{}/guilds/{}/channels",
-                    user.belongs_to.borrow().urls.api,
-                    guild_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&schema).unwrap()),
+            request,
             limit_type: LimitType::Guild(guild_id),
         };
         chorus_request.deserialize_response::<Channel>(user).await
