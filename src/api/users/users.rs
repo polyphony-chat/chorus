@@ -6,12 +6,12 @@ use serde_json::to_string;
 use crate::{
     api::LimitType,
     errors::{ChorusError, ChorusResult},
-    instance::{Instance, UserMeta},
+    instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
     types::{User, UserModifySchema, UserSettings},
 };
 
-impl UserMeta {
+impl ChorusUser {
     /// Gets a user by id, or if the id is None, gets the current user.
     ///
     /// # Notes
@@ -85,7 +85,7 @@ impl User {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
     /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
-    pub async fn get(user: &mut UserMeta, id: Option<&String>) -> ChorusResult<User> {
+    pub async fn get(user: &mut ChorusUser, id: Option<&String>) -> ChorusResult<User> {
         let url_api = user.belongs_to.borrow().urls.api.clone();
         let url = if id.is_none() {
             format!("{}/users/@me", url_api)
@@ -121,7 +121,7 @@ impl User {
             .get(format!("{}/users/@me/settings", url_api))
             .header("Authorization", token);
         let mut user =
-            UserMeta::shell(Rc::new(RefCell::new(instance.clone())), token.clone()).await;
+            ChorusUser::shell(Rc::new(RefCell::new(instance.clone())), token.clone()).await;
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
@@ -148,7 +148,7 @@ impl Instance {
     /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
     /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
     pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
-        let mut user = UserMeta::shell(Rc::new(RefCell::new(self.clone())), token).await;
+        let mut user = ChorusUser::shell(Rc::new(RefCell::new(self.clone())), token).await;
         let result = User::get(&mut user, id).await;
         if self.limits_information.is_some() {
             self.limits_information.as_mut().unwrap().ratelimits =

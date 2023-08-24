@@ -2,7 +2,7 @@ use std::sync::{Arc, RwLock};
 
 use chorus::gateway::Gateway;
 use chorus::{
-    instance::{Instance, UserMeta},
+    instance::{ChorusUser, Instance},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
         RoleCreateModifySchema, RoleObject,
@@ -14,7 +14,7 @@ use chorus::{
 #[derive(Debug)]
 pub(crate) struct TestBundle {
     pub urls: UrlBundle,
-    pub user: UserMeta,
+    pub user: ChorusUser,
     pub instance: Instance,
     pub guild: Arc<RwLock<Guild>>,
     pub role: Arc<RwLock<RoleObject>>,
@@ -23,7 +23,7 @@ pub(crate) struct TestBundle {
 
 #[allow(unused)]
 impl TestBundle {
-    pub(crate) async fn create_user(&mut self, username: &str) -> UserMeta {
+    pub(crate) async fn create_user(&mut self, username: &str) -> ChorusUser {
         let register_schema = RegisterSchema {
             username: username.to_string(),
             consent: true,
@@ -35,8 +35,8 @@ impl TestBundle {
             .await
             .unwrap()
     }
-    pub(crate) async fn clone_user_without_gateway(&self) -> UserMeta {
-        UserMeta {
+    pub(crate) async fn clone_user_without_gateway(&self) -> ChorusUser {
+        ChorusUser {
             belongs_to: self.user.belongs_to.clone(),
             token: self.user.token.clone(),
             limits: self.user.limits.clone(),

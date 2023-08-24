@@ -5,7 +5,7 @@ use serde_json::to_string;
 use crate::api::LimitType;
 use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
-use crate::instance::UserMeta;
+use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
     Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema, GuildModifySchema,
@@ -18,7 +18,7 @@ impl Guild {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild>
     pub async fn create(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_create_schema: GuildCreateSchema,
     ) -> ChorusResult<Guild> {
         let url = format!("{}/guilds", user.belongs_to.borrow().urls.api);
@@ -52,7 +52,7 @@ impl Guild {
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild>
-    pub async fn delete(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<()> {
+    pub async fn delete(user: &mut ChorusUser, guild_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/delete",
             user.belongs_to.borrow().urls.api,
@@ -79,7 +79,7 @@ impl Guild {
     /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
     pub async fn create_channel(
         &self,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
         Channel::create(user, self.id, schema).await
@@ -91,7 +91,7 @@ impl Guild {
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#get-guild-channels>
-    pub async fn channels(&self, user: &mut UserMeta) -> ChorusResult<Vec<Channel>> {
+    pub async fn channels(&self, user: &mut ChorusUser) -> ChorusResult<Vec<Channel>> {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(format!(
@@ -125,7 +125,7 @@ impl Guild {
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild>
-    pub async fn get(guild_id: Snowflake, user: &mut UserMeta) -> ChorusResult<Guild> {
+    pub async fn get(guild_id: Snowflake, user: &mut ChorusUser) -> ChorusResult<Guild> {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(format!(
@@ -144,7 +144,7 @@ impl Guild {
         guild_id: Snowflake,
         user_id: Snowflake,
         schema: GuildBanCreateSchema,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<GuildBan> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -169,7 +169,7 @@ impl Guild {
     pub async fn modify(
         guild_id: Snowflake,
         schema: GuildModifySchema,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Guild> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -195,7 +195,7 @@ impl Channel {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
     pub async fn create(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {

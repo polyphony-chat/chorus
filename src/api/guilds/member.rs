@@ -3,7 +3,7 @@ use reqwest::Client;
 use crate::{
     api::LimitType,
     errors::ChorusResult,
-    instance::UserMeta,
+    instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{self, GuildMember, Snowflake},
 };
@@ -14,7 +14,7 @@ impl types::GuildMember {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-member>
     pub async fn get(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
         member_id: Snowflake,
     ) -> ChorusResult<GuildMember> {
@@ -40,7 +40,7 @@ impl types::GuildMember {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#add-guild-member-role>
     pub async fn add_role(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
         member_id: Snowflake,
         role_id: Snowflake,
@@ -69,7 +69,7 @@ impl types::GuildMember {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member-role>
     pub async fn remove_role(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
         member_id: Snowflake,
         role_id: Snowflake,

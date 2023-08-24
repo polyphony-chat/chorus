@@ -4,14 +4,14 @@ use serde_json::to_string;
 use crate::{
     api::LimitType,
     errors::ChorusResult,
-    instance::UserMeta,
+    instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{
         self, CreateUserRelationshipSchema, FriendRequestSendSchema, RelationshipType, Snowflake,
     },
 };
 
-impl UserMeta {
+impl ChorusUser {
     /// Retrieves a list of mutual friends between the authenticated user and a given user.
     ///
     /// # Reference

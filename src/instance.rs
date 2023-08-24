@@ -87,7 +87,7 @@ impl fmt::Display for Token {
 /// A UserMeta is a representation of an authenticated user on an [Instance].
 /// It is used for most authenticated actions on a Spacebar server.
 /// It also has its own [Gateway] connection.
-pub struct UserMeta {
+pub struct ChorusUser {
     pub belongs_to: Rc<RefCell<Instance>>,
     pub token: String,
     pub limits: Option<HashMap<LimitType, Limit>>,
@@ -96,7 +96,7 @@ pub struct UserMeta {
     pub gateway: GatewayHandle,
 }
 
-impl UserMeta {
+impl ChorusUser {
     pub fn token(&self) -> String {
         self.token.clone()
     }
@@ -117,8 +117,8 @@ impl UserMeta {
         settings: Arc<RwLock<UserSettings>>,
         object: Arc<RwLock<User>>,
         gateway: GatewayHandle,
-    ) -> UserMeta {
-        UserMeta {
+    ) -> ChorusUser {
+        ChorusUser {
             belongs_to,
             token,
             limits,
@@ -133,13 +133,13 @@ impl UserMeta {
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
-    pub(crate) async fn shell(instance: Rc<RefCell<Instance>>, token: String) -> UserMeta {
+    pub(crate) async fn shell(instance: Rc<RefCell<Instance>>, token: String) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
         let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.borrow().urls.wss.clone();
         // Dummy gateway object
         let gateway = Gateway::new(wss_url).await.unwrap();
-        UserMeta {
+        ChorusUser {
             token,
             belongs_to: instance.clone(),
             limits: instance

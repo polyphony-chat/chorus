@@ -4,7 +4,7 @@ use serde_json::to_string;
 use crate::{
     api::LimitType,
     errors::{ChorusError, ChorusResult},
-    instance::UserMeta,
+    instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{self, RoleCreateModifySchema, RoleObject, RolePositionUpdateSchema, Snowflake},
 };
@@ -15,7 +15,7 @@ impl types::RoleObject {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-roles>
     pub async fn get_all(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
     ) -> ChorusResult<Vec<RoleObject>> {
         let url = format!(
@@ -39,7 +39,7 @@ impl types::RoleObject {
     /// # Reference
     /// See <https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/roles/-role_id-/>
     pub async fn get(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
         role_id: Snowflake,
     ) -> ChorusResult<RoleObject> {
@@ -65,7 +65,7 @@ impl types::RoleObject {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild-role>
     pub async fn create(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
         role_create_schema: RoleCreateModifySchema,
     ) -> ChorusResult<RoleObject> {
@@ -99,7 +99,7 @@ impl types::RoleObject {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role-positions>
     pub async fn position_update(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
         role_position_update_schema: RolePositionUpdateSchema,
     ) -> ChorusResult<RoleObject> {
@@ -132,7 +132,7 @@ impl types::RoleObject {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role>
     pub async fn modify(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
         role_id: Snowflake,
         role_create_schema: RoleCreateModifySchema,
