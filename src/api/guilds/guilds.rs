@@ -194,7 +194,7 @@ impl Guild {
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-preview>
     pub async fn get_preview(
         guild_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<GuildPreview> {
         let chorus_request = ChorusRequest {
             request: Client::new()
