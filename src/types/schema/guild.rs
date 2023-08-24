@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
 use crate::types::{
-    ExplicitContentFilterLevel, MessageNotificationLevel, Snowflake, SystemChannelFlags,
-    VerificationLevel,
+    Emoji, ExplicitContentFilterLevel, MessageNotificationLevel, Snowflake, Sticker,
+    SystemChannelFlags, VerificationLevel,
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
@@ -76,4 +76,20 @@ impl std::default::Default for GetUserGuildSchema {
             with_counts: Some(false),
         }
     }
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
+pub struct GuildPreview {
+    pub id: Snowflake,
+    pub name: String,
+    pub icon: Option<String>,
+    pub description: Option<String>,
+    pub splash: Option<String>,
+    pub discovery_splash: Option<String>,
+    pub home_header: Option<String>,
+    pub features: Vec<String>,
+    pub emojis: Vec<Emoji>,
+    pub stickers: Vec<Sticker>,
+    pub approximate_member_count: u32,
+    pub approximate_presence_count: u32,
 }

@@ -8,7 +8,8 @@ use crate::errors::ChorusResult;
 use crate::instance::UserMeta;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema, GuildModifySchema,
+    Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema,
+    GuildModifySchema, GuildPreview, MFALevel,
 };
 use crate::types::{GuildBan, Snowflake};
 
@@ -179,10 +180,36 @@ impl Guild {
                     guild_id,
                 ))
                 .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
                 .body(to_string(&schema).unwrap()),
             limit_type: LimitType::Guild(guild_id),
         };
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        Ok(response)
+    }
+
+    /// Returns a guild preview object for the given guild ID. If the user is not in the guild, the guild must be discoverable.
+    /// # Reference:
+    ///
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-preview>
+    pub async fn get_preview(
+        guild_id: Snowflake,
+        user: &mut UserMeta,
+    ) -> ChorusResult<GuildPreview> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/guilds/{}/preview",
+                    user.belongs_to.borrow().urls.api,
+                    guild_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Guild(guild_id),
+        };
+        let response = chorus_request
+            .deserialize_response::<GuildPreview>(user)
+            .await?;
         Ok(response)
     }
 }
