@@ -8,8 +8,8 @@ use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema,
-    GuildModifySchema, GuildPreview, MFALevel,
+    Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema, GuildMember,
+    GuildMemberSearchSchema, GuildModifySchema, GuildPreview,
 };
 use crate::types::{GuildBan, Snowflake};
 
@@ -212,6 +212,88 @@ impl Guild {
             .deserialize_response::<GuildPreview>(user)
             .await?;
         Ok(response)
+    }
+
+    /// Returns a list of guild member objects that are members of the guild.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-members>
+    pub async fn get_members(
+        guild_id: Snowflake,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<Vec<GuildMember>> {
+        let request = ChorusRequest::new(
+            http::Method::GET,
+            format!(
+                "{}/guilds/{}/members",
+                user.belongs_to.borrow().urls.api,
+                guild_id,
+            )
+            .as_str(),
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.deserialize_response::<Vec<GuildMember>>(user).await
+    }
+
+    /// Returns a list of guild member objects whose username or nickname starts with a provided string.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#search-guild-members>
+    pub async fn search_members(
+        guild_id: Snowflake,
+        query: GuildMemberSearchSchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<Vec<GuildMember>> {
+        let mut request = ChorusRequest::new(
+            http::Method::GET,
+            format!(
+                "{}/guilds/{}/members/search",
+                user.belongs_to.borrow().urls.api,
+                guild_id,
+            )
+            .as_str(),
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.request = request
+            .request
+            .query(&[("query", to_string(&query).unwrap())]);
+        request.deserialize_response::<Vec<GuildMember>>(user).await
+    }
+
+    /// Removes a member from a guild. Requires the KICK_MEMBERS permission. Returns a 204 empty response on success.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member>
+    pub async fn remove_member(
+        guild_id: Snowflake,
+        member_id: Snowflake,
+        audit_log_reason: Option<String>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<()> {
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            format!(
+                "{}/guilds/{}/members/{}",
+                user.belongs_to.borrow().urls.api,
+                guild_id,
+                member_id,
+            )
+            .as_str(),
+            None,
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.handle_request_as_result(user).await
     }
 }
 

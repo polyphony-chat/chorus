@@ -1,5 +1,3 @@
-use std::default;
-
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
@@ -92,4 +90,19 @@ pub struct GuildPreview {
     pub stickers: Vec<Sticker>,
     pub approximate_member_count: u32,
     pub approximate_presence_count: u32,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub struct GuildMemberSearchSchema {
+    pub query: String,
+    pub limit: Option<u16>,
+}
+
+impl Default for GuildMemberSearchSchema {
+    fn default() -> Self {
+        Self {
+            query: Default::default(),
+            limit: Some(1),
+        }
+    }
 }
