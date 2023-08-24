@@ -138,17 +138,20 @@ impl Message {
         channel_id: Snowflake,
         user: &mut ChorusUser,
     ) -> ChorusResult<Vec<Message>> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .get(format!(
-                    "{}/channels/{}/pins",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
-            limit_type: LimitType::Channel(channel_id),
-        };
+        let chorus_request = ChorusRequest::new(
+            http::Method::GET,
+            format!(
+                "{}/channels/{}/pins",
+                user.belongs_to.borrow().urls.api,
+                channel_id
+            )
+            .as_str(),
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
         chorus_request
             .deserialize_response::<Vec<Message>>(user)
             .await
@@ -162,21 +165,25 @@ impl Message {
     pub async fn sticky(
         channel_id: Snowflake,
         message_id: Snowflake,
+        audit_log_reason: Option<&str>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .put(format!(
-                    "{}/channels/{}/pins/{}",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
-            limit_type: LimitType::Channel(channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+        let request = ChorusRequest::new(
+            http::Method::PUT,
+            format!(
+                "{}/channels/{}/pins/{}",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+                message_id
+            )
+            .as_str(),
+            None,
+            audit_log_reason,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+        request.handle_request_as_result(user).await
     }
 
     /// Unpins a message in a channel. Requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
@@ -185,21 +192,25 @@ impl Message {
     pub async fn unsticky(
         channel_id: Snowflake,
         message_id: Snowflake,
+        audit_log_reason: Option<&str>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(format!(
-                    "{}/channels/{}/pins/{}",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
-            limit_type: LimitType::Channel(channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            format!(
+                "{}/channels/{}/pins/{}",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+                message_id
+            )
+            .as_str(),
+            None,
+            audit_log_reason,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+        request.handle_request_as_result(user).await
     }
 
     /// Returns a specific message object in the channel.
@@ -234,19 +245,21 @@ impl Message {
         schema: CreateGreetMessage,
         user: &mut ChorusUser,
     ) -> ChorusResult<Message> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(format!(
-                    "{}/channels/{}/messages/greet",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&schema).unwrap()),
-            limit_type: LimitType::Channel(channel_id),
-        };
-        chorus_request.deserialize_response::<Message>(user).await
+        let request = ChorusRequest::new(
+            http::Method::POST,
+            format!(
+                "{}/channels/{}/messages/greet",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+        request.deserialize_response::<Message>(user).await
     }
 
     /// Sets the channel's latest acknowledged message (marks a message as read) for the current user.
@@ -265,22 +278,22 @@ impl Message {
         schema: MessageAck,
         user: &mut ChorusUser,
     ) -> ChorusResult<Option<String>> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(format!(
-                    "{}/channels/{}/messages/{}/ack",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&schema).unwrap()),
-            limit_type: LimitType::Channel(channel_id),
-        };
-        chorus_request
-            .deserialize_response::<Option<String>>(user)
-            .await
+        let request = ChorusRequest::new(
+            http::Method::POST,
+            format!(
+                "{}/channels/{}/messages/{}/ack",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+                message_id
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+        request.deserialize_response::<Option<String>>(user).await
     }
 
     /// Crossposts a message in a News Channel to following channels.
@@ -294,19 +307,22 @@ impl Message {
         message_id: Snowflake,
         user: &mut ChorusUser,
     ) -> ChorusResult<Message> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(format!(
-                    "{}/channels/{}/messages/{}/crosspost",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
-            limit_type: LimitType::Channel(channel_id),
-        };
-        chorus_request.deserialize_response::<Message>(user).await
+        let request = ChorusRequest::new(
+            http::Method::POST,
+            format!(
+                "{}/channels/{}/messages/{}/crosspost",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+                message_id
+            )
+            .as_str(),
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+        request.deserialize_response::<Message>(user).await
     }
 
     /// Hides a message from the feed of the guild the channel belongs to. Returns a 204 empty response on success.
@@ -318,18 +334,21 @@ impl Message {
         message_id: Snowflake,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(format!(
-                    "{}/channels/{}/messages/{}/hide-guild-feed",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
-            limit_type: LimitType::Channel(channel_id),
-        };
+        let url = format!(
+            "{}/channels/{}/messages/{}/hide-guild-feed",
+            user.belongs_to.borrow().urls.api,
+            channel_id,
+            message_id
+        );
+        let chorus_request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
         chorus_request.handle_request_as_result(user).await
     }
 
@@ -349,19 +368,21 @@ impl Message {
         schema: MessageModifySchema,
         user: &mut ChorusUser,
     ) -> ChorusResult<Message> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .patch(format!(
-                    "{}/channels/{}/messages/{}",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&schema).unwrap()),
-            limit_type: LimitType::Channel(channel_id),
-        };
+        let url = format!(
+            "{}/channels/{}/messages/{}",
+            user.belongs_to.borrow().urls.api,
+            channel_id,
+            message_id
+        );
+        let chorus_request = ChorusRequest::new(
+            http::Method::PATCH,
+            &url,
+            Some(to_string(&schema).unwrap()),
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
         chorus_request.deserialize_response::<Message>(user).await
     }
 
@@ -370,20 +391,26 @@ impl Message {
     pub async fn delete(
         channel_id: Snowflake,
         message_id: Snowflake,
+        audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(format!(
-                    "{}/channels/{}/messages/{}",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                    message_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
-            limit_type: LimitType::Channel(channel_id),
-        };
+        let url = format!(
+            "{}/channels/{}/messages/{}",
+            user.belongs_to.borrow().urls.api,
+            channel_id,
+            message_id
+        );
+
+        let chorus_request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+
         chorus_request.handle_request_as_result(user).await
     }
 
@@ -399,6 +426,7 @@ impl Message {
     pub async fn bulk_delete(
         channel_id: Snowflake,
         messages: Vec<Snowflake>,
+        audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         if messages.len() < 2 {
@@ -406,19 +434,21 @@ impl Message {
                 error: "`messages` must contain at least 2 entries.".to_string(),
             });
         }
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(format!(
-                    "{}/channels/{}/messages/bulk-delete",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&messages).unwrap()),
-            limit_type: LimitType::Channel(channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+        let request = ChorusRequest::new(
+            http::Method::POST,
+            format!(
+                "{}/channels/{}/messages/bulk-delete",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+            )
+            .as_str(),
+            Some(to_string(&messages).unwrap()),
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+        request.handle_request_as_result(user).await
     }
 
     /// Acknowledges the currently pinned messages in a channel. Returns a 204 empty response on success.
@@ -429,17 +459,21 @@ impl Message {
         channel_id: Snowflake,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(format!(
-                    "{}/channels/{}/pins/ack",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id,
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
-            limit_type: LimitType::Channel(channel_id),
-        };
+        let chorus_request = ChorusRequest::new(
+            http::Method::POST,
+            format!(
+                "{}/channels/{}/pins/ack",
+                user.belongs_to.borrow().urls.api,
+                channel_id,
+            )
+            .as_str(),
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+
         chorus_request.handle_request_as_result(user).await
     }
 }

@@ -115,7 +115,7 @@ async fn test_stickies() {
             .unwrap(),
         Vec::<Message>::new()
     );
-    Message::sticky(channel.id, message.id, &mut bundle.user)
+    Message::sticky(channel.id, message.id, None, &mut bundle.user)
         .await
         .unwrap();
     assert_eq!(
@@ -127,7 +127,7 @@ async fn test_stickies() {
             .id,
         message.id
     );
-    Message::unsticky(channel.id, message.id, &mut bundle.user)
+    Message::unsticky(channel.id, message.id, None, &mut bundle.user)
         .await
         .unwrap();
     assert_eq!(
