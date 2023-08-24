@@ -93,7 +93,7 @@ pub(crate) async fn setup() -> TestBundle {
     };
     let mut user = instance.register_account(&reg).await.unwrap();
     let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
-    let channel = Channel::create(&mut user, guild.id, channel_create_schema)
+    let channel = Channel::create(&mut user, guild.id, None, channel_create_schema)
         .await
         .unwrap();
 

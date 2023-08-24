@@ -1,5 +1,3 @@
-use reqwest::Client;
-
 use crate::{
     api::LimitType,
     errors::ChorusResult,
@@ -28,13 +26,18 @@ impl ReactionMeta {
             self.channel_id,
             self.message_id
         );
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(url)
-                .header("Authorization", user.token()),
-            limit_type: LimitType::Channel(self.channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(self.channel_id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 
     /// Gets a list of users that reacted with a specific emoji to a message.
@@ -52,13 +55,18 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let chorus_request = ChorusRequest {
-            request: Client::new().get(url).header("Authorization", user.token()),
-            limit_type: LimitType::Channel(self.channel_id),
-        };
-        chorus_request
-            .deserialize_response::<Vec<PublicUser>>(user)
-            .await
+
+        let request = ChorusRequest::new(
+            http::Method::GET,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(self.channel_id),
+        );
+
+        request.deserialize_response::<Vec<PublicUser>>(user).await
     }
 
     /// Deletes all the reactions for a given emoji on a message.
@@ -78,13 +86,18 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(url)
-                .header("Authorization", user.token()),
-            limit_type: LimitType::Channel(self.channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(self.channel_id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 
     /// Create a reaction on a message.
@@ -107,14 +120,18 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .put(url)
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
-            limit_type: LimitType::Channel(self.channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+
+        let request = ChorusRequest::new(
+            http::Method::PUT,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(self.channel_id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 
     /// Deletes a reaction the current user has made to the message.
@@ -132,13 +149,18 @@ impl ReactionMeta {
             self.message_id,
             emoji
         );
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(url)
-                .header("Authorization", user.token()),
-            limit_type: LimitType::Channel(self.channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(self.channel_id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 
     /// Deletes a user's reaction to a message.
@@ -164,12 +186,17 @@ impl ReactionMeta {
             emoji,
             user_id
         );
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(url)
-                .header("Authorization", user.token()),
-            limit_type: LimitType::Channel(self.channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(self.channel_id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 }

@@ -80,9 +80,10 @@ impl Guild {
     pub async fn create_channel(
         &self,
         user: &mut ChorusUser,
+        audit_log_reason: Option<String>,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
-        Channel::create(user, self.id, schema).await
+        Channel::create(user, self.id, audit_log_reason, schema).await
     }
 
     /// Returns a list of the guild's channels.
@@ -197,8 +198,8 @@ impl Channel {
     pub async fn create(
         user: &mut ChorusUser,
         guild_id: Snowflake,
-        schema: ChannelCreateSchema,
         audit_log_reason: Option<String>,
+        schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
         let mut request = Client::new()
             .post(format!(
