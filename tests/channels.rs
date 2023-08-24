@@ -22,7 +22,7 @@ async fn get_channel() {
 async fn delete_channel() {
     let mut bundle = common::setup().await;
     let channel_guard = bundle.channel.write().unwrap().clone();
-    let result = Channel::delete(channel_guard, &mut bundle.user).await;
+    let result = Channel::delete(channel_guard, None, &mut bundle.user).await;
     assert!(result.is_ok());
     common::teardown(bundle).await
 }
@@ -51,7 +51,10 @@ async fn modify_channel() {
         default_thread_rate_limit_per_user: None,
         video_quality_mode: None,
     };
-    let modified_channel = channel.modify(modify_data, &mut bundle.user).await.unwrap();
+    let modified_channel = channel
+        .modify(modify_data, None, &mut bundle.user)
+        .await
+        .unwrap();
     assert_eq!(modified_channel.name, Some(CHANNEL_NAME.to_string()));
 
     let permission_override = PermissionFlags::from_vec(Vec::from([
@@ -66,9 +69,14 @@ async fn modify_channel() {
         deny: "0".to_string(),
     };
     let channel_id: Snowflake = bundle.channel.read().unwrap().id;
-    Channel::edit_permissions(&mut bundle.user, channel_id, permission_override.clone())
-        .await
-        .unwrap();
+    Channel::modify_permissions(
+        &mut bundle.user,
+        channel_id,
+        None,
+        permission_override.clone(),
+    )
+    .await
+    .unwrap();
 
     Channel::delete_permission(&mut bundle.user, channel_id, permission_override.id)
         .await

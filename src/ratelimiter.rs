@@ -20,6 +20,54 @@ pub struct ChorusRequest {
 }
 
 impl ChorusRequest {
+    /// Makes a new [`ChorusRequest`].
+    /// # Arguments
+    /// * `method` - The HTTP method to use. Must be one of the following:
+    ///     * [`http::Method::GET`]
+    ///     * [`http::Method::POST`]
+    ///     * [`http::Method::PUT`]
+    ///     * [`http::Method::DELETE`]
+    ///     * [`http::Method::PATCH`]
+    ///     * [`http::Method::HEAD`]
+    #[allow(unused_variables)] // TODO: Add mfa_token to request, once we figure out *how* to do so correctly
+    pub fn new(
+        method: http::Method,
+        url: &str,
+        body: Option<String>,
+        audit_log_reason: Option<&str>,
+        mfa_token: Option<&str>,
+        chorus_user: Option<&mut ChorusUser>,
+        limit_type: LimitType,
+    ) -> ChorusRequest {
+        let request = Client::new();
+        let mut request = match method {
+            http::Method::GET => request.get(url),
+            http::Method::POST => request.post(url),
+            http::Method::PUT => request.put(url),
+            http::Method::DELETE => request.delete(url),
+            http::Method::PATCH => request.patch(url),
+            http::Method::HEAD => request.head(url),
+            _ => panic!("Illegal state: Method not supported."),
+        };
+        if let Some(user) = chorus_user {
+            request = request.header("Authorization", user.token());
+        }
+        if let Some(body) = body {
+            // ONCE TOLD ME THE WORLD WAS GONNA ROLL ME
+            request = request
+                .body(body)
+                .header("Content-Type", "application/json");
+        }
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
+
+        ChorusRequest {
+            request,
+            limit_type,
+        }
+    }
+
     /// Sends a [`ChorusRequest`]. Checks if the user is rate limited, and if not, sends the request.
     /// If the user is not rate limited and the instance has rate limits enabled, it will update the
     /// rate limits.

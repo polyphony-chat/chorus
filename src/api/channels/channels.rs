@@ -16,13 +16,20 @@ impl Channel {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#get-channel>
     pub async fn get(user: &mut ChorusUser, channel_id: Snowflake) -> ChorusResult<Channel> {
-        let url = user.belongs_to.borrow().urls.api.clone();
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .get(format!("{}/channels/{}", url, channel_id))
-                .header("Authorization", user.token()),
-            limit_type: LimitType::Channel(channel_id),
-        };
+        let chorus_request = ChorusRequest::new(
+            http::Method::GET,
+            &format!(
+                "{}/channels/{}",
+                user.belongs_to.borrow().urls.api.clone(),
+                channel_id
+            ),
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+
         chorus_request.deserialize_response::<Channel>(user).await
     }
 
@@ -33,18 +40,24 @@ impl Channel {
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel>
-    pub async fn delete(self, user: &mut ChorusUser) -> ChorusResult<()> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(format!(
-                    "{}/channels/{}",
-                    user.belongs_to.borrow().urls.api,
-                    self.id
-                ))
-                .header("Authorization", user.token()),
-            limit_type: LimitType::Channel(self.id),
-        };
-        chorus_request.handle_request_as_result(user).await
+    pub async fn delete(
+        self,
+        audit_log_reason: Option<String>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<()> {
+        let url = format!("{}/channels/{}", user.belongs_to.borrow().urls.api, self.id,);
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Channel(self.id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 
     /// Modifies a channel with the provided data.
@@ -64,22 +77,27 @@ impl Channel {
     pub async fn modify(
         &self,
         modify_data: ChannelModifySchema,
+        audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<Channel> {
         let channel_id = self.id;
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .patch(format!(
-                    "{}/channels/{}",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&modify_data).unwrap()),
-            limit_type: LimitType::Channel(channel_id),
-        };
-        chorus_request.deserialize_response::<Channel>(user).await
+        let url = format!(
+            "{}/channels/{}",
+            user.belongs_to.borrow().urls.api,
+            channel_id
+        );
+
+        let request = ChorusRequest::new(
+            http::Method::PATCH,
+            &url,
+            Some(to_string(&modify_data).unwrap()),
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+
+        request.deserialize_response::<Channel>(user).await
     }
 
     /// Fetches recent messages from a channel.
@@ -96,17 +114,22 @@ impl Channel {
         channel_id: Snowflake,
         user: &mut ChorusUser,
     ) -> Result<Vec<Message>, ChorusError> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .get(format!(
-                    "{}/channels/{}/messages",
-                    user.belongs_to.borrow().urls.api,
-                    channel_id
-                ))
-                .header("Authorization", user.token())
-                .query(&range),
-            limit_type: Default::default(),
-        };
+        let url = format!(
+            "{}/channels/{}/messages",
+            user.belongs_to.borrow().urls.api,
+            channel_id
+        );
+
+        let mut chorus_request = ChorusRequest::new(
+            http::Method::GET,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            Default::default(),
+        );
+        chorus_request.request = chorus_request.request.query(&range);
 
         chorus_request
             .deserialize_response::<Vec<Message>>(user)
@@ -152,20 +175,24 @@ impl Channel {
         recipient_id: Snowflake,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
-        let request = Client::new()
-            .delete(format!(
-                "{}/channels/{}/recipients/{}",
-                user.belongs_to.borrow().urls.api,
-                self.id,
-                recipient_id
-            ))
-            .header("Authorization", user.token());
-        ChorusRequest {
-            request,
-            limit_type: LimitType::Channel(self.id),
-        }
-        .handle_request_as_result(user)
-        .await
+        let url = format!(
+            "{}/channels/{}/recipients/{}",
+            user.belongs_to.borrow().urls.api,
+            self.id,
+            recipient_id
+        );
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(self.id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 
     /// Modifies the positions of a set of channel objects for the guild. Requires the `MANAGE_CHANNELS` permission.
@@ -178,19 +205,22 @@ impl Channel {
         guild_id: Snowflake,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
-        let request = Client::new()
-            .patch(format!(
-                "{}/guilds/{}/channels",
-                user.belongs_to.borrow().urls.api,
-                guild_id
-            ))
-            .header("Authorization", user.token())
-            .body(to_string(&schema).unwrap());
-        ChorusRequest {
-            request,
-            limit_type: LimitType::Guild(guild_id),
-        }
-        .handle_request_as_result(user)
-        .await
+        let url = format!(
+            "{}/guilds/{}/channels",
+            user.belongs_to.borrow().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest::new(
+            http::Method::PATCH,
+            &url,
+            Some(to_string(&schema).unwrap()),
+            None,
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 }
