@@ -74,15 +74,6 @@ impl UrlBundle {
     }
 }
 
-/// Unwraps an `Option<String>`. Returns an empty string if the String is `None`, or the String contents
-/// if it is `Some`.
-pub(crate) fn unwrap_empty_if_none(string: Option<String>) -> String {
-    match string {
-        Some(str) => str,
-        None => "".to_string(),
-    }
-}
-
 #[cfg(test)]
 mod lib {
     use super::*;
