@@ -5,7 +5,7 @@ use serde_json::{from_value, to_string, Value};
 
 use crate::api::LimitType;
 use crate::errors::{ChorusError, ChorusResult};
-use crate::instance::UserMeta;
+use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
     Channel, CreateGreetMessage, Message, MessageAck, MessageModifySchema, MessageSearchEndpoint,
@@ -19,7 +19,7 @@ impl Message {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/message#create-message>
     pub async fn send(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         channel_id: Snowflake,
         mut message: MessageSendSchema,
     ) -> ChorusResult<Message> {
@@ -87,7 +87,7 @@ impl Message {
     pub(crate) async fn search(
         endpoint: MessageSearchEndpoint,
         query: MessageSearchQuery,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Vec<Message>> {
         let limit_type = match &endpoint {
             MessageSearchEndpoint::Channel(id) => LimitType::Channel(*id),
@@ -136,7 +136,7 @@ impl Message {
     /// See: <https://discord-userdoccers.vercel.app/resources/message#get-pinned-messages>
     pub async fn get_sticky(
         channel_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Vec<Message>> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -162,7 +162,7 @@ impl Message {
     pub async fn sticky(
         channel_id: Snowflake,
         message_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -185,7 +185,7 @@ impl Message {
     pub async fn unsticky(
         channel_id: Snowflake,
         message_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -209,7 +209,7 @@ impl Message {
     pub async fn get(
         channel_id: Snowflake,
         message_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Message> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -232,7 +232,7 @@ impl Message {
     pub async fn create_greet(
         channel_id: Snowflake,
         schema: CreateGreetMessage,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Message> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -263,7 +263,7 @@ impl Message {
         channel_id: Snowflake,
         message_id: Snowflake,
         schema: MessageAck,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Option<String>> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -292,7 +292,7 @@ impl Message {
     pub async fn crosspost(
         channel_id: Snowflake,
         message_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Message> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -316,7 +316,7 @@ impl Message {
     pub async fn hide_from_guild_feed(
         channel_id: Snowflake,
         message_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -347,7 +347,7 @@ impl Message {
         channel_id: Snowflake,
         message_id: Snowflake,
         schema: MessageModifySchema,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Message> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -370,7 +370,7 @@ impl Message {
     pub async fn delete(
         channel_id: Snowflake,
         message_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -399,7 +399,7 @@ impl Message {
     pub async fn bulk_delete(
         channel_id: Snowflake,
         messages: Vec<Snowflake>,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         if messages.len() < 2 {
             return Err(ChorusError::InvalidArguments {
@@ -427,7 +427,7 @@ impl Message {
     /// See: <https://discord-userdoccers.vercel.app/resources/message#acknowledge-pinned-messages>
     pub async fn acknowledge_pinned(
         channel_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -453,7 +453,7 @@ fn search_error(result_text: String) -> ChorusError {
     }
 }
 
-impl UserMeta {
+impl ChorusUser {
     /// Sends a message in the channel with the provided channel_id.
     /// Returns the sent message.
     ///
@@ -485,7 +485,7 @@ impl Channel {
     pub async fn search_messages(
         channel_id: Snowflake,
         query: MessageSearchQuery,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Vec<Message>> {
         Message::search(MessageSearchEndpoint::Channel(channel_id), query, user).await
     }

@@ -1,5 +1,5 @@
 use crate::errors::ChorusResult;
-use crate::instance::UserMeta;
+use crate::instance::ChorusUser;
 use crate::types::{Guild, Message, MessageSearchQuery, Snowflake};
 
 impl Guild {
@@ -16,7 +16,7 @@ impl Guild {
     pub async fn search_messages(
         guild_id: Snowflake,
         query: MessageSearchQuery,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Vec<Message>> {
         Message::search(
             crate::types::MessageSearchEndpoint::GuildChannel(guild_id),

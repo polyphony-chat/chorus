@@ -4,12 +4,12 @@ use serde_json::to_string;
 use crate::{
     api::LimitType,
     errors::ChorusResult,
-    instance::UserMeta,
+    instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{Channel, PrivateChannelCreateSchema},
 };
 
-impl UserMeta {
+impl ChorusUser {
     /// Creates a DM channel or group DM channel.
     ///
     /// One recipient creates or returns an existing DM channel,

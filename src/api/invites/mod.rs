@@ -2,11 +2,11 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::errors::ChorusResult;
-use crate::instance::UserMeta;
+use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{CreateChannelInviteSchema, GuildInvite, Invite, Snowflake};
 
-impl UserMeta {
+impl ChorusUser {
     /// Accepts an invite to a guild, group DM, or DM.
     ///
     /// Note that the session ID is required for guest invites.

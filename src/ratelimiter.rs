@@ -8,7 +8,7 @@ use serde_json::from_str;
 use crate::{
     api::{Limit, LimitType},
     errors::{ChorusError, ChorusResult},
-    instance::UserMeta,
+    instance::ChorusUser,
     types::{types::subconfigs::limits::rates::RateLimits, LimitsConfiguration},
 };
 
@@ -24,7 +24,7 @@ impl ChorusRequest {
     /// If the user is not rate limited and the instance has rate limits enabled, it will update the
     /// rate limits.
     #[allow(clippy::await_holding_refcell_ref)]
-    pub(crate) async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
+    pub(crate) async fn send_request(self, user: &mut ChorusUser) -> ChorusResult<Response> {
         if !ChorusRequest::can_send_request(user, &self.limit_type) {
             log::info!("Rate limit hit. Bucket: {:?}", self.limit_type);
             return Err(ChorusError::RateLimited {
@@ -73,7 +73,7 @@ impl ChorusRequest {
         Ok(result)
     }
 
-    fn can_send_request(user: &mut UserMeta, limit_type: &LimitType) -> bool {
+    fn can_send_request(user: &mut ChorusUser, limit_type: &LimitType) -> bool {
         log::trace!("Checking if user or instance is rate-limited...");
         let mut belongs_to = user.belongs_to.borrow_mut();
         if belongs_to.limits_information.is_none() {
@@ -236,7 +236,7 @@ impl ChorusRequest {
     ///     set to the current unix timestamp + the rate limit window. The remaining rate limit is
     ///     reset to the rate limit limit.
     /// 2. The remaining rate limit is decreased by 1.
-    fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
+    fn update_rate_limits(user: &mut ChorusUser, limit_type: &LimitType, response_was_err: bool) {
         if user.belongs_to.borrow().limits_information.is_none() {
             return;
         }
@@ -429,7 +429,7 @@ impl ChorusRequest {
 
     /// Sends a [`ChorusRequest`] and returns a [`ChorusResult`] that contains nothing if the request
     /// was successful, or a [`ChorusError`] if the request failed.
-    pub(crate) async fn handle_request_as_result(self, user: &mut UserMeta) -> ChorusResult<()> {
+    pub(crate) async fn handle_request_as_result(self, user: &mut ChorusUser) -> ChorusResult<()> {
         match self.send_request(user).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -440,7 +440,7 @@ impl ChorusRequest {
     /// was successful, or a [`ChorusError`] if the request failed.
     pub(crate) async fn deserialize_response<T: for<'a> Deserialize<'a>>(
         self,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<T> {
         let response = self.send_request(user).await?;
         debug!("Got response: {:?}", response);

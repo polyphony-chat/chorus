@@ -4,7 +4,7 @@ use serde_json::to_string;
 use crate::{
     api::LimitType,
     errors::{ChorusError, ChorusResult},
-    instance::UserMeta,
+    instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{self, PermissionOverwrite, Snowflake},
 };
@@ -21,7 +21,7 @@ impl types::Channel {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel-permissions>
     pub async fn edit_permissions(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         channel_id: Snowflake,
         overwrite: PermissionOverwrite,
     ) -> ChorusResult<()> {
@@ -59,7 +59,7 @@ impl types::Channel {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel-permission>
     pub async fn delete_permission(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         channel_id: Snowflake,
         overwrite_id: Snowflake,
     ) -> ChorusResult<()> {

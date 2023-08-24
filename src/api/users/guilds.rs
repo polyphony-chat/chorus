@@ -3,11 +3,11 @@ use serde_json::to_string;
 
 use crate::api::LimitType;
 use crate::errors::ChorusResult;
-use crate::instance::UserMeta;
+use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{GetUserGuildSchema, Guild, Snowflake};
 
-impl UserMeta {
+impl ChorusUser {
     /// Leaves a given guild.
     ///
     /// # Reference:

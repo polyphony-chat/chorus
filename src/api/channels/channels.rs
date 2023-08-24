@@ -5,7 +5,7 @@ use crate::types::{AddChannelRecipientSchema, ModifyChannelPositionsSchema};
 use crate::{
     api::LimitType,
     errors::{ChorusError, ChorusResult},
-    instance::UserMeta,
+    instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{Channel, ChannelModifySchema, GetChannelMessagesSchema, Message, Snowflake},
 };
@@ -15,7 +15,7 @@ impl Channel {
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#get-channel>
-    pub async fn get(user: &mut UserMeta, channel_id: Snowflake) -> ChorusResult<Channel> {
+    pub async fn get(user: &mut ChorusUser, channel_id: Snowflake) -> ChorusResult<Channel> {
         let url = user.belongs_to.borrow().urls.api.clone();
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -33,7 +33,7 @@ impl Channel {
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel>
-    pub async fn delete(self, user: &mut UserMeta) -> ChorusResult<()> {
+    pub async fn delete(self, user: &mut ChorusUser) -> ChorusResult<()> {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .delete(format!(
@@ -64,7 +64,7 @@ impl Channel {
     pub async fn modify(
         &self,
         modify_data: ChannelModifySchema,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<Channel> {
         let channel_id = self.id;
         let chorus_request = ChorusRequest {
@@ -94,7 +94,7 @@ impl Channel {
     pub async fn messages(
         range: GetChannelMessagesSchema,
         channel_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> Result<Vec<Message>, ChorusError> {
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -120,7 +120,7 @@ impl Channel {
     pub async fn add_channel_recipient(
         &self,
         recipient_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         add_channel_recipient_schema: Option<AddChannelRecipientSchema>,
     ) -> ChorusResult<()> {
         let mut request = Client::new()
@@ -150,7 +150,7 @@ impl Channel {
     pub async fn remove_channel_recipient(
         &self,
         recipient_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         let request = Client::new()
             .delete(format!(
@@ -176,7 +176,7 @@ impl Channel {
     pub async fn modify_positions(
         schema: Vec<ModifyChannelPositionsSchema>,
         guild_id: Snowflake,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         let request = Client::new()
             .patch(format!(
