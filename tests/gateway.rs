@@ -44,7 +44,7 @@ async fn test_self_updating_structs() {
         ..Default::default()
     };
     received_channel
-        .modify(modify_schema, &mut bundle.user)
+        .modify(modify_schema, None, &mut bundle.user)
         .await
         .unwrap();
     assert_eq!(

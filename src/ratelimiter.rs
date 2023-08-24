@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use log::{self, debug};
 use reqwest::{Client, RequestBuilder, Response};
-use serde::{Deserialize, Serialize};
-use serde_json::{from_str, to_string};
+use serde::Deserialize;
+use serde_json::from_str;
 
 use crate::{
     api::{Limit, LimitType},
@@ -29,17 +29,18 @@ impl ChorusRequest {
     ///     * [`http::Method::DELETE`]
     ///     * [`http::Method::PATCH`]
     ///     * [`http::Method::HEAD`]
-    pub(crate) fn new(
+    #[allow(unused_variables)] // TODO: Add mfa_token to request, once we figure out *how* to do so correctly
+    pub fn new(
         method: http::Method,
         url: &str,
-        body: Option<impl Serialize>,
+        body: Option<String>,
         audit_log_reason: Option<&str>,
         mfa_token: Option<&str>,
         chorus_user: Option<&mut ChorusUser>,
         limit_type: LimitType,
     ) -> ChorusRequest {
-        let mut request = Client::new();
-        let request = match method {
+        let request = Client::new();
+        let mut request = match method {
             http::Method::GET => request.get(url),
             http::Method::POST => request.post(url),
             http::Method::PUT => request.put(url),
@@ -49,16 +50,16 @@ impl ChorusRequest {
             _ => panic!("Illegal state: Method not supported."),
         };
         if let Some(user) = chorus_user {
-            let request = request.header("Authorization", user.token());
+            request = request.header("Authorization", user.token());
         }
         if let Some(body) = body {
             // ONCE TOLD ME THE WORLD WAS GONNA ROLL ME
-            let request = request
-                .body(to_string(&body).unwrap())
+            request = request
+                .body(body)
                 .header("Content-Type", "application/json");
         }
         if let Some(reason) = audit_log_reason {
-            let request = request.header("X-Audit-Log-Reason", reason);
+            request = request.header("X-Audit-Log-Reason", reason);
         }
 
         ChorusRequest {

@@ -74,12 +74,17 @@ impl types::Channel {
             channel_id,
             overwrite_id
         );
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(url)
-                .header("Authorization", user.token()),
-            limit_type: LimitType::Channel(channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 }
