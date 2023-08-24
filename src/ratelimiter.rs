@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use log::{self, debug};
 use reqwest::{Client, RequestBuilder, Response};
-use serde::Deserialize;
-use serde_json::from_str;
+use serde::{Deserialize, Serialize};
+use serde_json::{from_str, to_string};
 
 use crate::{
     api::{Limit, LimitType},
@@ -20,6 +20,53 @@ pub struct ChorusRequest {
 }
 
 impl ChorusRequest {
+    /// Makes a new [`ChorusRequest`].
+    /// # Arguments
+    /// * `method` - The HTTP method to use. Must be one of the following:
+    ///     * [`http::Method::GET`]
+    ///     * [`http::Method::POST`]
+    ///     * [`http::Method::PUT`]
+    ///     * [`http::Method::DELETE`]
+    ///     * [`http::Method::PATCH`]
+    ///     * [`http::Method::HEAD`]
+    pub(crate) fn new(
+        method: http::Method,
+        url: &str,
+        body: Option<impl Serialize>,
+        audit_log_reason: Option<&str>,
+        mfa_token: Option<&str>,
+        chorus_user: Option<&mut ChorusUser>,
+        limit_type: LimitType,
+    ) -> ChorusRequest {
+        let mut request = Client::new();
+        let request = match method {
+            http::Method::GET => request.get(url),
+            http::Method::POST => request.post(url),
+            http::Method::PUT => request.put(url),
+            http::Method::DELETE => request.delete(url),
+            http::Method::PATCH => request.patch(url),
+            http::Method::HEAD => request.head(url),
+            _ => panic!("Illegal state: Method not supported."),
+        };
+        if let Some(user) = chorus_user {
+            let request = request.header("Authorization", user.token());
+        }
+        if let Some(body) = body {
+            // ONCE TOLD ME THE WORLD WAS GONNA ROLL ME
+            let request = request
+                .body(to_string(&body).unwrap())
+                .header("Content-Type", "application/json");
+        }
+        if let Some(reason) = audit_log_reason {
+            let request = request.header("X-Audit-Log-Reason", reason);
+        }
+
+        ChorusRequest {
+            request,
+            limit_type,
+        }
+    }
+
     /// Sends a [`ChorusRequest`]. Checks if the user is rate limited, and if not, sends the request.
     /// If the user is not rate limited and the instance has rate limits enabled, it will update the
     /// rate limits.
