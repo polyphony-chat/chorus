@@ -84,7 +84,7 @@ impl fmt::Display for Token {
 }
 
 #[derive(Debug)]
-/// A UserMeta is a representation of an authenticated user on an [Instance].
+/// A ChorusUser is a representation of an authenticated user on an [Instance].
 /// It is used for most authenticated actions on a Spacebar server.
 /// It also has its own [Gateway] connection.
 pub struct ChorusUser {
@@ -105,10 +105,10 @@ impl ChorusUser {
         self.token = token;
     }
 
-    /// Creates a new [UserMeta] from existing data.
+    /// Creates a new [ChorusUser] from existing data.
     ///
     /// # Notes
-    /// This isn't the prefered way to create a UserMeta.
+    /// This isn't the prefered way to create a ChorusUser.
     /// See [Instance::login_account] and [Instance::register_account] instead.
     pub fn new(
         belongs_to: Rc<RefCell<Instance>>,
@@ -129,7 +129,7 @@ impl ChorusUser {
     }
 
     /// Creates a new 'shell' of a user. The user does not exist as an object, and exists so that you have
-    /// a UserMeta object to make Rate Limited requests with. This is useful in scenarios like
+    /// a ChorusUser object to make Rate Limited requests with. This is useful in scenarios like
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
