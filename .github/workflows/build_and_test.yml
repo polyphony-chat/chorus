@@ -31,7 +31,7 @@ jobs:
         npm run start &
       working-directory: ./server
     - uses: Swatinem/rust-cache@v2
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+    - name: Build, Test and Publish Coverage
+      run: |
+        cargo install cargo-tarpaulin
+        cargo tarpaulin --all-features --verbose --skip-clean --coveralls ${{ secrets.COVERALLS_REPO_TOKEN }} --timeout 120

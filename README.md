@@ -2,6 +2,7 @@
 
 [![Discord]][Discord-invite]
 [![Build][build-shield]][build-url]
+[![Coverage][coverage-shield]][coverage-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Issues][issues-shield]][issues-url]
@@ -124,6 +125,8 @@ accepted, if it violates these guidelines or [our Code of Conduct](https://githu
   [clippy-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/clippy.yml
   [contributors-shield]: https://img.shields.io/github/contributors/polyphony-chat/chorus.svg?style=flat
   [contributors-url]: https://github.com/polyphony-chat/chorus/graphs/contributors
+  [coverage-shield]: https://coveralls.io/repos/github/polyphony-chat/chorus/badge.svg?branch=main
+  [coverage-url]: https://coveralls.io/github/polyphony-chat/chorus?branch=main
   [forks-shield]: https://img.shields.io/github/forks/polyphony-chat/chorus.svg?style=flat
   [forks-url]: https://github.com/polyphony-chat/chorus/network/members
   [stars-shield]: https://img.shields.io/github/stars/polyphony-chat/chorus.svg?style=flat
