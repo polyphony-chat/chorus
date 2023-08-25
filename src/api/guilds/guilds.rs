@@ -9,7 +9,7 @@ use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
     Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema, GuildMember,
-    GuildMemberSearchSchema, GuildModifySchema, GuildPreview,
+    GuildMemberSearchSchema, GuildModifySchema, GuildPreview, ModifyGuildMemberSchema,
 };
 use crate::types::{GuildBan, Snowflake};
 
@@ -288,6 +288,36 @@ impl Guild {
             )
             .as_str(),
             None,
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.handle_request_as_result(user).await
+    }
+
+    /// Modifies attributes of a guild member. Returns the updated guild member object on success.
+    /// For required Permissions and an API reference, see:
+    ///
+    /// # Reference:
+    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member>
+    pub async fn modify_member(
+        guild_id: Snowflake,
+        member_id: Snowflake,
+        schema: ModifyGuildMemberSchema,
+        audit_log_reason: Option<String>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<()> {
+        let request = ChorusRequest::new(
+            http::Method::PATCH,
+            format!(
+                "{}/guilds/{}/members/{}",
+                user.belongs_to.borrow().urls.api,
+                guild_id,
+                member_id,
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
             audit_log_reason.as_deref(),
             None,
             Some(user),

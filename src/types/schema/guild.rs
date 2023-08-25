@@ -1,3 +1,5 @@
+use bitflags::bitflags;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
@@ -104,5 +106,33 @@ impl Default for GuildMemberSearchSchema {
             query: Default::default(),
             limit: Some(1),
         }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ModifyGuildMemberSchema {
+    pub nick: Option<String>,
+    pub roles: Option<Vec<Snowflake>>,
+    pub mute: Option<bool>,
+    pub deaf: Option<bool>,
+    pub channel_id: Option<Snowflake>,
+    pub communication_disabled_until: Option<DateTime<Utc>>,
+    pub flags: Option<GuildMemberFlags>,
+}
+
+bitflags! {
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+    /// Represents the flags of a Guild Member.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#guild-member-flags>
+    pub struct GuildMemberFlags: u64 {
+        const DID_REJOIN = 1 << 0;
+        const COMPLETED_ONBOARDING = 1 << 1;
+        const BYPASSES_VERIFICATION = 1 << 2;
+        const STARTED_ONBOARDING = 1 << 3;
+        const GUEST = 1 << 3;
+        const AUTOMOD_QUARANTINED_NAME = 1 << 7;
+        const AUTOMOD_QUARANTINED_BIO = 1 << 8;
     }
 }
