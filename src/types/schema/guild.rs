@@ -144,3 +144,14 @@ pub struct ModifyCurrentGuildMemberSchema {
     pub bio: Option<String>,
     pub banner: Option<String>,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub struct ModifyGuildMemberProfileSchema {
+    pub pronouns: Option<String>,
+    pub bio: Option<String>,
+    pub banner: Option<String>,
+    pub accent_color: Option<String>,
+    pub theme_colors: Option<Vec<i32>>,
+    pub popout_animation_particle_type: Option<Snowflake>,
+    pub emoji_id: Option<Snowflake>,
+}

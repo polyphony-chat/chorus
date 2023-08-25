@@ -9,7 +9,8 @@ use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
     Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildCreateSchema, GuildMember,
-    GuildMemberSearchSchema, GuildModifySchema, GuildPreview, ModifyGuildMemberSchema,
+    GuildMemberSearchSchema, GuildModifySchema, GuildPreview, ModifyGuildMemberProfileSchema,
+    ModifyGuildMemberSchema, UserProfileMetadata,
 };
 use crate::types::{GuildBan, Snowflake};
 
@@ -351,6 +352,34 @@ impl Guild {
             LimitType::Guild(guild_id),
         );
         request.deserialize_response::<GuildMember>(user).await
+    }
+
+    /// Modifies the current user's profile in the guild.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member-profile>
+    pub async fn modify_member_profile(
+        guild_id: Snowflake,
+        schema: ModifyGuildMemberProfileSchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<UserProfileMetadata> {
+        let request = ChorusRequest::new(
+            http::Method::PATCH,
+            format!(
+                "{}/guilds/{}/profile/@me",
+                user.belongs_to.borrow().urls.api,
+                guild_id,
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
+            None,
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request
+            .deserialize_response::<UserProfileMetadata>(user)
+            .await
     }
 }
 
