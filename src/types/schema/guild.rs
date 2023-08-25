@@ -1,3 +1,5 @@
+use bitflags::bitflags;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
@@ -105,4 +107,59 @@ impl Default for GuildMemberSearchSchema {
             limit: Some(1),
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub struct ModifyGuildMemberSchema {
+    pub nick: Option<String>,
+    pub roles: Option<Vec<Snowflake>>,
+    pub mute: Option<bool>,
+    pub deaf: Option<bool>,
+    pub channel_id: Option<Snowflake>,
+    pub communication_disabled_until: Option<DateTime<Utc>>,
+    pub flags: Option<GuildMemberFlags>,
+}
+
+bitflags! {
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+    /// Represents the flags of a Guild Member.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#guild-member-flags>
+    pub struct GuildMemberFlags: u64 {
+        const DID_REJOIN = 1 << 0;
+        const COMPLETED_ONBOARDING = 1 << 1;
+        const BYPASSES_VERIFICATION = 1 << 2;
+        const STARTED_ONBOARDING = 1 << 3;
+        const GUEST = 1 << 3;
+        const AUTOMOD_QUARANTINED_NAME = 1 << 7;
+        const AUTOMOD_QUARANTINED_BIO = 1 << 8;
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub struct ModifyCurrentGuildMemberSchema {
+    pub nick: Option<String>,
+    pub avatar: Option<String>,
+    pub bio: Option<String>,
+    pub banner: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub struct ModifyGuildMemberProfileSchema {
+    pub pronouns: Option<String>,
+    pub bio: Option<String>,
+    pub banner: Option<String>,
+    pub accent_color: Option<String>,
+    pub theme_colors: Option<Vec<i32>>,
+    pub popout_animation_particle_type: Option<Snowflake>,
+    pub emoji_id: Option<Snowflake>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// The limit argument is a number between 1 and 1000.
+pub struct GuildBansQuery {
+    pub before: Option<Snowflake>,
+    pub after: Option<Snowflake>,
+    pub limit: Option<u16>,
 }

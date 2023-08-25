@@ -7,6 +7,8 @@ use std::fmt::Debug;
 use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::{utils::Snowflake, Composite};
 
+use super::Emoji;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub struct UserData {
@@ -119,4 +121,16 @@ bitflags::bitflags! {
         const CERTIFIED_MODERATOR = 1 << 18;
         const BOT_HTTP_INTERACTIONS = 1 << 19;
     }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
+pub struct UserProfileMetadata {
+    pub guild_id: Option<Snowflake>,
+    pub pronouns: String,
+    pub bio: Option<String>,
+    pub banner: Option<String>,
+    pub accent_color: Option<i32>,
+    pub theme_colors: Option<Vec<i32>>,
+    pub popout_animation_particle_type: Option<Snowflake>,
+    pub emoji: Option<Emoji>,
 }
