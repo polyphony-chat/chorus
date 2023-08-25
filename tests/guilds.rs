@@ -53,6 +53,7 @@ async fn guild_create_ban() {
     Guild::create_ban(
         guild.id,
         other_user_id,
+        None,
         GuildBanCreateSchema::default(),
         &mut bundle.user,
     )
@@ -61,6 +62,7 @@ async fn guild_create_ban() {
     assert!(Guild::create_ban(
         guild.id,
         other_user_id,
+        None,
         GuildBanCreateSchema::default(),
         &mut bundle.user,
     )

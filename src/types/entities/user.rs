@@ -123,7 +123,7 @@ bitflags::bitflags! {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
 pub struct UserProfileMetadata {
     pub guild_id: Option<Snowflake>,
     pub pronouns: String,

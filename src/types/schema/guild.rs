@@ -155,3 +155,11 @@ pub struct ModifyGuildMemberProfileSchema {
     pub popout_animation_particle_type: Option<Snowflake>,
     pub emoji_id: Option<Snowflake>,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// The limit argument is a number between 1 and 1000.
+pub struct GuildBansQuery {
+    pub before: Option<Snowflake>,
+    pub after: Option<Snowflake>,
+    pub limit: Option<u16>,
+}
