@@ -22,7 +22,7 @@ jobs:
         git clone https://github.com/bitfl0wer/server.git
     - uses: actions/setup-node@v3
       with:
-          node-version: 16
+          node-version: 18
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
     - name: Prepare and start Spacebar server
