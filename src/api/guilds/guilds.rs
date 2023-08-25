@@ -441,6 +441,35 @@ impl Guild {
         );
         request.deserialize_response::<GuildBan>(user).await
     }
+
+    /// Removes the ban for a user. Requires the BAN_MEMBERS permissions. Returns a 204 empty response on success.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild-ban>
+    pub async fn delete_ban(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        user_id: Snowflake,
+        audit_log_reason: Option<String>,
+    ) -> ChorusResult<()> {
+        let url = format!(
+            "{}/guilds/{}/bans/{}",
+            user.belongs_to.borrow_mut().urls.api,
+            guild_id,
+            user_id
+        );
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.handle_request_as_result(user).await
+    }
 }
 
 impl Channel {
