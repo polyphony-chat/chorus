@@ -109,7 +109,7 @@ impl Default for GuildMemberSearchSchema {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct ModifyGuildMemberSchema {
     pub nick: Option<String>,
     pub roles: Option<Vec<Snowflake>>,
@@ -135,4 +135,12 @@ bitflags! {
         const AUTOMOD_QUARANTINED_NAME = 1 << 7;
         const AUTOMOD_QUARANTINED_BIO = 1 << 8;
     }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub struct ModifyCurrentGuildMemberSchema {
+    pub nick: Option<String>,
+    pub avatar: Option<String>,
+    pub bio: Option<String>,
+    pub banner: Option<String>,
 }

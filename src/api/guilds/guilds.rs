@@ -307,7 +307,7 @@ impl Guild {
         schema: ModifyGuildMemberSchema,
         audit_log_reason: Option<String>,
         user: &mut ChorusUser,
-    ) -> ChorusResult<()> {
+    ) -> ChorusResult<GuildMember> {
         let request = ChorusRequest::new(
             http::Method::PATCH,
             format!(
@@ -323,7 +323,34 @@ impl Guild {
             Some(user),
             LimitType::Guild(guild_id),
         );
-        request.handle_request_as_result(user).await
+        request.deserialize_response::<GuildMember>(user).await
+    }
+
+    /// Modifies the current user's member in the guild.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-current-guild-member>
+    pub async fn modify_current_member(
+        guild_id: Snowflake,
+        schema: ModifyGuildMemberSchema,
+        audit_log_reason: Option<String>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<GuildMember> {
+        let request = ChorusRequest::new(
+            http::Method::PATCH,
+            format!(
+                "{}/guilds/{}/members/@me",
+                user.belongs_to.borrow().urls.api,
+                guild_id,
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.deserialize_response::<GuildMember>(user).await
     }
 }
 
