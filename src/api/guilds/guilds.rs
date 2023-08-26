@@ -149,7 +149,8 @@ impl Guild {
         audit_log_reason: Option<String>,
         schema: GuildBanCreateSchema,
         user: &mut ChorusUser,
-    ) -> ChorusResult<GuildBan> {
+    ) -> ChorusResult<()> {
+        // FIXME: Return GuildBan instead of (). Requires <https://github.com/spacebarchat/server/issues/1096> to be resolved.
         let request = ChorusRequest::new(
             http::Method::PUT,
             format!(
@@ -165,8 +166,7 @@ impl Guild {
             Some(user),
             LimitType::Guild(guild_id),
         );
-        let response = request.deserialize_response::<GuildBan>(user).await?;
-        Ok(response)
+        request.handle_request_as_result(user).await
     }
 
     /// # Reference
