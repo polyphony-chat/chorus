@@ -1,4 +1,4 @@
-use chorus::types::{self, RoleCreateModifySchema};
+use chorus::types::{self, RoleCreateModifySchema, RoleObject};
 
 mod common;
 
@@ -32,7 +32,7 @@ async fn create_and_get_roles() {
 }
 
 #[tokio::test]
-async fn get_singular_role() {
+async fn get_and_delete_role() {
     let mut bundle = common::setup().await;
     let guild_id = bundle.guild.read().unwrap().id;
     let role_id = bundle.role.read().unwrap().id;
@@ -41,5 +41,22 @@ async fn get_singular_role() {
         .await
         .unwrap();
     assert_eq!(role, same_role);
+    assert_eq!(
+        chorus::types::RoleObject::get_all(&mut bundle.user, guild_id)
+            .await
+            .unwrap()
+            .len(),
+        2
+    );
+    RoleObject::delete_role(&mut bundle.user, guild_id, role_id, None)
+        .await
+        .unwrap();
+    assert_eq!(
+        chorus::types::RoleObject::get_all(&mut bundle.user, guild_id)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
     common::teardown(bundle).await
 }
