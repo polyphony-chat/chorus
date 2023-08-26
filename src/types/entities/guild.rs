@@ -16,6 +16,8 @@ use crate::types::{
 };
 use bitflags::bitflags;
 
+use super::PublicUser;
+
 /// See <https://discord.com/developers/docs/resources/guild>
 #[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable, Composite)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -106,8 +108,7 @@ pub struct Guild {
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildBan {
-    pub user_id: Snowflake,
-    pub guild_id: Snowflake,
+    pub user: PublicUser,
     pub reason: Option<String>,
 }
 
