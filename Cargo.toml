@@ -31,7 +31,7 @@ hostname = "0.3.1"
 bitflags = { version = "2.3.3", features = ["serde"] }
 lazy_static = "1.4.0"
 poem = { version = "1.3.56", optional = true }
-sqlx = { git = "https://github.com/zert3x/sqlx", branch = "feature/skip", features = [
+sqlx = { version = "0.7.1", features = [
     "mysql",
     "sqlite",
     "json",
@@ -44,7 +44,7 @@ thiserror = "1.0.43"
 jsonwebtoken = "8.3.0"
 log = "0.4.19"
 async-trait = "0.1.71"
-chorus-macros = { path = "chorus-macros" }
+chorus-macros = { path = "chorus-macros", version = "0.1.0" }
 
 [dev-dependencies]
 tokio = { version = "1.29.1", features = ["full"] }
