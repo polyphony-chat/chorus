@@ -1,8 +1,13 @@
 [package]
 name = "chorus"
+description = "A library for interacting with multiple Spacebar-compatible Instances at once."
 version = "0.1.0"
 license = "AGPL-3.0"
 edition = "2021"
+repository = "https://github.com/polyphony-chat/chorus"
+readme = "README.md"
+keywords = ["spacebar", "discord", "polyphony"]
+
 
 [features]
 default = ["client"]
