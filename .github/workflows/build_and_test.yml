@@ -32,6 +32,9 @@ jobs:
         npm run start &
       working-directory: ./server
     - uses: Swatinem/rust-cache@v2
+      with:
+        cache-all-crates: "true"
+        cache-directories: "~/.cargo/bin/"
     - name: Build, Test and Publish Coverage
       run: |
         cargo install cargo-tarpaulin
