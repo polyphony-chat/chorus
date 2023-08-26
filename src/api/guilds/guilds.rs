@@ -360,7 +360,7 @@ impl Guild {
     ///
     /// # Reference:
     /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member-profile>
-    pub async fn modify_member_profile(
+    pub async fn modify_current_member_profile(
         guild_id: Snowflake,
         schema: ModifyGuildMemberProfileSchema,
         user: &mut ChorusUser,
