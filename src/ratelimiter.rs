@@ -1,3 +1,5 @@
+//! Ratelimiter and request handling functionality.
+
 use std::collections::HashMap;
 
 use log::{self, debug};

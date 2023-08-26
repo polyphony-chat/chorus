@@ -1,3 +1,5 @@
+//! Gateway connection, communication and handling, as well as object caching and updating.
+
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
 use crate::types::{

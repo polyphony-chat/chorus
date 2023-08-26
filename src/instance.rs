@@ -1,3 +1,5 @@
+//! Instance and ChorusUser objects.
+
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;

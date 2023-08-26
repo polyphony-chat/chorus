@@ -1,3 +1,5 @@
+//! All the types, entities, events and interfaces of the Spacebar API.
+
 pub use config::*;
 pub use entities::*;
 pub use errors::*;

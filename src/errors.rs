@@ -1,3 +1,4 @@
+//! Contains all the errors that can be returned by the library.
 use custom_error::custom_error;
 use reqwest::Error;
 

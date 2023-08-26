@@ -1,3 +1,7 @@
+//! A library for interacting with one or multiple Spacebar-compatible APIs and Gateways.
+//!
+//! # About
+//!Chorus is a Rust library that allows developers to interact with multiple Spacebar-compatible APIs and Gateways simultaneously. The library provides a simple and efficient way to communicate with these services, making it easier for developers to build applications that rely on them. Chorus is open-source and welcomes contributions from the community.
 #![allow(clippy::module_inception)]
 
 use url::{ParseError, Url};
