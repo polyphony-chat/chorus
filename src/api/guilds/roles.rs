@@ -160,4 +160,33 @@ impl types::RoleObject {
             .deserialize_response::<RoleObject>(user)
             .await
     }
+
+    /// Deletes a guild role. Requires the `MANAGE_ROLES` permission. Returns a 204 empty response on success.
+    ///
+    /// # Reference:
+    /// See <https://discord.com/developers/docs/resources/guild#delete-guild-role>
+    pub async fn delete_role(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        role_id: Snowflake,
+        audit_log_reason: Option<String>,
+    ) -> ChorusResult<()> {
+        let url = format!(
+            "{}/guilds/{}/roles/{}",
+            user.belongs_to.borrow_mut().urls.api,
+            guild_id,
+            role_id
+        );
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.handle_request_as_result(user).await
+    }
 }
