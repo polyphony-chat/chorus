@@ -7,6 +7,7 @@ edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
 readme = "README.md"
 keywords = ["spacebar", "discord", "polyphony"]
+website = ["https://discord.com/invite/m3FpcapGDD"]
 
 
 [features]
