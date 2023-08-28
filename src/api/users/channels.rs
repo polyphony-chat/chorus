@@ -21,7 +21,10 @@ impl ChorusUser {
         &mut self,
         create_private_channel_schema: PrivateChannelCreateSchema,
     ) -> ChorusResult<Channel> {
-        let url = format!("{}/users/@me/channels", self.belongs_to.borrow().urls.api);
+        let url = format!(
+            "{}/users/@me/channels",
+            self.belongs_to.read().unwrap().urls.api
+        );
         ChorusRequest {
             request: Client::new()
                 .post(url)

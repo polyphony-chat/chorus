@@ -23,7 +23,7 @@ impl Guild {
         user: &mut ChorusUser,
         guild_create_schema: GuildCreateSchema,
     ) -> ChorusResult<Guild> {
-        let url = format!("{}/guilds", user.belongs_to.borrow().urls.api);
+        let url = format!("{}/guilds", user.belongs_to.read().unwrap().urls.api);
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(url.clone())
@@ -57,7 +57,7 @@ impl Guild {
     pub async fn delete(user: &mut ChorusUser, guild_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/delete",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
         let chorus_request = ChorusRequest {
@@ -99,7 +99,7 @@ impl Guild {
             request: Client::new()
                 .get(format!(
                     "{}/guilds/{}/channels",
-                    user.belongs_to.borrow().urls.api,
+                    user.belongs_to.read().unwrap().urls.api,
                     self.id
                 ))
                 .header("Authorization", user.token()),
@@ -133,7 +133,7 @@ impl Guild {
             request: Client::new()
                 .get(format!(
                     "{}/guilds/{}",
-                    user.belongs_to.borrow().urls.api,
+                    user.belongs_to.read().unwrap().urls.api,
                     guild_id
                 ))
                 .header("Authorization", user.token()),
@@ -155,7 +155,7 @@ impl Guild {
             http::Method::PUT,
             format!(
                 "{}/guilds/{}/bans/{}",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 guild_id,
                 user_id
             )
@@ -180,7 +180,7 @@ impl Guild {
             request: Client::new()
                 .patch(format!(
                     "{}/guilds/{}",
-                    user.belongs_to.borrow().urls.api,
+                    user.belongs_to.read().unwrap().urls.api,
                     guild_id,
                 ))
                 .header("Authorization", user.token())
@@ -204,7 +204,7 @@ impl Guild {
             request: Client::new()
                 .patch(format!(
                     "{}/guilds/{}/preview",
-                    user.belongs_to.borrow().urls.api,
+                    user.belongs_to.read().unwrap().urls.api,
                     guild_id,
                 ))
                 .header("Authorization", user.token())
@@ -229,7 +229,7 @@ impl Guild {
             http::Method::GET,
             format!(
                 "{}/guilds/{}/members",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 guild_id,
             )
             .as_str(),
@@ -255,7 +255,7 @@ impl Guild {
             http::Method::GET,
             format!(
                 "{}/guilds/{}/members/search",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 guild_id,
             )
             .as_str(),
@@ -285,7 +285,7 @@ impl Guild {
             http::Method::DELETE,
             format!(
                 "{}/guilds/{}/members/{}",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 guild_id,
                 member_id,
             )
@@ -315,7 +315,7 @@ impl Guild {
             http::Method::PATCH,
             format!(
                 "{}/guilds/{}/members/{}",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 guild_id,
                 member_id,
             )
@@ -343,7 +343,7 @@ impl Guild {
             http::Method::PATCH,
             format!(
                 "{}/guilds/{}/members/@me",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 guild_id,
             )
             .as_str(),
@@ -369,7 +369,7 @@ impl Guild {
             http::Method::PATCH,
             format!(
                 "{}/guilds/{}/profile/@me",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 guild_id,
             )
             .as_str(),
@@ -395,7 +395,7 @@ impl Guild {
     ) -> ChorusResult<Vec<GuildBan>> {
         let url = format!(
             "{}/guilds/{}/bans",
-            user.belongs_to.borrow_mut().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id,
         );
 
@@ -425,7 +425,7 @@ impl Guild {
     ) -> ChorusResult<GuildBan> {
         let url = format!(
             "{}/guilds/{}/bans/{}",
-            user.belongs_to.borrow_mut().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id,
             user_id
         );
@@ -454,7 +454,7 @@ impl Guild {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/bans/{}",
-            user.belongs_to.borrow_mut().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id,
             user_id
         );
@@ -488,7 +488,7 @@ impl Channel {
         let mut request = Client::new()
             .post(format!(
                 "{}/guilds/{}/channels",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 guild_id
             ))
             .header("Authorization", user.token())

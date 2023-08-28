@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::sync::{Arc, RwLock};
 
 use reqwest::Client;
 use serde_json::to_string;
@@ -48,7 +48,10 @@ impl ChorusUser {
             return Err(ChorusError::PasswordRequired);
         }
         let request = Client::new()
-            .patch(format!("{}/users/@me", self.belongs_to.borrow().urls.api))
+            .patch(format!(
+                "{}/users/@me",
+                self.belongs_to.read().unwrap().urls.api
+            ))
             .body(to_string(&modify_schema).unwrap())
             .header("Authorization", self.token())
             .header("Content-Type", "application/json");
@@ -67,7 +70,7 @@ impl ChorusUser {
         let request = Client::new()
             .post(format!(
                 "{}/users/@me/delete",
-                self.belongs_to.borrow().urls.api
+                self.belongs_to.read().unwrap().urls.api
             ))
             .header("Authorization", self.token())
             .header("Content-Type", "application/json");
@@ -86,7 +89,7 @@ impl User {
     /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
     /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
     pub async fn get(user: &mut ChorusUser, id: Option<&String>) -> ChorusResult<User> {
-        let url_api = user.belongs_to.borrow().urls.api.clone();
+        let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let url = if id.is_none() {
             format!("{}/users/@me", url_api)
         } else {
@@ -121,7 +124,7 @@ impl User {
             .get(format!("{}/users/@me/settings", url_api))
             .header("Authorization", token);
         let mut user =
-            ChorusUser::shell(Rc::new(RefCell::new(instance.clone())), token.clone()).await;
+            ChorusUser::shell(Arc::new(RwLock::new(instance.clone())), token.clone()).await;
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
@@ -131,8 +134,12 @@ impl User {
             Err(e) => Err(e),
         };
         if instance.limits_information.is_some() {
-            instance.limits_information.as_mut().unwrap().ratelimits =
-                user.belongs_to.borrow().clone_limits_if_some().unwrap();
+            instance.limits_information.as_mut().unwrap().ratelimits = user
+                .belongs_to
+                .read()
+                .unwrap()
+                .clone_limits_if_some()
+                .unwrap();
         }
         result
     }
@@ -148,11 +155,15 @@ impl Instance {
     /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
     /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
     pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
-        let mut user = ChorusUser::shell(Rc::new(RefCell::new(self.clone())), token).await;
+        let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
         let result = User::get(&mut user, id).await;
         if self.limits_information.is_some() {
-            self.limits_information.as_mut().unwrap().ratelimits =
-                user.belongs_to.borrow().clone_limits_if_some().unwrap();
+            self.limits_information.as_mut().unwrap().ratelimits = user
+                .belongs_to
+                .read()
+                .unwrap()
+                .clone_limits_if_some()
+                .unwrap();
         }
         result
     }

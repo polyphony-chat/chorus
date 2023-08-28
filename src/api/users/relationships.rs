@@ -22,7 +22,7 @@ impl ChorusUser {
     ) -> ChorusResult<Vec<types::PublicUser>> {
         let url = format!(
             "{}/users/{}/relationships",
-            self.belongs_to.borrow().urls.api,
+            self.belongs_to.read().unwrap().urls.api,
             user_id
         );
         let chorus_request = ChorusRequest {
@@ -41,7 +41,7 @@ impl ChorusUser {
     pub async fn get_relationships(&mut self) -> ChorusResult<Vec<types::Relationship>> {
         let url = format!(
             "{}/users/@me/relationships",
-            self.belongs_to.borrow().urls.api
+            self.belongs_to.read().unwrap().urls.api
         );
         let chorus_request = ChorusRequest {
             request: Client::new().get(url).header("Authorization", self.token()),
@@ -62,7 +62,7 @@ impl ChorusUser {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships",
-            self.belongs_to.borrow().urls.api
+            self.belongs_to.read().unwrap().urls.api
         );
         let body = to_string(&schema).unwrap();
         let chorus_request = ChorusRequest {
@@ -84,7 +84,7 @@ impl ChorusUser {
         user_id: Snowflake,
         relationship_type: RelationshipType,
     ) -> ChorusResult<()> {
-        let api_url = self.belongs_to.borrow().urls.api.clone();
+        let api_url = self.belongs_to.read().unwrap().urls.api.clone();
         match relationship_type {
             RelationshipType::None => {
                 let chorus_request = ChorusRequest {
@@ -136,7 +136,7 @@ impl ChorusUser {
     pub async fn remove_relationship(&mut self, user_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/{}",
-            self.belongs_to.borrow().urls.api,
+            self.belongs_to.read().unwrap().urls.api,
             user_id
         );
         let chorus_request = ChorusRequest {

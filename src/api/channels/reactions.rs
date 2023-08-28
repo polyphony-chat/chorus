@@ -23,7 +23,7 @@ impl ReactionMeta {
     pub async fn delete_all(&self, user: &mut ChorusUser) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             self.channel_id,
             self.message_id
         );
@@ -51,7 +51,7 @@ impl ReactionMeta {
     pub async fn get(&self, emoji: &str, user: &mut ChorusUser) -> ChorusResult<Vec<PublicUser>> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             self.channel_id,
             self.message_id,
             emoji
@@ -82,7 +82,7 @@ impl ReactionMeta {
     pub async fn delete_emoji(&self, emoji: &str, user: &mut ChorusUser) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             self.channel_id,
             self.message_id,
             emoji
@@ -116,7 +116,7 @@ impl ReactionMeta {
     pub async fn create(&self, emoji: &str, user: &mut ChorusUser) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             self.channel_id,
             self.message_id,
             emoji
@@ -145,7 +145,7 @@ impl ReactionMeta {
     pub async fn remove(&self, emoji: &str, user: &mut ChorusUser) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/@me",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             self.channel_id,
             self.message_id,
             emoji
@@ -181,7 +181,7 @@ impl ReactionMeta {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}/{}",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             self.channel_id,
             self.message_id,
             emoji,

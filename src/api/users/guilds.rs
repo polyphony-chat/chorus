@@ -20,7 +20,7 @@ impl ChorusUser {
             request: Client::new()
                 .delete(format!(
                     "{}/users/@me/guilds/{}",
-                    self.belongs_to.borrow().urls.api,
+                    self.belongs_to.read().unwrap().urls.api,
                     guild_id
                 ))
                 .header("Authorization", self.token())
@@ -41,7 +41,10 @@ impl ChorusUser {
         &mut self,
         query: Option<GetUserGuildSchema>,
     ) -> ChorusResult<Vec<Guild>> {
-        let url = format!("{}/users/@me/guilds", self.belongs_to.borrow().urls.api,);
+        let url = format!(
+            "{}/users/@me/guilds",
+            self.belongs_to.read().unwrap().urls.api,
+        );
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(url)

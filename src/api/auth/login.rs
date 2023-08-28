@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
 use reqwest::Client;
@@ -30,7 +28,7 @@ impl Instance {
         // request (since login is an instance wide limit), which is why we are just cloning the
         // instances' limits to pass them on as user_rate_limits later.
         let mut shell =
-            ChorusUser::shell(Rc::new(RefCell::new(self.clone())), "None".to_string()).await;
+            ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None".to_string()).await;
         let login_result = chorus_request
             .deserialize_response::<LoginResult>(&mut shell)
             .await?;
@@ -43,7 +41,7 @@ impl Instance {
         identify.token = login_result.token.clone();
         gateway.send_identify(identify).await;
         let user = ChorusUser::new(
-            Rc::new(RefCell::new(self.clone())),
+            Arc::new(RwLock::new(self.clone())),
             login_result.token,
             self.clone_limits_if_some(),
             login_result.settings,
