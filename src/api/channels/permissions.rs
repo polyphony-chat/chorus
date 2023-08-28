@@ -28,7 +28,7 @@ impl types::Channel {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/permissions/{}",
-            user.belongs_to.borrow_mut().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             channel_id,
             overwrite.id
         );
@@ -70,7 +70,7 @@ impl types::Channel {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/permissions/{}",
-            user.belongs_to.borrow_mut().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             channel_id,
             overwrite_id
         );

@@ -1,9 +1,8 @@
 //! Instance and ChorusUser objects.
 
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
-use std::rc::Rc;
+
 use std::sync::{Arc, RwLock};
 
 use reqwest::Client;
@@ -90,7 +89,7 @@ impl fmt::Display for Token {
 /// It is used for most authenticated actions on a Spacebar server.
 /// It also has its own [Gateway] connection.
 pub struct ChorusUser {
-    pub belongs_to: Rc<RefCell<Instance>>,
+    pub belongs_to: Arc<RwLock<Instance>>,
     pub token: String,
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: Arc<RwLock<UserSettings>>,
@@ -113,7 +112,7 @@ impl ChorusUser {
     /// This isn't the prefered way to create a ChorusUser.
     /// See [Instance::login_account] and [Instance::register_account] instead.
     pub fn new(
-        belongs_to: Rc<RefCell<Instance>>,
+        belongs_to: Arc<RwLock<Instance>>,
         token: String,
         limits: Option<HashMap<LimitType, Limit>>,
         settings: Arc<RwLock<UserSettings>>,
@@ -135,17 +134,18 @@ impl ChorusUser {
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
-    pub(crate) async fn shell(instance: Rc<RefCell<Instance>>, token: String) -> ChorusUser {
+    pub(crate) async fn shell(instance: Arc<RwLock<Instance>>, token: String) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
         let object = Arc::new(RwLock::new(User::default()));
-        let wss_url = instance.borrow().urls.wss.clone();
+        let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
         let gateway = Gateway::new(wss_url).await.unwrap();
         ChorusUser {
             token,
             belongs_to: instance.clone(),
             limits: instance
-                .borrow()
+                .read()
+                .unwrap()
                 .limits_information
                 .as_ref()
                 .map(|info| info.ratelimits.clone()),

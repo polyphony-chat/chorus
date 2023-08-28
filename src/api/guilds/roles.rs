@@ -20,7 +20,7 @@ impl types::RoleObject {
     ) -> ChorusResult<Vec<RoleObject>> {
         let url = format!(
             "{}/guilds/{}/roles",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
         let chorus_request = ChorusRequest {
@@ -45,7 +45,7 @@ impl types::RoleObject {
     ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/{}",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id,
             role_id
         );
@@ -71,7 +71,7 @@ impl types::RoleObject {
     ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
         let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
@@ -105,7 +105,7 @@ impl types::RoleObject {
     ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
         let body =
@@ -139,7 +139,7 @@ impl types::RoleObject {
     ) -> ChorusResult<RoleObject> {
         let url = format!(
             "{}/guilds/{}/roles/{}",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id,
             role_id
         );
@@ -173,7 +173,7 @@ impl types::RoleObject {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/roles/{}",
-            user.belongs_to.borrow_mut().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id,
             role_id
         );

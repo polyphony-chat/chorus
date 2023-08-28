@@ -82,12 +82,8 @@ impl ChorusRequest {
                 bucket: format!("{:?}", self.limit_type),
             });
         }
-        let belongs_to = user.belongs_to.borrow();
-        let result = match belongs_to
-            .client
-            .execute(self.request.build().unwrap())
-            .await
-        {
+        let client = user.belongs_to.read().unwrap().client.clone();
+        let result = match client.execute(self.request.build().unwrap()).await {
             Ok(result) => {
                 debug!("Request successful: {:?}", result);
                 result
@@ -100,12 +96,13 @@ impl ChorusRequest {
                 });
             }
         };
-        drop(belongs_to);
+        drop(client);
         if !result.status().is_success() {
             if result.status().as_u16() == 429 {
                 log::warn!("Rate limit hit unexpectedly. Bucket: {:?}. Setting the instances' remaining global limit to 0 to have cooldown.", self.limit_type);
                 user.belongs_to
-                    .borrow_mut()
+                    .write()
+                    .unwrap()
                     .limits_information
                     .as_mut()
                     .unwrap()
@@ -126,7 +123,7 @@ impl ChorusRequest {
 
     fn can_send_request(user: &mut ChorusUser, limit_type: &LimitType) -> bool {
         log::trace!("Checking if user or instance is rate-limited...");
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let mut belongs_to = user.belongs_to.write().unwrap();
         if belongs_to.limits_information.is_none() {
             log::trace!("Instance indicates no rate limits are configured. Continuing.");
             return true;
@@ -288,7 +285,7 @@ impl ChorusRequest {
     ///     reset to the rate limit limit.
     /// 2. The remaining rate limit is decreased by 1.
     fn update_rate_limits(user: &mut ChorusUser, limit_type: &LimitType, response_was_err: bool) {
-        if user.belongs_to.borrow().limits_information.is_none() {
+        if user.belongs_to.read().unwrap().limits_information.is_none() {
             return;
         }
         let instance_dictated_limits = [
@@ -311,7 +308,7 @@ impl ChorusRequest {
         }
         let time: u64 = chrono::Utc::now().timestamp() as u64;
         for relevant_limit in relevant_limits.iter() {
-            let mut belongs_to = user.belongs_to.borrow_mut();
+            let mut belongs_to = user.belongs_to.write().unwrap();
             let limit = match relevant_limit.0 {
                 LimitOrigin::Instance => {
                     log::trace!(

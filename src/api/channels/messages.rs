@@ -23,7 +23,7 @@ impl Message {
         channel_id: Snowflake,
         mut message: MessageSendSchema,
     ) -> ChorusResult<Message> {
-        let url_api = user.belongs_to.borrow().urls.api.clone();
+        let url_api = user.belongs_to.read().unwrap().urls.api.clone();
 
         if message.attachments.is_none() {
             let chorus_request = ChorusRequest {
@@ -98,7 +98,7 @@ impl Message {
             request: Client::new()
                 .get(format!(
                     "{}/{}/messages/search",
-                    &user.belongs_to.borrow().urls.api,
+                    &user.belongs_to.read().unwrap().urls.api,
                     endpoint
                 ))
                 .header("Authorization", user.token())
@@ -142,7 +142,7 @@ impl Message {
             http::Method::GET,
             format!(
                 "{}/channels/{}/pins",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 channel_id
             )
             .as_str(),
@@ -172,7 +172,7 @@ impl Message {
             http::Method::PUT,
             format!(
                 "{}/channels/{}/pins/{}",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 channel_id,
                 message_id
             )
@@ -199,7 +199,7 @@ impl Message {
             http::Method::DELETE,
             format!(
                 "{}/channels/{}/pins/{}",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 channel_id,
                 message_id
             )
@@ -226,7 +226,7 @@ impl Message {
             request: Client::new()
                 .get(format!(
                     "{}/channels/{}/messages/{}",
-                    user.belongs_to.borrow().urls.api,
+                    user.belongs_to.read().unwrap().urls.api,
                     channel_id,
                     message_id
                 ))
@@ -249,7 +249,7 @@ impl Message {
             http::Method::POST,
             format!(
                 "{}/channels/{}/messages/greet",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 channel_id,
             )
             .as_str(),
@@ -282,7 +282,7 @@ impl Message {
             http::Method::POST,
             format!(
                 "{}/channels/{}/messages/{}/ack",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 channel_id,
                 message_id
             )
@@ -311,7 +311,7 @@ impl Message {
             http::Method::POST,
             format!(
                 "{}/channels/{}/messages/{}/crosspost",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 channel_id,
                 message_id
             )
@@ -336,7 +336,7 @@ impl Message {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}/hide-guild-feed",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             channel_id,
             message_id
         );
@@ -370,7 +370,7 @@ impl Message {
     ) -> ChorusResult<Message> {
         let url = format!(
             "{}/channels/{}/messages/{}",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             channel_id,
             message_id
         );
@@ -396,7 +396,7 @@ impl Message {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/messages/{}",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             channel_id,
             message_id
         );
@@ -438,7 +438,7 @@ impl Message {
             http::Method::POST,
             format!(
                 "{}/channels/{}/messages/bulk-delete",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 channel_id,
             )
             .as_str(),
@@ -463,7 +463,7 @@ impl Message {
             http::Method::POST,
             format!(
                 "{}/channels/{}/pins/ack",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 channel_id,
             )
             .as_str(),

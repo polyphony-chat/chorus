@@ -22,7 +22,7 @@ impl ChorusUser {
             request: Client::new()
                 .post(format!(
                     "{}/invites/{}",
-                    self.belongs_to.borrow().urls.api,
+                    self.belongs_to.read().unwrap().urls.api,
                     invite_code
                 ))
                 .header("Authorization", self.token()),
@@ -48,7 +48,7 @@ impl ChorusUser {
             request: Client::new()
                 .post(format!(
                     "{}/users/@me/invites",
-                    self.belongs_to.borrow().urls.api
+                    self.belongs_to.read().unwrap().urls.api
                 ))
                 .body(to_string(&code).unwrap())
                 .header("Authorization", self.token())
@@ -75,7 +75,7 @@ impl ChorusUser {
             request: Client::new()
                 .post(format!(
                     "{}/channels/{}/invites",
-                    self.belongs_to.borrow().urls.api,
+                    self.belongs_to.read().unwrap().urls.api,
                     channel_id
                 ))
                 .header("Authorization", self.token())

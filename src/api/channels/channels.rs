@@ -20,7 +20,7 @@ impl Channel {
             http::Method::GET,
             &format!(
                 "{}/channels/{}",
-                user.belongs_to.borrow().urls.api.clone(),
+                user.belongs_to.read().unwrap().urls.api.clone(),
                 channel_id
             ),
             None,
@@ -45,7 +45,11 @@ impl Channel {
         audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
-        let url = format!("{}/channels/{}", user.belongs_to.borrow().urls.api, self.id,);
+        let url = format!(
+            "{}/channels/{}",
+            user.belongs_to.read().unwrap().urls.api,
+            self.id,
+        );
 
         let request = ChorusRequest::new(
             http::Method::DELETE,
@@ -83,7 +87,7 @@ impl Channel {
         let channel_id = self.id;
         let url = format!(
             "{}/channels/{}",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             channel_id
         );
 
@@ -116,7 +120,7 @@ impl Channel {
     ) -> Result<Vec<Message>, ChorusError> {
         let url = format!(
             "{}/channels/{}/messages",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             channel_id
         );
 
@@ -149,7 +153,7 @@ impl Channel {
         let mut request = Client::new()
             .put(format!(
                 "{}/channels/{}/recipients/{}",
-                user.belongs_to.borrow().urls.api,
+                user.belongs_to.read().unwrap().urls.api,
                 self.id,
                 recipient_id
             ))
@@ -177,7 +181,7 @@ impl Channel {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/recipients/{}",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             self.id,
             recipient_id
         );
@@ -207,7 +211,7 @@ impl Channel {
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/channels",
-            user.belongs_to.borrow().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
 

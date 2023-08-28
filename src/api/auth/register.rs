@@ -1,5 +1,4 @@
 use std::sync::{Arc, RwLock};
-use std::{cell::RefCell, rc::Rc};
 
 use reqwest::Client;
 use serde_json::to_string;
@@ -35,7 +34,7 @@ impl Instance {
         // request (since register is an instance wide limit), which is why we are just cloning
         // the instances' limits to pass them on as user_rate_limits later.
         let mut shell =
-            ChorusUser::shell(Rc::new(RefCell::new(self.clone())), "None".to_string()).await;
+            ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None".to_string()).await;
         let token = chorus_request
             .deserialize_response::<Token>(&mut shell)
             .await?
@@ -50,7 +49,7 @@ impl Instance {
         identify.token = token.clone();
         gateway.send_identify(identify).await;
         let user = ChorusUser::new(
-            Rc::new(RefCell::new(self.clone())),
+            Arc::new(RwLock::new(self.clone())),
             token.clone(),
             self.clone_limits_if_some(),
             Arc::new(RwLock::new(settings)),
