@@ -329,6 +329,7 @@ impl GatewayHandle {
     }
 }
 
+#[derive(Debug)]
 pub struct Gateway {
     events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
@@ -726,6 +727,7 @@ impl Gateway {
 
 /// Handles sending heartbeats to the gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
+#[derive(Debug)]
 struct HeartbeatHandler {
     /// How ofter heartbeats need to be sent at a minimum
     pub heartbeat_interval: Duration,

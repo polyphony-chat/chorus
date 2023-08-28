@@ -7,6 +7,7 @@ use crate::{
 };
 
 /// Useful metadata for working with [`types::Reaction`], bundled together nicely.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReactionMeta {
     pub message_id: types::Snowflake,
     pub channel_id: types::Snowflake,

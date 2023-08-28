@@ -124,7 +124,7 @@ pub struct MessageInteraction {
     pub member: Option<Arc<RwLock<GuildMember>>>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, PartialOrd, Ord)]
+#[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, Eq, PartialOrd, Ord)]
 pub struct AllowedMention {
     parse: Vec<AllowedMentionType>,
     roles: Vec<Snowflake>,

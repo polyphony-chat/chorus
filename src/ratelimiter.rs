@@ -16,6 +16,7 @@ use crate::{
 
 /// Chorus' request struct. This struct is used to send rate-limited requests to the Spacebar server.
 /// See <https://discord.com/developers/docs/topics/rate-limits#rate-limits> for more information.
+#[derive(Debug)]
 pub struct ChorusRequest {
     pub request: RequestBuilder,
     pub limit_type: LimitType,

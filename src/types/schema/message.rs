@@ -21,6 +21,7 @@ pub struct MessageSendSchema {
     pub attachments: Option<Vec<PartialDiscordFileAttachment>>,
 }
 
+#[derive(Debug)]
 pub enum MessageSearchEndpoint {
     GuildChannel(Snowflake),
     Channel(Snowflake),
