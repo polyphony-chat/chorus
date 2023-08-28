@@ -84,7 +84,7 @@ impl fmt::Display for Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// A ChorusUser is a representation of an authenticated user on an [Instance].
 /// It is used for most authenticated actions on a Spacebar server.
 /// It also has its own [Gateway] connection.
@@ -94,7 +94,7 @@ pub struct ChorusUser {
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: Arc<RwLock<UserSettings>>,
     pub object: Arc<RwLock<User>>,
-    pub gateway: GatewayHandle,
+    pub gateway: Arc<GatewayHandle>, // TODO: Can this be an Arc<GatewayHandle>? That way we could have Clone implemented on ChorusUser
 }
 
 impl ChorusUser {
@@ -117,7 +117,7 @@ impl ChorusUser {
         limits: Option<HashMap<LimitType, Limit>>,
         settings: Arc<RwLock<UserSettings>>,
         object: Arc<RwLock<User>>,
-        gateway: GatewayHandle,
+        gateway: Arc<GatewayHandle>,
     ) -> ChorusUser {
         ChorusUser {
             belongs_to,
@@ -139,7 +139,7 @@ impl ChorusUser {
         let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
-        let gateway = Gateway::new(wss_url).await.unwrap();
+        let gateway = Arc::new(Gateway::new(wss_url).await.unwrap());
         ChorusUser {
             token,
             belongs_to: instance.clone(),
