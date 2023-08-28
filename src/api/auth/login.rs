@@ -46,7 +46,7 @@ impl Instance {
             self.clone_limits_if_some(),
             login_result.settings,
             Arc::new(RwLock::new(object)),
-            gateway,
+            Arc::new(gateway),
         );
         Ok(user)
     }
