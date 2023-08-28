@@ -2,7 +2,18 @@
 //!
 //! # About
 //!Chorus is a Rust library that allows developers to interact with multiple Spacebar-compatible APIs and Gateways simultaneously. The library provides a simple and efficient way to communicate with these services, making it easier for developers to build applications that rely on them. Chorus is open-source and welcomes contributions from the community.
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/polyphony-chat/design/main/branding/polyphony-chorus-round-8bit.png"
+)]
 #![allow(clippy::module_inception)]
+#![deny(
+    missing_debug_implementations,
+    clippy::extra_unused_lifetimes,
+    clippy::from_over_into,
+    clippy::needless_borrow,
+    clippy::new_without_default,
+    clippy::useless_conversion
+)]
 
 use url::{ParseError, Url};
 
