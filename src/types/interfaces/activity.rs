@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::Emoji, Snowflake};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Activity {
     name: String,
     #[serde(rename = "type")]
