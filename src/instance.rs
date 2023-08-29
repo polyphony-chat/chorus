@@ -94,7 +94,7 @@ pub struct ChorusUser {
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: Arc<RwLock<UserSettings>>,
     pub object: Arc<RwLock<User>>,
-    pub gateway: Arc<GatewayHandle>, // TODO: Can this be an Arc<GatewayHandle>? That way we could have Clone implemented on ChorusUser
+    pub gateway: GatewayHandle,
 }
 
 impl ChorusUser {
@@ -117,7 +117,7 @@ impl ChorusUser {
         limits: Option<HashMap<LimitType, Limit>>,
         settings: Arc<RwLock<UserSettings>>,
         object: Arc<RwLock<User>>,
-        gateway: Arc<GatewayHandle>,
+        gateway: GatewayHandle,
     ) -> ChorusUser {
         ChorusUser {
             belongs_to,
@@ -139,7 +139,7 @@ impl ChorusUser {
         let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
-        let gateway = Arc::new(Gateway::new(wss_url).await.unwrap());
+        let gateway = Gateway::new(wss_url).await.unwrap();
         ChorusUser {
             token,
             belongs_to: instance.clone(),
