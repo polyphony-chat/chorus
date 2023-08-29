@@ -22,6 +22,11 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 
+use crate::gateway::{GatewayHandle, Updateable};
+use async_trait::async_trait;
+use std::fmt::Debug;
+use std::sync::{Arc, RwLock};
+
 mod application;
 mod attachment;
 mod audit_log;
@@ -45,3 +50,62 @@ mod user;
 mod user_settings;
 mod voice_state;
 mod webhook;
+
+#[async_trait(?Send)]
+pub trait Composite<T: Updateable + Clone + Debug> {
+    async fn watch_whole(self, gateway: &GatewayHandle) -> Self;
+
+    async fn option_observe_fn(
+        value: Option<Arc<RwLock<T>>>,
+        gateway: &GatewayHandle,
+    ) -> Option<Arc<RwLock<T>>>
+    where
+        T: Composite<T> + Debug,
+    {
+        if let Some(value) = value {
+            let value = value.clone();
+            Some(gateway.observe(value).await)
+        } else {
+            None
+        }
+    }
+
+    async fn option_vec_observe_fn(
+        value: Option<Vec<Arc<RwLock<T>>>>,
+        gateway: &GatewayHandle,
+    ) -> Option<Vec<Arc<RwLock<T>>>>
+    where
+        T: Composite<T>,
+    {
+        if let Some(value) = value {
+            let mut vec = Vec::new();
+            for component in value.into_iter() {
+                vec.push(gateway.observe(component).await);
+            }
+            Some(vec)
+        } else {
+            None
+        }
+    }
+
+    async fn value_observe_fn(value: Arc<RwLock<T>>, gateway: &GatewayHandle) -> Arc<RwLock<T>>
+    where
+        T: Composite<T>,
+    {
+        gateway.observe(value).await
+    }
+
+    async fn vec_observe_fn(
+        value: Vec<Arc<RwLock<T>>>,
+        gateway: &GatewayHandle,
+    ) -> Vec<Arc<RwLock<T>>>
+    where
+        T: Composite<T>,
+    {
+        let mut vec = Vec::new();
+        for component in value.into_iter() {
+            vec.push(gateway.observe(component).await);
+        }
+        vec
+    }
+}

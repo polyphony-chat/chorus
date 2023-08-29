@@ -1,3 +1,5 @@
+use std::sync::{Arc, RwLock};
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +21,7 @@ pub struct Invite {
     pub flags: Option<i32>,
     pub guild: Option<InviteGuild>,
     pub guild_id: Option<Snowflake>,
-    pub guild_scheduled_event: Option<GuildScheduledEvent>,
+    pub guild_scheduled_event: Option<Arc<RwLock<GuildScheduledEvent>>>,
     #[serde(rename = "type")]
     pub invite_type: Option<i32>,
     pub inviter: Option<User>,
@@ -68,7 +70,7 @@ pub enum NSFWLevel {
 /// See <https://discord-userdoccers.vercel.app/resources/invite#invite-stage-instance-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InviteStageInstance {
-    pub members: Vec<GuildMember>,
+    pub members: Vec<Arc<RwLock<GuildMember>>>,
     pub participant_count: i32,
     pub speaker_count: i32,
     pub topic: String,

@@ -50,7 +50,7 @@ impl WebSocketEvent for CallDelete {}
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Officially Undocumented;
-/// See https://unofficial-discord-docs.vercel.app/gateway/op13;
+/// See <https://unofficial-discord-docs.vercel.app/gateway/op13>;
 ///
 /// Ex: {"op":13,"d":{"channel_id":"837609115475771392"}}
 pub struct CallSync {

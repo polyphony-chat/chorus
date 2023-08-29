@@ -13,7 +13,7 @@ jobs:
   rust:
 
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v3
     - name: Clone spacebar server
@@ -21,7 +21,7 @@ jobs:
         git clone https://github.com/bitfl0wer/server.git
     - uses: actions/setup-node@v3
       with:
-          node-version: 16
+          node-version: 18
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
     - name: Prepare and start Spacebar server
@@ -31,7 +31,17 @@ jobs:
         npm run start &
       working-directory: ./server
     - uses: Swatinem/rust-cache@v2
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      with:
+        cache-all-crates: "true"
+    - name: Build, Test and Publish Coverage
+      run: |
+        if [ -n "${{ secrets.COVERALLS_REPO_TOKEN }}" ]; then
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall --no-confirm cargo-tarpaulin --force
+          cargo tarpaulin --all-features --avoid-cfg-tarpaulin --tests --verbose --skip-clean --coveralls ${{ secrets.COVERALLS_REPO_TOKEN }} --timeout 120
+        else
+          echo "Code Coverage step is skipped on forks!"
+          cargo build --verbose --all-features
+          cargo test --verbose --all-features
+        fi
+        

@@ -8,7 +8,7 @@ use crate::types::{Activity, GuildMember, PresenceUpdate, VoiceState};
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// 1/2 half documented;
 /// Received after identifying, provides initial user info;
-/// See https://discord.com/developers/docs/topics/gateway-events#ready;
+/// See <https://discord.com/developers/docs/topics/gateway-events#ready;>
 pub struct GatewayReady {
     pub analytics_token: Option<String>,
     pub auth_session_id_hash: Option<String>,
@@ -16,7 +16,7 @@ pub struct GatewayReady {
 
     pub v: u8,
     pub user: User,
-    /// For bots these are [UnavailableGuild]s, for users they are [Guild]
+    /// For bots these are [crate::types::UnavailableGuild]s, for users they are [Guild]
     pub guilds: Vec<Guild>,
     pub presences: Option<Vec<PresenceUpdate>>,
     pub sessions: Option<Vec<Session>>,
