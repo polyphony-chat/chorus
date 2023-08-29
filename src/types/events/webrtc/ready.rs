@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 /// Used to give info after the identify event;
 /// See https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-ready-payload;
 pub struct VoiceReady {
-    ssrc: u8,
+    ssrc: i32,
     ip: Ipv4Addr,
-    port: u8,
+    port: u32,
     modes: Vec<String>,
     // Heartbeat interval is also sent, but is "an erroneous field and should be ignored. The correct heartbeat_interval value comes from the Hello payload."
 }
