@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::Snowflake;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 /// A schema used to modify a user.
 pub struct UserModifySchema {
@@ -29,7 +29,7 @@ pub struct UserModifySchema {
 ///
 /// # Reference:
 /// Read: <https://discord-userdoccers.vercel.app/resources/channel#json-params>
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct PrivateChannelCreateSchema {
     pub recipients: Option<Vec<Snowflake>>,
     pub access_tokens: Option<Vec<String>>,
