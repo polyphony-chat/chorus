@@ -158,7 +158,7 @@ pub type ObservableObject = dyn Send + Sync + Any;
 /// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
 /// implemented types with the trait [`WebSocketEvent`]
 /// Using this handle you can also send Gateway Events directly.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
@@ -170,7 +170,6 @@ pub struct GatewayHandle {
             >,
         >,
     >,
-    pub handle: JoinHandle<()>,
     /// Tells gateway tasks to close
     kill_send: tokio::sync::broadcast::Sender<()>,
     pub(crate) store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
@@ -410,7 +409,7 @@ impl Gateway {
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
-        let handle: JoinHandle<()> = task::spawn(async move {
+        task::spawn(async move {
             gateway.gateway_listen_task().await;
         });
 
@@ -418,7 +417,6 @@ impl Gateway {
             url: websocket_url.clone(),
             events: shared_events,
             websocket_send: shared_websocket_send.clone(),
-            handle,
             kill_send: kill_send.clone(),
             store,
         })
