@@ -2,6 +2,8 @@
 use custom_error::custom_error;
 use reqwest::Error;
 
+use crate::types::WebSocketEvent;
+
 custom_error! {
     #[derive(PartialEq, Eq)]
     pub RegistrationError
@@ -54,9 +56,10 @@ custom_error! {
     /// Supposed to be sent as numbers, though they are sent as string most of the time?
     ///
     /// Also includes errors when initiating a connection and unexpected opcodes
-    #[derive(PartialEq, Eq)]
+    #[derive(PartialEq, Eq, Default, Clone)]
     pub GatewayError
     // Errors we have received from the gateway
+    #[default]
     Unknown = "We're not sure what went wrong. Try reconnecting?",
     UnknownOpcode = "You sent an invalid Gateway opcode or an invalid payload for an opcode",
     Decode = "Gateway server couldn't decode payload",
@@ -79,3 +82,5 @@ custom_error! {
     // Other misc errors
     UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
 }
+
+impl WebSocketEvent for GatewayError {}

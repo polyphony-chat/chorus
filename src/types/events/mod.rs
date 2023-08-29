@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
+use serde_json::{from_str, from_value, to_value, Value};
+
 pub use application::*;
 pub use auto_moderation::*;
 pub use call::*;
@@ -24,13 +26,13 @@ pub use ready::*;
 pub use relationship::*;
 pub use request_members::*;
 pub use resume::*;
-use serde_json::{from_str, from_value, to_value, Value};
 pub use session::*;
 pub use stage_instance::*;
 pub use thread::*;
 pub use user::*;
 pub use voice::*;
 pub use webhooks::*;
+pub use webrtc::*;
 
 use crate::gateway::Updateable;
 
@@ -61,6 +63,8 @@ mod thread;
 mod user;
 mod voice;
 mod webhooks;
+
+mod webrtc;
 
 pub trait WebSocketEvent {}
 

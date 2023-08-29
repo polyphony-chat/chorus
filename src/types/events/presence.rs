@@ -14,7 +14,7 @@ pub struct UpdatePresence {
     pub afk: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq)]
 /// Received to tell the client that a user updated their presence / status
 /// See <https://discord.com/developers/docs/topics/gateway-events#presence-update-presence-update-event-fields>
 pub struct PresenceUpdate {

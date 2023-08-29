@@ -479,13 +479,15 @@ impl Gateway {
             return;
         }
 
-        // Todo: handle errors in a good way, maybe observers like events?
         if msg.is_error() {
-            warn!("GW: Received error, connection will close..");
+            let error = msg.error().unwrap();
 
-            let _error = msg.error();
+            warn!("GW: Received error {:?}, connection will close..", error);
 
             self.close().await;
+
+            self.events.lock().await.error.notify(error).await;
+
             return;
         }
 
@@ -935,6 +937,7 @@ mod events {
         pub webhooks: Webhooks,
         pub gateway_identify_payload: GatewayEvent<types::GatewayIdentifyPayload>,
         pub gateway_resume: GatewayEvent<types::GatewayResume>,
+        pub error: GatewayEvent<GatewayError>,
     }
 
     #[derive(Default, Debug)]
