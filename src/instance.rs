@@ -8,12 +8,11 @@ use std::sync::{Arc, RwLock};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::api::{Limit, LimitType};
 use crate::errors::ChorusResult;
 use crate::gateway::{Gateway, GatewayHandle};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
-use crate::types::{GeneralConfiguration, User, UserSettings};
+use crate::types::{GeneralConfiguration, Limit, LimitType, User, UserSettings};
 use crate::UrlBundle;
 
 #[derive(Debug, Clone)]

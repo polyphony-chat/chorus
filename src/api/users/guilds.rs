@@ -1,11 +1,10 @@
 use reqwest::Client;
 use serde_json::to_string;
 
-use crate::api::LimitType;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{GetUserGuildSchema, Guild, Snowflake};
+use crate::types::{GetUserGuildSchema, Guild, LimitType, Snowflake};
 
 impl ChorusUser {
     /// Leaves a given guild.
@@ -26,7 +25,7 @@ impl ChorusUser {
                 .header("Authorization", self.token())
                 .header("Content-Type", "application/json")
                 .body(to_string(&lurking).unwrap()),
-            limit_type: crate::api::LimitType::Guild(*guild_id),
+            limit_type: LimitType::Guild(*guild_id),
         }
         .handle_request_as_result(self)
         .await

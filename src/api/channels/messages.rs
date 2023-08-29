@@ -3,13 +3,12 @@ use http::HeaderMap;
 use reqwest::{multipart, Client};
 use serde_json::{from_value, to_string, Value};
 
-use crate::api::LimitType;
 use crate::errors::{ChorusError, ChorusResult};
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    Channel, CreateGreetMessage, Message, MessageAck, MessageModifySchema, MessageSearchEndpoint,
-    MessageSearchQuery, MessageSendSchema, Snowflake,
+    Channel, CreateGreetMessage, LimitType, Message, MessageAck, MessageModifySchema,
+    MessageSearchEndpoint, MessageSearchQuery, MessageSendSchema, Snowflake,
 };
 
 impl Message {

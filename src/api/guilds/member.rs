@@ -1,11 +1,10 @@
 use reqwest::Client;
 
 use crate::{
-    api::LimitType,
     errors::ChorusResult,
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
-    types::{self, GuildMember, Snowflake},
+    types::{self, GuildMember, LimitType, Snowflake},
 };
 
 impl types::GuildMember {

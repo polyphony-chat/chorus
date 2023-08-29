@@ -1,9 +1,8 @@
 use crate::{
-    api::LimitType,
     errors::ChorusResult,
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
-    types::{self, PublicUser, Snowflake},
+    types::{self, LimitType, PublicUser, Snowflake},
 };
 
 /// Useful metadata for working with [`types::Reaction`], bundled together nicely.

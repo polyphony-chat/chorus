@@ -4,11 +4,10 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::LimitType,
     errors::{ChorusError, ChorusResult},
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
-    types::{User, UserModifySchema, UserSettings},
+    types::{LimitType, User, UserModifySchema, UserSettings},
 };
 
 impl ChorusUser {
