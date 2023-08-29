@@ -2,11 +2,10 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::LimitType,
     errors::{ChorusError, ChorusResult},
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
-    types::{self, PermissionOverwrite, Snowflake},
+    types::{self, LimitType, PermissionOverwrite, Snowflake},
 };
 
 impl types::Channel {

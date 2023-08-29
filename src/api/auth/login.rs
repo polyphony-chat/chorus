@@ -3,12 +3,11 @@ use std::sync::{Arc, RwLock};
 use reqwest::Client;
 use serde_json::to_string;
 
-use crate::api::LimitType;
 use crate::errors::ChorusResult;
 use crate::gateway::Gateway;
 use crate::instance::{ChorusUser, Instance};
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{GatewayIdentifyPayload, LoginResult, LoginSchema};
+use crate::types::{GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema};
 
 impl Instance {
     /// Logs into an existing account on the spacebar server.

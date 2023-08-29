@@ -6,10 +6,10 @@ use serde_json::to_string;
 use crate::gateway::Gateway;
 use crate::types::GatewayIdentifyPayload;
 use crate::{
-    api::policies::instance::LimitType,
     errors::ChorusResult,
     instance::{ChorusUser, Instance, Token},
     ratelimiter::ChorusRequest,
+    types::LimitType,
     types::RegisterSchema,
 };
 

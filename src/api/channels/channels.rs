@@ -3,11 +3,12 @@ use serde_json::to_string;
 
 use crate::types::{AddChannelRecipientSchema, ModifyChannelPositionsSchema};
 use crate::{
-    api::LimitType,
     errors::{ChorusError, ChorusResult},
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
-    types::{Channel, ChannelModifySchema, GetChannelMessagesSchema, Message, Snowflake},
+    types::{
+        Channel, ChannelModifySchema, GetChannelMessagesSchema, LimitType, Message, Snowflake,
+    },
 };
 
 impl Channel {
