@@ -1,5 +1,8 @@
+use std::sync::{Arc, RwLock};
+
+use chorus::gateway::Gateway;
 use chorus::{
-    instance::{Instance, UserMeta},
+    instance::{ChorusUser, Instance},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
         RoleCreateModifySchema, RoleObject,
@@ -11,16 +14,16 @@ use chorus::{
 #[derive(Debug)]
 pub(crate) struct TestBundle {
     pub urls: UrlBundle,
-    pub user: UserMeta,
+    pub user: ChorusUser,
     pub instance: Instance,
-    pub guild: Guild,
-    pub role: RoleObject,
-    pub channel: Channel,
+    pub guild: Arc<RwLock<Guild>>,
+    pub role: Arc<RwLock<RoleObject>>,
+    pub channel: Arc<RwLock<Channel>>,
 }
 
+#[allow(unused)]
 impl TestBundle {
-    #[allow(unused)]
-    pub(crate) async fn create_user(&mut self, username: &str) -> UserMeta {
+    pub(crate) async fn create_user(&mut self, username: &str) -> ChorusUser {
         let register_schema = RegisterSchema {
             username: username.to_string(),
             consent: true,
@@ -31,6 +34,16 @@ impl TestBundle {
             .register_account(&register_schema)
             .await
             .unwrap()
+    }
+    pub(crate) async fn clone_user_without_gateway(&self) -> ChorusUser {
+        ChorusUser {
+            belongs_to: self.user.belongs_to.clone(),
+            token: self.user.token.clone(),
+            limits: self.user.limits.clone(),
+            settings: self.user.settings.clone(),
+            object: self.user.object.clone(),
+            gateway: Arc::new(Gateway::new(self.instance.urls.wss.clone()).await.unwrap()),
+        }
     }
 }
 
@@ -60,7 +73,7 @@ pub(crate) async fn setup() -> TestBundle {
     };
     let channel_create_schema = ChannelCreateSchema {
         name: "testchannel".to_string(),
-        channel_type: Some(0),
+        channel_type: Some(chorus::types::ChannelType::GuildText),
         topic: None,
         icon: None,
         bitrate: None,
@@ -80,7 +93,7 @@ pub(crate) async fn setup() -> TestBundle {
     };
     let mut user = instance.register_account(&reg).await.unwrap();
     let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
-    let channel = Channel::create(&mut user, guild.id, channel_create_schema)
+    let channel = Channel::create(&mut user, guild.id, None, channel_create_schema)
         .await
         .unwrap();
 
@@ -102,17 +115,16 @@ pub(crate) async fn setup() -> TestBundle {
         urls,
         user,
         instance,
-        guild,
-        role,
-        channel,
+        guild: Arc::new(RwLock::new(guild)),
+        role: Arc::new(RwLock::new(role)),
+        channel: Arc::new(RwLock::new(channel)),
     }
 }
 
 // Teardown method to clean up after a test.
 #[allow(dead_code)]
 pub(crate) async fn teardown(mut bundle: TestBundle) {
-    Guild::delete(&mut bundle.user, bundle.guild.id)
-        .await
-        .unwrap();
+    let id = bundle.guild.read().unwrap().id;
+    Guild::delete(&mut bundle.user, id).await.unwrap();
     bundle.user.delete().await.unwrap()
 }

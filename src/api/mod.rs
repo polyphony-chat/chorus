@@ -1,3 +1,4 @@
+//! All of the API's endpoints.
 pub use channels::messages::*;
 pub use guilds::*;
 pub use invites::*;

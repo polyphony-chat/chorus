@@ -4,31 +4,31 @@ use serde_json::to_string;
 use crate::{
     api::LimitType,
     errors::{ChorusError, ChorusResult},
-    instance::UserMeta,
+    instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{self, PermissionOverwrite, Snowflake},
 };
 
 impl types::Channel {
-    /// Edits the permission overwrites for a channel.
+    /// Edits the permission overwrites for a user or role in a channel.
     ///
-    /// # Arguments
+    /// Only usable for guild channels.
     ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `channel_id` - A string slice representing the ID of the channel.
-    /// * `overwrite` - A [`PermissionOverwrite`] instance representing the new permission overwrites.
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
+    /// Only permissions you have in the guild or parent channel (if applicable) can be allowed/denied
+    /// (unless you have a [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) overwrite in the channel).
     ///
-    /// # Returns
-    ///
-    /// This function returns a result that is either [`Ok(())`] if the request is successful, or an [`Err(ChorusLibError)`].
-    pub async fn edit_permissions(
-        user: &mut UserMeta,
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel-permissions>
+    pub async fn modify_permissions(
+        user: &mut ChorusUser,
         channel_id: Snowflake,
+        audit_log_reason: Option<String>,
         overwrite: PermissionOverwrite,
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/permissions/{}",
-            user.belongs_to.borrow_mut().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             channel_id,
             overwrite.id
         );
@@ -40,39 +40,51 @@ impl types::Channel {
                 });
             }
         };
+        let mut request = Client::new()
+            .put(url)
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json")
+            .body(body);
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new().put(url).bearer_auth(user.token()).body(body),
+            request,
             limit_type: LimitType::Channel(channel_id),
         };
         chorus_request.handle_request_as_result(user).await
     }
 
-    /// Deletes a permission overwrite for a channel.
+    /// Deletes a permission overwrite for a user or role in a channel.
     ///
-    /// # Arguments
+    /// Only usable for guild channels.
     ///
-    /// * `user` - A mutable reference to a [`UserMeta`] instance.
-    /// * `channel_id` - A string slice representing the ID of the channel.
-    /// * `overwrite_id` - A string slice representing the ID of the permission overwrite to delete.
+    /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
-    /// # Returns
-    ///
-    /// This function returns a Result that is either [`Ok(())`] if the request is successfulm or an [`Err(ChorusLibError)`].
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel-permission>
     pub async fn delete_permission(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         channel_id: Snowflake,
         overwrite_id: Snowflake,
     ) -> ChorusResult<()> {
         let url = format!(
             "{}/channels/{}/permissions/{}",
-            user.belongs_to.borrow_mut().urls.api,
+            user.belongs_to.read().unwrap().urls.api,
             channel_id,
             overwrite_id
         );
-        let chorus_request = ChorusRequest {
-            request: Client::new().delete(url).bearer_auth(user.token()),
-            limit_type: LimitType::Channel(channel_id),
-        };
-        chorus_request.handle_request_as_result(user).await
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Channel(channel_id),
+        );
+
+        request.handle_request_as_result(user).await
     }
 }
