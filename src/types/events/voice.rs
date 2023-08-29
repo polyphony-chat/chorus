@@ -1,7 +1,7 @@
 use crate::types::{events::WebSocketEvent, Snowflake, VoiceState};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy, PartialEq, Eq)]
 ///
 /// Sent to the server to indicate an update of the voice state (leave voice channel, join voice channel, mute, deafen);
 ///
@@ -28,7 +28,7 @@ pub struct VoiceStateUpdate {
 
 impl WebSocketEvent for VoiceStateUpdate {}
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#voice-server-update>;
 ///
 /// Received to indicate which voice endpoint, token and guild_id to use;

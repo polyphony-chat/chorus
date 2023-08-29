@@ -2,7 +2,7 @@ use crate::types::events::{PresenceUpdate, WebSocketEvent};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct GatewayIdentifyPayload {
     pub token: String,
     pub properties: GatewayIdentifyConnectionProps,
@@ -144,7 +144,7 @@ impl GatewayIdentifyConnectionProps {
             referring_domain: None,
             referrer_current: None,
             release_channel: String::from("stable"),
-            client_build_number: 199933,
+            client_build_number: 0,
         }
     }
 
@@ -159,7 +159,7 @@ impl GatewayIdentifyConnectionProps {
             system_locale: String::from("en-US"),
             os: String::from("Windows"),
             os_version: Some(String::from("10")),
-            client_build_number: 199933,
+            client_build_number: 222963,
             release_channel: String::from("stable"),
             ..Self::minimal()
         }

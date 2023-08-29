@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::Emoji, Snowflake};
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Activity {
     name: String,
     #[serde(rename = "type")]
@@ -22,7 +22,7 @@ pub struct Activity {
     buttons: Option<Vec<ActivityButton>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 struct ActivityTimestamps {
     start: Option<i64>,
     end: Option<i64>,
