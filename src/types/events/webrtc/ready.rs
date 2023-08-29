@@ -3,7 +3,7 @@ use std::net::Ipv4Addr;
 use crate::types::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// The ready event for the webrtc stream;
 /// Used to give info after the identify event;
 /// See https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-ready-payload;

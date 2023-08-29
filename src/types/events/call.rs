@@ -21,7 +21,7 @@ pub struct CallCreate {
 
 impl WebSocketEvent for CallCreate {}
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
 /// Officially Undocumented;
 /// Updates the client on which calls are ringing, along with a specific call?;
 ///
@@ -38,7 +38,7 @@ pub struct CallUpdate {
 
 impl WebSocketEvent for CallUpdate {}
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
 /// Officially Undocumented;
 /// Deletes a ringing call;
 /// Ex: {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
@@ -48,7 +48,7 @@ pub struct CallDelete {
 
 impl WebSocketEvent for CallDelete {}
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
 /// Officially Undocumented;
 /// See <https://unofficial-discord-docs.vercel.app/gateway/op13>;
 ///

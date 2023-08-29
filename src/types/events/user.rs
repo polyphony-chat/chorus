@@ -4,7 +4,7 @@ use crate::types::entities::PublicUser;
 use crate::types::events::WebSocketEvent;
 use crate::types::utils::Snowflake;
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#user-update>;
 /// Sent to indicate updates to a user object; (name changes, discriminator changes, etc);
 pub struct UserUpdate {
@@ -14,7 +14,7 @@ pub struct UserUpdate {
 
 impl WebSocketEvent for UserUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Undocumented;
 ///
 /// Possibly an update for muted guild / channel settings for the current user;
@@ -39,7 +39,7 @@ pub struct UserGuildSettingsUpdate {
 
 impl WebSocketEvent for UserGuildSettingsUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Undocumented;
 ///
 /// Received in [UserGuildSettingsUpdate];

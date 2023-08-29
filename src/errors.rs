@@ -56,7 +56,7 @@ custom_error! {
     /// Supposed to be sent as numbers, though they are sent as string most of the time?
     ///
     /// Also includes errors when initiating a connection and unexpected opcodes
-    #[derive(PartialEq, Eq, Default)]
+    #[derive(PartialEq, Eq, Default, Clone)]
     pub GatewayError
     // Errors we have received from the gateway
     #[default]
