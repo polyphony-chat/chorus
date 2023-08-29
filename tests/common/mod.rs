@@ -42,7 +42,7 @@ impl TestBundle {
             limits: self.user.limits.clone(),
             settings: self.user.settings.clone(),
             object: self.user.object.clone(),
-            gateway: Arc::new(Gateway::new(self.instance.urls.wss.clone()).await.unwrap()),
+            gateway: Gateway::new(self.instance.urls.wss.clone()).await.unwrap(),
         }
     }
 }
