@@ -1,25 +1,32 @@
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
-use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::types::guild_configuration::GuildFeaturesList;
 use crate::types::{
     entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
     interfaces::WelcomeScreenObject,
     utils::Snowflake,
-    Composite,
 };
 use bitflags::bitflags;
 
 use super::PublicUser;
 
+#[cfg(feature = "client")]
+use crate::gateway::{GatewayHandle, Updateable};
+
+#[cfg(feature = "client")]
+use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};
+
+#[cfg(feature = "client")]
+use crate::types::Composite;
+
 /// See <https://discord.com/developers/docs/resources/guild>
-#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable, Composite)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[cfg_attr(feature = "client", derive(Updateable, Composite))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Guild {
     pub afk_channel_id: Option<Snowflake>,
@@ -34,14 +41,14 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub bans: Option<Vec<GuildBan>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[observe_option_vec]
+    #[cfg_attr(feature = "client", observe_option_vec)]
     pub channels: Option<Vec<Arc<RwLock<Channel>>>>,
     pub default_message_notifications: Option<MessageNotificationLevel>,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    #[cfg_attr(feature = "client", observe_vec)]
     #[serde(default)]
-    #[observe_vec]
     pub emojis: Vec<Arc<RwLock<Emoji>>>,
     pub explicit_content_filter: Option<i32>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
@@ -77,7 +84,7 @@ pub struct Guild {
     pub public_updates_channel_id: Option<Snowflake>,
     pub region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[observe_option_vec]
+    #[cfg_attr(feature = "client", observe_option_vec)]
     pub roles: Option<Vec<Arc<RwLock<RoleObject>>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub rules_channel: Option<String>,
@@ -91,10 +98,10 @@ pub struct Guild {
     pub vanity_url_code: Option<String>,
     pub verification_level: Option<VerificationLevel>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[observe_option_vec]
+    #[cfg_attr(feature = "client", observe_option_vec)]
     pub voice_states: Option<Vec<Arc<RwLock<VoiceState>>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[observe_option_vec]
+    #[cfg_attr(feature = "client", observe_option_vec)]
     pub webhooks: Option<Vec<Arc<RwLock<Webhook>>>>,
     #[cfg(feature = "sqlx")]
     pub welcome_screen: Option<sqlx::types::Json<WelcomeScreenObject>>,

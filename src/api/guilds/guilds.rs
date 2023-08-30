@@ -2,14 +2,13 @@ use reqwest::Client;
 use serde_json::from_str;
 use serde_json::to_string;
 
-use crate::api::LimitType;
 use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
     Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildBansQuery, GuildCreateSchema,
-    GuildMember, GuildMemberSearchSchema, GuildModifySchema, GuildPreview,
+    GuildMember, GuildMemberSearchSchema, GuildModifySchema, GuildPreview, LimitType,
     ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema, UserProfileMetadata,
 };
 use crate::types::{GuildBan, Snowflake};

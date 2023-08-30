@@ -1,13 +1,17 @@
-use std::sync::{Arc, RwLock};
-
 use crate::types::events::WebSocketEvent;
-use crate::types::Guild;
 use crate::types::{entities::Channel, JsonField, Snowflake};
 use chorus_macros::JsonField;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "client")]
 use super::UpdateMessage;
+
+#[cfg(feature = "client")]
+use std::sync::{Arc, RwLock};
+
+#[cfg(feature = "client")]
+use crate::types::Guild;
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-pins-update>
@@ -30,6 +34,7 @@ pub struct ChannelCreate {
 
 impl WebSocketEvent for ChannelCreate {}
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Guild> for ChannelCreate {
     fn id(&self) -> Option<Snowflake> {
         self.channel.guild_id
@@ -57,6 +62,7 @@ pub struct ChannelUpdate {
 
 impl WebSocketEvent for ChannelUpdate {}
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Channel> for ChannelUpdate {
     fn update(&mut self, object_to_update: Arc<RwLock<Channel>>) {
         let mut write = object_to_update.write().unwrap();
@@ -96,6 +102,7 @@ pub struct ChannelDelete {
     pub json: String,
 }
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Guild> for ChannelDelete {
     fn id(&self) -> Option<Snowflake> {
         self.channel.guild_id

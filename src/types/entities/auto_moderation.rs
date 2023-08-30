@@ -1,13 +1,18 @@
 use std::sync::{Arc, RwLock};
 
+#[cfg(feature = "client")]
 use crate::gateway::Updateable;
+
+#[cfg(feature = "client")]
 use chorus_macros::Updateable;
+
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::utils::Snowflake;
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable)]
+#[cfg_attr(feature = "client", derive(Updateable))]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object>
 pub struct AutoModerationRule {
     pub id: Snowflake,

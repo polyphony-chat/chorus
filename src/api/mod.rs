@@ -3,7 +3,6 @@ pub use channels::messages::*;
 pub use guilds::*;
 pub use invites::*;
 pub use policies::instance::instance::*;
-pub use policies::instance::ratelimits::*;
 pub use users::*;
 
 pub mod auth;
