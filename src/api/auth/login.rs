@@ -49,25 +49,4 @@ impl Instance {
         );
         Ok(user)
     }
-
-    /// Logs into an existing account on the spacebar server, using only a token.
-    pub async fn login_account_with_token(&mut self, token: String) -> ChorusResult<ChorusUser> {
-        let object = self.get_user(token.clone(), None).await?;
-        let user_settings = User::get_settings(&token, &self.urls.api, &mut self.clone())
-            .await
-            .unwrap();
-        let mut identify = GatewayIdentifyPayload::common();
-        let gateway = Gateway::new(self.urls.wss.clone()).await.unwrap();
-        identify.token = token.clone();
-        gateway.send_identify(identify).await;
-        let user = ChorusUser::new(
-            Arc::new(RwLock::new(self.clone())),
-            token.clone(),
-            self.clone_limits_if_some(),
-            Arc::new(RwLock::new(user_settings)),
-            Arc::new(RwLock::new(object)),
-            gateway,
-        );
-        Ok(user)
-    }
 }
