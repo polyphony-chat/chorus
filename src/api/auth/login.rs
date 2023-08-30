@@ -52,7 +52,11 @@ impl Instance {
 
     /// Logs into an existing account on the spacebar server, using only a token.
     pub async fn login_account_with_token(&mut self, token: String) -> ChorusResult<ChorusUser> {
-        let object = self.get_user(token.clone(), None).await?;
+        let object_result = self.get_user(token.clone(), None).await;
+        if let Err(e) = object_result {
+            return Result::Err(e);
+        }
+
         let user_settings = User::get_settings(&token, &self.urls.api, &mut self.clone())
             .await
             .unwrap();
@@ -65,7 +69,7 @@ impl Instance {
             token.clone(),
             self.clone_limits_if_some(),
             Arc::new(RwLock::new(user_settings)),
-            Arc::new(RwLock::new(object)),
+            Arc::new(RwLock::new(object_result.unwrap())),
             gateway,
         );
         Ok(user)
