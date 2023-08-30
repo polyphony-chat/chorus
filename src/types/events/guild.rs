@@ -1,5 +1,3 @@
-use std::sync::{Arc, RwLock};
-
 use chorus_macros::JsonField;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -11,7 +9,12 @@ use crate::types::{
     Sticker,
 };
 
-use super::{PresenceUpdate, UpdateMessage};
+use super::PresenceUpdate;
+
+#[cfg(feature = "client")]
+use super::UpdateMessage;
+#[cfg(feature = "client")]
+use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-create>;
@@ -179,6 +182,7 @@ pub struct GuildRoleCreate {
 
 impl WebSocketEvent for GuildRoleCreate {}
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildRoleCreate {
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild_id)
@@ -209,6 +213,7 @@ pub struct GuildRoleUpdate {
 
 impl WebSocketEvent for GuildRoleUpdate {}
 
+#[cfg(feature = "client")]
 impl UpdateMessage<RoleObject> for GuildRoleUpdate {
     fn id(&self) -> Option<Snowflake> {
         Some(self.role.id)

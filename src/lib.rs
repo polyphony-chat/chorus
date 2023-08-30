@@ -20,6 +20,7 @@ use url::{ParseError, Url};
 #[cfg(feature = "client")]
 pub mod api;
 pub mod errors;
+#[cfg(feature = "client")]
 pub mod gateway;
 #[cfg(feature = "client")]
 pub mod instance;
