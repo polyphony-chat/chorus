@@ -5,6 +5,7 @@ use crate::types::entities::{Channel, ThreadMember};
 use crate::types::events::WebSocketEvent;
 use crate::types::{JsonField, Snowflake};
 
+#[cfg(feature = "client")]
 use super::UpdateMessage;
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
@@ -27,6 +28,7 @@ pub struct ThreadUpdate {
 
 impl WebSocketEvent for ThreadUpdate {}
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Channel> for ThreadUpdate {
     fn id(&self) -> Option<Snowflake> {
         Some(self.thread.id)

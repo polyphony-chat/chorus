@@ -1,11 +1,4 @@
-use std::sync::{Arc, RwLock};
-
-use std::collections::HashMap;
-
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-
-use serde_json::{from_str, from_value, to_value, Value};
 
 pub use application::*;
 pub use auto_moderation::*;
@@ -34,9 +27,23 @@ pub use voice::*;
 pub use webhooks::*;
 pub use webrtc::*;
 
+#[cfg(feature = "client")]
+use super::Snowflake;
+
+#[cfg(feature = "client")]
 use crate::gateway::Updateable;
 
-use super::Snowflake;
+#[cfg(feature = "client")]
+use serde_json::{from_str, from_value, to_value, Value};
+
+#[cfg(feature = "client")]
+use std::collections::HashMap;
+
+#[cfg(feature = "client")]
+use std::sync::{Arc, RwLock};
+
+#[cfg(feature = "client")]
+use serde::de::DeserializeOwned;
 
 mod application;
 mod auto_moderation;
@@ -107,6 +114,7 @@ pub struct GatewayReceivePayload<'a> {
 
 impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 
+#[cfg(feature = "client")]
 /// An [`UpdateMessage<T>`] represents a received Gateway Message which contains updated
 /// information for an [`Updateable`] of Type T.
 /// # Example:
@@ -134,6 +142,7 @@ pub(crate) trait JsonField: Clone {
     fn get_json(&self) -> String;
 }
 
+#[cfg(feature = "client")]
 /// Only applicable for events where the Update struct is the same as the Entity struct
 pub(crate) fn update_object(
     value: String,

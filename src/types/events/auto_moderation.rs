@@ -7,6 +7,7 @@ use crate::types::{
     WebSocketEvent,
 };
 
+#[cfg(feature = "client")]
 use super::UpdateMessage;
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
@@ -27,6 +28,7 @@ pub struct AutoModerationRuleUpdate {
     pub json: String,
 }
 
+#[cfg(feature = "client")]
 impl UpdateMessage<AutoModerationRule> for AutoModerationRuleUpdate {
     fn id(&self) -> Option<Snowflake> {
         Some(self.rule.id)

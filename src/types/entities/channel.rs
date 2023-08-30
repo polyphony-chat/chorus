@@ -1,21 +1,28 @@
 use std::sync::{Arc, RwLock};
 
-use chorus_macros::{observe_option_vec, Composite, Updateable};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::Debug;
 
-use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::{
     entities::{GuildMember, User},
     utils::Snowflake,
-    Composite,
 };
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, Updateable, Composite)]
+#[cfg(feature = "client")]
+use crate::types::Composite;
+
+#[cfg(feature = "client")]
+use crate::gateway::{GatewayHandle, Updateable};
+
+#[cfg(feature = "client")]
+use chorus_macros::{observe_option_vec, Composite, Updateable};
+
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[cfg_attr(feature = "client", derive(Updateable, Composite))]
 /// Represents a guild or private channel
 ///
 /// # Reference
@@ -60,13 +67,13 @@ pub struct Channel {
     #[cfg(feature = "sqlx")]
     pub permission_overwrites: Option<sqlx::types::Json<Vec<PermissionOverwrite>>>,
     #[cfg(not(feature = "sqlx"))]
-    #[observe_option_vec]
+    #[cfg_attr(feature = "client", observe_option_vec)]
     pub permission_overwrites: Option<Vec<Arc<RwLock<PermissionOverwrite>>>>,
     pub permissions: Option<String>,
     pub position: Option<i32>,
     pub rate_limit_per_user: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[observe_option_vec]
+    #[cfg_attr(feature = "client", observe_option_vec)]
     pub recipients: Option<Vec<Arc<RwLock<User>>>>,
     pub rtc_region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
@@ -126,9 +133,8 @@ pub struct Tag {
     pub emoji_name: Option<String>,
 }
 
-#[derive(
-    Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Updateable, Composite,
-)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd)]
+#[cfg_attr(feature = "client", derive(Updateable, Composite))]
 pub struct PermissionOverwrite {
     pub id: Snowflake,
     #[serde(rename = "type")]
