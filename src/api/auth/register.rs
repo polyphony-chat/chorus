@@ -20,13 +20,13 @@ impl Instance {
     /// See <https://docs.spacebar.chat/routes/#post-/auth/register/>
     pub async fn register_account(
         &mut self,
-        register_schema: &RegisterSchema,
+        register_schema: RegisterSchema,
     ) -> ChorusResult<ChorusUser> {
         let endpoint_url = self.urls.api.clone() + "/auth/register";
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(endpoint_url)
-                .body(to_string(register_schema).unwrap())
+                .body(to_string(&register_schema).unwrap())
                 .header("Content-Type", "application/json"),
             limit_type: LimitType::AuthRegister,
         };

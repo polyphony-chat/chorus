@@ -31,7 +31,7 @@ impl TestBundle {
             ..Default::default()
         };
         self.instance
-            .register_account(&register_schema)
+            .register_account(register_schema)
             .await
             .unwrap()
     }
@@ -91,7 +91,7 @@ pub(crate) async fn setup() -> TestBundle {
         default_thread_rate_limit_per_user: Some(0),
         video_quality_mode: None,
     };
-    let mut user = instance.register_account(&reg).await.unwrap();
+    let mut user = instance.register_account(reg).await.unwrap();
     let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
     let channel = Channel::create(&mut user, guild.id, None, channel_create_schema)
         .await
