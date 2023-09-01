@@ -292,7 +292,7 @@ impl GatewayHandle {
 
     /// Sends an update voice state to the server
     pub async fn send_update_voice_state(&self, to_send: types::UpdateVoiceState) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
+        let to_send_value = serde_json::to_value(to_send).unwrap();
 
         trace!("GW: Sending Update Voice State..");
 

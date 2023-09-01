@@ -91,7 +91,7 @@ impl ChorusRequest {
                 log::warn!("Request failed: {:?}", error);
                 return Err(ChorusError::RequestFailed {
                     url: error.url().unwrap().to_string(),
-                    error,
+                    error: error.to_string(),
                 });
             }
         };
@@ -359,7 +359,7 @@ impl ChorusRequest {
             Err(e) => {
                 return Err(ChorusError::RequestFailed {
                     url: url_api.to_string(),
-                    error: e,
+                    error: e.to_string(),
                 })
             }
         };
