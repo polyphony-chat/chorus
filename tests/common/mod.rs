@@ -31,6 +31,7 @@ impl TestBundle {
             ..Default::default()
         };
         self.instance
+            .clone()
             .register_account(register_schema)
             .await
             .unwrap()
@@ -54,7 +55,7 @@ pub(crate) async fn setup() -> TestBundle {
         "ws://localhost:3001".to_string(),
         "http://localhost:3001".to_string(),
     );
-    let mut instance = Instance::new(urls.clone(), true).await.unwrap();
+    let instance = Instance::new(urls.clone(), true).await.unwrap();
     // Requires the existance of the below user.
     let reg = RegisterSchema {
         username: "integrationtestuser".into(),
@@ -91,7 +92,7 @@ pub(crate) async fn setup() -> TestBundle {
         default_thread_rate_limit_per_user: Some(0),
         video_quality_mode: None,
     };
-    let mut user = instance.register_account(reg).await.unwrap();
+    let mut user = instance.clone().register_account(reg).await.unwrap();
     let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
     let channel = Channel::create(&mut user, guild.id, None, channel_create_schema)
         .await
