@@ -37,6 +37,25 @@ pub fn jsonfield_macro_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
+#[proc_macro_derive(SourceUrlField)]
+pub fn source_url_macro_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+
+    let name = &ast.ident;
+    // No need for macro hygiene, we're only using this in chorus
+    quote! {
+        impl SourceUrlField for #name {
+            fn get_source_url(&self) -> String {
+                self.source_url.clone()
+            }
+            fn set_source_url(&mut self, url: String) {
+                self.source_url = url;
+            }
+        }
+    }
+    .into()
+}
+
 #[proc_macro_attribute]
 pub fn observe_option(_args: TokenStream, input: TokenStream) -> TokenStream {
     input

@@ -1,4 +1,4 @@
-use chorus_macros::JsonField;
+use chorus_macros::{JsonField, SourceUrlField};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -6,7 +6,7 @@ use crate::types::entities::{Guild, PublicUser, UnavailableGuild};
 use crate::types::events::WebSocketEvent;
 use crate::types::{
     AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, JsonField, RoleObject, Snowflake,
-    Sticker,
+    SourceUrlField, Sticker,
 };
 
 use super::PresenceUpdate;
@@ -60,15 +60,25 @@ pub struct GuildBanRemove {
 
 impl WebSocketEvent for GuildBanRemove {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, SourceUrlField, JsonField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-update>;
 /// Received to give info about a guild being updated;
 pub struct GuildUpdate {
     #[serde(flatten)]
     pub guild: Guild,
+    #[serde(skip)]
+    pub source_url: String,
+    #[serde(skip)]
+    pub json: String,
 }
 
 impl WebSocketEvent for GuildUpdate {}
+
+impl UpdateMessage<Guild> for GuildUpdate {
+    fn id(&self) -> Option<Snowflake> {
+        Some(self.guild.id)
+    }
+}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-delete>;
@@ -171,13 +181,15 @@ pub struct GuildMembersChunk {
 
 impl WebSocketEvent for GuildMembersChunk {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-role-create>
 pub struct GuildRoleCreate {
     pub guild_id: Snowflake,
     pub role: RoleObject,
     #[serde(skip)]
     pub json: String,
+    #[serde(skip)]
+    pub source_url: String,
 }
 
 impl WebSocketEvent for GuildRoleCreate {}
@@ -202,13 +214,15 @@ impl UpdateMessage<Guild> for GuildRoleCreate {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-role-update>
 pub struct GuildRoleUpdate {
     pub guild_id: Snowflake,
     pub role: RoleObject,
     #[serde(skip)]
     pub json: String,
+    #[serde(skip)]
+    pub source_url: String,
 }
 
 impl WebSocketEvent for GuildRoleUpdate {}

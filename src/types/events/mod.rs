@@ -127,7 +127,7 @@ impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 /// This would imply, that the [`WebSocketEvent`] "[`ChannelUpdate`]" contains new/updated information
 /// about a [`Channel`]. The update method describes how this new information will be turned into
 /// a [`Channel`] object.
-pub(crate) trait UpdateMessage<T>: Clone + JsonField
+pub(crate) trait UpdateMessage<T>: Clone + JsonField + SourceUrlField
 where
     T: Updateable + Serialize + DeserializeOwned + Clone,
 {
@@ -140,6 +140,11 @@ where
 pub(crate) trait JsonField: Clone {
     fn set_json(&mut self, json: String);
     fn get_json(&self) -> String;
+}
+
+pub trait SourceUrlField: Clone {
+    fn set_source_url(&mut self, url: String);
+    fn get_source_url(&self) -> String;
 }
 
 #[cfg(feature = "client")]

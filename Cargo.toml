@@ -50,7 +50,7 @@ thiserror = "1.0.47"
 jsonwebtoken = "8.3.0"
 log = "0.4.20"
 async-trait = "0.1.73"
-chorus-macros = { path = "chorus-macros", version = "0.1.0" }
+chorus-macros = "0.2.0"
 
 [dev-dependencies]
 tokio = { version = "1.32.0", features = ["full"] }
