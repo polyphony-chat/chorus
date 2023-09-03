@@ -4,7 +4,7 @@ use custom_error::custom_error;
 use crate::types::WebSocketEvent;
 
 custom_error! {
-    #[derive(PartialEq, Eq)]
+    #[derive(PartialEq, Eq, Clone, Hash)]
     pub RegistrationError
     Consent = "Consent must be 'true' to register.",
 }
@@ -12,7 +12,7 @@ custom_error! {
 pub type ChorusResult<T> = std::result::Result<T, ChorusError>;
 
 custom_error! {
-    #[derive(Clone)]
+    #[derive(Clone, Hash, PartialEq, Eq)]
     pub ChorusError
     /// Server did not respond.
     NoResponse = "Did not receive a response from the Server.",
