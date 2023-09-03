@@ -15,7 +15,7 @@ use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{GeneralConfiguration, Limit, LimitType, User, UserSettings};
 use crate::UrlBundle;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 /// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
 /// If `limits_information` is `None`, then the instance will not be rate limited.
 pub struct Instance {
@@ -25,7 +25,7 @@ pub struct Instance {
     pub client: Client,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LimitsInformation {
     pub ratelimits: HashMap<LimitType, Limit>,
     pub configuration: RateLimits,
