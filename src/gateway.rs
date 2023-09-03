@@ -499,7 +499,7 @@ impl Gateway {
             GATEWAY_DISPATCH => {
                 let Some(event_name) = gateway_payload.event_name else {
                     warn!("Gateway dispatch op without event_name");
-                    return
+                    return;
                 };
 
                 trace!("Gateway: Received {event_name}");
