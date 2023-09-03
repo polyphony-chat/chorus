@@ -35,6 +35,19 @@ pub struct Emoji {
     pub available: Option<bool>,
 }
 
+impl std::hash::Hash for Emoji {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+        self.name.hash(state);
+        self.roles.hash(state);
+        self.roles.hash(state);
+        self.require_colons.hash(state);
+        self.managed.hash(state);
+        self.animated.hash(state);
+        self.available.hash(state);
+    }
+}
+
 impl PartialEq for Emoji {
     fn eq(&self, other: &Self) -> bool {
         !(self.id != other.id

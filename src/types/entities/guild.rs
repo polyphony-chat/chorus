@@ -111,8 +111,60 @@ pub struct Guild {
     pub widget_enabled: Option<bool>,
 }
 
+impl std::hash::Hash for Guild {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.afk_channel_id.hash(state);
+        self.afk_timeout.hash(state);
+        self.application_id.hash(state);
+        self.approximate_member_count.hash(state);
+        self.approximate_presence_count.hash(state);
+        self.banner.hash(state);
+        self.bans.hash(state);
+        self.default_message_notifications.hash(state);
+        self.description.hash(state);
+        self.discovery_splash.hash(state);
+        self.explicit_content_filter.hash(state);
+        self.features.hash(state);
+        self.icon.hash(state);
+        self.icon_hash.hash(state);
+        self.id.hash(state);
+        self.invites.hash(state);
+        self.joined_at.hash(state);
+        self.large.hash(state);
+        self.max_members.hash(state);
+        self.max_presences.hash(state);
+        self.max_stage_video_channel_users.hash(state);
+        self.max_video_channel_users.hash(state);
+        self.mfa_level.hash(state);
+        self.name.hash(state);
+        self.nsfw_level.hash(state);
+        self.owner.hash(state);
+        self.owner_id.hash(state);
+        self.permissions.hash(state);
+        self.preferred_locale.hash(state);
+        self.premium_progress_bar_enabled.hash(state);
+        self.premium_subscription_count.hash(state);
+        self.premium_tier.hash(state);
+        self.primary_category_id.hash(state);
+        self.public_updates_channel_id.hash(state);
+        self.region.hash(state);
+        self.rules_channel.hash(state);
+        self.rules_channel_id.hash(state);
+        self.splash.hash(state);
+        self.stickers.hash(state);
+        self.system_channel_flags.hash(state);
+        self.system_channel_id.hash(state);
+        self.vanity_url_code.hash(state);
+        self.verification_level.hash(state);
+        self.welcome_screen.hash(state);
+        self.welcome_screen.hash(state);
+        self.widget_channel_id.hash(state);
+        self.widget_enabled.hash(state);
+    }
+}
+
 /// See <https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user->
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildBan {
     pub user: PublicUser,
@@ -142,7 +194,26 @@ pub struct GuildInvite {
     pub vanity_url: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+impl std::hash::Hash for GuildInvite {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.code.hash(state);
+        self.temporary.hash(state);
+        self.uses.hash(state);
+        self.max_uses.hash(state);
+        self.max_age.hash(state);
+        self.created_at.hash(state);
+        self.expires_at.hash(state);
+        self.guild_id.hash(state);
+        self.channel_id.hash(state);
+        self.inviter_id.hash(state);
+        self.target_user_id.hash(state);
+        self.target_user.hash(state);
+        self.target_user_type.hash(state);
+        self.vanity_url.hash(state);
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Hash)]
 pub struct UnavailableGuild {
     id: Snowflake,
     unavailable: bool,
@@ -209,7 +280,7 @@ pub struct GuildScheduledEventEntityMetadata {
     pub location: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq, Hash)]
 pub struct VoiceRegion {
     id: String,
     name: String,
@@ -218,7 +289,7 @@ pub struct VoiceRegion {
     custom: bool,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#message-notification-level>
@@ -228,7 +299,7 @@ pub enum MessageNotificationLevel {
     OnlyMentions = 1,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#explicit-content-filter-level>
@@ -239,7 +310,7 @@ pub enum ExplicitContentFilterLevel {
     AllMembers = 2,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
@@ -252,7 +323,7 @@ pub enum VerificationLevel {
     VeryHigh = 4,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
@@ -262,7 +333,7 @@ pub enum MFALevel {
     Elevated = 1,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
@@ -274,7 +345,7 @@ pub enum NSFWLevel {
     AgeRestricted = 3,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
@@ -287,7 +358,7 @@ pub enum PremiumTier {
 }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy,  Serialize, Deserialize, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#system-channel-flags>
     pub struct SystemChannelFlags: u64 {

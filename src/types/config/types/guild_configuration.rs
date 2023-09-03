@@ -18,7 +18,7 @@ use crate::types::config::types::subconfigs::guild::{
 };
 use crate::types::{Error, GuildError};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum GuildFeatures {
     ActivitiesAlpha,
@@ -139,7 +139,7 @@ pub enum GuildFeatures {
     InvitesClosed,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq, Hash)]
 pub struct GuildFeaturesList(Vec<GuildFeatures>);
 
 impl Deref for GuildFeaturesList {

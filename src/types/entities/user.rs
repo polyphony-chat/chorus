@@ -27,7 +27,7 @@ impl User {
         PublicUser::from(self)
     }
 }
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "client", derive(Updateable, Composite))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct User {
@@ -63,7 +63,7 @@ pub struct User {
     pub disabled: Option<bool>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct PublicUser {
     pub id: Snowflake,
     pub username: Option<String>,
