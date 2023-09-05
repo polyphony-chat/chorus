@@ -917,7 +917,7 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 }
 
-mod events {
+pub mod events {
     use super::*;
 
     #[derive(Default, Debug)]
