@@ -268,8 +268,8 @@ impl std::hash::Hash for GuildInvite {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Hash)]
 pub struct UnavailableGuild {
-    id: Snowflake,
-    unavailable: bool,
+    pub id: Snowflake,
+    pub unavailable: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
