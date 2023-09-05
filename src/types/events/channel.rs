@@ -124,11 +124,7 @@ impl UpdateMessage<Guild> for ChannelDelete {
         }
         for (iteration, item) in (0_u32..).zip(write.channels.as_mut().unwrap().iter()) {
             if item.read().unwrap().id == self.id().unwrap() {
-                write
-                    .channels
-                    .as_mut()
-                    .unwrap()
-                    .swap_remove(iteration as usize);
+                write.channels.as_mut().unwrap().remove(iteration as usize);
                 return;
             }
         }
