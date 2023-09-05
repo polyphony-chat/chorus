@@ -80,12 +80,23 @@ impl UpdateMessage<Guild> for GuildUpdate {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, SourceUrlField, JsonField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-delete>;
 /// Received to tell the client about a guild being deleted;
 pub struct GuildDelete {
     #[serde(flatten)]
     pub guild: UnavailableGuild,
+    #[serde(skip)]
+    pub source_url: String,
+    #[serde(skip)]
+    pub json: String,
+}
+
+impl UpdateMessage<Guild> for GuildDelete {
+    fn id(&self) -> Option<Snowflake> {
+        Some(self.guild.id)
+    }
+    fn update(&mut self, _: Arc<RwLock<Guild>>) {}
 }
 
 impl WebSocketEvent for GuildDelete {}
