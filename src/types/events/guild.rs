@@ -16,13 +16,28 @@ use super::UpdateMessage;
 #[cfg(feature = "client")]
 use std::sync::{Arc, RwLock};
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, SourceUrlField, JsonField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-create>;
 /// Received to give data about a guild;
 // This one is particularly painful, it can be a Guild object with an extra field or an unavailable guild object
 pub struct GuildCreate {
     #[serde(flatten)]
     pub d: GuildCreateDataOption,
+    #[serde(skip)]
+    pub source_url: String,
+    #[serde(skip)]
+    pub json: String,
+}
+
+impl UpdateMessage<Guild> for GuildCreate {
+    fn id(&self) -> Option<Snowflake> {
+        match &self.d {
+            GuildCreateDataOption::UnavailableGuild(unavailable) => Some(unavailable.id),
+            GuildCreateDataOption::Guild(guild) => Some(guild.id),
+        }
+    }
+
+    fn update(&mut self, _: Arc<RwLock<Guild>>) {}
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
