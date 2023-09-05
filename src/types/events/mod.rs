@@ -39,6 +39,7 @@ use serde_json::{from_str, from_value, to_value, Value};
 #[cfg(feature = "client")]
 use std::collections::HashMap;
 
+use std::fmt::Debug;
 #[cfg(feature = "client")]
 use std::sync::{Arc, RwLock};
 
@@ -73,7 +74,7 @@ mod webhooks;
 
 mod webrtc;
 
-pub trait WebSocketEvent {}
+pub trait WebSocketEvent: Send + Sync + Debug {}
 
 #[derive(Debug, Default, Serialize, Clone)]
 /// The payload used for sending events to the gateway
