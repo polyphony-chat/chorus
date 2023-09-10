@@ -39,6 +39,7 @@ use serde_json::{from_str, from_value, to_value, Value};
 #[cfg(feature = "client")]
 use std::collections::HashMap;
 
+use std::fmt::Debug;
 #[cfg(feature = "client")]
 use std::sync::{Arc, RwLock};
 
@@ -73,7 +74,7 @@ mod webhooks;
 
 mod webrtc;
 
-pub trait WebSocketEvent {}
+pub trait WebSocketEvent: Send + Sync + Debug {}
 
 #[derive(Debug, Default, Serialize, Clone)]
 /// The payload used for sending events to the gateway
@@ -127,7 +128,7 @@ impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 /// This would imply, that the [`WebSocketEvent`] "[`ChannelUpdate`]" contains new/updated information
 /// about a [`Channel`]. The update method describes how this new information will be turned into
 /// a [`Channel`] object.
-pub(crate) trait UpdateMessage<T>: Clone + JsonField
+pub(crate) trait UpdateMessage<T>: Clone + JsonField + SourceUrlField
 where
     T: Updateable + Serialize + DeserializeOwned + Clone,
 {
@@ -140,6 +141,11 @@ where
 pub(crate) trait JsonField: Clone {
     fn set_json(&mut self, json: String);
     fn get_json(&self) -> String;
+}
+
+pub trait SourceUrlField: Clone {
+    fn set_source_url(&mut self, url: String);
+    fn get_source_url(&self) -> String;
 }
 
 #[cfg(feature = "client")]

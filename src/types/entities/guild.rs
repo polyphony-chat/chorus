@@ -163,6 +163,59 @@ impl std::hash::Hash for Guild {
     }
 }
 
+impl std::cmp::PartialEq for Guild {
+    fn eq(&self, other: &Self) -> bool {
+        self.afk_channel_id == other.afk_channel_id
+            && self.afk_timeout == other.afk_timeout
+            && self.application_id == other.application_id
+            && self.approximate_member_count == other.approximate_member_count
+            && self.approximate_presence_count == other.approximate_presence_count
+            && self.banner == other.banner
+            && self.bans == other.bans
+            && self.default_message_notifications == other.default_message_notifications
+            && self.description == other.description
+            && self.discovery_splash == other.discovery_splash
+            && self.explicit_content_filter == other.explicit_content_filter
+            && self.features == other.features
+            && self.icon == other.icon
+            && self.icon_hash == other.icon_hash
+            && self.id == other.id
+            && self.joined_at == other.joined_at
+            && self.large == other.large
+            && self.max_members == other.max_members
+            && self.max_presences == other.max_presences
+            && self.max_stage_video_channel_users == other.max_stage_video_channel_users
+            && self.max_video_channel_users == other.max_video_channel_users
+            && self.mfa_level == other.mfa_level
+            && self.name == other.name
+            && self.nsfw_level == other.nsfw_level
+            && self.owner == other.owner
+            && self.owner_id == other.owner_id
+            && self.permissions == other.permissions
+            && self.preferred_locale == other.preferred_locale
+            && self.premium_progress_bar_enabled == other.premium_progress_bar_enabled
+            && self.premium_subscription_count == other.premium_subscription_count
+            && self.premium_tier == other.premium_tier
+            && self.primary_category_id == other.primary_category_id
+            && self.public_updates_channel_id == other.public_updates_channel_id
+            && self.region == other.region
+            && self.rules_channel == other.rules_channel
+            && self.rules_channel_id == other.rules_channel_id
+            && self.splash == other.splash
+            && self.stickers == other.stickers
+            && self.system_channel_flags == other.system_channel_flags
+            && self.system_channel_id == other.system_channel_id
+            && self.vanity_url_code == other.vanity_url_code
+            && self.verification_level == other.verification_level
+            && self.welcome_screen == other.welcome_screen
+            && self.welcome_screen == other.welcome_screen
+            && self.widget_channel_id == other.widget_channel_id
+            && self.widget_enabled == other.widget_enabled
+    }
+}
+
+impl std::cmp::Eq for Guild {}
+
 /// See <https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user->
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -215,8 +268,8 @@ impl std::hash::Hash for GuildInvite {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Hash)]
 pub struct UnavailableGuild {
-    id: Snowflake,
-    unavailable: bool,
+    pub id: Snowflake,
+    pub unavailable: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]

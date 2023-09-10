@@ -5,7 +5,7 @@ use crate::gateway::events::Events;
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
     ChannelUpdate, Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject,
-    Snowflake, ThreadUpdate, UpdateMessage, WebSocketEvent,
+    Snowflake, SourceUrlField, ThreadUpdate, UpdateMessage, WebSocketEvent,
 };
 use async_trait::async_trait;
 use std::any::Any;
@@ -343,6 +343,7 @@ pub struct Gateway {
     websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
     store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
+    url: String,
 }
 
 impl Gateway {
@@ -406,6 +407,7 @@ impl Gateway {
             websocket_receive,
             kill_send: kill_send.clone(),
             store: store.clone(),
+            url: websocket_url.clone(),
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
@@ -534,6 +536,7 @@ impl Gateway {
                                                     let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<$update_type>).clone() };
                                                     drop(inner_object);
                                                     message.set_json(json.to_string());
+                                                    message.set_source_url(self.url.clone());
                                                     message.update(downcasted.clone());
                                                 } else {
                                                     warn!("Received {} for {}, but it has been observed to be a different type!", $name, id)
@@ -914,7 +917,7 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 }
 
-mod events {
+pub mod events {
     use super::*;
 
     #[derive(Default, Debug)]

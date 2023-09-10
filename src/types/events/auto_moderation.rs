@@ -1,5 +1,5 @@
-use crate::types::JsonField;
-use chorus_macros::JsonField;
+use crate::types::{JsonField, SourceUrlField};
+use chorus_macros::{JsonField, SourceUrlField};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
@@ -19,13 +19,15 @@ pub struct AutoModerationRuleCreate {
 
 impl WebSocketEvent for AutoModerationRuleCreate {}
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone, JsonField)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, JsonField, SourceUrlField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-update>
 pub struct AutoModerationRuleUpdate {
     #[serde(flatten)]
     pub rule: AutoModerationRule,
     #[serde(skip)]
     pub json: String,
+    #[serde(skip)]
+    pub source_url: String,
 }
 
 #[cfg(feature = "client")]
