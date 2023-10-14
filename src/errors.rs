@@ -114,3 +114,5 @@ custom_error! {
     // Other misc errors
     UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
 }
+
+impl WebSocketEvent for VoiceGatewayError {}
