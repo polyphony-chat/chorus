@@ -200,7 +200,7 @@ impl VoiceGateway {
     pub async fn new(websocket_url: String) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
         // Append the needed things to the websocket url
         let processed_url = format!("wss://{}/?v=4", websocket_url);
-        debug!("Created voice socket url: {}", processed_url.clone());
+        trace!("Created voice socket url: {}", processed_url.clone());
 
         let (websocket_stream, _) = match connect_async_tls_with_config(
             &processed_url,
@@ -241,9 +241,10 @@ impl VoiceGateway {
 
         info!("VGW: Received Hello");
 
-        // The hello data is the same on voice and normal gateway
-        let gateway_hello: types::HelloData =
+        // The hello data for voice gateways is in float milliseconds, so we convert it to f64 seconds
+        let gateway_hello: types::VoiceHelloData =
             serde_json::from_str(gateway_payload.data.get()).unwrap();
+        let heartbeat_interval_seconds: f64 = gateway_hello.heartbeat_interval / 1000.0;
 
         let voice_events = VoiceEvents::default();
         let shared_events = Arc::new(Mutex::new(voice_events));
@@ -251,7 +252,7 @@ impl VoiceGateway {
         let mut gateway = VoiceGateway {
             events: shared_events.clone(),
             heartbeat_handler: VoiceHeartbeatHandler::new(
-                Duration::from_millis(gateway_hello.heartbeat_interval),
+                Duration::from_secs_f64(heartbeat_interval_seconds),
                 1, // to:do actually compute nonce
                 shared_websocket_send.clone(),
                 kill_send.subscribe(),
@@ -347,6 +348,8 @@ impl VoiceGateway {
         // See <https://discord.com/developers/docs/topics/voice-connections>
         match gateway_payload.op_code {
             VOICE_READY => {
+                trace!("VGW: Received READY!");
+
                 let event = &mut self.events.lock().await.voice_ready;
                 let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
                 if result.is_err() {
@@ -355,6 +358,8 @@ impl VoiceGateway {
                 }
             }
             VOICE_SESSION_DESCRIPTION => {
+                trace!("VGW: Received Session Description");
+
                 let event = &mut self.events.lock().await.session_description;
                 let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
                 if result.is_err() {
@@ -383,7 +388,7 @@ impl VoiceGateway {
                     .unwrap();
             }
             VOICE_HEARTBEAT_ACK => {
-                debug!("VGW: Received Heartbeat ACK");
+                trace!("VGW: Received Heartbeat ACK");
 
                 // Tell the heartbeat handler we received an ack
 
