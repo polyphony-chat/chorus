@@ -24,6 +24,7 @@ pub enum InteractionType {
     ApplicationCommand = 2,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum InteractionResponseType {
     SelfCommandResponse = 0,
     Pong = 1,
@@ -33,6 +34,7 @@ pub enum InteractionResponseType {
     AcknowledgeWithSource = 5,
 }
 
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InteractionApplicationCommandCallbackData {
     pub tts: bool,
     pub content: String,

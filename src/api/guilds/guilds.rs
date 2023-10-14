@@ -2,57 +2,41 @@ use reqwest::Client;
 use serde_json::from_str;
 use serde_json::to_string;
 
-use crate::api::LimitType;
 use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
-use crate::instance::UserMeta;
+use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::Snowflake;
-use crate::types::{Channel, ChannelCreateSchema, Guild, GuildCreateSchema};
+use crate::types::{
+    Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildBansQuery, GuildCreateSchema,
+    GuildMember, GuildMemberSearchSchema, GuildModifySchema, GuildPreview, LimitType,
+    ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema, UserProfileMetadata,
+};
+use crate::types::{GuildBan, Snowflake};
 
 impl Guild {
-    /// Creates a new guild with the given parameters.
+    /// Creates a new guild.
     ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to the user creating the guild.
-    /// * `instance` - A mutable reference to the instance where the guild will be created.
-    /// * `guild_create_schema` - A reference to the schema containing the guild creation parameters.
-    ///
-    /// # Returns
-    ///
-    /// A `Result<Guild>` containing the object of the newly created guild, or an error if the request fails.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `ChorusLibError` if the request fails.
-    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild>
     pub async fn create(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_create_schema: GuildCreateSchema,
     ) -> ChorusResult<Guild> {
-        let url = format!("{}/guilds/", user.belongs_to.borrow().urls.api);
+        let url = format!("{}/guilds", user.belongs_to.read().unwrap().urls.api);
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(url.clone())
-                .bearer_auth(user.token.clone())
+                .header("Authorization", user.token.clone())
+                .header("Content-Type", "application/json")
                 .body(to_string(&guild_create_schema).unwrap()),
             limit_type: LimitType::Global,
         };
         chorus_request.deserialize_response::<Guild>(user).await
     }
 
-    /// Deletes a guild.
+    /// Deletes a guild by its id.
     ///
-    /// # Arguments
-    ///
-    /// * `user` - A mutable reference to a `User` instance.
-    /// * `instance` - A mutable reference to an `Instance` instance.
-    /// * `guild_id` - ID of the guild to delete.
-    ///
-    /// # Returns
-    ///
-    /// An `Result` containing an `ChorusLibError` if an error occurred during the request, otherwise `()`.
+    /// User must be the owner.
     ///
     /// # Example
     ///
@@ -61,65 +45,63 @@ impl Guild {
     /// let mut instance = Instance::new();
     /// let guild_id = String::from("1234567890");
     ///
-    /// match Guild::delete(&mut user, &mut instance, guild_id) {
-    ///     Some(e) => println!("Error deleting guild: {:?}", e),
-    ///     None => println!("Guild deleted successfully"),
+    /// match Guild::delete(&mut user, guild_id) {
+    ///     Err(e) => println!("Error deleting guild: {:?}", e),
+    ///     Ok(_) => println!("Guild deleted successfully"),
     /// }
     /// ```
-    pub async fn delete(user: &mut UserMeta, guild_id: Snowflake) -> ChorusResult<()> {
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild>
+    pub async fn delete(user: &mut ChorusUser, guild_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
-            "{}/guilds/{}/delete/",
-            user.belongs_to.borrow().urls.api,
+            "{}/guilds/{}/delete",
+            user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(url.clone())
-                .bearer_auth(user.token.clone()),
+                .header("Authorization", user.token.clone())
+                .header("Content-Type", "application/json"),
             limit_type: LimitType::Global,
         };
         chorus_request.handle_request_as_result(user).await
     }
 
-    /// Sends a request to create a new channel in the guild.
+    /// Creates a new channel in a guild.
     ///
-    /// # Arguments
+    /// Requires the [MANAGE_CHANNELS](crate::types::PermissionFlags::MANAGE_CHANNELS) permission.
     ///
-    /// * `url_api` - The base URL for the Discord API.
-    /// * `token` - A Discord bot token.
-    /// * `schema` - A `ChannelCreateSchema` struct containing the properties of the new channel.
-    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
+    /// # Notes
+    /// This method is a wrapper for [Channel::create].
     ///
-    /// # Returns
-    ///
-    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `ChorusLibError` if there was an error.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
     pub async fn create_channel(
         &self,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
+        audit_log_reason: Option<String>,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
-        Channel::create(user, self.id, schema).await
+        Channel::create(user, self.id, audit_log_reason, schema).await
     }
 
-    /// Returns a `Result` containing a vector of `Channel` structs if the request was successful, or an `ChorusLibError` if there was an error.
+    /// Returns a list of the guild's channels.
     ///
-    /// # Arguments
+    /// Doesn't include threads.
     ///
-    /// * `url_api` - A string slice that holds the URL of the API.
-    /// * `token` - A string slice that holds the authorization token.
-    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
-    ///
-    pub async fn channels(&self, user: &mut UserMeta) -> ChorusResult<Vec<Channel>> {
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#get-guild-channels>
+    pub async fn channels(&self, user: &mut ChorusUser) -> ChorusResult<Vec<Channel>> {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(format!(
-                    "{}/guilds/{}/channels/",
-                    user.belongs_to.borrow().urls.api,
+                    "{}/guilds/{}/channels",
+                    user.belongs_to.read().unwrap().urls.api,
                     self.id
                 ))
-                .bearer_auth(user.token()),
+                .header("Authorization", user.token()),
             limit_type: LimitType::Channel(self.id),
         };
         let result = chorus_request.send_request(user).await?;
@@ -141,61 +123,381 @@ impl Guild {
         };
     }
 
-    /// Returns a `Result` containing a `Guild` struct if the request was successful, or an `ChorusLibError` if there was an error.
+    /// Fetches a guild by its id.
     ///
-    /// # Arguments
-    ///
-    /// * `url_api` - A string slice that holds the URL of the API.
-    /// * `guild_id` - ID of the guild.
-    /// * `token` - A string slice that holds the authorization token.
-    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
-    ///
-    pub async fn get(guild_id: Snowflake, user: &mut UserMeta) -> ChorusResult<Guild> {
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild>
+    pub async fn get(guild_id: Snowflake, user: &mut ChorusUser) -> ChorusResult<Guild> {
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .get(format!(
-                    "{}/guilds/{}/",
-                    user.belongs_to.borrow().urls.api,
+                    "{}/guilds/{}",
+                    user.belongs_to.read().unwrap().urls.api,
                     guild_id
                 ))
-                .bearer_auth(user.token()),
+                .header("Authorization", user.token()),
             limit_type: LimitType::Guild(guild_id),
         };
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
         Ok(response)
     }
+
+    pub async fn create_ban(
+        guild_id: Snowflake,
+        user_id: Snowflake,
+        audit_log_reason: Option<String>,
+        schema: GuildBanCreateSchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<()> {
+        // FIXME: Return GuildBan instead of (). Requires <https://github.com/spacebarchat/server/issues/1096> to be resolved.
+        let request = ChorusRequest::new(
+            http::Method::PUT,
+            format!(
+                "{}/guilds/{}/bans/{}",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id,
+                user_id
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.handle_request_as_result(user).await
+    }
+
+    /// # Reference
+    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild>
+    pub async fn modify(
+        guild_id: Snowflake,
+        schema: GuildModifySchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<Guild> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/guilds/{}",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Guild(guild_id),
+        };
+        let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        Ok(response)
+    }
+
+    /// Returns a guild preview object for the given guild ID. If the user is not in the guild, the guild must be discoverable.
+    /// # Reference:
+    ///
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-preview>
+    pub async fn get_preview(
+        guild_id: Snowflake,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<GuildPreview> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/guilds/{}/preview",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Guild(guild_id),
+        };
+        let response = chorus_request
+            .deserialize_response::<GuildPreview>(user)
+            .await?;
+        Ok(response)
+    }
+
+    /// Returns a list of guild member objects that are members of the guild.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-members>
+    pub async fn get_members(
+        guild_id: Snowflake,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<Vec<GuildMember>> {
+        let request = ChorusRequest::new(
+            http::Method::GET,
+            format!(
+                "{}/guilds/{}/members",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id,
+            )
+            .as_str(),
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.deserialize_response::<Vec<GuildMember>>(user).await
+    }
+
+    /// Returns a list of guild member objects whose username or nickname starts with a provided string.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#search-guild-members>
+    pub async fn search_members(
+        guild_id: Snowflake,
+        query: GuildMemberSearchSchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<Vec<GuildMember>> {
+        let mut request = ChorusRequest::new(
+            http::Method::GET,
+            format!(
+                "{}/guilds/{}/members/search",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id,
+            )
+            .as_str(),
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.request = request
+            .request
+            .query(&[("query", to_string(&query).unwrap())]);
+        request.deserialize_response::<Vec<GuildMember>>(user).await
+    }
+
+    /// Removes a member from a guild. Requires the KICK_MEMBERS permission. Returns a 204 empty response on success.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member>
+    pub async fn remove_member(
+        guild_id: Snowflake,
+        member_id: Snowflake,
+        audit_log_reason: Option<String>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<()> {
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            format!(
+                "{}/guilds/{}/members/{}",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id,
+                member_id,
+            )
+            .as_str(),
+            None,
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.handle_request_as_result(user).await
+    }
+
+    /// Modifies attributes of a guild member. Returns the updated guild member object on success.
+    /// For required Permissions and an API reference, see:
+    ///
+    /// # Reference:
+    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member>
+    pub async fn modify_member(
+        guild_id: Snowflake,
+        member_id: Snowflake,
+        schema: ModifyGuildMemberSchema,
+        audit_log_reason: Option<String>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<GuildMember> {
+        let request = ChorusRequest::new(
+            http::Method::PATCH,
+            format!(
+                "{}/guilds/{}/members/{}",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id,
+                member_id,
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.deserialize_response::<GuildMember>(user).await
+    }
+
+    /// Modifies the current user's member in the guild.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-current-guild-member>
+    pub async fn modify_current_member(
+        guild_id: Snowflake,
+        schema: ModifyGuildMemberSchema,
+        audit_log_reason: Option<String>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<GuildMember> {
+        let request = ChorusRequest::new(
+            http::Method::PATCH,
+            format!(
+                "{}/guilds/{}/members/@me",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id,
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.deserialize_response::<GuildMember>(user).await
+    }
+
+    /// Modifies the current user's profile in the guild.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member-profile>
+    pub async fn modify_current_member_profile(
+        guild_id: Snowflake,
+        schema: ModifyGuildMemberProfileSchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<UserProfileMetadata> {
+        let request = ChorusRequest::new(
+            http::Method::PATCH,
+            format!(
+                "{}/guilds/{}/profile/@me",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id,
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
+            None,
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request
+            .deserialize_response::<UserProfileMetadata>(user)
+            .await
+    }
+
+    /// Returns a list of ban objects for the guild. Requires the `BAN_MEMBERS` permission.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-bans>
+    pub async fn get_bans(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        query: Option<GuildBansQuery>,
+    ) -> ChorusResult<Vec<GuildBan>> {
+        let url = format!(
+            "{}/guilds/{}/bans",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let mut request = ChorusRequest::new(
+            http::Method::GET,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        if let Some(query) = query {
+            request.request = request.request.query(&to_string(&query).unwrap());
+        }
+        request.deserialize_response::<Vec<GuildBan>>(user).await
+    }
+
+    /// Returns a ban object for the given user. Requires the `BAN_MEMBERS` permission.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-ban>
+    pub async fn get_ban(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        user_id: Snowflake,
+    ) -> ChorusResult<GuildBan> {
+        let url = format!(
+            "{}/guilds/{}/bans/{}",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+            user_id
+        );
+
+        let request = ChorusRequest::new(
+            http::Method::GET,
+            &url,
+            None,
+            None,
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.deserialize_response::<GuildBan>(user).await
+    }
+
+    /// Removes the ban for a user. Requires the BAN_MEMBERS permissions. Returns a 204 empty response on success.
+    ///
+    /// # Reference:
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild-ban>
+    pub async fn delete_ban(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        user_id: Snowflake,
+        audit_log_reason: Option<String>,
+    ) -> ChorusResult<()> {
+        let url = format!(
+            "{}/guilds/{}/bans/{}",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+            user_id
+        );
+
+        let request = ChorusRequest::new(
+            http::Method::DELETE,
+            &url,
+            None,
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.handle_request_as_result(user).await
+    }
 }
 
 impl Channel {
-    /// Sends a request to create a new channel in a guild.
+    /// Creates a new channel in a guild.
     ///
-    /// # Arguments
+    /// Requires the [MANAGE_CHANNELS](crate::types::PermissionFlags::MANAGE_CHANNELS) permission.
     ///
-    /// * `token` - A Discord bot token.
-    /// * `url_api` - The base URL for the Discord API.
-    /// * `guild_id` - The ID of the guild where the channel will be created.
-    /// * `schema` - A `ChannelCreateSchema` struct containing the properties of the new channel.
-    /// * `limits_user` - A mutable reference to a `Limits` struct containing the user's rate limits.
-    /// * `limits_instance` - A mutable reference to a `Limits` struct containing the instance's rate limits.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` containing a `reqwest::Response` if the request was successful, or an `ChorusLibError` if there was an error.
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
     pub async fn create(
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
         guild_id: Snowflake,
+        audit_log_reason: Option<String>,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
+        let mut request = Client::new()
+            .post(format!(
+                "{}/guilds/{}/channels",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id
+            ))
+            .header("Authorization", user.token())
+            .header("Content-Type", "application/json")
+            .body(to_string(&schema).unwrap());
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(format!(
-                    "{}/guilds/{}/channels/",
-                    user.belongs_to.borrow().urls.api,
-                    guild_id
-                ))
-                .bearer_auth(user.token())
-                .body(to_string(&schema).unwrap()),
+            request,
             limit_type: LimitType::Guild(guild_id),
         };
         chorus_request.deserialize_response::<Channel>(user).await

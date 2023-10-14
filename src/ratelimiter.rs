@@ -1,3 +1,5 @@
+//! Ratelimiter and request handling functionality.
+
 use std::collections::HashMap;
 
 use log::{self, debug};
@@ -6,37 +8,81 @@ use serde::Deserialize;
 use serde_json::from_str;
 
 use crate::{
-    api::{Limit, LimitType},
     errors::{ChorusError, ChorusResult},
-    instance::UserMeta,
-    types::{types::subconfigs::limits::rates::RateLimits, LimitsConfiguration},
+    instance::ChorusUser,
+    types::{types::subconfigs::limits::rates::RateLimits, Limit, LimitType, LimitsConfiguration},
 };
 
 /// Chorus' request struct. This struct is used to send rate-limited requests to the Spacebar server.
 /// See <https://discord.com/developers/docs/topics/rate-limits#rate-limits> for more information.
+#[derive(Debug)]
 pub struct ChorusRequest {
     pub request: RequestBuilder,
     pub limit_type: LimitType,
 }
 
 impl ChorusRequest {
+    /// Makes a new [`ChorusRequest`].
+    /// # Arguments
+    /// * `method` - The HTTP method to use. Must be one of the following:
+    ///     * [`http::Method::GET`]
+    ///     * [`http::Method::POST`]
+    ///     * [`http::Method::PUT`]
+    ///     * [`http::Method::DELETE`]
+    ///     * [`http::Method::PATCH`]
+    ///     * [`http::Method::HEAD`]
+    #[allow(unused_variables)] // TODO: Add mfa_token to request, once we figure out *how* to do so correctly
+    pub fn new(
+        method: http::Method,
+        url: &str,
+        body: Option<String>,
+        audit_log_reason: Option<&str>,
+        mfa_token: Option<&str>,
+        chorus_user: Option<&mut ChorusUser>,
+        limit_type: LimitType,
+    ) -> ChorusRequest {
+        let request = Client::new();
+        let mut request = match method {
+            http::Method::GET => request.get(url),
+            http::Method::POST => request.post(url),
+            http::Method::PUT => request.put(url),
+            http::Method::DELETE => request.delete(url),
+            http::Method::PATCH => request.patch(url),
+            http::Method::HEAD => request.head(url),
+            _ => panic!("Illegal state: Method not supported."),
+        };
+        if let Some(user) = chorus_user {
+            request = request.header("Authorization", user.token());
+        }
+        if let Some(body) = body {
+            // ONCE TOLD ME THE WORLD WAS GONNA ROLL ME
+            request = request
+                .body(body)
+                .header("Content-Type", "application/json");
+        }
+        if let Some(reason) = audit_log_reason {
+            request = request.header("X-Audit-Log-Reason", reason);
+        }
+
+        ChorusRequest {
+            request,
+            limit_type,
+        }
+    }
+
     /// Sends a [`ChorusRequest`]. Checks if the user is rate limited, and if not, sends the request.
     /// If the user is not rate limited and the instance has rate limits enabled, it will update the
     /// rate limits.
     #[allow(clippy::await_holding_refcell_ref)]
-    pub(crate) async fn send_request(self, user: &mut UserMeta) -> ChorusResult<Response> {
+    pub(crate) async fn send_request(self, user: &mut ChorusUser) -> ChorusResult<Response> {
         if !ChorusRequest::can_send_request(user, &self.limit_type) {
             log::info!("Rate limit hit. Bucket: {:?}", self.limit_type);
             return Err(ChorusError::RateLimited {
                 bucket: format!("{:?}", self.limit_type),
             });
         }
-        let belongs_to = user.belongs_to.borrow();
-        let result = match belongs_to
-            .client
-            .execute(self.request.build().unwrap())
-            .await
-        {
+        let client = user.belongs_to.read().unwrap().client.clone();
+        let result = match client.execute(self.request.build().unwrap()).await {
             Ok(result) => {
                 debug!("Request successful: {:?}", result);
                 result
@@ -45,16 +91,17 @@ impl ChorusRequest {
                 log::warn!("Request failed: {:?}", error);
                 return Err(ChorusError::RequestFailed {
                     url: error.url().unwrap().to_string(),
-                    error,
+                    error: error.to_string(),
                 });
             }
         };
-        drop(belongs_to);
+        drop(client);
         if !result.status().is_success() {
             if result.status().as_u16() == 429 {
                 log::warn!("Rate limit hit unexpectedly. Bucket: {:?}. Setting the instances' remaining global limit to 0 to have cooldown.", self.limit_type);
                 user.belongs_to
-                    .borrow_mut()
+                    .write()
+                    .unwrap()
                     .limits_information
                     .as_mut()
                     .unwrap()
@@ -73,9 +120,9 @@ impl ChorusRequest {
         Ok(result)
     }
 
-    fn can_send_request(user: &mut UserMeta, limit_type: &LimitType) -> bool {
+    fn can_send_request(user: &mut ChorusUser, limit_type: &LimitType) -> bool {
         log::trace!("Checking if user or instance is rate-limited...");
-        let mut belongs_to = user.belongs_to.borrow_mut();
+        let mut belongs_to = user.belongs_to.write().unwrap();
         if belongs_to.limits_information.is_none() {
             log::trace!("Instance indicates no rate limits are configured. Continuing.");
             return true;
@@ -236,7 +283,10 @@ impl ChorusRequest {
     ///     set to the current unix timestamp + the rate limit window. The remaining rate limit is
     ///     reset to the rate limit limit.
     /// 2. The remaining rate limit is decreased by 1.
-    fn update_rate_limits(user: &mut UserMeta, limit_type: &LimitType, response_was_err: bool) {
+    fn update_rate_limits(user: &mut ChorusUser, limit_type: &LimitType, response_was_err: bool) {
+        if user.belongs_to.read().unwrap().limits_information.is_none() {
+            return;
+        }
         let instance_dictated_limits = [
             &LimitType::AuthLogin,
             &LimitType::AuthRegister,
@@ -257,7 +307,7 @@ impl ChorusRequest {
         }
         let time: u64 = chrono::Utc::now().timestamp() as u64;
         for relevant_limit in relevant_limits.iter() {
-            let mut belongs_to = user.belongs_to.borrow_mut();
+            let mut belongs_to = user.belongs_to.write().unwrap();
             let limit = match relevant_limit.0 {
                 LimitOrigin::Instance => {
                     log::trace!(
@@ -292,6 +342,13 @@ impl ChorusRequest {
         }
     }
 
+    /// Gets the ratelimit configuration.
+    ///
+    /// # Notes
+    /// This is a spacebar only endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#get-/policies/instance/limits/>
     pub(crate) async fn get_limits_config(url_api: &str) -> ChorusResult<LimitsConfiguration> {
         let request = Client::new()
             .get(format!("{}/policies/instance/limits/", url_api))
@@ -302,7 +359,7 @@ impl ChorusRequest {
             Err(e) => {
                 return Err(ChorusError::RequestFailed {
                     url: url_api.to_string(),
-                    error: e,
+                    error: e.to_string(),
                 })
             }
         };
@@ -419,7 +476,7 @@ impl ChorusRequest {
 
     /// Sends a [`ChorusRequest`] and returns a [`ChorusResult`] that contains nothing if the request
     /// was successful, or a [`ChorusError`] if the request failed.
-    pub(crate) async fn handle_request_as_result(self, user: &mut UserMeta) -> ChorusResult<()> {
+    pub(crate) async fn handle_request_as_result(self, user: &mut ChorusUser) -> ChorusResult<()> {
         match self.send_request(user).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -430,7 +487,7 @@ impl ChorusRequest {
     /// was successful, or a [`ChorusError`] if the request failed.
     pub(crate) async fn deserialize_response<T: for<'a> Deserialize<'a>>(
         self,
-        user: &mut UserMeta,
+        user: &mut ChorusUser,
     ) -> ChorusResult<T> {
         let response = self.send_request(user).await?;
         debug!("Got response: {:?}", response);

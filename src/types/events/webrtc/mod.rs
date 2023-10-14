@@ -48,7 +48,7 @@ impl<'a> WebSocketEvent for VoiceGatewayReceivePayload<'a> {}
 
 /// The modes of encryption available in webrtc connections;
 /// See https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-udp-connection-encryption-modes;
-#[derive(Debug, Default, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum WebrtcEncryptionMode {
     #[default]

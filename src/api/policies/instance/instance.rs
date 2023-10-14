@@ -6,16 +6,20 @@ use crate::types::GeneralConfiguration;
 
 impl Instance {
     /// Gets the instance policies schema.
-    /// # Errors
-    /// [`ChorusLibError`] - If the request fails.
+    ///
+    /// # Notes
+    /// This is a Spacebar only endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.spacebar.chat/routes/#get-/policies/instance/>
     pub async fn general_configuration_schema(&self) -> ChorusResult<GeneralConfiguration> {
-        let endpoint_url = self.urls.api.clone() + "/policies/instance/";
+        let endpoint_url = self.urls.api.clone() + "/policies/instance";
         let request = match self.client.get(&endpoint_url).send().await {
             Ok(result) => result,
             Err(e) => {
                 return Err(ChorusError::RequestFailed {
                     url: endpoint_url,
-                    error: e,
+                    error: e.to_string(),
                 });
             }
         };

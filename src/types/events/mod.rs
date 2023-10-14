@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Updateable;
 pub use application::*;
 pub use auto_moderation::*;
 pub use call::*;
@@ -28,7 +27,24 @@ pub use voice::*;
 pub use webhooks::*;
 pub use webrtc::*;
 
+#[cfg(feature = "client")]
 use super::Snowflake;
+
+#[cfg(feature = "client")]
+use crate::gateway::Updateable;
+
+#[cfg(feature = "client")]
+use serde_json::{from_str, from_value, to_value, Value};
+
+#[cfg(feature = "client")]
+use std::collections::HashMap;
+
+use std::fmt::Debug;
+#[cfg(feature = "client")]
+use std::sync::{Arc, RwLock};
+
+#[cfg(feature = "client")]
+use serde::de::DeserializeOwned;
 
 mod application;
 mod auto_moderation;
@@ -58,12 +74,12 @@ mod webhooks;
 
 mod webrtc;
 
-pub trait WebSocketEvent {}
+pub trait WebSocketEvent: Send + Sync + Debug {}
 
 #[derive(Debug, Default, Serialize, Clone)]
 /// The payload used for sending events to the gateway
 ///
-/// Similar to [GatewayReceivePayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
+/// Similar to [GatewayReceivePayload], except we send a [serde_json::value::Value] for d whilst we receive a [serde_json::value::RawValue]
 /// Also, we never need to send the event name
 pub struct GatewaySendPayload {
     #[serde(rename = "op")]
@@ -82,9 +98,6 @@ impl WebSocketEvent for GatewaySendPayload {}
 
 #[derive(Debug, Default, Deserialize, Clone)]
 /// The payload used for receiving events from the gateway
-///
-/// Similar to [GatewaySendPayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
-/// Also, we never need to sent the event name
 pub struct GatewayReceivePayload<'a> {
     #[serde(rename = "op")]
     pub op_code: u8,
@@ -102,6 +115,7 @@ pub struct GatewayReceivePayload<'a> {
 
 impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 
+#[cfg(feature = "client")]
 /// An [`UpdateMessage<T>`] represents a received Gateway Message which contains updated
 /// information for an [`Updateable`] of Type T.
 /// # Example:
@@ -114,10 +128,37 @@ impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 /// This would imply, that the [`WebSocketEvent`] "[`ChannelUpdate`]" contains new/updated information
 /// about a [`Channel`]. The update method describes how this new information will be turned into
 /// a [`Channel`] object.
-pub(crate) trait UpdateMessage<T>: Clone
+pub(crate) trait UpdateMessage<T>: Clone + JsonField + SourceUrlField
 where
-    T: Updateable,
+    T: Updateable + Serialize + DeserializeOwned + Clone,
 {
-    fn update(&self, object_to_update: &mut T);
-    fn id(&self) -> Snowflake;
+    fn update(&mut self, object_to_update: Arc<RwLock<T>>) {
+        update_object(self.get_json(), object_to_update)
+    }
+    fn id(&self) -> Option<Snowflake>;
+}
+
+pub(crate) trait JsonField: Clone {
+    fn set_json(&mut self, json: String);
+    fn get_json(&self) -> String;
+}
+
+pub trait SourceUrlField: Clone {
+    fn set_source_url(&mut self, url: String);
+    fn get_source_url(&self) -> String;
+}
+
+#[cfg(feature = "client")]
+/// Only applicable for events where the Update struct is the same as the Entity struct
+pub(crate) fn update_object(
+    value: String,
+    object: Arc<RwLock<(impl Updateable + Serialize + DeserializeOwned + Clone)>>,
+) {
+    let data_from_event: HashMap<String, Value> = from_str(&value).unwrap();
+    let mut original_data: HashMap<String, Value> =
+        from_value(to_value(object.clone()).unwrap()).unwrap();
+    for (updated_entry_key, updated_entry_value) in data_from_event.into_iter() {
+        original_data.insert(updated_entry_key.clone(), updated_entry_value);
+    }
+    *object.write().unwrap() = from_value(to_value(original_data).unwrap()).unwrap();
 }

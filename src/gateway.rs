@@ -1,14 +1,18 @@
+//! Gateway connection, communication and handling, as well as object caching and updating.
+
 use crate::errors::GatewayError;
 use crate::gateway::events::Events;
-use crate::types::{self, Channel, ChannelUpdate, Snowflake};
-use crate::types::{UpdateMessage, WebSocketEvent};
+use crate::types::{
+    self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
+    ChannelUpdate, Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject,
+    Snowflake, SourceUrlField, ThreadUpdate, UpdateMessage, WebSocketEvent,
+};
 use async_trait::async_trait;
 use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use tokio::sync::watch;
 use tokio::time::sleep_until;
 
 use futures_util::stream::SplitSink;
@@ -78,7 +82,7 @@ const GATEWAY_LAZY_REQUEST: u8 = 14;
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
 pub(crate) const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
 
-/// Represents a messsage received from the gateway. This will be either a [GatewayReceivePayload], containing events, or a [GatewayError].
+/// Represents a messsage received from the gateway. This will be either a [types::GatewayReceivePayload], containing events, or a [GatewayError].
 /// This struct is used internally when handling messages.
 #[derive(Clone, Debug)]
 pub struct GatewayMessage {
@@ -148,11 +152,13 @@ impl GatewayMessage {
     }
 }
 
+pub type ObservableObject = dyn Send + Sync + Any;
+
 /// Represents a handle to a Gateway connection. A Gateway connection will create observable
 /// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
-/// implemented [Types] with the trait [`WebSocketEvent`]
+/// implemented types with the trait [`WebSocketEvent`]
 /// Using this handle you can also send Gateway Events directly.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
@@ -164,10 +170,9 @@ pub struct GatewayHandle {
             >,
         >,
     >,
-    pub handle: JoinHandle<()>,
     /// Tells gateway tasks to close
     kill_send: tokio::sync::broadcast::Sender<()>,
-    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
+    pub(crate) store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
 }
 
 /// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.
@@ -196,25 +201,55 @@ impl GatewayHandle {
             .unwrap();
     }
 
-    pub async fn observe<T: Updateable>(&self, object: T) -> watch::Receiver<T> {
+    pub async fn observe<T: Updateable + Clone + Debug + Composite<T>>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> Arc<RwLock<T>> {
         let mut store = self.store.lock().await;
-        if let Some(channel) = store.get(&object.id()) {
-            let (_, rx) = channel
-                .downcast_ref::<(watch::Sender<T>, watch::Receiver<T>)>()
+        let id = object.read().unwrap().id();
+        if let Some(channel) = store.get(&id) {
+            let object = channel.clone();
+            drop(store);
+            object
+                .read()
+                .unwrap()
+                .downcast_ref::<T>()
                 .unwrap_or_else(|| {
                     panic!(
                         "Snowflake {} already exists in the store, but it is not of type T.",
-                        object.id()
+                        id
                     )
                 });
-            rx.clone()
+            let ptr = Arc::into_raw(object.clone());
+            // SAFETY:
+            // - We have just checked that the typeid of the `dyn Any ...` matches that of `T`.
+            // - This operation doesn't read or write any shared data, and thus cannot cause a data race
+            // - The reference count is not being modified
+            let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<T>).clone() };
+            let object = downcasted.read().unwrap().clone();
+
+            let watched_object = object.watch_whole(self).await;
+            *downcasted.write().unwrap() = watched_object;
+            downcasted
         } else {
-            let id = object.id();
-            let channel = watch::channel(object);
-            let receiver = channel.1.clone();
-            store.insert(id, Box::new(channel));
-            receiver
+            let id = object.read().unwrap().id();
+            let object = object.read().unwrap().clone();
+            let object = object.clone().watch_whole(self).await;
+            let wrapped = Arc::new(RwLock::new(object));
+            store.insert(id, wrapped.clone());
+            wrapped
         }
+    }
+
+    /// Recursively observes and updates all updateable fields on the struct T. Returns an object `T`
+    /// with all of its observable fields being observed.
+    pub async fn observe_and_into_inner<T: Updateable + Clone + Debug + Composite<T>>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> T {
+        let channel = self.observe(object.clone()).await;
+        let object = channel.read().unwrap().clone();
+        object
     }
 
     /// Sends an identify event to the gateway
@@ -257,7 +292,7 @@ impl GatewayHandle {
 
     /// Sends an update voice state to the server
     pub async fn send_update_voice_state(&self, to_send: types::UpdateVoiceState) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
+        let to_send_value = serde_json::to_value(to_send).unwrap();
 
         trace!("GW: Sending Update Voice State..");
 
@@ -293,6 +328,7 @@ impl GatewayHandle {
     }
 }
 
+#[derive(Debug)]
 pub struct Gateway {
     events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
@@ -306,7 +342,8 @@ pub struct Gateway {
     >,
     websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
-    store: Arc<Mutex<HashMap<Snowflake, Box<dyn Send + Any>>>>,
+    store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
+    url: String,
 }
 
 impl Gateway {
@@ -370,10 +407,11 @@ impl Gateway {
             websocket_receive,
             kill_send: kill_send.clone(),
             store: store.clone(),
+            url: websocket_url.clone(),
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
-        let handle: JoinHandle<()> = task::spawn(async move {
+        task::spawn(async move {
             gateway.gateway_listen_task().await;
         });
 
@@ -381,7 +419,6 @@ impl Gateway {
             url: websocket_url.clone(),
             events: shared_events,
             websocket_send: shared_websocket_send.clone(),
-            handle,
             kill_send: kill_send.clone(),
             store,
         })
@@ -444,13 +481,15 @@ impl Gateway {
             return;
         }
 
-        // Todo: handle errors in a good way, maybe observers like events?
         if msg.is_error() {
-            warn!("GW: Received error, connection will close..");
+            let error = msg.error().unwrap();
 
-            let _error = msg.error();
+            warn!("GW: Received error {:?}, connection will close..", error);
 
             self.close().await;
+
+            self.events.lock().await.error.notify(error).await;
+
             return;
         }
 
@@ -462,7 +501,7 @@ impl Gateway {
             GATEWAY_DISPATCH => {
                 let Some(event_name) = gateway_payload.event_name else {
                     warn!("Gateway dispatch op without event_name");
-                    return
+                    return;
                 };
 
                 trace!("Gateway: Received {event_name}");
@@ -472,16 +511,35 @@ impl Gateway {
                         match event_name.as_str() {
                             $($name => {
                                 let event = &mut self.events.lock().await.$($path).+;
-                                match serde_json::from_str(gateway_payload.event_data.unwrap().get()) {
+                                let json = gateway_payload.event_data.unwrap().get();
+                                match serde_json::from_str(json) {
                                     Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
                                     Ok(message) => {
                                         $(
-                                            let message: $message_type = message;
-                                            if let Some(to_update) = self.store.lock().await.get(&message.id()) {
-                                                if let Some((tx, _)) = to_update.downcast_ref::<(watch::Sender<$update_type>, watch::Receiver<$update_type>)>() {
-                                                    tx.send_modify(|object| message.update(object));
+                                            let mut message: $message_type = message;
+                                            let store = self.store.lock().await;
+                                            let id = if message.id().is_some() {
+                                                message.id().unwrap()
+                                            } else {
+                                                event.notify(message).await;
+                                                return;
+                                            };
+                                            if let Some(to_update) = store.get(&id) {
+                                                let object = to_update.clone();
+                                                let inner_object = object.read().unwrap();
+                                                if let Some(_) = inner_object.downcast_ref::<$update_type>() {
+                                                    let ptr = Arc::into_raw(object.clone());
+                                                    // SAFETY:
+                                                    // - We have just checked that the typeid of the `dyn Any ...` matches that of `T`.
+                                                    // - This operation doesn't read or write any shared data, and thus cannot cause a data race
+                                                    // - The reference count is not being modified
+                                                    let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<$update_type>).clone() };
+                                                    drop(inner_object);
+                                                    message.set_json(json.to_string());
+                                                    message.set_source_url(self.url.clone());
+                                                    message.update(downcasted.clone());
                                                 } else {
-                                                    warn!("Received {} for {}, but it has been observed to be a different type!", $name, message.id())
+                                                    warn!("Received {} for {}, but it has been observed to be a different type!", $name, id)
                                                 }
                                             }
                                         )?
@@ -523,69 +581,70 @@ impl Gateway {
                     "READY_SUPPLEMENTAL" => session.ready_supplemental,
                     "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => application.command_permissions_update,
                     "AUTO_MODERATION_RULE_CREATE" =>auto_moderation.rule_create,
-                    "AUTO_MODERATION_RULE_UPDATE" =>auto_moderation.rule_update,
+                    "AUTO_MODERATION_RULE_UPDATE" =>auto_moderation.rule_update AutoModerationRuleUpdate: AutoModerationRule,
                     "AUTO_MODERATION_RULE_DELETE" => auto_moderation.rule_delete,
                     "AUTO_MODERATION_ACTION_EXECUTION" => auto_moderation.action_execution,
-                    "CHANNEL_CREATE" => channel.create,
+                    "CHANNEL_CREATE" => channel.create ChannelCreate: Guild,
                     "CHANNEL_UPDATE" => channel.update ChannelUpdate: Channel,
                     "CHANNEL_UNREAD_UPDATE" => channel.unread_update,
-                    "CHANNEL_DELETE" => channel.delete,
+                    "CHANNEL_DELETE" => channel.delete ChannelDelete: Guild,
                     "CHANNEL_PINS_UPDATE" => channel.pins_update,
                     "CALL_CREATE" => call.create,
                     "CALL_UPDATE" => call.update,
                     "CALL_DELETE" => call.delete,
-                    "THREAD_CREATE" => thread.create,
-                    "THREAD_UPDATE" => thread.update,
-                    "THREAD_DELETE" => thread.delete,
-                    "THREAD_LIST_SYNC" => thread.list_sync,
-                    "THREAD_MEMBER_UPDATE" => thread.member_update,
-                    "THREAD_MEMBERS_UPDATE" => thread.members_update,
-                    "GUILD_CREATE" => guild.create,
-                    "GUILD_UPDATE" => guild.update,
-                    "GUILD_DELETE" => guild.delete,
+                    "THREAD_CREATE" => thread.create, // TODO
+                    "THREAD_UPDATE" => thread.update ThreadUpdate: Channel,
+                    "THREAD_DELETE" => thread.delete, // TODO
+                    "THREAD_LIST_SYNC" => thread.list_sync, // TODO
+                    "THREAD_MEMBER_UPDATE" => thread.member_update, // TODO
+                    "THREAD_MEMBERS_UPDATE" => thread.members_update, // TODO
+                    "GUILD_CREATE" => guild.create, // TODO
+                    "GUILD_UPDATE" => guild.update, // TODO
+                    "GUILD_DELETE" => guild.delete, // TODO
                     "GUILD_AUDIT_LOG_ENTRY_CREATE" => guild.audit_log_entry_create,
-                    "GUILD_BAN_ADD" => guild.ban_add,
-                    "GUILD_BAN_REMOVE" => guild.ban_remove,
-                    "GUILD_EMOJIS_UPDATE" => guild.emojis_update,
-                    "GUILD_STICKERS_UPDATE" => guild.stickers_update,
+                    "GUILD_BAN_ADD" => guild.ban_add, // TODO
+                    "GUILD_BAN_REMOVE" => guild.ban_remove, // TODO
+                    "GUILD_EMOJIS_UPDATE" => guild.emojis_update, // TODO
+                    "GUILD_STICKERS_UPDATE" => guild.stickers_update, // TODO
                     "GUILD_INTEGRATIONS_UPDATE" => guild.integrations_update,
                     "GUILD_MEMBER_ADD" => guild.member_add,
                     "GUILD_MEMBER_REMOVE" => guild.member_remove,
-                    "GUILD_MEMBER_UPDATE" => guild.member_update,
-                    "GUILD_MEMBERS_CHUNK" => guild.members_chunk,
-                    "GUILD_ROLE_CREATE" => guild.role_create,
-                    "GUILD_ROLE_UPDATE" => guild.role_update,
-                    "GUILD_ROLE_DELETE" => guild.role_delete,
-                    "GUILD_SCHEDULED_EVENT_CREATE" => guild.role_scheduled_event_create,
-                    "GUILD_SCHEDULED_EVENT_UPDATE" => guild.role_scheduled_event_update,
-                    "GUILD_SCHEDULED_EVENT_DELETE" => guild.role_scheduled_event_delete,
+                    "GUILD_MEMBER_UPDATE" => guild.member_update, // TODO
+                    "GUILD_MEMBERS_CHUNK" => guild.members_chunk, // TODO
+                    "GUILD_ROLE_CREATE" => guild.role_create GuildRoleCreate: Guild,
+                    "GUILD_ROLE_UPDATE" => guild.role_update GuildRoleUpdate: RoleObject,
+                    "GUILD_ROLE_DELETE" => guild.role_delete, // TODO
+                    "GUILD_SCHEDULED_EVENT_CREATE" => guild.role_scheduled_event_create, // TODO
+                    "GUILD_SCHEDULED_EVENT_UPDATE" => guild.role_scheduled_event_update, // TODO
+                    "GUILD_SCHEDULED_EVENT_DELETE" => guild.role_scheduled_event_delete, // TODO
                     "GUILD_SCHEDULED_EVENT_USER_ADD" => guild.role_scheduled_event_user_add,
                     "GUILD_SCHEDULED_EVENT_USER_REMOVE" => guild.role_scheduled_event_user_remove,
-                    "PASSIVE_UPDATE_V1" => guild.passive_update_v1,
-                    "INTEGRATION_CREATE" => integration.create,
-                    "INTEGRATION_UPDATE" => integration.update,
-                    "INTEGRATION_DELETE" => integration.delete,
-                    "INTERACTION_CREATE" => interaction.create,
-                    "INVITE_CREATE" => invite.create,
-                    "INVITE_DELETE" => invite.delete,
+                    "PASSIVE_UPDATE_V1" => guild.passive_update_v1, // TODO
+                    "INTEGRATION_CREATE" => integration.create, // TODO
+                    "INTEGRATION_UPDATE" => integration.update, // TODO
+                    "INTEGRATION_DELETE" => integration.delete, // TODO
+                    "INTERACTION_CREATE" => interaction.create, // TODO
+                    "INVITE_CREATE" => invite.create, // TODO
+                    "INVITE_DELETE" => invite.delete, // TODO
                     "MESSAGE_CREATE" => message.create,
-                    "MESSAGE_UPDATE" => message.update,
+                    "MESSAGE_UPDATE" => message.update, // TODO
                     "MESSAGE_DELETE" => message.delete,
                     "MESSAGE_DELETE_BULK" => message.delete_bulk,
-                    "MESSAGE_REACTION_ADD" => message.reaction_add,
-                    "MESSAGE_REACTION_REMOVE" => message.reaction_remove,
-                    "MESSAGE_REACTION_REMOVE_ALL" => message.reaction_remove_all,
-                    "MESSAGE_REACTION_REMOVE_EMOJI" => message.reaction_remove_emoji,
+                    "MESSAGE_REACTION_ADD" => message.reaction_add, // TODO
+                    "MESSAGE_REACTION_REMOVE" => message.reaction_remove, // TODO
+                    "MESSAGE_REACTION_REMOVE_ALL" => message.reaction_remove_all, // TODO
+                    "MESSAGE_REACTION_REMOVE_EMOJI" => message.reaction_remove_emoji, // TODO
                     "MESSAGE_ACK" => message.ack,
-                    "PRESENCE_UPDATE" => user.presence_update,
+                    "PRESENCE_UPDATE" => user.presence_update, // TODO
                     "RELATIONSHIP_ADD" => relationship.add,
                     "RELATIONSHIP_REMOVE" => relationship.remove,
                     "STAGE_INSTANCE_CREATE" => stage_instance.create,
-                    "STAGE_INSTANCE_UPDATE" => stage_instance.update,
+                    "STAGE_INSTANCE_UPDATE" => stage_instance.update, // TODO
                     "STAGE_INSTANCE_DELETE" => stage_instance.delete,
-                    "USER_UPDATE" => user.update,
+                    "TYPING_START" => user.typing_start,
+                    "USER_UPDATE" => user.update, // TODO
                     "USER_GUILD_SETTINGS_UPDATE" => user.guild_settings_update,
-                    "VOICE_STATE_UPDATE" => voice.state_update,
+                    "VOICE_STATE_UPDATE" => voice.state_update, // TODO
                     "VOICE_SERVER_UPDATE" => voice.server_update,
                     "WEBHOOKS_UPDATE" => webhooks.update
                 );
@@ -671,6 +730,7 @@ impl Gateway {
 
 /// Handles sending heartbeats to the gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
+#[derive(Debug)]
 struct HeartbeatHandler {
     /// How ofter heartbeats need to be sent at a minimum
     pub heartbeat_interval: Duration,
@@ -857,7 +917,7 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 }
 
-mod events {
+pub mod events {
     use super::*;
 
     #[derive(Default, Debug)]
@@ -880,6 +940,7 @@ mod events {
         pub webhooks: Webhooks,
         pub gateway_identify_payload: GatewayEvent<types::GatewayIdentifyPayload>,
         pub gateway_resume: GatewayEvent<types::GatewayResume>,
+        pub error: GatewayEvent<GatewayError>,
     }
 
     #[derive(Default, Debug)]
@@ -927,7 +988,7 @@ mod events {
         pub update: GatewayEvent<types::UserUpdate>,
         pub guild_settings_update: GatewayEvent<types::UserGuildSettingsUpdate>,
         pub presence_update: GatewayEvent<types::PresenceUpdate>,
-        pub typing_start_event: GatewayEvent<types::TypingStartEvent>,
+        pub typing_start: GatewayEvent<types::TypingStartEvent>,
     }
 
     #[derive(Default, Debug)]

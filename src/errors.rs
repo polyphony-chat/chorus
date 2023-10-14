@@ -1,8 +1,10 @@
+//! Contains all the errors that can be returned by the library.
 use custom_error::custom_error;
-use reqwest::Error;
+
+use crate::types::WebSocketEvent;
 
 custom_error! {
-    #[derive(PartialEq, Eq)]
+    #[derive(PartialEq, Eq, Clone, Hash)]
     pub RegistrationError
     Consent = "Consent must be 'true' to register.",
 }
@@ -10,11 +12,12 @@ custom_error! {
 pub type ChorusResult<T> = std::result::Result<T, ChorusError>;
 
 custom_error! {
+    #[derive(Clone, Hash, PartialEq, Eq)]
     pub ChorusError
     /// Server did not respond.
     NoResponse = "Did not receive a response from the Server.",
     /// Reqwest returned an Error instead of a Response object.
-    RequestFailed{url:String, error: Error} = "An error occured while trying to GET from {url}: {error}",
+    RequestFailed{url:String, error: String} = "An error occured while trying to GET from {url}: {error}",
     /// Response received, however, it was not of the successful responses type. Used when no other, special case applies.
     ReceivedErrorCode{error_code: u16, error: String} = "Received the following error code while requesting from the route: {error_code}",
     /// Used when there is likely something wrong with the instance, the request was directed to.
@@ -53,9 +56,10 @@ custom_error! {
     /// Supposed to be sent as numbers, though they are sent as string most of the time?
     ///
     /// Also includes errors when initiating a connection and unexpected opcodes
-    #[derive(Clone, PartialEq, Eq)]
+    #[derive(PartialEq, Eq, Default, Clone)]
     pub GatewayError
     // Errors we have received from the gateway
+    #[default]
     Unknown = "We're not sure what went wrong. Try reconnecting?",
     UnknownOpcode = "You sent an invalid Gateway opcode or an invalid payload for an opcode",
     Decode = "Gateway server couldn't decode payload",
@@ -79,25 +83,29 @@ custom_error! {
     UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
 }
 
+impl WebSocketEvent for GatewayError {}
+
 custom_error! {
-    // Like GatewayError for webrtc errors
-    // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice;
-    // Also supposed to be sent by numbers, but discord is asdfghgfjkkjldf when it comes to their errors
+    /// Voice Gateway errors
+    ///
+    /// Similar to [GatewayError].
+    ///
+    /// See https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice;
     #[derive(Clone, PartialEq, Eq)]
     pub VoiceGatewayError
     // Errors we receive
-    UnknownOpcodeError = "You sent an invalid opcode",
-    FailedToDecodePayloadError = "You sent an invalid payload in your identifying to the (Webrtc) Gateway",
-    NotAuthenticatedError = "You sent a payload before identifying with the (Webrtc) Gateway",
-    AuthenticationFailedError = "The token you sent in your identify payload is incorrect",
-    AlreadyAuthenticatedError = "You sent more than one identify payload",
-    SessionNoLongerValidError = "Your session is no longer valid",
-    SessionTimeoutError = "Your session has timed out",
-    ServerNotFoundError = "We can't find the server you're trying to connect to",
-    UnknownProtocolError = "We didn't recognize the protocol you sent",
-    DisconnectedError = "Channel was deleted, you were kicked, voice server changed, or the main gateway session was dropped. Should not reconnect.",
-    VoiceServerCrashedError = "The server crashed, try resuming",
-    UnknownEncryptionModeError = "Server failed to decrypt data",
+    UnknownOpcode = "You sent an invalid opcode",
+    FailedToDecodePayload = "You sent an invalid payload in your identifying to the (Webrtc) Gateway",
+    NotAuthenticated = "You sent a payload before identifying with the (Webrtc) Gateway",
+    AuthenticationFailed = "The token you sent in your identify payload is incorrect",
+    AlreadyAuthenticated = "You sent more than one identify payload",
+    SessionNoLongerValid = "Your session is no longer valid",
+    SessionTimeout = "Your session has timed out",
+    ServerNotFound = "We can't find the server you're trying to connect to",
+    UnknownProtocol = "We didn't recognize the protocol you sent",
+    Disconnected = "Channel was deleted, you were kicked, voice server changed, or the main gateway session was dropped. Should not reconnect.",
+    VoiceServerCrashed = "The server crashed, try resuming",
+    UnknownEncryptionMode = "Server failed to decrypt data",
 
     // Errors when initiating a gateway connection
     CannotConnect{error: String} = "Cannot connect due to a tungstenite error: {error}",
