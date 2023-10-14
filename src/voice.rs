@@ -199,7 +199,8 @@ impl VoiceGateway {
     #[allow(clippy::new_ret_no_self)]
     pub async fn new(websocket_url: String) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
         // Append the needed things to the websocket url
-        let processed_url = format!("wss://{}?v=4", websocket_url);
+        let processed_url = format!("wss://{}/?v=4", websocket_url);
+        debug!("Created voice socket url: {}", processed_url.clone());
 
         let (websocket_stream, _) = match connect_async_tls_with_config(
             &processed_url,
