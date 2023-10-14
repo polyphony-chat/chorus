@@ -7,10 +7,12 @@ use super::WebrtcEncryptionMode;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// The ready event for the webrtc stream;
+///
 /// Used to give info after the identify event;
-/// See https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-ready-payload;
+///
+/// See <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-ready-payload>
 pub struct VoiceReady {
-    /// See https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpStreamStats/ssrc
+    /// See <https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpStreamStats/ssrc>
     ssrc: i32,
     ip: Ipv4Addr,
     port: u32,

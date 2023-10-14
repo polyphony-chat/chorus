@@ -2,8 +2,10 @@ use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 
 /// Event that tells the server we are speaking;
-/// Essentially, what allows us to send udp data and lights up the green circle around your avatar;
-/// See https://discord.com/developers/docs/topics/voice-connections#speaking-example-speaking-payload
+///
+/// Essentially, what allows us to send udp data and lights up the green circle around your avatar.
+///
+/// See <https://discord.com/developers/docs/topics/voice-connections#speaking-example-speaking-payload>
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct Speaking {
     /// Data about the audio we're transmitting, its type
@@ -15,7 +17,8 @@ pub struct Speaking {
 
 bitflags! {
     /// Bitflags of speaking types;
-    /// See https://discord.com/developers/docs/topics/voice-connections#speaking;
+    ///
+    /// See <https://discord.com/developers/docs/topics/voice-connections#speaking>
     #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
     pub struct SpeakingBitflags: u8 {
         /// Whether we'll be transmitting normal voice audio
