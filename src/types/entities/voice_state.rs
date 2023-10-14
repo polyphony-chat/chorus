@@ -28,7 +28,8 @@ pub struct VoiceState {
     pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
     pub member: Option<Arc<RwLock<GuildMember>>>,
-    pub session_id: Snowflake,
+    /// Includes alphanumeric characters, not a snowflake
+    pub session_id: String,
     pub token: Option<String>,
     pub deaf: bool,
     pub mute: bool,
@@ -38,5 +39,6 @@ pub struct VoiceState {
     pub self_video: bool,
     pub suppress: bool,
     pub request_to_speak_timestamp: Option<DateTime<Utc>>,
+    // FIXME: This is not sent in practice?????????
     pub id: Snowflake,
 }
