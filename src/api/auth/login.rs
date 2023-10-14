@@ -3,24 +3,23 @@ use std::sync::{Arc, RwLock};
 use reqwest::Client;
 use serde_json::to_string;
 
-use crate::api::LimitType;
 use crate::errors::ChorusResult;
 use crate::gateway::Gateway;
 use crate::instance::{ChorusUser, Instance};
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{GatewayIdentifyPayload, LoginResult, LoginSchema};
+use crate::types::{GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema};
 
 impl Instance {
     /// Logs into an existing account on the spacebar server.
     ///
     /// # Reference
     /// See <https://docs.spacebar.chat/routes/#post-/auth/login/>
-    pub async fn login_account(&mut self, login_schema: &LoginSchema) -> ChorusResult<ChorusUser> {
+    pub async fn login_account(mut self, login_schema: LoginSchema) -> ChorusResult<ChorusUser> {
         let endpoint_url = self.urls.api.clone() + "/auth/login";
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(endpoint_url)
-                .body(to_string(login_schema).unwrap())
+                .body(to_string(&login_schema).unwrap())
                 .header("Content-Type", "application/json"),
             limit_type: LimitType::AuthLogin,
         };
@@ -46,7 +45,7 @@ impl Instance {
             self.clone_limits_if_some(),
             login_result.settings,
             Arc::new(RwLock::new(object)),
-            Arc::new(gateway),
+            gateway,
         );
         Ok(user)
     }

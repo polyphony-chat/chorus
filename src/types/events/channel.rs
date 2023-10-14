@@ -1,13 +1,17 @@
-use std::sync::{Arc, RwLock};
-
 use crate::types::events::WebSocketEvent;
-use crate::types::Guild;
-use crate::types::{entities::Channel, JsonField, Snowflake};
-use chorus_macros::JsonField;
+use crate::types::{entities::Channel, JsonField, Snowflake, SourceUrlField};
+use chorus_macros::{JsonField, SourceUrlField};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "client")]
 use super::UpdateMessage;
+
+#[cfg(feature = "client")]
+use std::sync::{Arc, RwLock};
+
+#[cfg(feature = "client")]
+use crate::types::Guild;
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-pins-update>
@@ -19,17 +23,20 @@ pub struct ChannelPinsUpdate {
 
 impl WebSocketEvent for ChannelPinsUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-create>
 pub struct ChannelCreate {
     #[serde(flatten)]
     pub channel: Channel,
     #[serde(skip)]
     pub json: String,
+    #[serde(skip)]
+    pub source_url: String,
 }
 
 impl WebSocketEvent for ChannelCreate {}
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Guild> for ChannelCreate {
     fn id(&self) -> Option<Snowflake> {
         self.channel.guild_id
@@ -46,17 +53,20 @@ impl UpdateMessage<Guild> for ChannelCreate {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-update>
 pub struct ChannelUpdate {
     #[serde(flatten)]
     pub channel: Channel,
     #[serde(skip)]
     pub json: String,
+    #[serde(skip)]
+    pub source_url: String,
 }
 
 impl WebSocketEvent for ChannelUpdate {}
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Channel> for ChannelUpdate {
     fn update(&mut self, object_to_update: Arc<RwLock<Channel>>) {
         let mut write = object_to_update.write().unwrap();
@@ -87,15 +97,18 @@ pub struct ChannelUnreadUpdateObject {
 
 impl WebSocketEvent for ChannelUnreadUpdate {}
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-delete>
 pub struct ChannelDelete {
     #[serde(flatten)]
     pub channel: Channel,
     #[serde(skip)]
     pub json: String,
+    #[serde(skip)]
+    pub source_url: String,
 }
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Guild> for ChannelDelete {
     fn id(&self) -> Option<Snowflake> {
         self.channel.guild_id
@@ -111,11 +124,7 @@ impl UpdateMessage<Guild> for ChannelDelete {
         }
         for (iteration, item) in (0_u32..).zip(write.channels.as_mut().unwrap().iter()) {
             if item.read().unwrap().id == self.id().unwrap() {
-                write
-                    .channels
-                    .as_mut()
-                    .unwrap()
-                    .swap_remove(iteration as usize);
+                write.channels.as_mut().unwrap().remove(iteration as usize);
                 return;
             }
         }

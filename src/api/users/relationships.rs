@@ -2,12 +2,12 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::LimitType,
     errors::ChorusResult,
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{
-        self, CreateUserRelationshipSchema, FriendRequestSendSchema, RelationshipType, Snowflake,
+        self, CreateUserRelationshipSchema, FriendRequestSendSchema, LimitType, RelationshipType,
+        Snowflake,
     },
 };
 

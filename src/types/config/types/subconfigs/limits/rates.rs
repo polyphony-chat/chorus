@@ -2,11 +2,9 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    api::LimitType,
-    types::config::types::subconfigs::limits::ratelimits::{
-        route::RouteRateLimit, RateLimitOptions,
-    },
+use crate::types::{
+    config::types::subconfigs::limits::ratelimits::{route::RouteRateLimit, RateLimitOptions},
+    LimitType,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

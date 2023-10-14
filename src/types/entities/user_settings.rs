@@ -53,15 +53,17 @@ pub struct UserSettings {
     pub friend_source_flags: sqlx::types::Json<FriendSourceFlags>,
     #[cfg(not(feature = "sqlx"))]
     pub friend_source_flags: FriendSourceFlags,
-    pub gateway_connected: bool,
+    pub gateway_connected: Option<bool>,
     pub gif_auto_play: bool,
     #[cfg(feature = "sqlx")]
     pub guild_folders: sqlx::types::Json<Vec<GuildFolder>>,
     #[cfg(not(feature = "sqlx"))]
     pub guild_folders: Vec<GuildFolder>,
     #[cfg(feature = "sqlx")]
+    #[serde(default)]
     pub guild_positions: sqlx::types::Json<Vec<String>>,
     #[cfg(not(feature = "sqlx"))]
+    #[serde(default)]
     pub guild_positions: Vec<String>,
     pub inline_attachment_media: bool,
     pub inline_embed_media: bool,
@@ -98,7 +100,7 @@ impl Default for UserSettings {
             enable_tts_command: false,
             explicit_content_filter: 0,
             friend_source_flags: Default::default(),
-            gateway_connected: false,
+            gateway_connected: Some(false),
             gif_auto_play: false,
             guild_folders: Default::default(),
             guild_positions: Default::default(),

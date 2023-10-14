@@ -28,6 +28,22 @@ pub struct Sticker {
     pub sort_value: Option<u8>,
 }
 
+impl std::hash::Hash for Sticker {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+        self.pack_id.hash(state);
+        self.name.hash(state);
+        self.description.hash(state);
+        self.tags.hash(state);
+        self.asset.hash(state);
+        self.sticker_type.hash(state);
+        self.format_type.hash(state);
+        self.available.hash(state);
+        self.guild_id.hash(state);
+        self.sort_value.hash(state);
+    }
+}
+
 impl PartialEq for Sticker {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id

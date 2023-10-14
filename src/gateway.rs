@@ -5,7 +5,7 @@ use crate::gateway::events::Events;
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
     ChannelUpdate, Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject,
-    Snowflake, ThreadUpdate, UpdateMessage, WebSocketEvent,
+    Snowflake, SourceUrlField, ThreadUpdate, UpdateMessage, WebSocketEvent,
 };
 use async_trait::async_trait;
 use std::any::Any;
@@ -158,7 +158,7 @@ pub type ObservableObject = dyn Send + Sync + Any;
 /// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
 /// implemented types with the trait [`WebSocketEvent`]
 /// Using this handle you can also send Gateway Events directly.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
@@ -170,7 +170,6 @@ pub struct GatewayHandle {
             >,
         >,
     >,
-    pub handle: JoinHandle<()>,
     /// Tells gateway tasks to close
     kill_send: tokio::sync::broadcast::Sender<()>,
     pub(crate) store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
@@ -293,7 +292,7 @@ impl GatewayHandle {
 
     /// Sends an update voice state to the server
     pub async fn send_update_voice_state(&self, to_send: types::UpdateVoiceState) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
+        let to_send_value = serde_json::to_value(to_send).unwrap();
 
         trace!("GW: Sending Update Voice State..");
 
@@ -344,6 +343,7 @@ pub struct Gateway {
     websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
     store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
+    url: String,
 }
 
 impl Gateway {
@@ -407,10 +407,11 @@ impl Gateway {
             websocket_receive,
             kill_send: kill_send.clone(),
             store: store.clone(),
+            url: websocket_url.clone(),
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
-        let handle: JoinHandle<()> = task::spawn(async move {
+        task::spawn(async move {
             gateway.gateway_listen_task().await;
         });
 
@@ -418,7 +419,6 @@ impl Gateway {
             url: websocket_url.clone(),
             events: shared_events,
             websocket_send: shared_websocket_send.clone(),
-            handle,
             kill_send: kill_send.clone(),
             store,
         })
@@ -501,7 +501,7 @@ impl Gateway {
             GATEWAY_DISPATCH => {
                 let Some(event_name) = gateway_payload.event_name else {
                     warn!("Gateway dispatch op without event_name");
-                    return
+                    return;
                 };
 
                 trace!("Gateway: Received {event_name}");
@@ -536,6 +536,7 @@ impl Gateway {
                                                     let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<$update_type>).clone() };
                                                     drop(inner_object);
                                                     message.set_json(json.to_string());
+                                                    message.set_source_url(self.url.clone());
                                                     message.update(downcasted.clone());
                                                 } else {
                                                     warn!("Received {} for {}, but it has been observed to be a different type!", $name, id)
@@ -916,7 +917,7 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 }
 
-mod events {
+pub mod events {
     use super::*;
 
     #[derive(Default, Debug)]

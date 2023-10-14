@@ -1,7 +1,7 @@
 [package]
 name = "chorus"
 description = "A library for interacting with multiple Spacebar-compatible Instances at once."
-version = "0.4.0"
+version = "0.9.0"
 license = "AGPL-3.0"
 edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
@@ -50,7 +50,7 @@ thiserror = "1.0.47"
 jsonwebtoken = "8.3.0"
 log = "0.4.20"
 async-trait = "0.1.73"
-chorus-macros = { path = "chorus-macros", version = "0.1.0" }
+chorus-macros = "0.2.0"
 
 [dev-dependencies]
 tokio = { version = "1.32.0", features = ["full"] }
