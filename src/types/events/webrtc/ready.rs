@@ -13,11 +13,11 @@ use super::WebrtcEncryptionMode;
 /// See <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-ready-payload>
 pub struct VoiceReady {
     /// See <https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpStreamStats/ssrc>
-    ssrc: i32,
-    ip: Ipv4Addr,
-    port: u32,
+    pub ssrc: i32,
+    pub ip: Ipv4Addr,
+    pub port: u32,
     /// The available encryption modes for the webrtc connection
-    modes: Vec<WebrtcEncryptionMode>,
+    pub modes: Vec<WebrtcEncryptionMode>,
     // Heartbeat interval is also sent, but is "an erroneous field and should be ignored. The correct heartbeat_interval value comes from the Hello payload."
 }
 

@@ -8,13 +8,13 @@ use serde::{Deserialize, Serialize};
 ///
 /// See <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload>
 pub struct VoiceIdentify {
-    server_id: Snowflake,
-    user_id: Snowflake,
-    session_id: String,
-    token: String,
+    pub server_id: Snowflake,
+    pub user_id: Snowflake,
+    pub session_id: String,
+    pub token: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Undocumented field, but is also in discord client comms
-    video: Option<bool>,
+    pub video: Option<bool>,
 }
 
 impl WebSocketEvent for VoiceIdentify {}

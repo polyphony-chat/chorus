@@ -9,10 +9,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct Speaking {
     /// Data about the audio we're transmitting, its type
-    speaking: SpeakingBitflags,
+    pub speaking: SpeakingBitflags,
     /// Assuming delay in milliseconds for the audio, should be 0 most of the time
-    delay: u64,
-    ssrc: i32,
+    pub delay: u64,
+    pub ssrc: i32,
 }
 
 bitflags! {
