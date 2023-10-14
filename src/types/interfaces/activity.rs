@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::Emoji, Snowflake};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Activity {
     name: String,
     #[serde(rename = "type")]
@@ -22,19 +22,19 @@ pub struct Activity {
     buttons: Option<Vec<ActivityButton>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 struct ActivityTimestamps {
     start: Option<i64>,
     end: Option<i64>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 struct ActivityParty {
     id: Option<String>,
     size: Option<Vec<(i32, i32)>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 struct ActivityAssets {
     large_image: Option<String>,
     large_text: Option<String>,
@@ -42,7 +42,7 @@ struct ActivityAssets {
     small_text: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 struct ActivitySecrets {
     join: Option<String>,
     spectate: Option<String>,
@@ -50,7 +50,7 @@ struct ActivitySecrets {
     match_string: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 struct ActivityButton {
     label: String,
     url: String,

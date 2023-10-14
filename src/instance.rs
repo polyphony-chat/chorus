@@ -1,24 +1,23 @@
-use std::cell::RefCell;
+//! Instance and ChorusUser objects.
+
 use std::collections::HashMap;
 use std::fmt;
-use std::rc::Rc;
+
+use std::sync::{Arc, RwLock};
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::api::{Limit, LimitType};
 use crate::errors::ChorusResult;
 use crate::gateway::{Gateway, GatewayHandle};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
-use crate::types::{GeneralConfiguration, User, UserSettings};
+use crate::types::{GeneralConfiguration, Limit, LimitType, User, UserSettings};
 use crate::UrlBundle;
 
-#[derive(Debug, Clone)]
-/**
-The [`Instance`] what you will be using to perform all sorts of actions on the Spacebar server.
-If `limits_information` is `None`, then the instance will not be rate limited.
- */
+#[derive(Debug, Clone, Default)]
+/// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
+/// If `limits_information` is `None`, then the instance will not be rate limited.
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
@@ -26,19 +25,14 @@ pub struct Instance {
     pub client: Client,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LimitsInformation {
     pub ratelimits: HashMap<LimitType, Limit>,
     pub configuration: RateLimits,
 }
 
 impl Instance {
-    /// Creates a new [`Instance`].
-    /// # Arguments
-    /// * `urls` - The [`URLBundle`] that contains all the URLs that are needed to connect to the Spacebar server.
-    /// * `requester` - The [`LimitedRequester`] that will be used to make requests to the Spacebar server.
-    /// # Errors
-    /// * [`InstanceError`] - If the instance cannot be created.
+    /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle), where `limited` is whether or not to automatically use rate limits.
     pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
         let limits_information;
         if limited {
@@ -89,17 +83,20 @@ impl fmt::Display for Token {
     }
 }
 
-#[derive(Debug)]
-pub struct UserMeta {
-    pub belongs_to: Rc<RefCell<Instance>>,
+#[derive(Debug, Clone)]
+/// A ChorusUser is a representation of an authenticated user on an [Instance].
+/// It is used for most authenticated actions on a Spacebar server.
+/// It also has its own [Gateway] connection.
+pub struct ChorusUser {
+    pub belongs_to: Arc<RwLock<Instance>>,
     pub token: String,
     pub limits: Option<HashMap<LimitType, Limit>>,
-    pub settings: UserSettings,
-    pub object: User,
+    pub settings: Arc<RwLock<UserSettings>>,
+    pub object: Arc<RwLock<User>>,
     pub gateway: GatewayHandle,
 }
 
-impl UserMeta {
+impl ChorusUser {
     pub fn token(&self) -> String {
         self.token.clone()
     }
@@ -108,15 +105,20 @@ impl UserMeta {
         self.token = token;
     }
 
+    /// Creates a new [ChorusUser] from existing data.
+    ///
+    /// # Notes
+    /// This isn't the prefered way to create a ChorusUser.
+    /// See [Instance::login_account] and [Instance::register_account] instead.
     pub fn new(
-        belongs_to: Rc<RefCell<Instance>>,
+        belongs_to: Arc<RwLock<Instance>>,
         token: String,
         limits: Option<HashMap<LimitType, Limit>>,
-        settings: UserSettings,
-        object: User,
+        settings: Arc<RwLock<UserSettings>>,
+        object: Arc<RwLock<User>>,
         gateway: GatewayHandle,
-    ) -> UserMeta {
-        UserMeta {
+    ) -> ChorusUser {
+        ChorusUser {
             belongs_to,
             token,
             limits,
@@ -127,21 +129,22 @@ impl UserMeta {
     }
 
     /// Creates a new 'shell' of a user. The user does not exist as an object, and exists so that you have
-    /// a UserMeta object to make Rate Limited requests with. This is useful in scenarios like
+    /// a ChorusUser object to make Rate Limited requests with. This is useful in scenarios like
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
-    pub(crate) async fn shell(instance: Rc<RefCell<Instance>>, token: String) -> UserMeta {
-        let settings = UserSettings::default();
-        let object = User::default();
-        let wss_url = instance.borrow().urls.wss.clone();
+    pub(crate) async fn shell(instance: Arc<RwLock<Instance>>, token: String) -> ChorusUser {
+        let settings = Arc::new(RwLock::new(UserSettings::default()));
+        let object = Arc::new(RwLock::new(User::default()));
+        let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
         let gateway = Gateway::new(wss_url).await.unwrap();
-        UserMeta {
+        ChorusUser {
             token,
             belongs_to: instance.clone(),
             limits: instance
-                .borrow()
+                .read()
+                .unwrap()
                 .limits_information
                 .as_ref()
                 .map(|info| info.ratelimits.clone()),

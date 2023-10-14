@@ -2,10 +2,11 @@
 
 [![Discord]][Discord-invite]
 [![Build][build-shield]][build-url]
+[![Coverage][coverage-shield]][coverage-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Issues][issues-shield]][issues-url]
-<img src="https://img.shields.io/static/v1?label=Status&message=Early%20Development&color=blue">
+<img src="https://img.shields.io/static/v1?label=Status&message=Alpha&color=blue">
 
 </br>
 <div align="center">
@@ -37,6 +38,7 @@ Chorus is a Rust library that allows developers to interact with multiple Spaceb
 
 ## Contributing
 
+If you'd like to contribute new functionality, check out [The 'Meta'-issues.](https://github.com/polyphony-chat/chorus/issues?q=is%3Aissue+label%3A%22Type%3A+Meta%22+) They contain a comprehensive list of all features which are yet missing for full Discord.com compatibility.
 If you would like to contribute, please feel free to open an Issue with the idea you have, or a
 Pull Request. Please keep our [contribution guidelines](https://github.com/polyphony-chat/.github/blob/main/CONTRIBUTION_GUIDELINES.md) in mind. Your contribution might not be
 accepted, if it violates these guidelines or [our Code of Conduct](https://github.com/polyphony-chat/.github/blob/main/CODE_OF_CONDUCT.md).
@@ -123,6 +125,8 @@ accepted, if it violates these guidelines or [our Code of Conduct](https://githu
   [clippy-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/clippy.yml
   [contributors-shield]: https://img.shields.io/github/contributors/polyphony-chat/chorus.svg?style=flat
   [contributors-url]: https://github.com/polyphony-chat/chorus/graphs/contributors
+  [coverage-shield]: https://coveralls.io/repos/github/polyphony-chat/chorus/badge.svg?branch=main
+  [coverage-url]: https://coveralls.io/github/polyphony-chat/chorus?branch=main
   [forks-shield]: https://img.shields.io/github/forks/polyphony-chat/chorus.svg?style=flat
   [forks-url]: https://github.com/polyphony-chat/chorus/network/members
   [stars-shield]: https://img.shields.io/github/stars/polyphony-chat/chorus.svg?style=flat

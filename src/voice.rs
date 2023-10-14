@@ -47,24 +47,20 @@ impl VoiceGatewayMesssage {
         let processed_content = content.to_lowercase().replace('.', "");
 
         match processed_content.as_str() {
-            "unknown opcode" | "4001" => Some(VoiceGatewayError::UnknownOpcodeError),
+            "unknown opcode" | "4001" => Some(VoiceGatewayError::UnknownOpcode),
             "decode error" | "failed to decode payload" | "4002" => {
-                Some(VoiceGatewayError::FailedToDecodePayloadError)
+                Some(VoiceGatewayError::FailedToDecodePayload)
             }
-            "not authenticated" | "4003" => Some(VoiceGatewayError::NotAuthenticatedError),
-            "authentication failed" | "4004" => Some(VoiceGatewayError::AuthenticationFailedError),
-            "already authenticated" | "4005" => Some(VoiceGatewayError::AlreadyAuthenticatedError),
-            "session no longer valid" | "4006" => {
-                Some(VoiceGatewayError::SessionNoLongerValidError)
-            }
-            "session timeout" | "4009" => Some(VoiceGatewayError::SessionTimeoutError),
-            "server not found" | "4011" => Some(VoiceGatewayError::ServerNotFoundError),
-            "unknown protocol" | "4012" => Some(VoiceGatewayError::UnknownProtocolError),
-            "disconnected" | "4014" => Some(VoiceGatewayError::DisconnectedError),
-            "voice server crashed" | "4015" => Some(VoiceGatewayError::VoiceServerCrashedError),
-            "unknown encryption mode" | "4016" => {
-                Some(VoiceGatewayError::UnknownEncryptionModeError)
-            }
+            "not authenticated" | "4003" => Some(VoiceGatewayError::NotAuthenticated),
+            "authentication failed" | "4004" => Some(VoiceGatewayError::AuthenticationFailed),
+            "already authenticated" | "4005" => Some(VoiceGatewayError::AlreadyAuthenticated),
+            "session no longer valid" | "4006" => Some(VoiceGatewayError::SessionNoLongerValid),
+            "session timeout" | "4009" => Some(VoiceGatewayError::SessionTimeout),
+            "server not found" | "4011" => Some(VoiceGatewayError::ServerNotFound),
+            "unknown protocol" | "4012" => Some(VoiceGatewayError::UnknownProtocol),
+            "disconnected" | "4014" => Some(VoiceGatewayError::Disconnected),
+            "voice server crashed" | "4015" => Some(VoiceGatewayError::VoiceServerCrashed),
+            "unknown encryption mode" | "4016" => Some(VoiceGatewayError::UnknownEncryptionMode),
             _ => None,
         }
     }
@@ -180,6 +176,8 @@ impl VoiceGatewayHandle {
         self.websocket_send.lock().await.close().await.unwrap();
     }
 }
+
+#[derive(Debug)]
 pub struct VoiceGateway {
     events: Arc<Mutex<voice_events::VoiceEvents>>,
     heartbeat_handler: VoiceHeartbeatHandler,
@@ -409,6 +407,7 @@ impl VoiceGateway {
 
 /// Handles sending heartbeats to the voice gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once all fields of VoiceHeartbeatHandler are used
+#[derive(Debug)]
 struct VoiceHeartbeatHandler {
     /// The heartbeat interval in milliseconds
     pub heartbeat_interval: Duration,
