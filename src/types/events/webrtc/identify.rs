@@ -3,8 +3,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
 /// The identify payload for the webrtc stream;
+///
 /// Contains info to begin a webrtc connection;
-/// See https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload;
+///
+/// See <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload>
 pub struct VoiceIdentify {
     server_id: Snowflake,
     user_id: Snowflake,
