@@ -6,10 +6,10 @@ use serde_json::to_string;
 use crate::gateway::Gateway;
 use crate::types::GatewayIdentifyPayload;
 use crate::{
-    api::policies::instance::LimitType,
     errors::ChorusResult,
     instance::{ChorusUser, Instance, Token},
     ratelimiter::ChorusRequest,
+    types::LimitType,
     types::RegisterSchema,
 };
 
@@ -19,14 +19,14 @@ impl Instance {
     /// # Reference
     /// See <https://docs.spacebar.chat/routes/#post-/auth/register/>
     pub async fn register_account(
-        &mut self,
-        register_schema: &RegisterSchema,
+        mut self,
+        register_schema: RegisterSchema,
     ) -> ChorusResult<ChorusUser> {
         let endpoint_url = self.urls.api.clone() + "/auth/register";
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(endpoint_url)
-                .body(to_string(register_schema).unwrap())
+                .body(to_string(&register_schema).unwrap())
                 .header("Content-Type", "application/json"),
             limit_type: LimitType::AuthRegister,
         };
@@ -43,7 +43,7 @@ impl Instance {
             self.limits_information.as_mut().unwrap().ratelimits = shell.limits.unwrap();
         }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
-        let settings = ChorusUser::get_settings(&token, &self.urls.api.clone(), self).await?;
+        let settings = ChorusUser::get_settings(&token, &self.urls.api.clone(), &mut self).await?;
         let mut identify = GatewayIdentifyPayload::common();
         let gateway = Gateway::new(self.urls.wss.clone()).await.unwrap();
         identify.token = token.clone();
@@ -54,7 +54,7 @@ impl Instance {
             self.clone_limits_if_some(),
             Arc::new(RwLock::new(settings)),
             Arc::new(RwLock::new(user_object)),
-            Arc::new(gateway),
+            gateway,
         );
         Ok(user)
     }

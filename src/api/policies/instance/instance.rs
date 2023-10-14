@@ -19,7 +19,7 @@ impl Instance {
             Err(e) => {
                 return Err(ChorusError::RequestFailed {
                     url: endpoint_url,
-                    error: e,
+                    error: e.to_string(),
                 });
             }
         };

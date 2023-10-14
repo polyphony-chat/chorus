@@ -10,6 +10,7 @@ pub use guild_member::*;
 pub use integration::*;
 pub use invite::*;
 pub use message::*;
+pub use ratelimits::*;
 pub use relationship::*;
 pub use role::*;
 pub use security_key::*;
@@ -22,9 +23,16 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 
+#[cfg(feature = "client")]
 use crate::gateway::{GatewayHandle, Updateable};
+
+#[cfg(feature = "client")]
 use async_trait::async_trait;
+
+#[cfg(feature = "client")]
 use std::fmt::Debug;
+
+#[cfg(feature = "client")]
 use std::sync::{Arc, RwLock};
 
 mod application;
@@ -39,6 +47,7 @@ mod guild_member;
 mod integration;
 mod invite;
 mod message;
+mod ratelimits;
 mod relationship;
 mod role;
 mod security_key;
@@ -51,6 +60,7 @@ mod user_settings;
 mod voice_state;
 mod webhook;
 
+#[cfg(feature = "client")]
 #[async_trait(?Send)]
 pub trait Composite<T: Updateable + Clone + Debug> {
     async fn watch_whole(self, gateway: &GatewayHandle) -> Self;

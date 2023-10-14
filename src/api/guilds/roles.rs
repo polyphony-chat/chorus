@@ -2,11 +2,12 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::{
-    api::LimitType,
     errors::{ChorusError, ChorusResult},
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
-    types::{self, RoleCreateModifySchema, RoleObject, RolePositionUpdateSchema, Snowflake},
+    types::{
+        self, LimitType, RoleCreateModifySchema, RoleObject, RolePositionUpdateSchema, Snowflake,
+    },
 };
 
 impl types::RoleObject {

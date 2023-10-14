@@ -1,20 +1,27 @@
 use std::sync::{Arc, RwLock};
 
+#[cfg(feature = "client")]
 use chorus_macros::{Composite, Updateable};
+
+#[cfg(feature = "client")]
+use crate::types::Composite;
+
+#[cfg(feature = "client")]
+use crate::gateway::{GatewayHandle, Updateable};
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
-use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::{
     entities::{Guild, GuildMember},
     utils::Snowflake,
-    Composite,
 };
 
 /// See <https://docs.spacebar.chat/routes/#cmp--schemas-voicestate>
-#[derive(Serialize, Deserialize, Debug, Default, Clone, Updateable, Composite)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[cfg_attr(feature = "client", derive(Updateable, Composite))]
 pub struct VoiceState {
     pub guild_id: Option<Snowflake>,
     pub guild: Option<Guild>,

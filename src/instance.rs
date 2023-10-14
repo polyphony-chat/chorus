@@ -8,15 +8,14 @@ use std::sync::{Arc, RwLock};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::api::{Limit, LimitType};
 use crate::errors::ChorusResult;
 use crate::gateway::{Gateway, GatewayHandle};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
-use crate::types::{GeneralConfiguration, User, UserSettings};
+use crate::types::{GeneralConfiguration, Limit, LimitType, User, UserSettings};
 use crate::UrlBundle;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 /// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
 /// If `limits_information` is `None`, then the instance will not be rate limited.
 pub struct Instance {
@@ -26,7 +25,7 @@ pub struct Instance {
     pub client: Client,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LimitsInformation {
     pub ratelimits: HashMap<LimitType, Limit>,
     pub configuration: RateLimits,
@@ -94,7 +93,7 @@ pub struct ChorusUser {
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: Arc<RwLock<UserSettings>>,
     pub object: Arc<RwLock<User>>,
-    pub gateway: Arc<GatewayHandle>, // TODO: Can this be an Arc<GatewayHandle>? That way we could have Clone implemented on ChorusUser
+    pub gateway: GatewayHandle,
 }
 
 impl ChorusUser {
@@ -117,7 +116,7 @@ impl ChorusUser {
         limits: Option<HashMap<LimitType, Limit>>,
         settings: Arc<RwLock<UserSettings>>,
         object: Arc<RwLock<User>>,
-        gateway: Arc<GatewayHandle>,
+        gateway: GatewayHandle,
     ) -> ChorusUser {
         ChorusUser {
             belongs_to,
@@ -139,7 +138,7 @@ impl ChorusUser {
         let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
-        let gateway = Arc::new(Gateway::new(wss_url).await.unwrap());
+        let gateway = Gateway::new(wss_url).await.unwrap();
         ChorusUser {
             token,
             belongs_to: instance.clone(),

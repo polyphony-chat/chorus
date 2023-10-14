@@ -1,11 +1,17 @@
-use chorus_macros::{Composite, Updateable};
+use crate::types::utils::Snowflake;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
 use std::fmt::Debug;
 
+#[cfg(feature = "client")]
 use crate::gateway::{GatewayHandle, Updateable};
-use crate::types::{utils::Snowflake, Composite};
+
+#[cfg(feature = "client")]
+use crate::types::Composite;
+
+#[cfg(feature = "client")]
+use chorus_macros::{Composite, Updateable};
 
 use super::Emoji;
 
@@ -21,7 +27,8 @@ impl User {
         PublicUser::from(self)
     }
 }
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Updateable, Composite)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "client", derive(Updateable, Composite))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct User {
     pub id: Snowflake,
@@ -56,7 +63,7 @@ pub struct User {
     pub disabled: Option<bool>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct PublicUser {
     pub id: Snowflake,
     pub username: Option<String>,

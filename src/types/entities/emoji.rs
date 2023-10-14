@@ -1,14 +1,22 @@
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
-use chorus_macros::{Composite, Updateable};
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::{GatewayHandle, Updateable};
 use crate::types::entities::User;
-use crate::types::{Composite, Snowflake};
+use crate::types::Snowflake;
 
-#[derive(Debug, Clone, Deserialize, Serialize, Default, Updateable, Composite)]
+#[cfg(feature = "client")]
+use crate::types::Composite;
+
+#[cfg(feature = "client")]
+use crate::gateway::{GatewayHandle, Updateable};
+
+#[cfg(feature = "client")]
+use chorus_macros::{Composite, Updateable};
+
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[cfg_attr(feature = "client", derive(Updateable, Composite))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/emoji#emoji-object>
@@ -25,6 +33,19 @@ pub struct Emoji {
     pub managed: Option<bool>,
     pub animated: Option<bool>,
     pub available: Option<bool>,
+}
+
+impl std::hash::Hash for Emoji {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+        self.name.hash(state);
+        self.roles.hash(state);
+        self.roles.hash(state);
+        self.require_colons.hash(state);
+        self.managed.hash(state);
+        self.animated.hash(state);
+        self.available.hash(state);
+    }
 }
 
 impl PartialEq for Emoji {

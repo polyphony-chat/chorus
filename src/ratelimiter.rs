@@ -8,10 +8,9 @@ use serde::Deserialize;
 use serde_json::from_str;
 
 use crate::{
-    api::{Limit, LimitType},
     errors::{ChorusError, ChorusResult},
     instance::ChorusUser,
-    types::{types::subconfigs::limits::rates::RateLimits, LimitsConfiguration},
+    types::{types::subconfigs::limits::rates::RateLimits, Limit, LimitType, LimitsConfiguration},
 };
 
 /// Chorus' request struct. This struct is used to send rate-limited requests to the Spacebar server.
@@ -92,7 +91,7 @@ impl ChorusRequest {
                 log::warn!("Request failed: {:?}", error);
                 return Err(ChorusError::RequestFailed {
                     url: error.url().unwrap().to_string(),
-                    error,
+                    error: error.to_string(),
                 });
             }
         };
@@ -360,7 +359,7 @@ impl ChorusRequest {
             Err(e) => {
                 return Err(ChorusError::RequestFailed {
                     url: url_api.to_string(),
-                    error: e,
+                    error: e.to_string(),
                 })
             }
         };
