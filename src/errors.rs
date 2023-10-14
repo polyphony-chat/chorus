@@ -91,9 +91,10 @@ custom_error! {
     /// Similar to [GatewayError].
     ///
     /// See https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice;
-    #[derive(Clone, PartialEq, Eq)]
+    #[derive(Clone, Default, PartialEq, Eq)]
     pub VoiceGatewayError
     // Errors we receive
+    #[default]
     UnknownOpcode = "You sent an invalid opcode",
     FailedToDecodePayload = "You sent an invalid payload in your identifying to the (Webrtc) Gateway",
     NotAuthenticated = "You sent a payload before identifying with the (Webrtc) Gateway",
