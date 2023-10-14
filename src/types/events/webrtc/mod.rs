@@ -2,12 +2,14 @@ use super::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 use serde_json::{value::RawValue, Value};
 
+pub use hello::*;
 pub use identify::*;
 pub use ready::*;
 pub use select_protocol::*;
 pub use session_description::*;
 pub use speaking::*;
 
+mod hello;
 mod identify;
 mod ready;
 mod select_protocol;
@@ -51,9 +53,15 @@ impl<'a> WebSocketEvent for VoiceGatewayReceivePayload<'a> {}
 #[serde(rename_all = "snake_case")]
 pub enum WebrtcEncryptionMode {
     #[default]
-    XSalsa20Poly1305,
-    XSalsa20Poly1305Suffix,
-    XSalsa20Poly1305Lite,
+    // Documented
+    Xsalsa20Poly1305,
+    Xsalsa20Poly1305Suffix,
+    Xsalsa20Poly1305Lite,
+    // Undocumented
+    Xsalsa20Poly1305LiteRtpsize,
+    AeadAes256Gcm,
+    AeadAes256GcmRtpsize,
+    AeadXchacha20Poly1305Rtpsize,
 }
 
 // The various voice opcodes
