@@ -39,6 +39,6 @@ pub struct VoiceState {
     pub self_video: bool,
     pub suppress: bool,
     pub request_to_speak_timestamp: Option<DateTime<Utc>>,
-    // FIXME: This is not sent in practice?????????
+    // FIXME: This is a Spacebar only field and is not sent on DDC, see [#430](https://github.com/polyphony-chat/chorus/issues/430)
     pub id: Snowflake,
 }
