@@ -2,27 +2,58 @@ use std::net::Ipv4Addr;
 
 use serde::{Deserialize, Serialize};
 
-use super::WebrtcEncryptionMode;
+use super::VoiceEncryptionMode;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 /// An event sent by the client to the webrtc server, detailing what protocol, address and encryption to use;
 ///
-/// See <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-udp-connection-example-select-protocol-payload>
+/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#select-protocol-structure>
 pub struct SelectProtocol {
-    /// The protocol to use. The only option detailed in discord docs is "udp"
-    pub protocol: String,
+    /// The protocol to use. The only option chorus supports is [VoiceProtocol::Udp].
+    pub protocol: VoiceProtocol,
     pub data: SelectProtocolData,
+    /// The UUID4 RTC connection ID, used for analytics.
+    ///
+    /// Note: Not recommended to set this
+    pub rtc_connection_id: Option<String>,
+    // TODO: Add codecs, what is a codec object
+    /// The possible experiments we want to enable
+    #[serde(rename = "experiments")]
+    pub enabled_experiments: Vec<String>,
+}
+
+/// The possible protocol for sending a receiving voice data.
+///
+/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#select-protocol-structure>
+#[derive(Debug, Default, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceProtocol {
+    #[default]
+    /// Sending data via UDP, documented and the only protocol chorus supports.
+    Udp,
+    // Possible value, yet NOT RECOMMENED, AS CHORUS DOES NOT SUPPORT WEBRTC
+    //Webrtc,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 /// The data field of the SelectProtocol Event
 ///
-/// See <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-udp-connection-example-select-protocol-payload>
+/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#protocol-data-structure>
 pub struct SelectProtocolData {
     /// Our external ip
     pub address: Ipv4Addr,
     /// Our external udp port
     pub port: u32,
     /// The mode of encryption to use
-    pub mode: WebrtcEncryptionMode,
+    pub mode: VoiceEncryptionMode,
+}
+
+impl Default for SelectProtocolData {
+    fn default() -> Self {
+        SelectProtocolData {
+            address: Ipv4Addr::UNSPECIFIED,
+            port: 0,
+            mode: Default::default(),
+        }
+    }
 }

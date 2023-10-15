@@ -5,7 +5,14 @@ use serde::{Deserialize, Serialize};
 /// Contains info on how often the client should send heartbeats to the server;
 ///
 /// Differs from the normal hello data in that discord sends heartbeat interval as a float.
+///
+/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#heartbeating>
 pub struct VoiceHelloData {
+    /// The voice gateway version.
+    ///
+    /// Note: no idea why this is sent, we already specify the version when establishing a connection.
+    #[serde(rename = "v")]
+    pub version: u8,
     /// How often a client should send heartbeats, in milliseconds
     pub heartbeat_interval: f64,
 }
