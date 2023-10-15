@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// See <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload>
 pub struct VoiceIdentify {
-    pub server_id: Snowflake,
+    /// Not needed when in a dm call
+    pub server_id: Option<Snowflake>,
     pub user_id: Snowflake,
     pub session_id: String,
     pub token: String,
