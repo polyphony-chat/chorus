@@ -6,16 +6,16 @@ use serde::{Deserialize, Serialize};
 ///
 /// Contains info to begin a webrtc connection;
 ///
-/// See <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload>
+/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#identify-structure>
 pub struct VoiceIdentify {
-    /// Not needed when in a dm call
-    pub server_id: Option<Snowflake>,
+    /// The ID of the guild or the private channel being connected to
+    pub server_id: Snowflake,
     pub user_id: Snowflake,
     pub session_id: String,
     pub token: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    /// Undocumented field, but is also in discord client comms
     pub video: Option<bool>,
+    // TODO: Add video streams
 }
 
 impl WebSocketEvent for VoiceIdentify {}

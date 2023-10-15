@@ -19,9 +19,10 @@ use crate::errors::VoiceGatewayError;
 use crate::gateway::{GatewayEvent, HEARTBEAT_ACK_TIMEOUT};
 use crate::types::{
     self, SelectProtocol, Speaking, VoiceGatewayReceivePayload, VoiceGatewaySendPayload,
-    VoiceIdentify, WebSocketEvent, VOICE_BACKEND_VERSION, VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK,
+    VoiceIdentify, WebSocketEvent, VOICE_BACKEND_VERSION, VOICE_CLIENT_CONNECT_FLAGS,
+    VOICE_CLIENT_CONNECT_PLATFORM, VOICE_CLIENT_DISCONNECT, VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK,
     VOICE_HELLO, VOICE_IDENTIFY, VOICE_READY, VOICE_RESUME, VOICE_SELECT_PROTOCOL,
-    VOICE_SESSION_DESCRIPTION, VOICE_SPEAKING,
+    VOICE_SESSION_DESCRIPTION, VOICE_SESSION_UPDATE, VOICE_SPEAKING,
 };
 
 use self::voice_events::VoiceEvents;
@@ -199,7 +200,7 @@ impl VoiceGateway {
     #[allow(clippy::new_ret_no_self)]
     pub async fn new(websocket_url: String) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
         // Append the needed things to the websocket url
-        let processed_url = format!("wss://{}/?v=4", websocket_url);
+        let processed_url = format!("wss://{}/?v=7", websocket_url);
         trace!("Created voice socket url: {}", processed_url.clone());
 
         let (websocket_stream, _) = match connect_async_tls_with_config(
@@ -357,6 +358,19 @@ impl VoiceGateway {
                     return;
                 }
             }
+            VOICE_BACKEND_VERSION => {
+                trace!("VGW: Received Backend Version");
+
+                let event = &mut self.events.lock().await.backend_version;
+                let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
+                if result.is_err() {
+                    warn!(
+                        "Failed to parse VOICE_BACKEND_VERSION ({})",
+                        result.err().unwrap()
+                    );
+                    return;
+                }
+            }
             VOICE_SESSION_DESCRIPTION => {
                 trace!("VGW: Received Session Description");
 
@@ -364,12 +378,75 @@ impl VoiceGateway {
                 let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
                 if result.is_err() {
                     warn!(
-                        "Failed to parse VOICE_SELECT_PROTOCOL ({})",
+                        "Failed to parse VOICE_SESSION_DESCRIPTION ({})",
                         result.err().unwrap()
                     );
                     return;
                 }
             }
+            VOICE_SESSION_UPDATE => {
+                trace!("VGW: Received Session Update");
+
+                let event = &mut self.events.lock().await.session_update;
+                let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
+                if result.is_err() {
+                    warn!(
+                        "Failed to parse VOICE_SESSION_UPDATE ({})",
+                        result.err().unwrap()
+                    );
+                    return;
+                }
+            }
+            VOICE_SPEAKING => {
+                trace!("VGW: Received Speaking");
+
+                let event = &mut self.events.lock().await.speaking;
+                let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
+                if result.is_err() {
+                    warn!("Failed to parse VOICE_SPEAKING ({})", result.err().unwrap());
+                    return;
+                }
+            }
+            VOICE_CLIENT_DISCONNECT => {
+                trace!("VGW: Received Client Disconnect");
+
+                let event = &mut self.events.lock().await.client_disconnect;
+                let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
+                if result.is_err() {
+                    warn!(
+                        "Failed to parse VOICE_CLIENT_DISCONNECT ({})",
+                        result.err().unwrap()
+                    );
+                    return;
+                }
+            }
+            VOICE_CLIENT_CONNECT_FLAGS => {
+                trace!("VGW: Received Client Connect Flags");
+
+                let event = &mut self.events.lock().await.client_connect_flags;
+                let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
+                if result.is_err() {
+                    warn!(
+                        "Failed to parse VOICE_CLIENT_CONNECT_FLAGS ({})",
+                        result.err().unwrap()
+                    );
+                    return;
+                }
+            }
+            VOICE_CLIENT_CONNECT_PLATFORM => {
+                trace!("VGW: Received Client Connect Platform");
+
+                let event = &mut self.events.lock().await.client_connect_platform;
+                let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
+                if result.is_err() {
+                    warn!(
+                        "Failed to parse VOICE_CLIENT_CONNECT_PLATFORM ({})",
+                        result.err().unwrap()
+                    );
+                    return;
+                }
+            }
+
             // We received a heartbeat from the server
             // "Discord may send the app a Heartbeat (opcode 1) event, in which case the app should send a Heartbeat event immediately."
             VOICE_HEARTBEAT => {
@@ -563,14 +640,23 @@ struct VoiceHeartbeatThreadCommunication {
 }
 
 pub mod voice_events {
-    use crate::types::{SessionDescription, VoiceReady};
+    use crate::types::{
+        SessionDescription, SessionUpdate, VoiceBackendVersion, VoiceClientConnectFlags,
+        VoiceClientConnectPlatform, VoiceClientDisconnection, VoiceReady,
+    };
 
     use super::*;
 
     #[derive(Default, Debug)]
     pub struct VoiceEvents {
         pub voice_ready: GatewayEvent<VoiceReady>,
+        pub backend_version: GatewayEvent<VoiceBackendVersion>,
         pub session_description: GatewayEvent<SessionDescription>,
+        pub session_update: GatewayEvent<SessionUpdate>,
+        pub speaking: GatewayEvent<Speaking>,
+        pub client_disconnect: GatewayEvent<VoiceClientDisconnection>,
+        pub client_connect_flags: GatewayEvent<VoiceClientConnectFlags>,
+        pub client_connect_platform: GatewayEvent<VoiceClientConnectPlatform>,
         pub error: GatewayEvent<VoiceGatewayError>,
     }
 }

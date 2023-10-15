@@ -34,8 +34,10 @@ impl WebSocketEvent for VoiceStateUpdate {}
 /// Received to indicate which voice endpoint, token and guild_id to use;
 pub struct VoiceServerUpdate {
     pub token: String,
-    /// Can be None in dm calls
+    /// The guild this voice server update is for
     pub guild_id: Option<Snowflake>,
+    /// The private channel this voice server update is for
+    pub channel_id: Option<Snowflake>,
     pub endpoint: Option<String>,
 }
 
