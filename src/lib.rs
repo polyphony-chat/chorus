@@ -28,7 +28,9 @@ pub mod instance;
 pub mod ratelimiter;
 pub mod types;
 #[cfg(feature = "client")]
-pub mod voice;
+pub mod voice_gateway;
+#[cfg(feature = "client")]
+pub mod voice_udp;
 
 #[derive(Clone, Default, Debug, PartialEq, Eq, Hash)]
 /// A URLBundle bundles together the API-, Gateway- and CDN-URLs of a Spacebar instance.
