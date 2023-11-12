@@ -20,7 +20,6 @@ use futures_util::stream::SplitStream;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use log::{info, trace, warn};
-use native_tls::TlsConnector;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
@@ -349,12 +348,21 @@ pub struct Gateway {
 impl Gateway {
     #[allow(clippy::new_ret_no_self)]
     pub async fn new(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
+        let mut roots = rustls::RootCertStore::empty();
+        for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
+        {
+            roots.add(&rustls::Certificate(cert.0)).unwrap();
+        }
         let (websocket_stream, _) = match connect_async_tls_with_config(
             &websocket_url,
             None,
             false,
-            Some(Connector::NativeTls(
-                TlsConnector::builder().build().unwrap(),
+            Some(Connector::Rustls(
+                rustls::ClientConfig::builder()
+                    .with_safe_defaults()
+                    .with_root_certificates(roots)
+                    .with_no_client_auth()
+                    .into(),
             )),
         )
         .await

@@ -28,10 +28,12 @@ chrono = { version = "0.4.26", features = ["serde"] }
 regex = "1.9.4"
 custom_error = "1.9.2"
 native-tls = "0.2.11"
-tokio-tungstenite = { version = "0.20.0", features = ["native-tls"] }
+tokio-tungstenite = { version = "0.20.0", features = [
+    "rustls-tls-native-roots",
+    "rustls-native-certs",
+] }
 futures-util = "0.3.28"
 http = "0.2.9"
-openssl = "0.10.56"
 base64 = "0.21.3"
 hostname = "0.3.1"
 bitflags = { version = "2.4.0", features = ["serde"] }
@@ -51,6 +53,9 @@ jsonwebtoken = "8.3.0"
 log = "0.4.20"
 async-trait = "0.1.73"
 chorus-macros = "0.2.0"
+rustls = "0.21.8"
+rustls-native-certs = "0.6.3"
+rand = "0.8.5"
 
 [dev-dependencies]
 tokio = { version = "1.32.0", features = ["full"] }
