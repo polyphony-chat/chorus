@@ -13,7 +13,7 @@ website = ["https://discord.com/invite/m3FpcapGDD"]
 [features]
 default = ["client"]
 backend = ["poem", "sqlx"]
-client = []
+client = ["discortp"]
 
 [dependencies]
 tokio = { version = "1.29.1", features = ["macros"] }
@@ -51,6 +51,7 @@ jsonwebtoken = "8.3.0"
 log = "0.4.20"
 async-trait = "0.1.73"
 chorus-macros = "0.2.0"
+discortp = { version = "0.5.0", optional = true, features = ["rtp", "discord"] }
 
 [dev-dependencies]
 tokio = { version = "1.32.0", features = ["full"] }
