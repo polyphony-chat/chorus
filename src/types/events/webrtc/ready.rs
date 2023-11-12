@@ -13,9 +13,9 @@ use super::VoiceEncryptionMode;
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#ready-structure>
 pub struct VoiceReady {
     /// See <https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpStreamStats/ssrc>
-    pub ssrc: i32,
+    pub ssrc: u32,
     pub ip: Ipv4Addr,
-    pub port: u32,
+    pub port: u16,
     /// The available encryption modes for the webrtc connection
     pub modes: Vec<VoiceEncryptionMode>,
     #[serde(default)]
