@@ -41,9 +41,9 @@ pub enum VoiceProtocol {
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#protocol-data-structure>
 pub struct SelectProtocolData {
     /// Our external ip
-    pub address: Ipv4Addr,
+    pub address: Vec<u8>,
     /// Our external udp port
-    pub port: u32,
+    pub port: u16,
     /// The mode of encryption to use
     pub mode: VoiceEncryptionMode,
 }
@@ -51,7 +51,7 @@ pub struct SelectProtocolData {
 impl Default for SelectProtocolData {
     fn default() -> Self {
         SelectProtocolData {
-            address: Ipv4Addr::UNSPECIFIED,
+            address: Vec::new(),
             port: 0,
             mode: Default::default(),
         }

@@ -5,7 +5,10 @@ use std::net::SocketAddr;
 use log::{info, warn};
 use tokio::net::UdpSocket;
 
-use discortp::{discord::IpDiscoveryPacket, MutablePacket, Packet};
+use discortp::{
+    discord::{IpDiscovery, IpDiscoveryPacket},
+    MutablePacket, Packet,
+};
 
 #[derive(Debug)]
 pub struct UdpHandler {
@@ -14,7 +17,7 @@ pub struct UdpHandler {
 }
 
 impl UdpHandler {
-    pub async fn new(url: SocketAddr, ssrc: u32) {
+    pub async fn new(url: SocketAddr, ssrc: u32) -> IpDiscovery {
         // Bind with a port number of 0, so the os assigns this listener a port
         let udp_socket = UdpSocket::bind("0.0.0.0:0").await.unwrap();
 
@@ -77,6 +80,15 @@ impl UdpHandler {
         tokio::spawn(async move {
             handler.listen_task().await;
         });
+
+        return IpDiscovery {
+            pkt_type: receieved_ip_discovery.get_pkt_type(),
+            length: receieved_ip_discovery.get_length(),
+            ssrc: receieved_ip_discovery.get_ssrc(),
+            address: receieved_ip_discovery.get_address(),
+            port: receieved_ip_discovery.get_port(),
+            payload: Vec::new(),
+        };
     }
 
     /// The main listen task;
@@ -99,12 +111,8 @@ impl UdpHandler {
                 continue;
             }
 
-            if let Err(e) = msg {
-                warn!("VUDP: {:?}", e);
-            }
-
-            //warn!("VUDP: Voice UDP is broken, closing connection");
-            //break;
+            warn!("VUDP: Voice UDP is broken, closing connection");
+            break;
         }
     }
 
