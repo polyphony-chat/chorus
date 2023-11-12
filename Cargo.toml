@@ -51,7 +51,7 @@ jsonwebtoken = "8.3.0"
 log = "0.4.20"
 async-trait = "0.1.73"
 chorus-macros = "0.2.0"
-discortp = { version = "0.5.0", optional = true, features = ["rtp", "discord"] }
+discortp = { version = "0.5.0", optional = true, features = ["rtp", "discord", "demux"] }
 
 [dev-dependencies]
 tokio = { version = "1.32.0", features = ["full"] }

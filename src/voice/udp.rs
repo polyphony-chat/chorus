@@ -6,7 +6,9 @@ use log::{info, warn};
 use tokio::net::UdpSocket;
 
 use discortp::{
+    demux::{demux, Demuxed},
     discord::{IpDiscovery, IpDiscoveryPacket},
+    rtp::RtpPacket,
     MutablePacket, Packet,
 };
 
@@ -98,15 +100,12 @@ impl UdpHandler {
         loop {
             let mut buf: Vec<u8> = Vec::new();
 
-            let size = IpDiscoveryPacket::minimum_packet_size() + 64;
-
             // wtf
-            for _i in 0..size {
+            for _i in 0..1_000 {
                 buf.push(0);
             }
             let msg = self.socket.recv(&mut buf).await;
             if let Ok(size) = msg {
-                info!("VUDP: Receiving messsage: {:?} - {}", buf.clone(), size);
                 self.handle_message(&buf[0..size]).await;
                 continue;
             }
@@ -118,6 +117,26 @@ impl UdpHandler {
 
     /// Handles a message buf
     async fn handle_message(&self, buf: &[u8]) {
-        info!("VUDP: Received messsage {:?}", buf);
+        info!("VUDP: Received messsage");
+
+        let parsed = demux(buf);
+
+        match parsed {
+            Demuxed::Rtp(rtp) => {
+                let data = buf[11..buf.len()].to_vec();
+                info!("VUDP: Parsed packet as rtp! {:?}; data: {:?}", rtp, data);
+            }
+            Demuxed::Rtcp(rtcp) => {
+                info!("VUDP: Parsed packet as rtcp! {:?}", rtcp);
+            }
+            Demuxed::FailedParse(e) => {
+                warn!("VUDP: Failed to parse packet: {:?}", e);
+            }
+            Demuxed::TooSmall => {
+                unreachable!()
+            }
+        }
+
+        return;
     }
 }
