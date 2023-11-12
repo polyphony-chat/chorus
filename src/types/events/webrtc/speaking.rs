@@ -10,8 +10,10 @@ use crate::types::{Snowflake, WebSocketEvent};
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#speaking-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct Speaking {
-    /// Data about the audio we're transmitting, its type
-    pub speaking: SpeakingBitflags,
+    /// Data about the audio we're transmitting.
+    ///
+    /// See [SpeakingBitFlags]
+    pub speaking: u8,
     pub ssrc: i32,
     /// The user id of the speaking user, only sent by the server
     #[serde(skip_serializing)]
