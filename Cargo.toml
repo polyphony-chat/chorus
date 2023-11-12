@@ -27,7 +27,6 @@ url = "2.4.0"
 chrono = { version = "0.4.26", features = ["serde"] }
 regex = "1.9.4"
 custom_error = "1.9.2"
-native-tls = "0.2.11"
 tokio-tungstenite = { version = "0.20.0", features = [
     "rustls-tls-native-roots",
     "rustls-native-certs",

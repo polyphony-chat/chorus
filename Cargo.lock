@@ -191,7 +191,6 @@ dependencies = [
  "jsonwebtoken",
  "lazy_static",
  "log",
- "native-tls",
  "poem",
  "rand",
  "regex",
