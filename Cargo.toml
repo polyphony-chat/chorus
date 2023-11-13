@@ -24,7 +24,10 @@ serde_json = { version = "1.0.105", features = ["raw_value"] }
 serde-aux = "4.2.0"
 serde_with = "3.3.0"
 serde_repr = "0.1.16"
-reqwest = { version = "0.11.20", features = ["multipart", "json"] }
+reqwest = { git = "https://github.com/bitfl0wer/reqwest.git", branch = "wasm-headers", features = [
+    "multipart",
+    "json",
+] }
 url = "2.4.0"
 chrono = { version = "0.4.26", features = ["serde"] }
 regex = "1.9.4"
