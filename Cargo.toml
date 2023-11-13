@@ -12,7 +12,7 @@ website = ["https://discord.com/invite/m3FpcapGDD"]
 
 [features]
 default = ["client"]
-backend = ["poem", "sqlx"]
+backend = ["dep:poem", "dep:sqlx"]
 client = []
 
 [dependencies]
