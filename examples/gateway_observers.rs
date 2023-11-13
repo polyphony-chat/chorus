@@ -24,7 +24,7 @@ impl Observer<GatewayReady> for ExampleObserver {
     }
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     // Find the gateway websocket url of the server we want to connect to
     let websocket_url_spacebar = "wss://gateway.old.server.spacebar.chat/".to_string();

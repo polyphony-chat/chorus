@@ -56,8 +56,8 @@ chorus-macros = "0.2.0"
 rustls = "0.21.8"
 rustls-native-certs = "0.6.3"
 rand = "0.8.5"
+ws_stream_wasm = "0.7.4"
 
 [dev-dependencies]
-tokio = { version = "1.32.0", features = ["full"] }
 lazy_static = "1.4.0"
 rusty-hook = "0.11.2"
