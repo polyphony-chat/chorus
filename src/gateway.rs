@@ -12,8 +12,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
-use std::time::Duration;
-use tokio::time::sleep_until;
+use std::time::{self, Duration};
 
 use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
@@ -25,8 +24,6 @@ use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 use tokio::task;
 use tokio::task::JoinHandle;
-use tokio::time;
-use tokio::time::Instant;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 
@@ -798,9 +795,11 @@ impl HeartbeatHandler {
         mut receive: tokio::sync::mpsc::Receiver<HeartbeatThreadCommunication>,
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,
     ) {
-        let mut last_heartbeat_timestamp: Instant = time::Instant::now();
+        let mut last_heartbeat_timestamp: time::Instant = time::Instant::now();
         let mut last_heartbeat_acknowledged = true;
         let mut last_seq_number: Option<u64> = None;
+
+        safina_timer::start_timer_thread();
 
         loop {
             if kill_receive.try_recv().is_ok() {
@@ -818,7 +817,7 @@ impl HeartbeatHandler {
             let mut should_send = false;
 
             tokio::select! {
-                () = sleep_until(last_heartbeat_timestamp + timeout) => {
+                () = safina_timer::sleep_until(last_heartbeat_timestamp + timeout) => {
                     should_send = true;
                 }
                 Some(communication) = receive.recv() => {
