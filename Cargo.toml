@@ -16,7 +16,7 @@ backend = ["dep:poem", "dep:sqlx"]
 client = []
 
 [dependencies]
-tokio = { version = "1.29.1", features = ["macros"] }
+tokio = { version = "1.34.0", features = ["macros", "sync"] }
 serde = { version = "1.0.188", features = ["derive", "rc"] }
 serde_json = { version = "1.0.105", features = ["raw_value"] }
 serde-aux = "4.2.0"
@@ -27,18 +27,28 @@ url = "2.4.0"
 chrono = { version = "0.4.26", features = ["serde"] }
 regex = "1.9.4"
 custom_error = "1.9.2"
-native-tls = "0.2.11"
+futures-util = "0.3.28"
+http = "0.2.9"
+base64 = "0.21.3"
+bitflags = { version = "2.4.0", features = ["serde"] }
+lazy_static = "1.4.0"
+poem = { version = "1.3.57", optional = true }
+thiserror = "1.0.47"
+jsonwebtoken = "8.3.0"
+log = "0.4.20"
+async-trait = "0.1.73"
+chorus-macros = "0.2.0"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rustls = "0.21.8"
+rustls-native-certs = "0.6.3"
+rand = "0.8.5"
+hostname = "0.3.1"
 tokio-tungstenite = { version = "0.20.0", features = [
     "rustls-tls-native-roots",
     "rustls-native-certs",
 ] }
-futures-util = "0.3.28"
-http = "0.2.9"
-base64 = "0.21.3"
-hostname = "0.3.1"
-bitflags = { version = "2.4.0", features = ["serde"] }
-lazy_static = "1.4.0"
-poem = { version = "1.3.57", optional = true }
+native-tls = "0.2.11"
 sqlx = { version = "0.7.1", features = [
     "mysql",
     "sqlite",
@@ -48,15 +58,11 @@ sqlx = { version = "0.7.1", features = [
     "runtime-tokio-native-tls",
     "any",
 ], optional = true }
-thiserror = "1.0.47"
-jsonwebtoken = "8.3.0"
-log = "0.4.20"
-async-trait = "0.1.73"
-chorus-macros = "0.2.0"
-rustls = "0.21.8"
-rustls-native-certs = "0.6.3"
-rand = "0.8.5"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 ws_stream_wasm = "0.7.4"
+getrandom = { version = "0.2.11", features = ["js"] }
+tokio-tungstenite = { version = "0.20.0", default-features = false }
 
 [dev-dependencies]
 lazy_static = "1.4.0"
