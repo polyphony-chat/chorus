@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 #[cfg(feature = "client")]
-use chorus_macros::{Composite, Updateable};
+use chorus_macros::Composite;
 
 #[cfg(feature = "client")]
 use crate::types::Composite;
