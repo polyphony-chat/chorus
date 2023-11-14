@@ -169,3 +169,11 @@ impl GatewayHandle {
         self.websocket_send.lock().await.close().await.unwrap();
     }
 }
+
+impl
+    GatewayHandleCapable<
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+    > for GatewayHandle
+{
+}

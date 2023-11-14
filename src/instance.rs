@@ -9,7 +9,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::ChorusResult;
-use crate::gateway::{Gateway, GatewayHandle};
+use crate::gateway::{Gateway, GatewayCapable, GatewayHandle};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{GeneralConfiguration, Limit, LimitType, User, UserSettings};
@@ -138,7 +138,7 @@ impl ChorusUser {
         let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
-        let gateway = Gateway::new(wss_url).await.unwrap();
+        let gateway = Gateway::get_handle(wss_url).await.unwrap();
         ChorusUser {
             token,
             belongs_to: instance.clone(),

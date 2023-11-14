@@ -26,14 +26,16 @@ pub struct Gateway {
     url: String,
 }
 
+#[async_trait]
 impl
     GatewayCapable<
         WebSocketStream<MaybeTlsStream<TcpStream>>,
         WebSocketStream<MaybeTlsStream<TcpStream>>,
+        GatewayHandle,
     > for Gateway
 {
     #[allow(clippy::new_ret_no_self)]
-    async fn new(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
+    async fn get_handle(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
         let mut roots = rustls::RootCertStore::empty();
         for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
         {
@@ -118,51 +120,14 @@ impl
         })
     }
 
-    /// The main gateway listener task;
-    ///
-    /// Can only be stopped by closing the websocket, cannot be made to listen for kill
-    pub async fn gateway_listen_task(&mut self) {
-        loop {
-            let msg = self.websocket_receive.next().await;
-
-            // This if chain can be much better but if let is unstable on stable rust
-            if let Some(Ok(message)) = msg {
-                self.handle_message(GatewayMessage::from_tungstenite_message(message))
-                    .await;
-                continue;
-            }
-
-            // We couldn't receive the next message or it was an error, something is wrong with the websocket, close
-            warn!("GW: Websocket is broken, stopping gateway");
-            break;
-        }
-    }
-
     /// Closes the websocket connection and stops all tasks
     async fn close(&mut self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();
     }
 
-    /// Deserializes and updates a dispatched event, when we already know its type;
-    /// (Called for every event in handle_message)
-    #[allow(dead_code)] // TODO: Remove this allow annotation
-    async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
-        data: &'a str,
-        event: &mut GatewayEvent<T>,
-    ) -> Result<(), serde_json::Error> {
-        let data_deserialize_result: Result<T, serde_json::Error> = serde_json::from_str(data);
-
-        if data_deserialize_result.is_err() {
-            return Err(data_deserialize_result.err().unwrap());
-        }
-
-        event.notify(data_deserialize_result.unwrap()).await;
-        Ok(())
-    }
-
     /// This handles a message as a websocket event and updates its events along with the events' observers
-    pub async fn handle_message(&mut self, msg: GatewayMessage) {
+    async fn handle_message(&mut self, msg: GatewayMessage) {
         if msg.is_empty() {
             return;
         }
@@ -436,28 +401,45 @@ impl
     }
 
     fn get_url(&self) -> String {
-        self.url
+        self.url.clone()
+    }
+}
+
+impl Gateway {
+    /// The main gateway listener task;
+    ///
+    /// Can only be stopped by closing the websocket, cannot be made to listen for kill
+    pub async fn gateway_listen_task(&mut self) {
+        loop {
+            let msg = self.websocket_receive.next().await;
+
+            // This if chain can be much better but if let is unstable on stable rust
+            if let Some(Ok(message)) = msg {
+                self.handle_message(GatewayMessage::from_tungstenite_message(message));
+                continue;
+            }
+
+            // We couldn't receive the next message or it was an error, something is wrong with the websocket, close
+            warn!("GW: Websocket is broken, stopping gateway");
+            break;
+        }
     }
 
-    fn get_handle(
-        &self,
-        websocket_url: &'static str,
-    ) -> Result<
-        Box<
-            dyn GatewayHandleCapable<
-                Box<
-                    dyn GatewayCapable<
-                        WebSocketStream<MaybeTlsStream<TcpStream>>,
-                        WebSocketStream<MaybeTlsStream<TcpStream>>,
-                    >,
-                >,
-                WebSocketStream<MaybeTlsStream<TcpStream>>,
-                WebSocketStream<MaybeTlsStream<TcpStream>>,
-            >,
-        >,
-        GatewayError,
-    > {
-        todo!()
+    /// Deserializes and updates a dispatched event, when we already know its type;
+    /// (Called for every event in handle_message)
+    #[allow(dead_code)] // TODO: Remove this allow annotation
+    async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
+        data: &'a str,
+        event: &mut GatewayEvent<T>,
+    ) -> Result<(), serde_json::Error> {
+        let data_deserialize_result: Result<T, serde_json::Error> = serde_json::from_str(data);
+
+        if data_deserialize_result.is_err() {
+            return Err(data_deserialize_result.err().unwrap());
+        }
+
+        event.notify(data_deserialize_result.unwrap()).await;
+        Ok(())
     }
 }
 
