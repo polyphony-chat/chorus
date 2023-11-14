@@ -1,5 +1,4 @@
 use self::event::Events;
-
 use super::*;
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
