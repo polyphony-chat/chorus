@@ -82,9 +82,6 @@ const GATEWAY_CALL_SYNC: u8 = 13;
 /// See [types::LazyRequest]
 const GATEWAY_LAZY_REQUEST: u8 = 14;
 
-/// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
-const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
-
 pub type ObservableObject = dyn Send + Sync + Any;
 
 /// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.

@@ -1,5 +1,4 @@
-use super::event::Events;
-use super::*;
+use super::{event::Events, *};
 use crate::types::{self, Composite};
 
 /// Represents a handle to a Gateway connection. A Gateway connection will create observable
