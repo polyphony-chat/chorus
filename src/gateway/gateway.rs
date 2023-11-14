@@ -6,6 +6,8 @@ use crate::types::{
     ThreadUpdate, UpdateMessage, WebSocketEvent,
 };
 
+pub type GatewayStore = Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>;
+
 #[derive(Debug)]
 pub struct Gateway {
     events: Arc<Mutex<Events>>,
