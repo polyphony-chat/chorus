@@ -148,13 +148,15 @@ where
     fn get_websocket_send(&self) -> Arc<Mutex<SplitSink<S, Message>>>;
     fn get_store(&self) -> GatewayStore;
     fn get_url(&self) -> String;
-    #[allow(clippy::new_ret_no_self)]
-    #[allow(clippy::wrong_self_convention)]
-    /// TODO: Explain what this method has to do to be a good new() impl, or link to such documentation
-    fn new(
+    /// Returns a Result with a matching impl of [`GatewayHandleCapable`], or a [`GatewayError`]
+    ///
+    /// DOCUMENTME: Explain what this method has to do to be a good get_handle() impl, or link to such documentation
+    fn get_handle(
         &self,
         websocket_url: &'static str,
     ) -> Result<Box<dyn GatewayHandleCapable<Box<dyn GatewayCapable<R, S>>, R, S>>, GatewayError>;
+    fn close(&mut self);
+    fn handle_message(&mut self, msg: GatewayMessage);
 }
 
 pub trait GatewayHandleCapable<T, R, S>
