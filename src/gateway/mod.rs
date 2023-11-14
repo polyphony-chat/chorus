@@ -7,6 +7,7 @@ pub use gateway::*;
 pub use handle::*;
 use heartbeat::*;
 pub use message::*;
+use tokio_tungstenite::tungstenite::Message;
 
 use crate::errors::GatewayError;
 use crate::types::{Snowflake, WebSocketEvent};
@@ -21,8 +22,8 @@ use tokio::time::sleep_until;
 
 use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
-use futures_util::SinkExt;
-use futures_util::StreamExt;
+use futures_util::{Sink, StreamExt};
+use futures_util::{SinkExt, Stream};
 use log::{info, trace, warn};
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::Sender;
@@ -33,6 +34,8 @@ use tokio::time;
 use tokio::time::Instant;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
+
+use self::event::Events;
 
 // Gateway opcodes
 /// Opcode received when the server dispatches a [crate::types::WebSocketEvent]
@@ -135,8 +138,35 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 }
 
+#[allow(clippy::type_complexity)]
+pub trait GatewayCapable<R, S>
+where
+    R: Stream,
+    S: Sink<Message>,
+{
+    fn get_events(&self) -> Arc<Mutex<Events>>;
+    fn get_websocket_send(&self) -> Arc<Mutex<SplitSink<S, Message>>>;
+    fn get_store(&self) -> GatewayStore;
+    fn get_url(&self) -> String;
+    #[allow(clippy::new_ret_no_self)]
+    #[allow(clippy::wrong_self_convention)]
+    /// TODO: Explain what this method has to do to be a good new() impl, or link to such documentation
+    fn new(
+        &self,
+        websocket_url: &'static str,
+    ) -> Result<Box<dyn GatewayHandleCapable<Box<dyn GatewayCapable<R, S>>, R, S>>, GatewayError>;
+}
+
+pub trait GatewayHandleCapable<T, R, S>
+where
+    T: GatewayCapable<R, S>,
+    R: Stream,
+    S: Sink<Message>,
+{
+}
+
 #[cfg(test)]
-mod example {
+mod test {
     use crate::types;
 
     use super::*;
