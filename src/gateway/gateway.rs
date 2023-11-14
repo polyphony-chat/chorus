@@ -26,9 +26,14 @@ pub struct Gateway {
     url: String,
 }
 
-impl Gateway {
+impl
+    GatewayCapable<
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+    > for Gateway
+{
     #[allow(clippy::new_ret_no_self)]
-    pub async fn new(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
+    async fn new(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
         let mut roots = rustls::RootCertStore::empty();
         for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
         {
@@ -414,6 +419,45 @@ impl Gateway {
                 .await
                 .unwrap();
         }
+    }
+
+    fn get_events(&self) -> Arc<Mutex<Events>> {
+        self.events.clone()
+    }
+
+    fn get_websocket_send(
+        &self,
+    ) -> Arc<Mutex<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>>> {
+        self.websocket_send.clone()
+    }
+
+    fn get_store(&self) -> GatewayStore {
+        self.store.clone()
+    }
+
+    fn get_url(&self) -> String {
+        self.url
+    }
+
+    fn get_handle(
+        &self,
+        websocket_url: &'static str,
+    ) -> Result<
+        Box<
+            dyn GatewayHandleCapable<
+                Box<
+                    dyn GatewayCapable<
+                        WebSocketStream<MaybeTlsStream<TcpStream>>,
+                        WebSocketStream<MaybeTlsStream<TcpStream>>,
+                    >,
+                >,
+                WebSocketStream<MaybeTlsStream<TcpStream>>,
+                WebSocketStream<MaybeTlsStream<TcpStream>>,
+            >,
+        >,
+        GatewayError,
+    > {
+        todo!()
     }
 }
 
