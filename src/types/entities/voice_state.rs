@@ -38,5 +38,6 @@ pub struct VoiceState {
     pub self_video: bool,
     pub suppress: bool,
     pub request_to_speak_timestamp: Option<DateTime<Utc>>,
-    pub id: Snowflake,
+    #[serde(default = "Snowflake::generate")]
+    pub id: Snowflake, // Only exists on Spacebar
 }
