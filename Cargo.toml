@@ -1,7 +1,7 @@
 [package]
 name = "chorus"
 description = "A library for interacting with multiple Spacebar-compatible Instances at once."
-version = "0.10.0"
+version = "0.11.0"
 license = "AGPL-3.0"
 edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
@@ -58,7 +58,7 @@ rand = "0.8.5"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rustls = "0.21.8"
 rustls-native-certs = "0.6.3"
-tokio-tungstenite = { version = "0.20.0", features = [
+tokio-tungstenite = { version = "0.20.1", features = [
     "rustls-tls-native-roots",
     "rustls-native-certs",
 ] }
@@ -68,7 +68,7 @@ hostname = "0.3.1"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 ws_stream_wasm = "0.7.4"
 getrandom = { version = "0.2.11", features = ["js"] }
-tokio-tungstenite = { version = "0.20.0", default-features = false }
+tokio-tungstenite = { version = "0.20.1", default-features = false }
 
 [dev-dependencies]
 lazy_static = "1.4.0"
