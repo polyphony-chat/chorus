@@ -28,7 +28,7 @@ pub struct VoiceState {
     pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
     pub member: Option<Arc<RwLock<GuildMember>>>,
-    pub session_id: Snowflake,
+    pub session_id: String,
     pub token: Option<String>,
     pub deaf: bool,
     pub mute: bool,
