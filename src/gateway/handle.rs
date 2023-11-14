@@ -19,7 +19,7 @@ pub struct GatewayHandle {
     >,
     /// Tells gateway tasks to close
     pub(super) kill_send: tokio::sync::broadcast::Sender<()>,
-    pub(crate) store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
+    pub(crate) store: GatewayStore,
 }
 
 impl GatewayHandle {
