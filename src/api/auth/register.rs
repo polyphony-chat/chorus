@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use reqwest::Client;
 use serde_json::to_string;
 
-use crate::gateway::{Gateway, GatewayCapable, GatewayHandle, GatewayHandleCapable};
+use crate::gateway::{GatewayCapable, GatewayHandleCapable};
 use crate::types::GatewayIdentifyPayload;
 use crate::{
     errors::ChorusResult,

@@ -4,7 +4,7 @@ use std::sync::{Arc, RwLock};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "client")]
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use chorus_macros::{Composite, Updateable};

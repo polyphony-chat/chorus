@@ -9,7 +9,7 @@ use crate::types::utils::Snowflake;
 use chorus_macros::{Composite, Updateable};
 
 #[cfg(feature = "client")]
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use crate::types::Composite;

@@ -7,7 +7,7 @@ use chorus_macros::Composite;
 use crate::types::Composite;
 
 #[cfg(feature = "client")]
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::Updateable;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

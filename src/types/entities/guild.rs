@@ -16,7 +16,7 @@ use bitflags::bitflags;
 use super::PublicUser;
 
 #[cfg(feature = "client")]
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};

@@ -24,7 +24,7 @@ pub use voice_state::*;
 pub use webhook::*;
 
 #[cfg(feature = "client")]
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use async_trait::async_trait;

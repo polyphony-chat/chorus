@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use chorus::gateway::{GatewayCapable, GatewayHandleCapable};
 use chorus::{
     self,
-    gateway::{Gateway, Observer},
+    gateway::Observer,
     types::{GatewayIdentifyPayload, GatewayReady},
 };
 use std::{sync::Arc, time::Duration};

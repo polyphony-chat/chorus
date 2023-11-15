@@ -9,11 +9,11 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::ChorusResult;
-use crate::gateway::{Gateway, GatewayCapable, GatewayHandle};
+use crate::gateway::GatewayCapable;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{GeneralConfiguration, Limit, LimitType, User, UserSettings};
-use crate::UrlBundle;
+use crate::{Gateway, GatewayHandle, UrlBundle};
 
 #[derive(Debug, Clone, Default)]
 /// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
