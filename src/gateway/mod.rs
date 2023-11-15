@@ -1,29 +1,33 @@
 pub mod default;
+pub mod wasm;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
+pub use default::*;
+#[cfg(all(target_arch = "wasm32", feature = "client"))]
+pub use wasm::*;
 
 use self::event::Events;
+use crate::errors::GatewayError;
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
     ChannelUpdate, Composite, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject,
     Snowflake, SourceUrlField, ThreadUpdate, UpdateMessage, WebSocketEvent,
 };
-use default::heartbeat::HeartbeatThreadCommunication;
-use tokio_tungstenite::tungstenite::Message;
 
-use crate::errors::GatewayError;
-
-use async_trait::async_trait;
 use std::any::Any;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
-pub use default::*;
+use async_trait::async_trait;
+use default::heartbeat::HeartbeatThreadCommunication;
 use futures_util::stream::SplitSink;
 use futures_util::Sink;
 use futures_util::{SinkExt, Stream};
 use log::{info, trace, warn};
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
+use tokio_tungstenite::tungstenite::Message;
 
 pub type GatewayStore = Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>;
 
