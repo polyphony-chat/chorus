@@ -106,7 +106,7 @@ impl
     GatewayHandleCapable<
         WebSocketStream<MaybeTlsStream<TcpStream>>,
         WebSocketStream<MaybeTlsStream<TcpStream>>,
-    > for GatewayHandle
+    > for DefaultGatewayHandle
 {
     async fn send_json_event(&self, op_code: u8, to_send: serde_json::Value) {
         self.send_json_event(op_code, to_send).await
@@ -130,7 +130,7 @@ impl
 /// implemented types with the trait [`WebSocketEvent`]
 /// Using this handle you can also send Gateway Events directly.
 #[derive(Debug, Clone)]
-pub struct GatewayHandle {
+pub struct DefaultGatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
     pub websocket_send: Arc<
@@ -146,7 +146,7 @@ pub struct GatewayHandle {
     pub(crate) store: GatewayStore,
 }
 
-impl GatewayHandle {
+impl DefaultGatewayHandle {
     async fn send_json_event(&self, op_code: u8, to_send: serde_json::Value) {
         let gateway_payload = types::GatewaySendPayload {
             op_code,

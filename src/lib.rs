@@ -20,8 +20,8 @@ compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled
 pub type Gateway = WebsocketGateway;
 pub type GatewayHandle = WebsocketGatewayHandle;
 
-use gateway::Gateway as WebsocketGateway;
-use gateway::GatewayHandle as WebsocketGatewayHandle;
+use gateway::DefaultGateway as WebsocketGateway;
+use gateway::DefaultGatewayHandle as WebsocketGatewayHandle;
 use url::{ParseError, Url};
 
 #[cfg(feature = "client")]

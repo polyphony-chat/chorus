@@ -19,7 +19,7 @@ pub trait HeartbeatHandlerCapable<S: Sink<Message>> {
 /// Handles sending heartbeats to the gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
 #[derive(Debug)]
-pub struct HeartbeatHandler {
+pub struct DefaultHeartbeatHandler {
     /// How ofter heartbeats need to be sent at a minimum
     pub heartbeat_interval: Duration,
     /// The send channel for the heartbeat thread
@@ -28,7 +28,9 @@ pub struct HeartbeatHandler {
     handle: JoinHandle<()>,
 }
 
-impl HeartbeatHandlerCapable<WebSocketStream<MaybeTlsStream<TcpStream>>> for HeartbeatHandler {
+impl HeartbeatHandlerCapable<WebSocketStream<MaybeTlsStream<TcpStream>>>
+    for DefaultHeartbeatHandler
+{
     fn new(
         heartbeat_interval: Duration,
         websocket_tx: Arc<
@@ -40,12 +42,12 @@ impl HeartbeatHandlerCapable<WebSocketStream<MaybeTlsStream<TcpStream>>> for Hea
             >,
         >,
         kill_rc: tokio::sync::broadcast::Receiver<()>,
-    ) -> HeartbeatHandler {
+    ) -> DefaultHeartbeatHandler {
         let (send, receive) = tokio::sync::mpsc::channel(32);
         let kill_receive = kill_rc.resubscribe();
 
         let handle: JoinHandle<()> = task::spawn(async move {
-            HeartbeatHandler::heartbeat_task(
+            DefaultHeartbeatHandler::heartbeat_task(
                 websocket_tx,
                 heartbeat_interval,
                 receive,
@@ -70,7 +72,7 @@ impl HeartbeatHandlerCapable<WebSocketStream<MaybeTlsStream<TcpStream>>> for Hea
     }
 }
 
-impl HeartbeatHandler {
+impl DefaultHeartbeatHandler {
     /// The main heartbeat task;
     ///
     /// Can be killed by the kill broadcast;

@@ -301,9 +301,9 @@ where
 }
 
 #[derive(Debug)]
-pub struct Gateway {
+pub struct DefaultGateway {
     events: Arc<Mutex<Events>>,
-    heartbeat_handler: HeartbeatHandler,
+    heartbeat_handler: DefaultHeartbeatHandler,
     websocket_send: Arc<
         Mutex<
             SplitSink<
@@ -323,16 +323,16 @@ impl
     GatewayCapable<
         WebSocketStream<MaybeTlsStream<TcpStream>>,
         WebSocketStream<MaybeTlsStream<TcpStream>>,
-        GatewayHandle,
-        HeartbeatHandler,
-    > for Gateway
+        DefaultGatewayHandle,
+        DefaultHeartbeatHandler,
+    > for DefaultGateway
 {
-    fn get_heartbeat_handler(&self) -> &HeartbeatHandler {
+    fn get_heartbeat_handler(&self) -> &DefaultHeartbeatHandler {
         &self.heartbeat_handler
     }
 
     #[allow(clippy::new_ret_no_self)]
-    async fn get_handle(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
+    async fn get_handle(websocket_url: String) -> Result<DefaultGatewayHandle, GatewayError> {
         let mut roots = rustls::RootCertStore::empty();
         for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
         {
@@ -389,9 +389,9 @@ impl
 
         let store = Arc::new(Mutex::new(HashMap::new()));
 
-        let mut gateway = Gateway {
+        let mut gateway = DefaultGateway {
             events: shared_events.clone(),
-            heartbeat_handler: HeartbeatHandler::new(
+            heartbeat_handler: DefaultHeartbeatHandler::new(
                 Duration::from_millis(gateway_hello.heartbeat_interval),
                 shared_websocket_send.clone(),
                 kill_send.subscribe(),
@@ -408,7 +408,7 @@ impl
             gateway.gateway_listen_task().await;
         });
 
-        Ok(GatewayHandle {
+        Ok(DefaultGatewayHandle {
             url: websocket_url.clone(),
             events: shared_events,
             websocket_send: shared_websocket_send.clone(),
@@ -442,7 +442,7 @@ impl
     }
 }
 
-impl Gateway {
+impl DefaultGateway {
     /// The main gateway listener task;
     ///
     /// Can only be stopped by closing the websocket, cannot be made to listen for kill
