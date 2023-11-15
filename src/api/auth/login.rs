@@ -8,6 +8,7 @@ use crate::gateway::{GatewayCapable, GatewayHandleCapable};
 use crate::instance::{ChorusUser, Instance};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema};
+use crate::Gateway;
 
 impl Instance {
     /// Logs into an existing account on the spacebar server.

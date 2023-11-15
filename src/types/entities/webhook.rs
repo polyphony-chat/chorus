@@ -10,7 +10,7 @@ use crate::gateway::Updateable;
 use chorus_macros::{Composite, Updateable};
 
 #[cfg(feature = "client")]
-use crate::types::Composite;
+use crate::{types::Composite, GatewayHandle};
 
 use crate::types::{
     entities::{Guild, User},

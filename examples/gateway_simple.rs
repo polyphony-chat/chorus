@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use chorus::gateway::{GatewayCapable, GatewayHandleCapable};
-use chorus::{self, types::GatewayIdentifyPayload};
+use chorus::{self, types::GatewayIdentifyPayload, Gateway};
 use tokio::time::sleep;
 
 /// This example creates a simple gateway connection and a session with an Identify event

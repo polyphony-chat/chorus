@@ -8,7 +8,7 @@ use std::fmt::Debug;
 use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
-use crate::types::Composite;
+use crate::{types::Composite, GatewayHandle};
 
 #[cfg(feature = "client")]
 use chorus_macros::{Composite, Updateable};

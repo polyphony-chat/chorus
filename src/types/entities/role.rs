@@ -12,7 +12,7 @@ use chorus_macros::{Composite, Updateable};
 use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
-use crate::types::Composite;
+use crate::{types::Composite, GatewayHandle};
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[cfg_attr(feature = "client", derive(Updateable, Composite))]

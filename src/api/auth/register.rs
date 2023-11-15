@@ -12,6 +12,7 @@ use crate::{
     types::LimitType,
     types::RegisterSchema,
 };
+use crate::{Gateway, GatewayHandle};
 
 impl Instance {
     /// Registers a new user on the server.

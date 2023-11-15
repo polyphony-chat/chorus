@@ -4,6 +4,7 @@ use chorus::{
     self,
     gateway::Observer,
     types::{GatewayIdentifyPayload, GatewayReady},
+    Gateway,
 };
 use std::{sync::Arc, time::Duration};
 use tokio::{self, time::sleep};

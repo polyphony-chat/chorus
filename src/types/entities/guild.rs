@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
+use bitflags::bitflags;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -11,12 +12,11 @@ use crate::types::{
     interfaces::WelcomeScreenObject,
     utils::Snowflake,
 };
-use bitflags::bitflags;
 
 use super::PublicUser;
 
 #[cfg(feature = "client")]
-use crate::gateway::Updateable;
+use crate::{gateway::Updateable, GatewayHandle};
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};

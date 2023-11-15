@@ -7,7 +7,7 @@ use crate::types::entities::User;
 use crate::types::Snowflake;
 
 #[cfg(feature = "client")]
-use crate::types::Composite;
+use crate::{types::Composite, GatewayHandle};
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
