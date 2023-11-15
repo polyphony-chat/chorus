@@ -7,7 +7,7 @@ use super::*;
 #[derive(Clone, Debug)]
 pub struct GatewayMessage {
     /// The message we received from the server
-    pub(super) message: tokio_tungstenite::tungstenite::Message,
+    pub(crate) message: tokio_tungstenite::tungstenite::Message,
 }
 
 impl GatewayMessage {

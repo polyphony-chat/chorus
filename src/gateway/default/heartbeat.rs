@@ -5,17 +5,6 @@ use super::*;
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
 const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
 
-pub trait HeartbeatHandlerCapable<S: Sink<Message>> {
-    fn new(
-        heartbeat_interval: Duration,
-        websocket_tx: Arc<Mutex<SplitSink<S, Message>>>,
-        kill_rc: tokio::sync::broadcast::Receiver<()>,
-    ) -> Self;
-
-    fn get_send(&self) -> &Sender<HeartbeatThreadCommunication>;
-    fn get_heartbeat_interval(&self) -> Duration;
-}
-
 /// Handles sending heartbeats to the gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
 #[derive(Debug)]
