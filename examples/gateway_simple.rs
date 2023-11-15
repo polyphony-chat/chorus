@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use chorus::gateway::GatewayCapable;
+use chorus::gateway::{GatewayCapable, GatewayHandleCapable};
 use chorus::{self, gateway::Gateway, types::GatewayIdentifyPayload};
 use tokio::time::sleep;
 

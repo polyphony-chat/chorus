@@ -4,7 +4,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::errors::ChorusResult;
-use crate::gateway::{Gateway, GatewayCapable};
+use crate::gateway::{Gateway, GatewayCapable, GatewayHandleCapable};
 use crate::instance::{ChorusUser, Instance};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema};

@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 pub use login::*;
 pub use register::*;
 
-use crate::gateway::GatewayCapable;
+use crate::gateway::{GatewayCapable, GatewayHandleCapable};
 use crate::{
     errors::ChorusResult,
     gateway::Gateway,

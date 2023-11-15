@@ -1,11 +1,128 @@
 use super::{event::Events, *};
 use crate::types::{self, Composite};
 
+#[async_trait(?Send)]
 pub trait GatewayHandleCapable<R, S>
 where
     R: Stream,
     S: Sink<Message>,
 {
+    /// Sends json to the gateway with an opcode
+    async fn send_json_event(&self, op_code: u8, to_send: serde_json::Value);
+
+    /// Observes an Item `<T: Updateable>`, which will update itself, if new information about this
+    /// item arrives on the corresponding Gateway Thread
+    async fn observe<T: Updateable + Clone + Debug + Composite<T> + Send + Sync>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> Arc<RwLock<T>>;
+
+    /// Recursively observes and updates all updateable fields on the struct T. Returns an object `T`
+    /// with all of its observable fields being observed.
+    async fn observe_and_into_inner<T: Updateable + Clone + Debug + Composite<T>>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> T {
+        let channel = self.observe(object.clone()).await;
+        let object = channel.read().unwrap().clone();
+        object
+    }
+
+    /// Sends an identify event to the gateway
+    async fn send_identify(&self, to_send: types::GatewayIdentifyPayload) {
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        trace!("GW: Sending Identify..");
+
+        self.send_json_event(GATEWAY_IDENTIFY, to_send_value).await;
+    }
+
+    /// Sends an update presence event to the gateway
+    async fn send_update_presence(&self, to_send: types::UpdatePresence) {
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        trace!("GW: Sending Update Presence..");
+
+        self.send_json_event(GATEWAY_UPDATE_PRESENCE, to_send_value)
+            .await;
+    }
+
+    /// Sends a resume event to the gateway
+    async fn send_resume(&self, to_send: types::GatewayResume) {
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        trace!("GW: Sending Resume..");
+
+        self.send_json_event(GATEWAY_RESUME, to_send_value).await;
+    }
+
+    /// Sends a request guild members to the server
+    async fn send_request_guild_members(&self, to_send: types::GatewayRequestGuildMembers) {
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        trace!("GW: Sending Request Guild Members..");
+
+        self.send_json_event(GATEWAY_REQUEST_GUILD_MEMBERS, to_send_value)
+            .await;
+    }
+
+    /// Sends an update voice state to the server
+    async fn send_update_voice_state(&self, to_send: types::UpdateVoiceState) {
+        let to_send_value = serde_json::to_value(to_send).unwrap();
+
+        trace!("GW: Sending Update Voice State..");
+
+        self.send_json_event(GATEWAY_UPDATE_VOICE_STATE, to_send_value)
+            .await;
+    }
+
+    /// Sends a call sync to the server
+    async fn send_call_sync(&self, to_send: types::CallSync) {
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        trace!("GW: Sending Call Sync..");
+
+        self.send_json_event(GATEWAY_CALL_SYNC, to_send_value).await;
+    }
+
+    /// Sends a Lazy Request
+    async fn send_lazy_request(&self, to_send: types::LazyRequest) {
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        trace!("GW: Sending Lazy Request..");
+
+        self.send_json_event(GATEWAY_LAZY_REQUEST, to_send_value)
+            .await;
+    }
+
+    /// Closes the websocket connection and stops all gateway tasks;
+    ///
+    /// Esentially pulls the plug on the gateway, leaving it possible to resume;
+    async fn close(&self);
+}
+
+#[async_trait(?Send)]
+impl
+    GatewayHandleCapable<
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+    > for GatewayHandle
+{
+    async fn send_json_event(&self, op_code: u8, to_send: serde_json::Value) {
+        self.send_json_event(op_code, to_send).await
+    }
+
+    async fn observe<T: Updateable + Clone + Debug + Composite<T>>(
+        &self,
+        object: Arc<RwLock<T>>,
+    ) -> Arc<RwLock<T>> {
+        self.observe(object).await
+    }
+
+    async fn close(&self) {
+        self.kill_send.send(()).unwrap();
+        self.websocket_send.lock().await.close().await.unwrap();
+    }
 }
 
 /// Represents a handle to a Gateway connection. A Gateway connection will create observable
@@ -30,7 +147,6 @@ pub struct GatewayHandle {
 }
 
 impl GatewayHandle {
-    /// Sends json to the gateway with an opcode
     async fn send_json_event(&self, op_code: u8, to_send: serde_json::Value) {
         let gateway_payload = types::GatewaySendPayload {
             op_code,
@@ -89,98 +205,4 @@ impl GatewayHandle {
             wrapped
         }
     }
-
-    /// Recursively observes and updates all updateable fields on the struct T. Returns an object `T`
-    /// with all of its observable fields being observed.
-    pub async fn observe_and_into_inner<T: Updateable + Clone + Debug + Composite<T>>(
-        &self,
-        object: Arc<RwLock<T>>,
-    ) -> T {
-        let channel = self.observe(object.clone()).await;
-        let object = channel.read().unwrap().clone();
-        object
-    }
-
-    /// Sends an identify event to the gateway
-    pub async fn send_identify(&self, to_send: types::GatewayIdentifyPayload) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
-
-        trace!("GW: Sending Identify..");
-
-        self.send_json_event(GATEWAY_IDENTIFY, to_send_value).await;
-    }
-
-    /// Sends a resume event to the gateway
-    pub async fn send_resume(&self, to_send: types::GatewayResume) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
-
-        trace!("GW: Sending Resume..");
-
-        self.send_json_event(GATEWAY_RESUME, to_send_value).await;
-    }
-
-    /// Sends an update presence event to the gateway
-    pub async fn send_update_presence(&self, to_send: types::UpdatePresence) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
-
-        trace!("GW: Sending Update Presence..");
-
-        self.send_json_event(GATEWAY_UPDATE_PRESENCE, to_send_value)
-            .await;
-    }
-
-    /// Sends a request guild members to the server
-    pub async fn send_request_guild_members(&self, to_send: types::GatewayRequestGuildMembers) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
-
-        trace!("GW: Sending Request Guild Members..");
-
-        self.send_json_event(GATEWAY_REQUEST_GUILD_MEMBERS, to_send_value)
-            .await;
-    }
-
-    /// Sends an update voice state to the server
-    pub async fn send_update_voice_state(&self, to_send: types::UpdateVoiceState) {
-        let to_send_value = serde_json::to_value(to_send).unwrap();
-
-        trace!("GW: Sending Update Voice State..");
-
-        self.send_json_event(GATEWAY_UPDATE_VOICE_STATE, to_send_value)
-            .await;
-    }
-
-    /// Sends a call sync to the server
-    pub async fn send_call_sync(&self, to_send: types::CallSync) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
-
-        trace!("GW: Sending Call Sync..");
-
-        self.send_json_event(GATEWAY_CALL_SYNC, to_send_value).await;
-    }
-
-    /// Sends a Lazy Request
-    pub async fn send_lazy_request(&self, to_send: types::LazyRequest) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
-
-        trace!("GW: Sending Lazy Request..");
-
-        self.send_json_event(GATEWAY_LAZY_REQUEST, to_send_value)
-            .await;
-    }
-
-    /// Closes the websocket connection and stops all gateway tasks;
-    ///
-    /// Esentially pulls the plug on the gateway, leaving it possible to resume;
-    pub async fn close(&self) {
-        self.kill_send.send(()).unwrap();
-        self.websocket_send.lock().await.close().await.unwrap();
-    }
-}
-
-impl
-    GatewayHandleCapable<
-        WebSocketStream<MaybeTlsStream<TcpStream>>,
-        WebSocketStream<MaybeTlsStream<TcpStream>>,
-    > for GatewayHandle
-{
 }
