@@ -36,14 +36,11 @@ impl Instance {
     pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
         let limits_information;
         if limited {
-            let limits_configuration =
-                Some(ChorusRequest::get_limits_config(&urls.api).await?.rate);
-            let limits = Some(ChorusRequest::limits_config_to_hashmap(
-                limits_configuration.as_ref().unwrap(),
-            ));
+            let limits_configuration = ChorusRequest::get_limits_config(&urls.api).await?.rate;
+            let limits = ChorusRequest::limits_config_to_hashmap(&limits_configuration);
             limits_information = Some(LimitsInformation {
-                ratelimits: limits.unwrap(),
-                configuration: limits_configuration.unwrap(),
+                ratelimits: limits,
+                configuration: limits_configuration,
             });
         } else {
             limits_information = None;
