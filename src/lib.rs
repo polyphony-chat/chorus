@@ -17,9 +17,9 @@
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 pub type Gateway = DefaultGateway;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 pub type GatewayHandle = DefaultGatewayHandle;
 
 use gateway::DefaultGateway;
