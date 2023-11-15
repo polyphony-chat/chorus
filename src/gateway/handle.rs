@@ -1,6 +1,13 @@
 use super::{event::Events, *};
 use crate::types::{self, Composite};
 
+pub trait GatewayHandleCapable<R, S>
+where
+    R: Stream,
+    S: Sink<Message>,
+{
+}
+
 /// Represents a handle to a Gateway connection. A Gateway connection will create observable
 /// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
 /// implemented types with the trait [`WebSocketEvent`]

@@ -5,10 +5,21 @@ use super::*;
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
 const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
 
+pub trait HeartbeatHandlerCapable<S: Sink<Message>> {
+    fn new(
+        heartbeat_interval: Duration,
+        websocket_tx: Arc<Mutex<SplitSink<S, Message>>>,
+        kill_rc: tokio::sync::broadcast::Receiver<()>,
+    ) -> Self;
+
+    fn get_send(&self) -> &Sender<HeartbeatThreadCommunication>;
+    fn get_heartbeat_interval(&self) -> Duration;
+}
+
 /// Handles sending heartbeats to the gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
 #[derive(Debug)]
-pub(super) struct HeartbeatHandler {
+pub struct HeartbeatHandler {
     /// How ofter heartbeats need to be sent at a minimum
     pub heartbeat_interval: Duration,
     /// The send channel for the heartbeat thread
@@ -17,8 +28,8 @@ pub(super) struct HeartbeatHandler {
     handle: JoinHandle<()>,
 }
 
-impl HeartbeatHandler {
-    pub fn new(
+impl HeartbeatHandlerCapable<WebSocketStream<MaybeTlsStream<TcpStream>>> for HeartbeatHandler {
+    fn new(
         heartbeat_interval: Duration,
         websocket_tx: Arc<
             Mutex<
@@ -50,6 +61,16 @@ impl HeartbeatHandler {
         }
     }
 
+    fn get_send(&self) -> &Sender<HeartbeatThreadCommunication> {
+        &self.send
+    }
+
+    fn get_heartbeat_interval(&self) -> Duration {
+        self.heartbeat_interval
+    }
+}
+
+impl HeartbeatHandler {
     /// The main heartbeat task;
     ///
     /// Can be killed by the kill broadcast;
@@ -141,9 +162,9 @@ impl HeartbeatHandler {
 /// Used for communications between the heartbeat and gateway thread.
 /// Either signifies a sequence number update, a heartbeat ACK or a Heartbeat request by the server
 #[derive(Clone, Copy, Debug)]
-pub(super) struct HeartbeatThreadCommunication {
+pub struct HeartbeatThreadCommunication {
     /// The opcode for the communication we received, if relevant
-    pub(super) op_code: Option<u8>,
+    pub op_code: Option<u8>,
     /// The sequence number we got from discord, if any
-    pub(super) sequence_number: Option<u64>,
+    pub sequence_number: Option<u64>,
 }

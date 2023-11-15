@@ -8,124 +8,25 @@ use crate::types::{
 
 pub type GatewayStore = Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>;
 
-#[derive(Debug)]
-pub struct Gateway {
-    events: Arc<Mutex<Events>>,
-    heartbeat_handler: HeartbeatHandler,
-    websocket_send: Arc<
-        Mutex<
-            SplitSink<
-                WebSocketStream<MaybeTlsStream<TcpStream>>,
-                tokio_tungstenite::tungstenite::Message,
-            >,
-        >,
-    >,
-    websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
-    kill_send: tokio::sync::broadcast::Sender<()>,
-    store: GatewayStore,
-    url: String,
-}
-
+#[allow(clippy::type_complexity)]
 #[async_trait]
-impl
-    GatewayCapable<
-        WebSocketStream<MaybeTlsStream<TcpStream>>,
-        WebSocketStream<MaybeTlsStream<TcpStream>>,
-        GatewayHandle,
-    > for Gateway
+pub trait GatewayCapable<R, S, G, H>
+where
+    R: Stream,
+    S: Sink<Message>,
+    G: GatewayHandleCapable<R, S>,
+    H: HeartbeatHandlerCapable<S> + Send + Sync,
 {
-    #[allow(clippy::new_ret_no_self)]
-    async fn get_handle(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
-        let mut roots = rustls::RootCertStore::empty();
-        for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
-        {
-            roots.add(&rustls::Certificate(cert.0)).unwrap();
-        }
-        let (websocket_stream, _) = match connect_async_tls_with_config(
-            &websocket_url,
-            None,
-            false,
-            Some(Connector::Rustls(
-                rustls::ClientConfig::builder()
-                    .with_safe_defaults()
-                    .with_root_certificates(roots)
-                    .with_no_client_auth()
-                    .into(),
-            )),
-        )
-        .await
-        {
-            Ok(websocket_stream) => websocket_stream,
-            Err(e) => {
-                return Err(GatewayError::CannotConnect {
-                    error: e.to_string(),
-                })
-            }
-        };
-
-        let (websocket_send, mut websocket_receive) = websocket_stream.split();
-
-        let shared_websocket_send = Arc::new(Mutex::new(websocket_send));
-
-        // Create a shared broadcast channel for killing all gateway tasks
-        let (kill_send, mut _kill_receive) = tokio::sync::broadcast::channel::<()>(16);
-
-        // Wait for the first hello and then spawn both tasks so we avoid nested tasks
-        // This automatically spawns the heartbeat task, but from the main thread
-        let msg = websocket_receive.next().await.unwrap().unwrap();
-        let gateway_payload: types::GatewayReceivePayload =
-            serde_json::from_str(msg.to_text().unwrap()).unwrap();
-
-        if gateway_payload.op_code != GATEWAY_HELLO {
-            return Err(GatewayError::NonHelloOnInitiate {
-                opcode: gateway_payload.op_code,
-            });
-        }
-
-        info!("GW: Received Hello");
-
-        let gateway_hello: types::HelloData =
-            serde_json::from_str(gateway_payload.event_data.unwrap().get()).unwrap();
-
-        let events = Events::default();
-        let shared_events = Arc::new(Mutex::new(events));
-
-        let store = Arc::new(Mutex::new(HashMap::new()));
-
-        let mut gateway = Gateway {
-            events: shared_events.clone(),
-            heartbeat_handler: HeartbeatHandler::new(
-                Duration::from_millis(gateway_hello.heartbeat_interval),
-                shared_websocket_send.clone(),
-                kill_send.subscribe(),
-            ),
-            websocket_send: shared_websocket_send.clone(),
-            websocket_receive,
-            kill_send: kill_send.clone(),
-            store: store.clone(),
-            url: websocket_url.clone(),
-        };
-
-        // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
-        task::spawn(async move {
-            gateway.gateway_listen_task().await;
-        });
-
-        Ok(GatewayHandle {
-            url: websocket_url.clone(),
-            events: shared_events,
-            websocket_send: shared_websocket_send.clone(),
-            kill_send: kill_send.clone(),
-            store,
-        })
-    }
-
-    /// Closes the websocket connection and stops all tasks
-    async fn close(&mut self) {
-        self.kill_send.send(()).unwrap();
-        self.websocket_send.lock().await.close().await.unwrap();
-    }
-
+    fn get_events(&self) -> Arc<Mutex<Events>>;
+    fn get_websocket_send(&self) -> Arc<Mutex<SplitSink<S, Message>>>;
+    fn get_store(&self) -> GatewayStore;
+    fn get_url(&self) -> String;
+    fn get_heartbeat_handler(&self) -> &H;
+    /// Returns a Result with a matching impl of [`GatewayHandleCapable`], or a [`GatewayError`]
+    ///
+    /// DOCUMENTME: Explain what this method has to do to be a good get_handle() impl, or link to such documentation
+    async fn get_handle(websocket_url: String) -> Result<G, GatewayError>;
+    async fn close(&mut self);
     /// This handles a message as a websocket event and updates its events along with the events' observers
     async fn handle_message(&mut self, msg: GatewayMessage) {
         if msg.is_empty() {
@@ -147,12 +48,16 @@ impl
 
             self.close().await;
 
-            self.events.lock().await.error.notify(error).await;
+            let events = self.get_events();
+            let events = events.lock().await;
+
+            events.error.notify(error).await;
 
             return;
         }
 
         let gateway_payload = msg.payload().unwrap();
+        println!("gateway payload: {:#?}", &gateway_payload);
 
         // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
         match gateway_payload.op_code {
@@ -169,14 +74,16 @@ impl
                     ($($name:literal => $($path:ident).+ $( $message_type:ty: $update_type:ty)?),*) => {
                         match event_name.as_str() {
                             $($name => {
-                                let event = &mut self.events.lock().await.$($path).+;
+                                let events = self.get_events();
+                                let event = &mut events.lock().await.$($path).+;
                                 let json = gateway_payload.event_data.unwrap().get();
                                 match serde_json::from_str(json) {
                                     Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
                                     Ok(message) => {
                                         $(
                                             let mut message: $message_type = message;
-                                            let store = self.store.lock().await;
+                                            let store = self.get_store();
+                                            let store = store.lock().await;
                                             let id = if message.id().is_some() {
                                                 message.id().unwrap()
                                             } else {
@@ -195,7 +102,7 @@ impl
                                                     let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<$update_type>).clone() };
                                                     drop(inner_object);
                                                     message.set_json(json.to_string());
-                                                    message.set_source_url(self.url.clone());
+                                                    message.set_source_url(self.get_url().clone());
                                                     message.update(downcasted.clone());
                                                 } else {
                                                     warn!("Received {} for {}, but it has been observed to be a different type!", $name, id)
@@ -220,7 +127,9 @@ impl
                                         return;
                                     }
                                     Ok(sessions) => {
-                                        self.events.lock().await.session.replace.notify(
+                                        let events = self.get_events();
+                                        let events = events.lock().await;
+                                        events.session.replace.notify(
                                             types::SessionsReplace {sessions}
                                         ).await;
                                     }
@@ -320,8 +229,9 @@ impl
                     op_code: Some(GATEWAY_HEARTBEAT),
                 };
 
-                self.heartbeat_handler
-                    .send
+                let heartbeat_thread_communicator = self.get_heartbeat_handler().get_send();
+
+                heartbeat_thread_communicator
                     .send(heartbeat_communication)
                     .await
                     .unwrap();
@@ -347,8 +257,10 @@ impl
                     op_code: Some(GATEWAY_HEARTBEAT_ACK),
                 };
 
-                self.heartbeat_handler
-                    .send
+                let heartbeat_handler = self.get_heartbeat_handler();
+                let heartbeat_thread_communicator = heartbeat_handler.get_send();
+
+                heartbeat_thread_communicator
                     .send(heartbeat_communication)
                     .await
                     .unwrap();
@@ -378,12 +290,137 @@ impl
                 op_code: None,
             };
 
-            self.heartbeat_handler
-                .send
+            let heartbeat_handler = self.get_heartbeat_handler();
+            let heartbeat_thread_communicator = heartbeat_handler.get_send();
+            heartbeat_thread_communicator
                 .send(heartbeat_communication)
                 .await
                 .unwrap();
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct Gateway {
+    events: Arc<Mutex<Events>>,
+    heartbeat_handler: HeartbeatHandler,
+    websocket_send: Arc<
+        Mutex<
+            SplitSink<
+                WebSocketStream<MaybeTlsStream<TcpStream>>,
+                tokio_tungstenite::tungstenite::Message,
+            >,
+        >,
+    >,
+    websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
+    kill_send: tokio::sync::broadcast::Sender<()>,
+    store: GatewayStore,
+    url: String,
+}
+
+#[async_trait]
+impl
+    GatewayCapable<
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+        GatewayHandle,
+        HeartbeatHandler,
+    > for Gateway
+{
+    fn get_heartbeat_handler(&self) -> &HeartbeatHandler {
+        &self.heartbeat_handler
+    }
+
+    #[allow(clippy::new_ret_no_self)]
+    async fn get_handle(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
+        let mut roots = rustls::RootCertStore::empty();
+        for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
+        {
+            roots.add(&rustls::Certificate(cert.0)).unwrap();
+        }
+        let (websocket_stream, _) = match connect_async_tls_with_config(
+            &websocket_url,
+            None,
+            false,
+            Some(Connector::Rustls(
+                rustls::ClientConfig::builder()
+                    .with_safe_defaults()
+                    .with_root_certificates(roots)
+                    .with_no_client_auth()
+                    .into(),
+            )),
+        )
+        .await
+        {
+            Ok(websocket_stream) => websocket_stream,
+            Err(e) => {
+                return Err(GatewayError::CannotConnect {
+                    error: e.to_string(),
+                })
+            }
+        };
+
+        let (websocket_send, mut websocket_receive) = websocket_stream.split();
+
+        let shared_websocket_send = Arc::new(Mutex::new(websocket_send));
+
+        // Create a shared broadcast channel for killing all gateway tasks
+        let (kill_send, mut _kill_receive) = tokio::sync::broadcast::channel::<()>(16);
+
+        // Wait for the first hello and then spawn both tasks so we avoid nested tasks
+        // This automatically spawns the heartbeat task, but from the main thread
+        let msg = websocket_receive.next().await.unwrap().unwrap();
+        let gateway_payload: types::GatewayReceivePayload =
+            serde_json::from_str(msg.to_text().unwrap()).unwrap();
+
+        if gateway_payload.op_code != GATEWAY_HELLO {
+            return Err(GatewayError::NonHelloOnInitiate {
+                opcode: gateway_payload.op_code,
+            });
+        }
+
+        info!("GW: Received Hello");
+
+        let gateway_hello: types::HelloData =
+            serde_json::from_str(gateway_payload.event_data.unwrap().get()).unwrap();
+
+        let events = Events::default();
+        let shared_events = Arc::new(Mutex::new(events));
+
+        let store = Arc::new(Mutex::new(HashMap::new()));
+
+        let mut gateway = Gateway {
+            events: shared_events.clone(),
+            heartbeat_handler: HeartbeatHandler::new(
+                Duration::from_millis(gateway_hello.heartbeat_interval),
+                shared_websocket_send.clone(),
+                kill_send.subscribe(),
+            ),
+            websocket_send: shared_websocket_send.clone(),
+            websocket_receive,
+            kill_send: kill_send.clone(),
+            store: store.clone(),
+            url: websocket_url.clone(),
+        };
+
+        // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
+        task::spawn(async move {
+            gateway.gateway_listen_task().await;
+        });
+
+        Ok(GatewayHandle {
+            url: websocket_url.clone(),
+            events: shared_events,
+            websocket_send: shared_websocket_send.clone(),
+            kill_send: kill_send.clone(),
+            store,
+        })
+    }
+
+    /// Closes the websocket connection and stops all tasks
+    async fn close(&mut self) {
+        self.kill_send.send(()).unwrap();
+        self.websocket_send.lock().await.close().await.unwrap();
     }
 
     fn get_events(&self) -> Arc<Mutex<Events>> {
@@ -415,7 +452,9 @@ impl Gateway {
 
             // This if chain can be much better but if let is unstable on stable rust
             if let Some(Ok(message)) = msg {
-                self.handle_message(GatewayMessage::from_tungstenite_message(message));
+                let _ = self
+                    .handle_message(GatewayMessage::from_tungstenite_message(message))
+                    .await;
                 continue;
             }
 
