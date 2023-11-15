@@ -17,11 +17,13 @@
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
 
-pub type Gateway = WebsocketGateway;
-pub type GatewayHandle = WebsocketGatewayHandle;
+#[cfg(not(target_arch = "wasm32"))]
+pub type Gateway = DefaultGateway;
+#[cfg(not(target_arch = "wasm32"))]
+pub type GatewayHandle = DefaultGatewayHandle;
 
-use gateway::DefaultGateway as WebsocketGateway;
-use gateway::DefaultGatewayHandle as WebsocketGatewayHandle;
+use gateway::DefaultGateway;
+use gateway::DefaultGatewayHandle;
 use url::{ParseError, Url};
 
 #[cfg(feature = "client")]
