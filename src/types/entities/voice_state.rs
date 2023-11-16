@@ -18,10 +18,13 @@ use crate::types::{
     utils::Snowflake,
 };
 
+/// The VoiceState struct. Note, that Discord does not have an `id` field for this, whereas Spacebar
+/// does.
+///
 /// See <https://docs.spacebar.chat/routes/#cmp--schemas-voicestate>
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
-#[cfg_attr(feature = "client", derive(Updateable, Composite))]
+#[cfg_attr(feature = "client", derive(Composite))]
 pub struct VoiceState {
     pub guild_id: Option<Snowflake>,
     pub guild: Option<Guild>,
@@ -39,6 +42,15 @@ pub struct VoiceState {
     pub self_video: bool,
     pub suppress: bool,
     pub request_to_speak_timestamp: Option<DateTime<Utc>>,
-    // FIXME: This is a Spacebar only field and is not sent on DDC, see [#430](https://github.com/polyphony-chat/chorus/issues/430)
-    pub id: Snowflake,
+    pub id: Option<Snowflake>, // Only exists on Spacebar
+}
+
+impl Updateable for VoiceState {
+    fn id(&self) -> Snowflake {
+        if let Some(id) = self.id {
+            id // ID exists: Only the case for Spacebar Server impls
+        } else {
+            self.user_id // ID doesn't exist: Discord does not have the ID field - ID is void
+        }
+    }
 }
