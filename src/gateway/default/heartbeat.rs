@@ -2,9 +2,6 @@ use crate::types;
 
 use super::*;
 
-/// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
-const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
-
 /// Handles sending heartbeats to the gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
 #[derive(Debug)]
