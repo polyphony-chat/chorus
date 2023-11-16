@@ -128,7 +128,7 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 
     /// Notifies the observers of the GatewayEvent.
-    async fn notify(&self, new_event_data: T) {
+    pub(crate) async fn notify(&self, new_event_data: T) {
         for observer in &self.observers {
             observer.update(&new_event_data).await;
         }

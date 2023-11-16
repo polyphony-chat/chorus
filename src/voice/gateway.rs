@@ -2,7 +2,6 @@ use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use log::{debug, info, trace, warn};
-use native_tls::TlsConnector;
 use serde_json::json;
 use std::sync::Arc;
 use std::time::Duration;
@@ -16,7 +15,7 @@ use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 
 use crate::errors::VoiceGatewayError;
-use crate::gateway::{GatewayEvent, HEARTBEAT_ACK_TIMEOUT};
+use crate::gateway::{heartbeat::HEARTBEAT_ACK_TIMEOUT, GatewayEvent};
 use crate::types::{
     self, SelectProtocol, Speaking, VoiceGatewayReceivePayload, VoiceGatewaySendPayload,
     VoiceIdentify, WebSocketEvent, VOICE_BACKEND_VERSION, VOICE_CLIENT_CONNECT_FLAGS,
@@ -203,12 +202,21 @@ impl VoiceGateway {
         let processed_url = format!("wss://{}/?v=7", websocket_url);
         trace!("Created voice socket url: {}", processed_url.clone());
 
+        let mut roots = rustls::RootCertStore::empty();
+        for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
+        {
+            roots.add(&rustls::Certificate(cert.0)).unwrap();
+        }
         let (websocket_stream, _) = match connect_async_tls_with_config(
             &processed_url,
             None,
             false,
-            Some(Connector::NativeTls(
-                TlsConnector::builder().build().unwrap(),
+            Some(Connector::Rustls(
+                rustls::ClientConfig::builder()
+                    .with_safe_defaults()
+                    .with_root_certificates(roots)
+                    .with_no_client_auth()
+                    .into(),
             )),
         )
         .await
