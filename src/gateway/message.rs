@@ -1,6 +1,55 @@
+use std::str::Utf8Error;
+
 use crate::types;
 
 use super::*;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum GatewayMessageData {
+    Text(String),
+    Binary(Vec<u8>),
+}
+
+impl From<tokio_tungstenite::tungstenite::Message> for GatewayMessageData {
+    fn from(value: tokio_tungstenite::tungstenite::Message) -> Self {
+        match value {
+            Message::Text(string) => Self::Text(string),
+            Message::Binary(data) | Message::Ping(data) | Message::Pong(data) => Self::Binary(data),
+            Message::Close(data) => {
+                if let Some(data) = data {
+                    Self::Text(data.code.to_string())
+                } else {
+                    Self::Text(String::new())
+                }
+            }
+            Message::Frame(data) => Self::Binary(data.into_data()),
+        }
+    }
+}
+
+impl From<ws_stream_wasm::WsMessage> for GatewayMessageData {
+    fn from(value: ws_stream_wasm::WsMessage) -> Self {
+        match value {
+            ws_stream_wasm::WsMessage::Text(string) => Self::Text(string),
+            ws_stream_wasm::WsMessage::Binary(data) => Self::Binary(data),
+        }
+    }
+}
+
+impl From<String> for GatewayMessageData {
+    fn from(value: String) -> Self {
+        Self::Text(value)
+    }
+}
+
+impl GatewayMessageData {
+    pub fn to_text(&self) -> Result<&str, Utf8Error> {
+        match *self {
+            GatewayMessageData::Text(ref text) => Ok(text),
+            GatewayMessageData::Binary(ref data) => Ok(std::str::from_utf8(data)?),
+        }
+    }
+}
 
 /// Represents a messsage received from the gateway. This will be either a [types::GatewayReceivePayload], containing events, or a [GatewayError].
 /// This struct is used internally when handling messages.
