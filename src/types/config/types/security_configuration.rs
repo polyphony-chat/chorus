@@ -1,4 +1,5 @@
 use base64::Engine;
+use rand::Fill;
 use serde::{Deserialize, Serialize};
 
 use crate::types::config::types::subconfigs::security::{
@@ -22,10 +23,15 @@ pub struct SecurityConfiguration {
 
 impl Default for SecurityConfiguration {
     fn default() -> Self {
+        let mut rng: rand::rngs::ThreadRng = rand::thread_rng();
         let mut req_sig: [u8; 32] = [0; 32];
-        let _ = openssl::rand::rand_bytes(&mut req_sig);
         let mut jwt_secret: [u8; 256] = [0; 256];
-        let _ = openssl::rand::rand_bytes(&mut jwt_secret);
+        req_sig
+            .try_fill(&mut rng)
+            .expect("Unable to generate cryptographically safe secrets.");
+        jwt_secret
+            .try_fill(&mut rng)
+            .expect("Unable to generate cryptographically safe secrets.");
         Self {
             captcha: Default::default(),
             two_factor: Default::default(),

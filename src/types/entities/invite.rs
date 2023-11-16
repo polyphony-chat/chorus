@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::{Snowflake, WelcomeScreenObject};
 
 use super::guild::GuildScheduledEvent;
-use super::{Application, Channel, GuildMember, User};
+use super::{Application, Channel, GuildMember, NSFWLevel, User};
 
 /// Represents a code that when used, adds a user to a guild or group DM channel, or creates a relationship between two users.
 /// See <https://discord-userdoccers.vercel.app/resources/invite#invite-object>
@@ -54,17 +54,6 @@ pub struct InviteGuild {
     pub nsfw_deprecated: Option<bool>,
     pub nsfw_level: NSFWLevel,
     pub welcome_screen: Option<WelcomeScreenObject>,
-}
-
-/// See <https://discord-userdoccers.vercel.app/resources/guild#nsfw-level> for an explanation on what
-/// the levels mean.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum NSFWLevel {
-    Default = 0,
-    Explicit = 1,
-    Safe = 2,
-    AgeRestricted = 3,
 }
 
 /// See <https://discord-userdoccers.vercel.app/resources/invite#invite-stage-instance-object>

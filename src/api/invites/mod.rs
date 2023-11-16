@@ -28,11 +28,11 @@ impl ChorusUser {
                 .header("Authorization", self.token()),
             limit_type: LimitType::Global,
         };
-        if session_id.is_some() {
+        if let Some(session_id) = session_id {
             request.request = request
                 .request
                 .header("Content-Type", "application/json")
-                .body(to_string(session_id.unwrap()).unwrap());
+                .body(to_string(session_id).unwrap());
         }
         request.deserialize_response::<Invite>(self).await
     }
