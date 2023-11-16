@@ -8,6 +8,8 @@ pub mod wasm;
 #[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 pub use default::*;
 pub use message::*;
+use safina_timer::sleep_until;
+use tokio::task::JoinHandle;
 #[cfg(all(target_arch = "wasm32", feature = "client"))]
 pub use wasm::*;
 
@@ -22,7 +24,7 @@ use crate::types::{
 use std::any::Any;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use std::time::Duration;
+use std::time::{self, Duration, Instant};
 
 use async_trait::async_trait;
 use futures_util::stream::SplitSink;
@@ -154,7 +156,7 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
 pub trait GatewayCapable<R, S, G, H>
 where
     R: Stream,
-    S: Sink<Message>,
+    S: Sink<Message> + Send + 'static,
     G: GatewayHandleCapable<R, S>,
     H: HeartbeatHandlerCapable<S> + Send + Sync,
 {
@@ -441,6 +443,18 @@ where
     }
 }
 
+/// Handles sending heartbeats to the gateway in another thread
+#[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
+#[derive(Debug)]
+pub struct HeartbeatHandler {
+    /// How ofter heartbeats need to be sent at a minimum
+    pub heartbeat_interval: Duration,
+    /// The send channel for the heartbeat thread
+    pub send: Sender<HeartbeatThreadCommunication>,
+    /// The handle of the thread
+    handle: JoinHandle<()>,
+}
+
 #[async_trait(?Send)]
 pub trait GatewayHandleCapable<R, S>
 where
@@ -541,7 +555,8 @@ where
     async fn close(&self);
 }
 
-pub trait HeartbeatHandlerCapable<S: Sink<Message>> {
+#[async_trait]
+pub trait HeartbeatHandlerCapable<S: Sink<Message> + Send + 'static> {
     fn new(
         heartbeat_interval: Duration,
         websocket_tx: Arc<Mutex<SplitSink<S, Message>>>,
@@ -550,4 +565,80 @@ pub trait HeartbeatHandlerCapable<S: Sink<Message>> {
 
     fn get_send(&self) -> &Sender<HeartbeatThreadCommunication>;
     fn get_heartbeat_interval(&self) -> Duration;
+    async fn heartbeat_task(
+        websocket_tx: Arc<Mutex<SplitSink<S, Message>>>,
+        heartbeat_interval: Duration,
+        mut receive: tokio::sync::mpsc::Receiver<HeartbeatThreadCommunication>,
+        mut kill_receive: tokio::sync::broadcast::Receiver<()>,
+    ) {
+        let mut last_heartbeat_timestamp: Instant = time::Instant::now();
+        let mut last_heartbeat_acknowledged = true;
+        let mut last_seq_number: Option<u64> = None;
+        safina_timer::start_timer_thread();
+
+        loop {
+            if kill_receive.try_recv().is_ok() {
+                trace!("GW: Closing heartbeat task");
+                break;
+            }
+
+            let timeout = if last_heartbeat_acknowledged {
+                heartbeat_interval
+            } else {
+                // If the server hasn't acknowledged our heartbeat we should resend it
+                Duration::from_millis(HEARTBEAT_ACK_TIMEOUT)
+            };
+
+            let mut should_send = false;
+
+            tokio::select! {
+                () = sleep_until(last_heartbeat_timestamp + timeout) => {
+                    should_send = true;
+                }
+                Some(communication) = receive.recv() => {
+                    // If we received a seq number update, use that as the last seq number
+                    if communication.sequence_number.is_some() {
+                        last_seq_number = communication.sequence_number;
+                    }
+
+                    if let Some(op_code) = communication.op_code {
+                        match op_code {
+                            GATEWAY_HEARTBEAT => {
+                                // As per the api docs, if the server sends us a Heartbeat, that means we need to respond with a heartbeat immediately
+                                should_send = true;
+                            }
+                            GATEWAY_HEARTBEAT_ACK => {
+                                // The server received our heartbeat
+                                last_heartbeat_acknowledged = true;
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+
+            if should_send {
+                trace!("GW: Sending Heartbeat..");
+
+                let heartbeat = types::GatewayHeartbeat {
+                    op: GATEWAY_HEARTBEAT,
+                    d: last_seq_number,
+                };
+
+                let heartbeat_json = serde_json::to_string(&heartbeat).unwrap();
+
+                let msg = tokio_tungstenite::tungstenite::Message::text(heartbeat_json);
+
+                let send_result = websocket_tx.lock().await.send(msg).await;
+                if send_result.is_err() {
+                    // We couldn't send, the websocket is broken
+                    warn!("GW: Couldnt send heartbeat, websocket seems broken");
+                    break;
+                }
+
+                last_heartbeat_timestamp = time::Instant::now();
+                last_heartbeat_acknowledged = false;
+            }
+        }
+    }
 }

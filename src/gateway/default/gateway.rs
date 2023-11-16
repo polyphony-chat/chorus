@@ -7,7 +7,7 @@ use crate::types::{self, WebSocketEvent};
 #[derive(Debug)]
 pub struct DefaultGateway {
     events: Arc<Mutex<Events>>,
-    heartbeat_handler: DefaultHeartbeatHandler,
+    heartbeat_handler: HeartbeatHandler,
     websocket_send: Arc<
         Mutex<
             SplitSink<
@@ -28,10 +28,10 @@ impl
         WebSocketStream<MaybeTlsStream<TcpStream>>,
         WebSocketStream<MaybeTlsStream<TcpStream>>,
         DefaultGatewayHandle,
-        DefaultHeartbeatHandler,
+        HeartbeatHandler,
     > for DefaultGateway
 {
-    fn get_heartbeat_handler(&self) -> &DefaultHeartbeatHandler {
+    fn get_heartbeat_handler(&self) -> &HeartbeatHandler {
         &self.heartbeat_handler
     }
 
@@ -95,7 +95,7 @@ impl
 
         let mut gateway = DefaultGateway {
             events: shared_events.clone(),
-            heartbeat_handler: DefaultHeartbeatHandler::new(
+            heartbeat_handler: HeartbeatHandler::new(
                 Duration::from_millis(gateway_hello.heartbeat_interval),
                 shared_websocket_send.clone(),
                 kill_send.subscribe(),

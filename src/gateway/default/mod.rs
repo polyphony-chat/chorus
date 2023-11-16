@@ -5,7 +5,6 @@ pub mod heartbeat;
 use super::*;
 pub use gateway::*;
 pub use handle::*;
-use heartbeat::*;
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::errors::GatewayError;
@@ -15,18 +14,15 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use tokio::time::sleep_until;
 
 use futures_util::stream::SplitSink;
 use futures_util::stream::SplitStream;
-use log::{info, trace, warn};
+use log::{info, warn};
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 use tokio::task;
 use tokio::task::JoinHandle;
-use tokio::time;
-use tokio::time::Instant;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 
