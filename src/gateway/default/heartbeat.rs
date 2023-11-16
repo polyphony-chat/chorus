@@ -146,13 +146,3 @@ impl DefaultHeartbeatHandler {
         }
     }
 }
-
-/// Used for communications between the heartbeat and gateway thread.
-/// Either signifies a sequence number update, a heartbeat ACK or a Heartbeat request by the server
-#[derive(Clone, Copy, Debug)]
-pub struct HeartbeatThreadCommunication {
-    /// The opcode for the communication we received, if relevant
-    pub op_code: Option<u8>,
-    /// The sequence number we got from discord, if any
-    pub sequence_number: Option<u64>,
-}

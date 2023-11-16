@@ -1,13 +1,11 @@
 pub mod gateway;
 pub mod handle;
 pub mod heartbeat;
-pub mod message;
 
 use super::*;
 pub use gateway::*;
 pub use handle::*;
 use heartbeat::*;
-pub use message::*;
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::errors::GatewayError;

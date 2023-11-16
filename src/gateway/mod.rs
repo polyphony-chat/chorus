@@ -1,11 +1,13 @@
 #[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 pub mod default;
 pub mod events;
+pub mod message;
 #[cfg(all(target_arch = "wasm32", feature = "client"))]
 pub mod wasm;
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 pub use default::*;
+pub use message::*;
 #[cfg(all(target_arch = "wasm32", feature = "client"))]
 pub use wasm::*;
 
@@ -23,7 +25,6 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use default::heartbeat::HeartbeatThreadCommunication;
 use futures_util::stream::SplitSink;
 use futures_util::Sink;
 use futures_util::{SinkExt, Stream};
@@ -86,6 +87,16 @@ const GATEWAY_CALL_SYNC: u8 = 13;
 const GATEWAY_LAZY_REQUEST: u8 = 14;
 
 pub type ObservableObject = dyn Send + Sync + Any;
+
+/// Used for communications between the heartbeat and gateway thread.
+/// Either signifies a sequence number update, a heartbeat ACK or a Heartbeat request by the server
+#[derive(Clone, Copy, Debug)]
+pub struct HeartbeatThreadCommunication {
+    /// The opcode for the communication we received, if relevant
+    pub op_code: Option<u8>,
+    /// The sequence number we got from discord, if any
+    pub sequence_number: Option<u64>,
+}
 
 /// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.
 pub trait Updateable: 'static + Send + Sync {
