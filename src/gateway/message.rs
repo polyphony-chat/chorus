@@ -1,9 +1,12 @@
+use std::fmt::Display;
 use std::str::Utf8Error;
 
 use crate::types;
 
 use super::*;
 
+/// An Adapter type for [tokio_tungstenite::tungstenite::Message] and [ws_stream_wasm::WsMessage].
+/// Represents a message received from the gateway.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GatewayMessageData {
     Text(String),
@@ -43,10 +46,40 @@ impl From<String> for GatewayMessageData {
 }
 
 impl GatewayMessageData {
+    /// Converts self to a string slice, if possible
     pub fn to_text(&self) -> Result<&str, Utf8Error> {
         match *self {
             GatewayMessageData::Text(ref text) => Ok(text),
             GatewayMessageData::Binary(ref data) => Ok(std::str::from_utf8(data)?),
+        }
+    }
+
+    /// Returns the length of the message
+    pub fn len(&self) -> usize {
+        match *self {
+            Self::Text(ref string) => string.len(),
+            Self::Binary(ref data) => data.len(),
+        }
+    }
+
+    /// Returns true if the WebSocket message is text.
+    pub fn is_text(&self) -> bool {
+        matches!(*self, Self::Binary(_))
+    }
+
+    /// Returns true if the WebSocket message has no content.
+    /// For example, if the other side of the connection sent an empty string.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+}
+
+impl Display for GatewayMessageData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Ok(string) = self.to_text() {
+            write!(f, "{}", string)
+        } else {
+            write!(f, "Binary Data<length={}>", self.len())
         }
     }
 }
@@ -56,13 +89,21 @@ impl GatewayMessageData {
 #[derive(Clone, Debug)]
 pub struct GatewayMessage {
     /// The message we received from the server
-    pub(crate) message: tokio_tungstenite::tungstenite::Message,
+    pub(crate) message: GatewayMessageData,
 }
 
 impl GatewayMessage {
     /// Creates self from a tungstenite message
     pub fn from_tungstenite_message(message: tokio_tungstenite::tungstenite::Message) -> Self {
-        Self { message }
+        Self {
+            message: GatewayMessageData::from(message),
+        }
+    }
+
+    pub fn from_ws_stream_wasm_message(message: ws_stream_wasm::WsMessage) -> Self {
+        Self {
+            message: GatewayMessageData::from(message),
+        }
     }
 
     /// Parses the message as an error;
@@ -108,7 +149,7 @@ impl GatewayMessage {
     /// Returns whether or not the message is a payload
     pub fn is_payload(&self) -> bool {
         // close messages are never payloads, payloads are only text messages
-        if self.message.is_close() | !self.message.is_text() {
+        if !self.message.is_text() {
             return false;
         }
 
