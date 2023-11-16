@@ -1,4 +1,7 @@
+#[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 pub mod default;
+pub mod events;
+#[cfg(all(target_arch = "wasm32", feature = "client"))]
 pub mod wasm;
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
@@ -6,7 +9,7 @@ pub use default::*;
 #[cfg(all(target_arch = "wasm32", feature = "client"))]
 pub use wasm::*;
 
-use self::event::Events;
+use self::events::Events;
 use crate::errors::GatewayError;
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
@@ -30,6 +33,9 @@ use tokio::sync::Mutex;
 use tokio_tungstenite::tungstenite::Message;
 
 pub type GatewayStore = Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>;
+
+/// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
+const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
 
 // Gateway opcodes
 /// Opcode received when the server dispatches a [crate::types::WebSocketEvent]

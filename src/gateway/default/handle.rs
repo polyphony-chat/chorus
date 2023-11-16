@@ -1,4 +1,4 @@
-use super::{event::Events, *};
+use super::{events::Events, *};
 use crate::types::{self, Composite};
 
 #[async_trait(?Send)]
