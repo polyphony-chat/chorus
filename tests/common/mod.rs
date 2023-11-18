@@ -43,7 +43,7 @@ impl TestBundle {
             limits: self.user.limits.clone(),
             settings: self.user.settings.clone(),
             object: self.user.object.clone(),
-            gateway: DefaultGateway::get_handle(self.instance.urls.wss.clone())
+            gateway: DefaultGateway::spawn(self.instance.urls.wss.clone())
                 .await
                 .unwrap(),
         }

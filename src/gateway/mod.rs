@@ -171,9 +171,8 @@ where
     /// Returns a Result with a matching impl of [`GatewayHandleCapable`], or a [`GatewayError`]
     ///
     /// DOCUMENTME: Explain what this method has to do to be a good get_handle() impl, or link to such documentation
-    async fn get_handle<G: GatewayHandleCapable<T, S>>(
-        websocket_url: String,
-    ) -> Result<G, GatewayError>;
+    async fn spawn<G: GatewayHandleCapable<T, S>>(websocket_url: String)
+        -> Result<G, GatewayError>;
     async fn close(&mut self);
     /// This handles a message as a websocket event and updates its events along with the events' observers
     async fn handle_message(&mut self, msg: GatewayMessage) {

@@ -46,7 +46,7 @@ impl Instance {
         let user_object = self.get_user(token.clone(), None).await.unwrap();
         let settings = ChorusUser::get_settings(&token, &self.urls.api.clone(), &mut self).await?;
         let mut identify = GatewayIdentifyPayload::common();
-        let gateway: GatewayHandle = Gateway::get_handle(self.urls.wss.clone()).await.unwrap();
+        let gateway: GatewayHandle = Gateway::spawn(self.urls.wss.clone()).await.unwrap();
         identify.token = token.clone();
         gateway.send_identify(identify).await;
         let user = ChorusUser::new(

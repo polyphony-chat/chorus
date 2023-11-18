@@ -12,7 +12,7 @@ async fn main() {
     let websocket_url_spacebar = "wss://gateway.old.server.spacebar.chat/".to_string();
 
     // Initiate the gateway connection, starting a listener in one thread and a heartbeat handler in another
-    let gateway: GatewayHandle = Gateway::get_handle(websocket_url_spacebar).await.unwrap();
+    let gateway: GatewayHandle = Gateway::spawn(websocket_url_spacebar).await.unwrap();
 
     // At this point, we are connected to the server and are sending heartbeats, however we still haven't authenticated
 

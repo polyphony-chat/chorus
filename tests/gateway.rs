@@ -10,7 +10,7 @@ use chorus::{gateway::*, GatewayHandle};
 async fn test_gateway_establish() {
     let bundle = common::setup().await;
 
-    let _: GatewayHandle = DefaultGateway::get_handle(bundle.urls.wss.clone())
+    let _: GatewayHandle = DefaultGateway::spawn(bundle.urls.wss.clone())
         .await
         .unwrap();
     common::teardown(bundle).await
@@ -21,7 +21,7 @@ async fn test_gateway_establish() {
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
-    let gateway: GatewayHandle = DefaultGateway::get_handle(bundle.urls.wss.clone())
+    let gateway: GatewayHandle = DefaultGateway::spawn(bundle.urls.wss.clone())
         .await
         .unwrap();
 

@@ -34,9 +34,7 @@ impl
         &self.heartbeat_handler
     }
 
-    async fn get_handle<
-        G: GatewayHandleCapable<Message, WebSocketStream<MaybeTlsStream<TcpStream>>>,
-    >(
+    async fn spawn<G: GatewayHandleCapable<Message, WebSocketStream<MaybeTlsStream<TcpStream>>>>(
         websocket_url: String,
     ) -> Result<G, GatewayError> {
         let mut roots = rustls::RootCertStore::empty();

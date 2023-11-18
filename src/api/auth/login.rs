@@ -37,8 +37,7 @@ impl Instance {
             self.limits_information.as_mut().unwrap().ratelimits = shell.limits.clone().unwrap();
         }
         let mut identify = GatewayIdentifyPayload::common();
-        let gateway: DefaultGatewayHandle =
-            Gateway::get_handle(self.urls.wss.clone()).await.unwrap();
+        let gateway: DefaultGatewayHandle = Gateway::spawn(self.urls.wss.clone()).await.unwrap();
         identify.token = login_result.token.clone();
         gateway.send_identify(identify).await;
         let user = ChorusUser::new(

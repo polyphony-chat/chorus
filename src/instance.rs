@@ -135,7 +135,7 @@ impl ChorusUser {
         let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
-        let gateway = Gateway::get_handle(wss_url).await.unwrap();
+        let gateway = Gateway::spawn(wss_url).await.unwrap();
         ChorusUser {
             token,
             belongs_to: instance.clone(),
