@@ -19,11 +19,21 @@ compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 pub type Gateway = DefaultGateway;
+#[cfg(all(target_arch = "wasm32", feature = "client"))]
+pub type Gateway = WasmGateway;
 #[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 pub type GatewayHandle = DefaultGatewayHandle;
+#[cfg(all(target_arch = "wasm32", feature = "client"))]
+pub type GatewayHandle = WasmGatewayHandle;
 
+#[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 use gateway::DefaultGateway;
+#[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 use gateway::DefaultGatewayHandle;
+#[cfg(all(target_arch = "wasm32", feature = "client"))]
+use gateway::WasmGateway;
+#[cfg(all(target_arch = "wasm32", feature = "client"))]
+use gateway::WasmGatewayHandle;
 use url::{ParseError, Url};
 
 #[cfg(feature = "client")]
