@@ -157,7 +157,6 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 }
 
-#[allow(clippy::type_complexity)]
 #[async_trait]
 pub trait GatewayCapable<T, S>
 where
