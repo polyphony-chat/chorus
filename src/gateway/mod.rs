@@ -91,7 +91,6 @@ pub trait MessageCapable: From<tokio_tungstenite::tungstenite::Message> {
     fn as_string(&self) -> Option<String>;
     fn as_bytes(&self) -> Option<Vec<u8>>;
     fn is_empty(&self) -> bool;
-    fn is_error(&self) -> bool;
 }
 
 pub type ObservableObject = dyn Send + Sync + Any;
