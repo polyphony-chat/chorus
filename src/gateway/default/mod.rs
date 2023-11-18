@@ -48,6 +48,10 @@ impl crate::gateway::MessageCapable for tokio_tungstenite::tungstenite::Message 
             _ => None,
         }
     }
+
+    fn from_str(s: &str) -> Self {
+        Message::Text(s.to_string())
+    }
 }
 
 #[cfg(test)]

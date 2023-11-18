@@ -87,10 +87,11 @@ const GATEWAY_CALL_SYNC: u8 = 13;
 /// See [types::LazyRequest]
 const GATEWAY_LAZY_REQUEST: u8 = 14;
 
-pub trait MessageCapable: From<tokio_tungstenite::tungstenite::Message> {
+pub trait MessageCapable {
     fn as_string(&self) -> Option<String>;
     fn as_bytes(&self) -> Option<Vec<u8>>;
     fn is_empty(&self) -> bool;
+    fn from_str(s: &str) -> Self;
 }
 
 pub type ObservableObject = dyn Send + Sync + Any;
@@ -523,7 +524,11 @@ impl HeartbeatHandler {
 
                 let msg = tokio_tungstenite::tungstenite::Message::text(heartbeat_json);
 
-                let send_result = websocket_tx.lock().await.send(msg.into()).await;
+                let send_result = websocket_tx
+                    .lock()
+                    .await
+                    .send(MessageCapable::from_str(msg.to_string().as_str()))
+                    .await;
                 if send_result.is_err() {
                     // We couldn't send, the websocket is broken
                     warn!("GW: Couldnt send heartbeat, websocket seems broken");
