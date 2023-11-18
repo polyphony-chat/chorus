@@ -35,15 +35,18 @@ impl crate::gateway::MessageCapable for tokio_tungstenite::tungstenite::Message 
     }
 
     fn is_empty(&self) -> bool {
-        todo!()
-    }
-
-    fn is_error(&self) -> bool {
-        todo!()
+        match self {
+            Message::Text(text) => text.is_empty(),
+            Message::Binary(bytes) => bytes.is_empty(),
+            _ => false,
+        }
     }
 
     fn as_bytes(&self) -> Option<Vec<u8>> {
-        todo!()
+        match self {
+            Message::Binary(bytes) => Some(bytes.clone()),
+            _ => None,
+        }
     }
 }
 
