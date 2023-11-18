@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chorus::gateway::GatewayCapable;
+use chorus::gateway::{GatewayCapable, GatewayHandleCapable};
 use chorus::GatewayHandle;
 use chorus::{
     self,
