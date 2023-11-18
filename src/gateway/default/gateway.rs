@@ -1,4 +1,5 @@
 use futures_util::StreamExt;
+use tokio_tungstenite::tungstenite::Message;
 
 use super::events::Events;
 use super::*;
@@ -25,18 +26,19 @@ pub struct DefaultGateway {
 #[async_trait]
 impl
     GatewayCapable<
+        tokio_tungstenite::tungstenite::Message,
         WebSocketStream<MaybeTlsStream<TcpStream>>,
-        WebSocketStream<MaybeTlsStream<TcpStream>>,
-        DefaultGatewayHandle,
-        HeartbeatHandler,
     > for DefaultGateway
 {
     fn get_heartbeat_handler(&self) -> &HeartbeatHandler {
         &self.heartbeat_handler
     }
 
-    #[allow(clippy::new_ret_no_self)]
-    async fn get_handle(websocket_url: String) -> Result<DefaultGatewayHandle, GatewayError> {
+    async fn get_handle<
+        G: GatewayHandleCapable<Message, WebSocketStream<MaybeTlsStream<TcpStream>>>,
+    >(
+        websocket_url: String,
+    ) -> Result<G, GatewayError> {
         let mut roots = rustls::RootCertStore::empty();
         for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
         {
@@ -112,13 +114,13 @@ impl
             gateway.gateway_listen_task().await;
         });
 
-        Ok(DefaultGatewayHandle {
-            url: websocket_url.clone(),
-            events: shared_events,
-            websocket_send: shared_websocket_send.clone(),
-            kill_send: kill_send.clone(),
+        Ok(G::new(
+            websocket_url.clone(),
+            shared_events,
+            shared_websocket_send.clone(),
+            kill_send.clone(),
             store,
-        })
+        ))
     }
 
     /// Closes the websocket connection and stops all tasks

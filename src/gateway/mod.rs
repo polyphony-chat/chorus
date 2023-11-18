@@ -29,11 +29,10 @@ use std::time::{self, Duration, Instant};
 use async_trait::async_trait;
 use futures_util::stream::SplitSink;
 use futures_util::Sink;
-use futures_util::{SinkExt, Stream};
+use futures_util::SinkExt;
 use log::{info, trace, warn};
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
-use tokio_tungstenite::tungstenite::Message;
 
 pub type GatewayStore = Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>;
 
@@ -87,6 +86,13 @@ const GATEWAY_CALL_SYNC: u8 = 13;
 ///
 /// See [types::LazyRequest]
 const GATEWAY_LAZY_REQUEST: u8 = 14;
+
+pub trait MessageCapable {
+    fn as_string(&self) -> Option<String>;
+    fn as_bytes(&self) -> Option<Vec<u8>>;
+    fn is_empty(&self) -> bool;
+    fn is_error(&self) -> bool;
+}
 
 pub type ObservableObject = dyn Send + Sync + Any;
 
@@ -153,22 +159,22 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
 
 #[allow(clippy::type_complexity)]
 #[async_trait]
-pub trait GatewayCapable<R, S, G, H>
+pub trait GatewayCapable<T, S>
 where
-    R: Stream,
-    S: Sink<Message> + Send + 'static,
-    G: GatewayHandleCapable<R, S>,
-    H: HeartbeatHandlerCapable<S> + Send + Sync,
+    T: MessageCapable + Send + 'static,
+    S: Sink<T> + Send,
 {
     fn get_events(&self) -> Arc<Mutex<Events>>;
-    fn get_websocket_send(&self) -> Arc<Mutex<SplitSink<S, Message>>>;
+    fn get_websocket_send(&self) -> Arc<Mutex<SplitSink<S, T>>>;
     fn get_store(&self) -> GatewayStore;
     fn get_url(&self) -> String;
-    fn get_heartbeat_handler(&self) -> &H;
+    fn get_heartbeat_handler(&self) -> &HeartbeatHandler;
     /// Returns a Result with a matching impl of [`GatewayHandleCapable`], or a [`GatewayError`]
     ///
     /// DOCUMENTME: Explain what this method has to do to be a good get_handle() impl, or link to such documentation
-    async fn get_handle(websocket_url: String) -> Result<G, GatewayError>;
+    async fn get_handle<G: GatewayHandleCapable<T, S>>(
+        websocket_url: String,
+    ) -> Result<G, GatewayError>;
     async fn close(&mut self);
     /// This handles a message as a websocket event and updates its events along with the events' observers
     async fn handle_message(&mut self, msg: GatewayMessage) {
@@ -456,27 +462,35 @@ pub struct HeartbeatHandler {
 }
 
 #[async_trait(?Send)]
-pub trait GatewayHandleCapable<R, S>
+pub trait GatewayHandleCapable<T, S>
 where
-    R: Stream,
-    S: Sink<Message>,
+    T: MessageCapable + Send + 'static,
+    S: Sink<T>,
 {
+    fn new(
+        url: String,
+        events: Arc<Mutex<Events>>,
+        websocket_send: Arc<Mutex<SplitSink<S, T>>>,
+        kill_send: tokio::sync::broadcast::Sender<()>,
+        store: GatewayStore,
+    ) -> Self;
+
     /// Sends json to the gateway with an opcode
     async fn send_json_event(&self, op_code: u8, to_send: serde_json::Value);
 
     /// Observes an Item `<T: Updateable>`, which will update itself, if new information about this
     /// item arrives on the corresponding Gateway Thread
-    async fn observe<T: Updateable + Clone + std::fmt::Debug + Composite<T> + Send + Sync>(
+    async fn observe<U: Updateable + Clone + std::fmt::Debug + Composite<U> + Send + Sync>(
         &self,
-        object: Arc<RwLock<T>>,
-    ) -> Arc<RwLock<T>>;
+        object: Arc<RwLock<U>>,
+    ) -> Arc<RwLock<U>>;
 
     /// Recursively observes and updates all updateable fields on the struct T. Returns an object `T`
     /// with all of its observable fields being observed.
-    async fn observe_and_into_inner<T: Updateable + Clone + std::fmt::Debug + Composite<T>>(
+    async fn observe_and_into_inner<U: Updateable + Clone + std::fmt::Debug + Composite<U>>(
         &self,
-        object: Arc<RwLock<T>>,
-    ) -> T {
+        object: Arc<RwLock<U>>,
+    ) -> U {
         let channel = self.observe(object.clone()).await;
         let object = channel.read().unwrap().clone();
         object
@@ -556,17 +570,12 @@ where
 }
 
 #[async_trait]
-pub trait HeartbeatHandlerCapable<S: Sink<Message> + Send + 'static> {
-    fn new(
-        heartbeat_interval: Duration,
-        websocket_tx: Arc<Mutex<SplitSink<S, Message>>>,
-        kill_rc: tokio::sync::broadcast::Receiver<()>,
-    ) -> Self;
-
+pub trait HeartbeatHandlerCapable<T: MessageCapable + Send + 'static, S: Sink<T>> {
     fn get_send(&self) -> &Sender<HeartbeatThreadCommunication>;
+    fn as_arc_mutex(&self) -> Arc<Mutex<Self>>;
     fn get_heartbeat_interval(&self) -> Duration;
     async fn heartbeat_task(
-        websocket_tx: Arc<Mutex<SplitSink<S, Message>>>,
+        websocket_tx: Arc<Mutex<SplitSink<S, T>>>,
         heartbeat_interval: Duration,
         mut receive: tokio::sync::mpsc::Receiver<HeartbeatThreadCommunication>,
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,

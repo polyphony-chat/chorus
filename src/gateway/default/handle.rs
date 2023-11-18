@@ -4,7 +4,7 @@ use crate::types::{self, Composite};
 #[async_trait(?Send)]
 impl
     GatewayHandleCapable<
-        WebSocketStream<MaybeTlsStream<TcpStream>>,
+        tokio_tungstenite::tungstenite::Message,
         WebSocketStream<MaybeTlsStream<TcpStream>>,
     > for DefaultGatewayHandle
 {
@@ -22,6 +22,29 @@ impl
     async fn close(&self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();
+    }
+
+    fn new(
+        url: String,
+        events: Arc<Mutex<Events>>,
+        websocket_send: Arc<
+            Mutex<
+                SplitSink<
+                    WebSocketStream<MaybeTlsStream<TcpStream>>,
+                    tokio_tungstenite::tungstenite::Message,
+                >,
+            >,
+        >,
+        kill_send: tokio::sync::broadcast::Sender<()>,
+        store: GatewayStore,
+    ) -> Self {
+        Self {
+            url,
+            events,
+            websocket_send,
+            kill_send,
+            store,
+        }
     }
 }
 

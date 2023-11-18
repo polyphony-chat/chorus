@@ -26,6 +26,27 @@ use tokio::task::JoinHandle;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 
+impl crate::gateway::MessageCapable for tokio_tungstenite::tungstenite::Message {
+    fn as_string(&self) -> Option<String> {
+        match self {
+            Message::Text(text) => Some(text.clone()),
+            _ => None,
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        todo!()
+    }
+
+    fn is_error(&self) -> bool {
+        todo!()
+    }
+
+    fn as_bytes(&self) -> Option<Vec<u8>> {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::types;

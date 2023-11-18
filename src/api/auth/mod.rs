@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 pub use login::*;
 pub use register::*;
 
-use crate::gateway::{GatewayCapable, GatewayHandleCapable};
+use crate::gateway::{DefaultGatewayHandle, GatewayCapable, GatewayHandleCapable};
 use crate::{
     errors::ChorusResult,
     gateway::DefaultGateway,
@@ -26,7 +26,7 @@ impl Instance {
             .await
             .unwrap();
         let mut identify = GatewayIdentifyPayload::common();
-        let gateway = DefaultGateway::get_handle(self.urls.wss.clone())
+        let gateway: DefaultGatewayHandle = DefaultGateway::get_handle(self.urls.wss.clone())
             .await
             .unwrap();
         identify.token = token.clone();
