@@ -1,5 +1,5 @@
 pub mod gateway;
 pub mod heartbeat;
 use super::*;
-use gateway::*;
-use heartbeat::*;
+pub use gateway::*;
+pub use heartbeat::*;
