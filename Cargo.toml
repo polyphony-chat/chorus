@@ -54,7 +54,7 @@ sqlx = { version = "0.7.1", features = [
 ], optional = true }
 safina-timer = "0.1.11"
 rand = "0.8.5"
-ws_stream_wasm = "0.7.4"
+ws_stream_wasm = { git = "https://github.com/bitfl0wer/ws_stream_wasm", branch = "feature/generic-message" }
 
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
