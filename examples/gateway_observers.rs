@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use chorus::gateway::{GatewayCapable, GatewayHandleCapable};
+use chorus::gateway::GatewayCapable;
+use chorus::GatewayHandle;
 use chorus::{
     self,
     gateway::Observer,
@@ -32,7 +33,7 @@ async fn main() {
     let websocket_url_spacebar = "wss://gateway.old.server.spacebar.chat/".to_string();
 
     // Initiate the gateway connection
-    let gateway = Gateway::get_handle(websocket_url_spacebar).await.unwrap();
+    let gateway: GatewayHandle = Gateway::get_handle(websocket_url_spacebar).await.unwrap();
 
     // Create an instance of our observer
     let observer = ExampleObserver {};
