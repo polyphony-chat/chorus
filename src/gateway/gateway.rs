@@ -22,7 +22,8 @@ pub struct Gateway {
 impl Gateway {
     #[allow(clippy::new_ret_no_self)]
     pub async fn new(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
-        let (websocket_send, mut websocket_receive) = WebSocketBackend::new(&websocket_url).await?;
+        let (websocket_send, mut websocket_receive) =
+            WebSocketBackend::connect(&websocket_url).await?;
 
         let shared_websocket_send = Arc::new(Mutex::new(websocket_send));
 

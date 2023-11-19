@@ -18,7 +18,7 @@ pub type WsSink = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tungsten
 pub type WsStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
 
 impl WebSocketBackend {
-    pub async fn new(
+    pub async fn connect(
         websocket_url: &str,
     ) -> Result<(WsSink, WsStream), crate::errors::GatewayError> {
         let mut roots = rustls::RootCertStore::empty();
