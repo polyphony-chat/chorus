@@ -54,9 +54,10 @@ sqlx = { version = "0.7.1", features = [
 ], optional = true }
 safina-timer = "0.1.11"
 rand = "0.8.5"
-# TODO: Remove the below 2 imports for production!
+# TODO: Remove the below 3 imports for production!
 ws_stream_wasm = "0.7.4"
 pharos = "0.5.3"
+wasm-bindgen-test = "0.3.38"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rustls = "0.21.8"
@@ -70,9 +71,8 @@ hostname = "0.3.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.11", features = ["js"] }
-tokio-tungstenite = { version = "0.20.1", default-features = false }
 ws_stream_wasm = "0.7.4"
-pharos = "0.5.3"
+wasm-bindgen-test = "0.3.38"
 
 
 [dev-dependencies]
