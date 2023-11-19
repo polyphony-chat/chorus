@@ -3,18 +3,19 @@ use std::u8;
 
 use super::events::Events;
 use super::*;
+use futures_util::stream::SplitStream;
 use futures_util::StreamExt;
 use tokio::task;
-use tokio_stream::StreamExt;
 use ws_stream_wasm::*;
 
-use crate::types::{self, GatewayReceivePayload, WebSocketEvent};
+use crate::types::{self, GatewayReceivePayload};
 #[derive(Debug)]
 pub struct WasmGateway {
     events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
     websocket_send: Arc<Mutex<SplitSink<WsStream, WsMessage>>>,
     websocket_receive: SplitStream<WsStream>,
+    kill_send: tokio::sync::broadcast::Sender<()>,
     store: GatewayStore,
     url: String,
 }
@@ -84,10 +85,15 @@ impl GatewayCapable<WsMessage, WsStream> for WasmGateway {
 
         let mut gateway = WasmGateway {
             events: shared_events.clone(),
-            heartbeat_handler: todo!(),
+            heartbeat_handler: HeartbeatHandler::new(
+                Duration::from_millis(gateway_hello.heartbeat_interval),
+                shared_websocket_send.clone(),
+                kill_send.subscribe(),
+            ),
             websocket_send: shared_websocket_send.clone(),
             websocket_receive,
             store: store.clone(),
+            kill_send: kill_send.clone(),
             url: websocket_url.clone(),
         };
 
@@ -102,6 +108,15 @@ impl GatewayCapable<WsMessage, WsStream> for WasmGateway {
             kill_send.clone(),
             store,
         ))
+    }
+
+    fn get_heartbeat_handler(&self) -> &HeartbeatHandler {
+        &self.heartbeat_handler
+    }
+
+    async fn close(&mut self) {
+        self.kill_send.send(()).unwrap();
+        self.websocket_send.lock().await.close().await.unwrap();
     }
 }
 
