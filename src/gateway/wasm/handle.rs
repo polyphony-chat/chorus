@@ -14,7 +14,7 @@ pub struct WasmGatewayHandle {
     pub(crate) store: GatewayStore,
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl GatewayHandleCapable<WsMessage, WsStream> for WasmGatewayHandle {
     fn new(
         url: String,
@@ -30,5 +30,21 @@ impl GatewayHandleCapable<WsMessage, WsStream> for WasmGatewayHandle {
             kill_send,
             store,
         }
+    }
+
+    async fn send_json_event(&self, op_code: u8, to_send: serde_json::Value) {
+        self.send_json_event(op_code, to_send).await
+    }
+
+    async fn observe<U: Updateable + Clone + std::fmt::Debug + Composite<U> + Send + Sync>(
+        &self,
+        object: Arc<RwLock<U>>,
+    ) -> Arc<RwLock<U>> {
+        self.observe(object).await
+    }
+
+    async fn close(&self) {
+        self.kill_send.send(()).unwrap();
+        self.websocket_send.lock().await.close().await.unwrap();
     }
 }

@@ -41,7 +41,7 @@ impl GatewayCapable<WsMessage, WsStream> for WasmGateway {
     async fn spawn<G: GatewayHandleCapable<WsMessage, WsStream>>(
         websocket_url: String,
     ) -> Result<G, GatewayError> {
-        let (_, mut websocket_stream) = match WsMeta::connect(websocket_url.clone(), None).await {
+        let (_, websocket_stream) = match WsMeta::connect(websocket_url.clone(), None).await {
             Ok(ws) => Ok(ws),
             Err(e) => Err(GatewayError::CannotConnect {
                 error: e.to_string(),

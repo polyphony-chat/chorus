@@ -380,7 +380,7 @@ where
                     op_code: Some(GATEWAY_HEARTBEAT),
                 };
 
-                let heartbeat_thread_communicator = self.get_heartbeat_handler().send;
+                let heartbeat_thread_communicator = &self.get_heartbeat_handler().send;
 
                 heartbeat_thread_communicator
                     .send(heartbeat_communication)
@@ -409,7 +409,7 @@ where
                 };
 
                 let heartbeat_handler = self.get_heartbeat_handler();
-                let heartbeat_thread_communicator = heartbeat_handler.send;
+                let heartbeat_thread_communicator = &heartbeat_handler.send;
 
                 heartbeat_thread_communicator
                     .send(heartbeat_communication)
@@ -442,7 +442,7 @@ where
             };
 
             let heartbeat_handler = self.get_heartbeat_handler();
-            let heartbeat_thread_communicator = heartbeat_handler.send;
+            let heartbeat_thread_communicator = &heartbeat_handler.send;
             heartbeat_thread_communicator
                 .send(heartbeat_communication)
                 .await
@@ -571,7 +571,7 @@ pub struct HeartbeatHandler<T: MessageCapable + Send + 'static, S: Sink<T>> {
     hb_type: (PhantomData<T>, PhantomData<S>),
 }
 
-impl<T: MessageCapable + Send + 'static, S: Sink<T> + Send> HeartbeatHandler<T, S> {
+impl<T: MessageCapable + Send + 'static, S: Sink<T> + Send + 'static> HeartbeatHandler<T, S> {
     pub async fn heartbeat_task(
         websocket_tx: Arc<Mutex<SplitSink<S, T>>>,
         heartbeat_interval: Duration,
