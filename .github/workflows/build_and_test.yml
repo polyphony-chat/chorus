@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  rust:
+  linux:
 
     runs-on: ubuntu-latest
     
@@ -33,6 +33,7 @@ jobs:
     - uses: Swatinem/rust-cache@v2
       with:
         cache-all-crates: "true"
+        prefix-key: "linux"
     - name: Build, Test and Publish Coverage
       run: |
         if [ -n "${{ secrets.COVERALLS_REPO_TOKEN }}" ]; then
@@ -46,4 +47,27 @@ jobs:
         fi
         curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
         GECKODRIVER=/usr/local/share/gecko_driver CHROMEDRIVER=/usr/local/share/chromedriver-linux64 cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
-        
+  macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Clone spacebar server
+      run: |
+        git clone https://github.com/bitfl0wer/server.git
+    - uses: actions/setup-node@v3
+      with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+    - name: Prepare and start Spacebar server
+      run: |
+        npm install
+        npm run setup
+        npm run start &
+      working-directory: ./server
+    - uses: Swatinem/rust-cache@v2 
+      with:
+        cache-all-crates: "true"
+        prefix-key: "macos"
+    - name: Build, Test wasm with Safari
+      run: SAFARIDRIVER=$(which safaridriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
