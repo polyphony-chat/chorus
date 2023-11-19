@@ -100,7 +100,7 @@ impl Gateway {
     /// Closes the websocket connection and stops all tasks
     async fn close(&mut self) {
         self.kill_send.send(()).unwrap();
-        let _ = self.websocket_send.lock().await.close().await;
+        self.websocket_send.lock().await.close().await.unwrap();
     }
 
     /// Deserializes and updates a dispatched event, when we already know its type;
