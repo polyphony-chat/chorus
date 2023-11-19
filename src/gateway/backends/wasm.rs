@@ -12,22 +12,19 @@ use crate::gateway::GatewayMessage;
 pub struct WasmBackend;
 
 // These could be made into inherent associated types when that's stabilized
-pub type WasmSink = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tungstenite::Message>;
-pub type WasmStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
+pub type WasmSink = SplitSink<WsStream, WsMessage>;
+pub type WasmStream = SplitStream<WsStream>;
 
 impl WasmBackend {
     pub async fn connect(
         websocket_url: &str,
     ) -> Result<(WasmSink, WasmStream), crate::errors::GatewayError> {
-        let (websocket_stream, _) = match WsMeta::connect();
-        {
-            Ok(websocket_stream) => websocket_stream,
-            Err(e) => {
-                return Err(GatewayError::CannotConnect {
-                    error: e.to_string(),
-                })
-            }
-        };
+        let (_, websocket_stream) = match WsMeta::connect(websocket_url, None).await {
+            Ok(stream) => Ok(stream),
+            Err(e) => Err(GatewayError::CannotConnect {
+                error: e.to_string(),
+            }),
+        }?;
 
         Ok(websocket_stream.split())
     }
@@ -41,6 +38,13 @@ impl From<GatewayMessage> for WsMessage {
 
 impl From<WsMessage> for GatewayMessage {
     fn from(value: WsMessage) -> Self {
-        Self(value.to_string())
+        match value {
+            WsMessage::Text(text) => Self(text),
+            WsMessage::Binary(bin) => {
+                let mut text = String::new();
+                let _ = bin.iter().map(|v| text.push_str(&v.to_string()));
+                Self(text)
+            }
+        }
     }
 }

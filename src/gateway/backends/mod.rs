@@ -2,6 +2,7 @@
 pub mod tungstenite;
 #[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
 pub use tungstenite::*;
+
 #[cfg(all(target_arch = "wasm32", feature = "client"))]
 pub mod wasm;
 #[cfg(all(target_arch = "wasm32", feature = "client"))]
