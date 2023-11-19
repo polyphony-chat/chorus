@@ -2,7 +2,6 @@ use std::time::Duration;
 
 use chorus::gateway::Gateway;
 use chorus::{self, types::GatewayIdentifyPayload};
-use tokio::time::sleep;
 
 /// This example creates a simple gateway connection and a session with an Identify event
 #[tokio::main(flavor = "current_thread")]
@@ -27,10 +26,10 @@ async fn main() {
     identify.token = token;
 
     // Send off the event
-    gateway.send_identify(identify).await;
+    safina_timer::start_timer_thread();
 
     // Do something on the main thread so we don't quit
     loop {
-        sleep(Duration::MAX).await;
+        safina_timer::sleep_for(Duration::MAX).await
     }
 }
