@@ -8,7 +8,7 @@ use crate::types::{self, WebSocketEvent};
 #[derive(Debug)]
 pub struct DefaultGateway {
     events: Arc<Mutex<Events>>,
-    heartbeat_handler: HeartbeatHandler,
+    heartbeat_handler: HeartbeatHandler<Message, WebSocketStream<MaybeTlsStream<TcpStream>>>,
     websocket_send: Arc<
         Mutex<
             SplitSink<
@@ -30,7 +30,9 @@ impl
         WebSocketStream<MaybeTlsStream<TcpStream>>,
     > for DefaultGateway
 {
-    fn get_heartbeat_handler(&self) -> &HeartbeatHandler {
+    fn get_heartbeat_handler(
+        &self,
+    ) -> &HeartbeatHandler<Message, WebSocketStream<MaybeTlsStream<TcpStream>>> {
         &self.heartbeat_handler
     }
 
@@ -171,7 +173,6 @@ impl DefaultGateway {
 
     /// Deserializes and updates a dispatched event, when we already know its type;
     /// (Called for every event in handle_message)
-    #[allow(dead_code)] // TODO: Remove this allow annotation
     async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
         data: &'a str,
         event: &mut GatewayEvent<T>,

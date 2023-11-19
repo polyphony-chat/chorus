@@ -1,6 +1,5 @@
 pub mod gateway;
 pub mod handle;
-pub mod heartbeat;
 
 use super::*;
 pub use gateway::*;
@@ -15,16 +14,12 @@ use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
-use futures_util::stream::SplitSink;
-use futures_util::stream::SplitStream;
+use futures_util::stream::{SplitSink, SplitStream};
 use log::{info, warn};
-use tokio::net::TcpStream;
-use tokio::sync::mpsc::Sender;
-use tokio::sync::Mutex;
-use tokio::task;
-use tokio::task::JoinHandle;
-use tokio_tungstenite::MaybeTlsStream;
-use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
+use tokio::{net::TcpStream, sync::Mutex, task};
+use tokio_tungstenite::{
+    connect_async_tls_with_config, Connector, MaybeTlsStream, WebSocketStream,
+};
 
 impl crate::gateway::MessageCapable for tokio_tungstenite::tungstenite::Message {
     fn as_string(&self) -> Option<String> {

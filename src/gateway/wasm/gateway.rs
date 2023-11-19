@@ -12,7 +12,7 @@ use crate::types::{self, GatewayReceivePayload};
 #[derive(Debug)]
 pub struct WasmGateway {
     events: Arc<Mutex<Events>>,
-    heartbeat_handler: HeartbeatHandler,
+    heartbeat_handler: HeartbeatHandler<WsMessage, WsStream>,
     websocket_send: Arc<Mutex<SplitSink<WsStream, WsMessage>>>,
     websocket_receive: SplitStream<WsStream>,
     kill_send: tokio::sync::broadcast::Sender<()>,
@@ -110,7 +110,7 @@ impl GatewayCapable<WsMessage, WsStream> for WasmGateway {
         ))
     }
 
-    fn get_heartbeat_handler(&self) -> &HeartbeatHandler {
+    fn get_heartbeat_handler(&self) -> &HeartbeatHandler<WsMessage, WsStream> {
         &self.heartbeat_handler
     }
 

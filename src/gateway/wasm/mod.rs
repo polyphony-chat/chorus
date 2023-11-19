@@ -1,10 +1,8 @@
 pub mod gateway;
 pub mod handle;
-pub mod heartbeat;
 use super::*;
 pub use gateway::*;
 pub use handle::*;
-pub use heartbeat::*;
 use ws_stream_wasm::WsMessage;
 
 impl crate::gateway::MessageCapable for WsMessage {

@@ -10,7 +10,7 @@ pub mod wasm;
 pub use default::*;
 pub use message::*;
 use safina_timer::sleep_until;
-use tokio::task::JoinHandle;
+use tokio::task::{self, JoinHandle};
 // TODO: Uncomment for Prod!
 // #[cfg(all(target_arch = "wasm32", feature = "client"))]
 pub use wasm::*;
@@ -25,6 +25,7 @@ use crate::types::{
 
 use std::any::Any;
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use std::time::{self, Duration, Instant};
 
@@ -169,7 +170,7 @@ where
     fn get_websocket_send(&self) -> Arc<Mutex<SplitSink<S, T>>>;
     fn get_store(&self) -> GatewayStore;
     fn get_url(&self) -> String;
-    fn get_heartbeat_handler(&self) -> &HeartbeatHandler;
+    fn get_heartbeat_handler(&self) -> &HeartbeatHandler<T, S>;
     /// Returns a Result with a matching impl of [`GatewayHandleCapable`], or a [`GatewayError`]
     ///
     /// DOCUMENTME: Explain what this method has to do to be a good get_handle() impl, or link to such documentation
@@ -379,7 +380,7 @@ where
                     op_code: Some(GATEWAY_HEARTBEAT),
                 };
 
-                let heartbeat_thread_communicator = self.get_heartbeat_handler().get_send();
+                let heartbeat_thread_communicator = self.get_heartbeat_handler().send;
 
                 heartbeat_thread_communicator
                     .send(heartbeat_communication)
@@ -408,7 +409,7 @@ where
                 };
 
                 let heartbeat_handler = self.get_heartbeat_handler();
-                let heartbeat_thread_communicator = heartbeat_handler.get_send();
+                let heartbeat_thread_communicator = heartbeat_handler.send;
 
                 heartbeat_thread_communicator
                     .send(heartbeat_communication)
@@ -441,7 +442,7 @@ where
             };
 
             let heartbeat_handler = self.get_heartbeat_handler();
-            let heartbeat_thread_communicator = heartbeat_handler.get_send();
+            let heartbeat_thread_communicator = heartbeat_handler.send;
             heartbeat_thread_communicator
                 .send(heartbeat_communication)
                 .await
@@ -559,19 +560,19 @@ where
 }
 
 /// Handles sending heartbeats to the gateway in another thread
-#[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
 #[derive(Debug)]
-pub struct HeartbeatHandler {
+pub struct HeartbeatHandler<T: MessageCapable + Send + 'static, S: Sink<T>> {
     /// How ofter heartbeats need to be sent at a minimum
     pub heartbeat_interval: Duration,
     /// The send channel for the heartbeat thread
     pub send: Sender<HeartbeatThreadCommunication>,
     /// The handle of the thread
     handle: JoinHandle<()>,
+    hb_type: (PhantomData<T>, PhantomData<S>),
 }
 
-impl HeartbeatHandler {
-    pub async fn heartbeat_task<T: MessageCapable + Send + 'static, S: Sink<T> + Send>(
+impl<T: MessageCapable + Send + 'static, S: Sink<T> + Send> HeartbeatHandler<T, S> {
+    pub async fn heartbeat_task(
         websocket_tx: Arc<Mutex<SplitSink<S, T>>>,
         heartbeat_interval: Duration,
         mut receive: tokio::sync::mpsc::Receiver<HeartbeatThreadCommunication>,
@@ -651,17 +652,30 @@ impl HeartbeatHandler {
             }
         }
     }
-}
-#[async_trait]
-// TODO: Make me not a trait!!
-pub trait HeartbeatHandlerCapable<T: MessageCapable + Send + 'static, S: Sink<T>> {
-    fn get_send(&self) -> &Sender<HeartbeatThreadCommunication>;
-    fn get_heartbeat_interval(&self) -> Duration;
-    #[allow(clippy::new_ret_no_self)]
-    // TODO: new() has duplicated code in wasm and default impl. Can be fixed, if this is not a trait
+
     fn new(
         heartbeat_interval: Duration,
         websocket_tx: Arc<Mutex<SplitSink<S, T>>>,
         kill_rc: tokio::sync::broadcast::Receiver<()>,
-    ) -> HeartbeatHandler;
+    ) -> HeartbeatHandler<T, S> {
+        let (send, receive) = tokio::sync::mpsc::channel(32);
+        let kill_receive = kill_rc.resubscribe();
+
+        let handle: JoinHandle<()> = task::spawn(async move {
+            HeartbeatHandler::heartbeat_task(
+                websocket_tx,
+                heartbeat_interval,
+                receive,
+                kill_receive,
+            )
+            .await;
+        });
+
+        Self {
+            heartbeat_interval,
+            send,
+            handle,
+            hb_type: (PhantomData::<T>, PhantomData::<S>),
+        }
+    }
 }
