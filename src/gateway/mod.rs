@@ -2,7 +2,8 @@
 pub mod default;
 pub mod events;
 pub mod message;
-#[cfg(all(target_arch = "wasm32", feature = "client"))]
+// TODO: Uncomment for Prod!
+// #[cfg(all(target_arch = "wasm32", feature = "client"))]
 pub mod wasm;
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
@@ -10,7 +11,8 @@ pub use default::*;
 pub use message::*;
 use safina_timer::sleep_until;
 use tokio::task::JoinHandle;
-#[cfg(all(target_arch = "wasm32", feature = "client"))]
+// TODO: Uncomment for Prod!
+// #[cfg(all(target_arch = "wasm32", feature = "client"))]
 pub use wasm::*;
 
 use self::events::Events;
@@ -171,6 +173,7 @@ where
     /// Returns a Result with a matching impl of [`GatewayHandleCapable`], or a [`GatewayError`]
     ///
     /// DOCUMENTME: Explain what this method has to do to be a good get_handle() impl, or link to such documentation
+    /// TODO: Give spawn a default trait impl, avoid code duplication
     async fn spawn<G: GatewayHandleCapable<T, S>>(websocket_url: String)
         -> Result<G, GatewayError>;
     async fn close(&mut self);

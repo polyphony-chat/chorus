@@ -54,6 +54,9 @@ sqlx = { version = "0.7.1", features = [
 ], optional = true }
 safina-timer = "0.1.11"
 rand = "0.8.5"
+# TODO: Remove the below 2 imports for production!
+ws_stream_wasm = "0.7.4"
+pharos = "0.5.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rustls = "0.21.8"
