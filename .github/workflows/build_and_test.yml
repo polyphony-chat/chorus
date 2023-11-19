@@ -44,4 +44,6 @@ jobs:
           cargo build --verbose --all-features
           cargo test --verbose --all-features
         fi
+        curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        GECKODRIVER=/usr/local/share/gecko_driver CHROMEDRIVER=/usr/local/share/chromedriver-linux64 cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
         
