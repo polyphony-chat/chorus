@@ -4,7 +4,10 @@ use std::sync::{Arc, RwLock};
 use chorus_macros::Composite;
 
 #[cfg(feature = "client")]
-use crate::{types::Composite, GatewayHandle};
+use crate::types::Composite;
+
+#[cfg(feature = "client")]
+use crate::gateway::GatewayHandle;
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;

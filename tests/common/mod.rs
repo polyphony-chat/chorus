@@ -1,6 +1,6 @@
 use std::sync::{Arc, RwLock};
 
-use chorus::gateway::{DefaultGateway, GatewayCapable};
+use chorus::gateway::Gateway;
 use chorus::{
     instance::{ChorusUser, Instance},
     types::{
@@ -43,7 +43,7 @@ impl TestBundle {
             limits: self.user.limits.clone(),
             settings: self.user.settings.clone(),
             object: self.user.object.clone(),
-            gateway: DefaultGateway::spawn(self.instance.urls.wss.clone())
+            gateway: Gateway::spawn(self.instance.urls.wss.clone())
                 .await
                 .unwrap(),
         }

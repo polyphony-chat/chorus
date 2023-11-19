@@ -1,3 +1,11 @@
+use futures_util::SinkExt;
+use log::*;
+use std::time::{self, Duration, Instant};
+use tokio::sync::mpsc::{Receiver, Sender};
+
+use safina_timer::sleep_until;
+use tokio::task::{self, JoinHandle};
+
 use super::*;
 use crate::types;
 
@@ -43,12 +51,14 @@ impl HeartbeatHandler {
     pub async fn heartbeat_task(
         websocket_tx: Arc<Mutex<WsSink>>,
         heartbeat_interval: Duration,
-        mut receive: tokio::sync::mpsc::Receiver<HeartbeatThreadCommunication>,
+        mut receive: Receiver<HeartbeatThreadCommunication>,
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,
     ) {
         let mut last_heartbeat_timestamp: Instant = time::Instant::now();
         let mut last_heartbeat_acknowledged = true;
         let mut last_seq_number: Option<u64> = None;
+
+        safina_timer::start_timer_thread();
 
         loop {
             if kill_receive.try_recv().is_ok() {

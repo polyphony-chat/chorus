@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use reqwest::Client;
 use serde_json::to_string;
 
-use crate::gateway::{GatewayCapable, GatewayHandleCapable};
+use crate::gateway::{Gateway, GatewayHandle};
 use crate::types::GatewayIdentifyPayload;
 use crate::{
     errors::ChorusResult,
@@ -12,7 +12,6 @@ use crate::{
     types::LimitType,
     types::RegisterSchema,
 };
-use crate::{Gateway, GatewayHandle};
 
 impl Instance {
     /// Registers a new user on the server.

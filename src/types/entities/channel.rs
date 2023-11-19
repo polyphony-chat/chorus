@@ -12,7 +12,10 @@ use crate::types::{
 };
 
 #[cfg(feature = "client")]
-use crate::{types::Composite, GatewayHandle};
+use crate::types::Composite;
+
+#[cfg(feature = "client")]
+use crate::gateway::GatewayHandle;
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;

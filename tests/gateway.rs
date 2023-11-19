@@ -2,17 +2,15 @@ mod common;
 
 use std::sync::{Arc, RwLock};
 
+use chorus::gateway::*;
 use chorus::types::{self, ChannelModifySchema, RoleCreateModifySchema, RoleObject};
-use chorus::{gateway::*, GatewayHandle};
 
 #[tokio::test]
 /// Tests establishing a connection (hello and heartbeats) on the local gateway;
 async fn test_gateway_establish() {
     let bundle = common::setup().await;
 
-    let _: GatewayHandle = DefaultGateway::spawn(bundle.urls.wss.clone())
-        .await
-        .unwrap();
+    let _: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
     common::teardown(bundle).await
 }
 
@@ -21,9 +19,7 @@ async fn test_gateway_establish() {
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
-    let gateway: GatewayHandle = DefaultGateway::spawn(bundle.urls.wss.clone())
-        .await
-        .unwrap();
+    let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
 
     let mut identify = types::GatewayIdentifyPayload::common();
     identify.token = bundle.user.token.clone();

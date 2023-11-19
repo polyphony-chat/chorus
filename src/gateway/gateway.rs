@@ -1,7 +1,12 @@
+use std::time::Duration;
+
+use futures_util::{SinkExt, StreamExt};
+use log::*;
+use tokio::task;
+
 use self::event::Events;
-use super::handle::GatewayHandle;
-use super::heartbeat::HeartbeatHandler;
 use super::*;
+use super::{WsSink, WsStream};
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
     ChannelUpdate, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject, SourceUrlField,
@@ -21,7 +26,7 @@ pub struct Gateway {
 
 impl Gateway {
     #[allow(clippy::new_ret_no_self)]
-    pub async fn new(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
+    pub async fn spawn(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
         let (websocket_send, mut websocket_receive) =
             WebSocketBackend::connect(&websocket_url).await?;
 

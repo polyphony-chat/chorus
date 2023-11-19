@@ -1,4 +1,5 @@
 use super::*;
+use crate::types;
 
 #[derive(Default, Debug)]
 pub struct Events {

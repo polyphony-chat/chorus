@@ -16,13 +16,16 @@ use crate::types::{
 use super::PublicUser;
 
 #[cfg(feature = "client")]
-use crate::{gateway::Updateable, GatewayHandle};
+use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};
 
 #[cfg(feature = "client")]
 use crate::types::Composite;
+
+#[cfg(feature = "client")]
+use crate::gateway::GatewayHandle;
 
 /// See <https://discord.com/developers/docs/resources/guild>
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
