@@ -7,8 +7,8 @@ use tokio_tungstenite::{
     connect_async_tls_with_config, tungstenite, Connector, MaybeTlsStream, WebSocketStream,
 };
 
-use super::GatewayMessage;
 use crate::errors::GatewayError;
+use crate::gateway::GatewayMessage;
 
 #[derive(Debug, Clone)]
 pub struct TungsteniteBackend;
