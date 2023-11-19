@@ -16,8 +16,6 @@ pub struct WebSocketBackend;
 // These could be made into inherent associated types when that's stabilized
 pub type WsSink = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tungstenite::Message>;
 pub type WsStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
-pub type WsMessage = tungstenite::Message;
-pub type WsError = tungstenite::Error;
 
 impl WebSocketBackend {
     pub async fn new(
