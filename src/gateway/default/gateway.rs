@@ -73,6 +73,7 @@ impl
 
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
+        // TODO: We likely should not unwrap here.
         let msg = websocket_receive.next().await.unwrap().unwrap();
         let gateway_payload: types::GatewayReceivePayload =
             serde_json::from_str(msg.to_text().unwrap()).unwrap();
@@ -89,7 +90,7 @@ impl
             serde_json::from_str(gateway_payload.event_data.unwrap().get()).unwrap();
 
         let events = Events::default();
-        let shared_events = Arc::new(Mutex::new(events));
+        let shared_events: Arc<Mutex<Events>> = Arc::new(Mutex::new(events));
 
         let store = Arc::new(Mutex::new(HashMap::new()));
 
