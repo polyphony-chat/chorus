@@ -9,14 +9,7 @@ use crate::types::{self, Composite};
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
-    pub websocket_send: Arc<
-        Mutex<
-            SplitSink<
-                WebSocketStream<MaybeTlsStream<TcpStream>>,
-                tokio_tungstenite::tungstenite::Message,
-            >,
-        >,
-    >,
+    pub websocket_send: Arc<Mutex<WsSink>>,
     /// Tells gateway tasks to close
     pub(super) kill_send: tokio::sync::broadcast::Sender<()>,
     pub(crate) store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
@@ -32,13 +25,12 @@ impl GatewayHandle {
         };
 
         let payload_json = serde_json::to_string(&gateway_payload).unwrap();
-
-        let message = tokio_tungstenite::tungstenite::Message::text(payload_json);
+        let message = GatewayMessage(payload_json);
 
         self.websocket_send
             .lock()
             .await
-            .send(message)
+            .send(message.into())
             .await
             .unwrap();
     }

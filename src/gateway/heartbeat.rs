@@ -1,6 +1,5 @@
-use crate::types;
-
 use super::*;
+use crate::types;
 
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
 const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
@@ -20,27 +19,14 @@ pub(super) struct HeartbeatHandler {
 impl HeartbeatHandler {
     pub fn new(
         heartbeat_interval: Duration,
-        websocket_tx: Arc<
-            Mutex<
-                SplitSink<
-                    WebSocketStream<MaybeTlsStream<TcpStream>>,
-                    tokio_tungstenite::tungstenite::Message,
-                >,
-            >,
-        >,
+        websocket_tx: Arc<Mutex<WsSink>>,
         kill_rc: tokio::sync::broadcast::Receiver<()>,
-    ) -> HeartbeatHandler {
+    ) -> Self {
         let (send, receive) = tokio::sync::mpsc::channel(32);
         let kill_receive = kill_rc.resubscribe();
 
         let handle: JoinHandle<()> = task::spawn(async move {
-            HeartbeatHandler::heartbeat_task(
-                websocket_tx,
-                heartbeat_interval,
-                receive,
-                kill_receive,
-            )
-            .await;
+            Self::heartbeat_task(websocket_tx, heartbeat_interval, receive, kill_receive).await;
         });
 
         Self {
@@ -55,14 +41,7 @@ impl HeartbeatHandler {
     /// Can be killed by the kill broadcast;
     /// If the websocket is closed, will die out next time it tries to send a heartbeat;
     pub async fn heartbeat_task(
-        websocket_tx: Arc<
-            Mutex<
-                SplitSink<
-                    WebSocketStream<MaybeTlsStream<TcpStream>>,
-                    tokio_tungstenite::tungstenite::Message,
-                >,
-            >,
-        >,
+        websocket_tx: Arc<Mutex<WsSink>>,
         heartbeat_interval: Duration,
         mut receive: tokio::sync::mpsc::Receiver<HeartbeatThreadCommunication>,
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,
@@ -122,9 +101,9 @@ impl HeartbeatHandler {
 
                 let heartbeat_json = serde_json::to_string(&heartbeat).unwrap();
 
-                let msg = tokio_tungstenite::tungstenite::Message::text(heartbeat_json);
+                let msg = GatewayMessage(heartbeat_json);
 
-                let send_result = websocket_tx.lock().await.send(msg).await;
+                let send_result = websocket_tx.lock().await.send(msg.into()).await;
                 if send_result.is_err() {
                     // We couldn't send, the websocket is broken
                     warn!("GW: Couldnt send heartbeat, websocket seems broken");

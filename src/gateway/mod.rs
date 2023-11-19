@@ -3,8 +3,13 @@ pub mod handle;
 pub mod heartbeat;
 pub mod message;
 
+#[cfg(not(wasm))]
+pub mod backend_tungstenite;
+#[cfg(not(wasm))]
+use backend_tungstenite::*;
+
 pub use gateway::*;
-pub use handle::*;
+pub use handle::GatewayHandle;
 use heartbeat::*;
 pub use message::*;
 
@@ -19,20 +24,15 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use tokio::time::sleep_until;
 
-use futures_util::stream::SplitSink;
-use futures_util::stream::SplitStream;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use log::{info, trace, warn};
-use tokio::net::TcpStream;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 use tokio::task;
 use tokio::task::JoinHandle;
 use tokio::time;
 use tokio::time::Instant;
-use tokio_tungstenite::MaybeTlsStream;
-use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStream};
 
 // Gateway opcodes
 /// Opcode received when the server dispatches a [crate::types::WebSocketEvent]
