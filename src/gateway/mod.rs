@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 
+#[cfg(not(target_arch = "wasm32"))]
 pub mod backend_tungstenite;
 pub mod events;
 pub mod gateway;
