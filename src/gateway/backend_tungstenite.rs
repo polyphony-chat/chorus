@@ -20,8 +20,6 @@ pub type WsMessage = tungstenite::Message;
 pub type WsError = tungstenite::Error;
 
 impl WebSocketBackend {
-    // When impl_trait_in_assoc_type gets stabilized, this would just be = impl Sink<Self::Message>
-
     pub async fn new(
         websocket_url: &str,
     ) -> Result<(WsSink, WsStream), crate::errors::GatewayError> {
