@@ -659,6 +659,7 @@ pub trait HeartbeatHandlerCapable<T: MessageCapable + Send + 'static, S: Sink<T>
     fn get_send(&self) -> &Sender<HeartbeatThreadCommunication>;
     fn get_heartbeat_interval(&self) -> Duration;
     #[allow(clippy::new_ret_no_self)]
+    // TODO: new() has duplicated code in wasm and default impl. Can be fixed, if this is not a trait
     fn new(
         heartbeat_interval: Duration,
         websocket_tx: Arc<Mutex<SplitSink<S, T>>>,
