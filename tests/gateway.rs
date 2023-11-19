@@ -10,7 +10,7 @@ use chorus::types::{self, ChannelModifySchema, RoleCreateModifySchema, RoleObjec
 async fn test_gateway_establish() {
     let bundle = common::setup().await;
 
-    Gateway::new(bundle.urls.wss.clone()).await.unwrap();
+    let _: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
     common::teardown(bundle).await
 }
 
@@ -19,7 +19,7 @@ async fn test_gateway_establish() {
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
-    let gateway = Gateway::new(bundle.urls.wss.clone()).await.unwrap();
+    let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
 
     let mut identify = types::GatewayIdentifyPayload::common();
     identify.token = bundle.user.token.clone();

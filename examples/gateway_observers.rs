@@ -1,7 +1,8 @@
 use async_trait::async_trait;
+use chorus::gateway::Gateway;
 use chorus::{
     self,
-    gateway::{Gateway, Observer},
+    gateway::Observer,
     types::{GatewayIdentifyPayload, GatewayReady},
 };
 use std::{sync::Arc, time::Duration};
@@ -24,13 +25,13 @@ impl Observer<GatewayReady> for ExampleObserver {
     }
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     // Find the gateway websocket url of the server we want to connect to
     let websocket_url_spacebar = "wss://gateway.old.server.spacebar.chat/".to_string();
 
     // Initiate the gateway connection
-    let gateway = Gateway::new(websocket_url_spacebar).await.unwrap();
+    let gateway = Gateway::spawn(websocket_url_spacebar).await.unwrap();
 
     // Create an instance of our observer
     let observer = ExampleObserver {};

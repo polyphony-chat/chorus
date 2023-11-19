@@ -1,16 +1,17 @@
 use std::time::Duration;
 
-use chorus::{self, gateway::Gateway, types::GatewayIdentifyPayload};
+use chorus::gateway::Gateway;
+use chorus::{self, types::GatewayIdentifyPayload};
 use tokio::time::sleep;
 
 /// This example creates a simple gateway connection and a session with an Identify event
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     // Find the gateway websocket url of the server we want to connect to
     let websocket_url_spacebar = "wss://gateway.old.server.spacebar.chat/".to_string();
 
     // Initiate the gateway connection, starting a listener in one thread and a heartbeat handler in another
-    let gateway = Gateway::new(websocket_url_spacebar).await.unwrap();
+    let gateway = Gateway::spawn(websocket_url_spacebar).await.unwrap();
 
     // At this point, we are connected to the server and are sending heartbeats, however we still haven't authenticated
 
