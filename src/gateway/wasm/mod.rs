@@ -1,7 +1,9 @@
 pub mod gateway;
+pub mod handle;
 pub mod heartbeat;
 use super::*;
 pub use gateway::*;
+pub use handle::*;
 pub use heartbeat::*;
 use ws_stream_wasm::WsMessage;
 
@@ -26,5 +28,9 @@ impl crate::gateway::MessageCapable for WsMessage {
             WsMessage::Binary(bytes) => bytes.is_empty(),
             _ => false,
         }
+    }
+
+    fn from_str(s: &str) -> Self {
+        WsMessage::Text(s.to_string())
     }
 }
