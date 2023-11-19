@@ -11,16 +11,17 @@ use super::GatewayMessage;
 use crate::errors::GatewayError;
 
 #[derive(Debug, Clone)]
-pub struct WebSocketBackend;
+pub struct TungsteniteBackend;
 
 // These could be made into inherent associated types when that's stabilized
-pub type WsSink = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tungstenite::Message>;
-pub type WsStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
+pub type TungsteniteSink =
+    SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tungstenite::Message>;
+pub type TungsteniteStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
 
-impl WebSocketBackend {
+impl TungsteniteBackend {
     pub async fn connect(
         websocket_url: &str,
-    ) -> Result<(WsSink, WsStream), crate::errors::GatewayError> {
+    ) -> Result<(TungsteniteSink, TungsteniteStream), crate::errors::GatewayError> {
         let mut roots = rustls::RootCertStore::empty();
         for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
         {

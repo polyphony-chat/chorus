@@ -23,11 +23,11 @@ use std::sync::{Arc, RwLock};
 use tokio::sync::Mutex;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub type WsSink = backend_tungstenite::WsSink;
+pub type Sink = backend_tungstenite::TungsteniteSink;
 #[cfg(not(target_arch = "wasm32"))]
-pub type WsStream = backend_tungstenite::WsStream;
+pub type Stream = backend_tungstenite::TungsteniteStream;
 #[cfg(not(target_arch = "wasm32"))]
-pub type WebSocketBackend = backend_tungstenite::WebSocketBackend;
+pub type WebSocketBackend = backend_tungstenite::TungsteniteBackend;
 
 // Gateway opcodes
 /// Opcode received when the server dispatches a [crate::types::WebSocketEvent]

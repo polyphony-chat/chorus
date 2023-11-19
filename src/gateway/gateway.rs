@@ -6,7 +6,7 @@ use tokio::task;
 
 use self::event::Events;
 use super::*;
-use super::{WsSink, WsStream};
+use super::{Sink, Stream};
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
     ChannelUpdate, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject, SourceUrlField,
@@ -17,8 +17,8 @@ use crate::types::{
 pub struct Gateway {
     events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
-    websocket_send: Arc<Mutex<WsSink>>,
-    websocket_receive: WsStream,
+    websocket_send: Arc<Mutex<Sink>>,
+    websocket_receive: Stream,
     kill_send: tokio::sync::broadcast::Sender<()>,
     store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
     url: String,
