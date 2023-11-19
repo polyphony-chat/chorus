@@ -38,6 +38,6 @@ impl GatewayMessage {
     /// Parses the message as a payload;
     /// Returns a result of deserializing
     pub fn payload(&self) -> Result<types::GatewayReceivePayload, serde_json::Error> {
-        return serde_json::from_str(&self.0);
+        serde_json::from_str(&self.0)
     }
 }
