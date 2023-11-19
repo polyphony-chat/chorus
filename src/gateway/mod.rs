@@ -1,19 +1,14 @@
-#[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
-pub mod default;
 pub mod events;
 pub mod message;
-// TODO: Uncomment for Prod!
-// #[cfg(all(target_arch = "wasm32", feature = "client"))]
-pub mod wasm;
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "client"))]
-pub use default::*;
+#[cfg(not(wasm))]
+pub mod backend_tungstenite;
+#[cfg(not(wasm))]
+use backend_tungstenite::*;
+
 pub use message::*;
 use safina_timer::sleep_until;
 use tokio::task::{self, JoinHandle};
-// TODO: Uncomment for Prod!
-// #[cfg(all(target_arch = "wasm32", feature = "client"))]
-pub use wasm::*;
 
 use self::events::Events;
 use crate::errors::GatewayError;
@@ -29,9 +24,6 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use std::time::{self, Duration, Instant};
 
-use async_trait::async_trait;
-use futures_util::stream::SplitSink;
-use futures_util::Sink;
 use futures_util::SinkExt;
 use log::{info, trace, warn};
 use tokio::sync::mpsc::Sender;
