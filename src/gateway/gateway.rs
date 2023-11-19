@@ -37,7 +37,10 @@ impl Gateway {
 
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
+        #[cfg(not(target_arch = "wasm32"))]
         let msg: GatewayMessage = websocket_receive.next().await.unwrap().unwrap().into();
+        #[cfg(target_arch = "wasm32")]
+        let msg: GatewayMessage = websocket_receive.next().await.unwrap().into();
         let gateway_payload: types::GatewayReceivePayload = serde_json::from_str(&msg.0).unwrap();
 
         if gateway_payload.op_code != GATEWAY_HELLO {
@@ -91,8 +94,15 @@ impl Gateway {
         loop {
             let msg = self.websocket_receive.next().await;
 
+            // PRETTYFYME: Remove inline conditional compiling
             // This if chain can be much better but if let is unstable on stable rust
+            #[cfg(not(target_arch = "wasm32"))]
             if let Some(Ok(message)) = msg {
+                self.handle_message(message.into()).await;
+                continue;
+            }
+            #[cfg(target_arch = "wasm32")]
+            if let Some(message) = msg {
                 self.handle_message(message.into()).await;
                 continue;
             }
