@@ -74,7 +74,12 @@ impl Gateway {
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
+        #[cfg(not(target_arch = "wasm32"))]
         task::spawn(async move {
+            gateway.gateway_listen_task().await;
+        });
+        #[cfg(target_arch = "wasm32")]
+        task::spawn_local(async move {
             gateway.gateway_listen_task().await;
         });
 
