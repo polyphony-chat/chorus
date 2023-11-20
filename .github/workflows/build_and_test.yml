@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Set coverage flag
+      id: cov-flag
+      run: echo ::set-output name=flag::${{ github.event.pull_request.head.repo.fork == false }}
     - uses: actions/checkout@v4
     - name: Clone spacebar server
       run: |
@@ -46,7 +49,7 @@ jobs:
           cargo test --verbose --all-features
         fi
     - name: Upload coverage for Linux
-      if: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      if: steps.cov-flag.outputs.flag == 'true'
       uses: actions/upload-artifact@v2
       with:
         name: coverage-linux
@@ -54,6 +57,9 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
+    - name: Set coverage flag
+      id: cov-flag
+      run: echo ::set-output name=flag::${{ github.event.pull_request.head.repo.fork == false }}
     - uses: actions/checkout@v4
     - name: Clone spacebar server
       run: |
@@ -86,7 +92,7 @@ jobs:
           SAFARIDRIVER=$(which safaridriver) CHROMEDRIVER=$(which chromedriver) GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
         fi
     - name: Upload coverage for macOS
-      if: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      if: steps.cov-flag.outputs.flag == 'true'
       uses: actions/upload-artifact@v2
       with:
         name: coverage-macos
@@ -94,7 +100,7 @@ jobs:
         
   upload-coverage:
     needs: [linux, macos]
-    if: ${{ secrets.COVERALLS_REPO_TOKEN }}
+    if: needs.linux.outputs.flag == 'true' && needs.macos.outputs.flag == 'true'
     runs-on: ubuntu-latest
     steps:
     - name: Download all workflow run artifacts
