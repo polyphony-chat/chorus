@@ -7,7 +7,6 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
 
-#[cfg(not(target_arch = "wasm32"))]
 #[tokio::test]
 async fn test_registration() {
     let bundle = common::setup().await;
