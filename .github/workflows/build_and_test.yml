@@ -38,10 +38,10 @@ jobs:
       run: |
         rustup target add wasm32-unknown-unknown
         curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-        GECKODRIVER=/usr/local/share/gecko_driver CHROMEDRIVER=/usr/local/share/chromedriver-linux64 sudo cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
+        cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.88" --force
+        GECKODRIVER=/usr/local/share/gecko_driver CHROMEDRIVER=/usr/local/share/chromedriver-linux64 cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
         if [ -n "${{ secrets.COVERALLS_REPO_TOKEN }}" ]; then
           curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.88" --force
           cargo binstall --no-confirm cargo-tarpaulin --force
           cargo tarpaulin --all-features --avoid-cfg-tarpaulin --tests --verbose --skip-clean --coveralls ${{ secrets.COVERALLS_REPO_TOKEN }} --timeout 120
         else
