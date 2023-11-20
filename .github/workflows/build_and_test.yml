@@ -67,7 +67,7 @@ jobs:
       with:
         cache-all-crates: "true"
         prefix-key: "macos"
-    - name: Build, Test wasm with Safari
+    - name: Run WASM tests with Safari, Firefox, Chrome
       run: |
         rustup target add wasm32-unknown-unknown
         curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
