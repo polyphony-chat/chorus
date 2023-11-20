@@ -1,6 +1,23 @@
 use chorus::types::{self, RoleCreateModifySchema, RoleObject};
+// PRETTYFYME: Move common wasm setup to common.rs
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn create_and_get_roles_wasm() {
+    create_and_get_roles().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn get_and_delete_role_wasm() {
+    get_and_delete_role().await
+}
 
 #[tokio::test]
 async fn create_and_get_roles() {

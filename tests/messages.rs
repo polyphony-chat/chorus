@@ -2,8 +2,37 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 
 use chorus::types::{self, Guild, Message, MessageSearchQuery};
+// PRETTYFYME: Move common wasm setup to common.rs
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn send_message_wasm() {
+    send_message().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn send_message_attachment_wasm() {
+    send_message_attachment().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn search_messages_wasm() {
+    search_messages().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn test_stickies_wasm() {
+    test_stickies().await
+}
 
 #[tokio::test]
 async fn send_message() {

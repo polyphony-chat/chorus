@@ -1,6 +1,17 @@
 use chorus::{errors::ChorusResult, types::GuildMember};
+// PRETTYFYME: Move common wasm setup to common.rs
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn add_remove_role_wasm() {
+    add_remove_role().await.unwrap()
+}
 
 #[tokio::test]
 async fn add_remove_role() -> ChorusResult<()> {

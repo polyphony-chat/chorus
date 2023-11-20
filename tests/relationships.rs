@@ -1,6 +1,35 @@
 use chorus::types::{self, Relationship, RelationshipType};
+// PRETTYFYME: Move common wasm setup to common.rs
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn test_get_relationships_wasm() {
+    test_get_relationships().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn test_get_mutual_relationships_wasm() {
+    test_get_mutual_relationships().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn test_modify_relationship_friends_wasm() {
+    test_modify_relationship_friends().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn test_modify_relationship_block_wasm() {
+    test_modify_relationship_block().await
+}
 
 #[tokio::test]
 async fn test_get_mutual_relationships() {

@@ -3,6 +3,41 @@ use chorus::types::{
 };
 
 mod common;
+// PRETTYFYME: Move common wasm setup to common.rs
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn guild_creation_deletion_wasm() {
+    guild_creation_deletion().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn get_channels_wasm() {
+    get_channels().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn guild_create_ban_wasm() {
+    guild_create_ban().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn modify_guild_wasm() {
+    modify_guild().await
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen_test]
+async fn guild_remove_member_wasm() {
+    guild_remove_member().await
+}
 
 #[tokio::test]
 async fn guild_creation_deletion() {
