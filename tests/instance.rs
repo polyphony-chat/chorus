@@ -8,7 +8,7 @@ wasm_bindgen_test_configure!(run_in_browser);
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn guild_creation_deletion_wasm() {
-    guild_creation_deletion().await
+    guild_creation_deletion()
 }
 
 #[tokio::test]

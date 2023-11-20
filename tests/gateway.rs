@@ -13,25 +13,25 @@ wasm_bindgen_test_configure!(run_in_browser);
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_gateway_establish_wasm() {
-    test_gateway_establish().await
+    test_gateway_establish()
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_gateway_authenticate_wasm() {
-    test_gateway_authenticate().await
+    test_gateway_authenticate()
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_self_updating_structs_wasm() {
-    test_self_updating_structs().await
+    test_self_updating_structs()
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_recursive_self_updating_structs_wasm() {
-    test_recursive_self_updating_structs().await
+    test_recursive_self_updating_structs()
 }
 
 #[tokio::test]

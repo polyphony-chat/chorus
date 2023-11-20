@@ -10,7 +10,7 @@ mod common;
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn add_remove_role_wasm() {
-    add_remove_role().await.unwrap()
+    add_remove_role().unwrap()
 }
 
 #[tokio::test]

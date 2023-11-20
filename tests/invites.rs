@@ -9,7 +9,7 @@ wasm_bindgen_test_configure!(run_in_browser);
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn create_accept_invite_wasm() {
-    create_accept_invite().await
+    create_accept_invite()
 }
 
 #[tokio::test]

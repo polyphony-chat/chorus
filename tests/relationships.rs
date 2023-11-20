@@ -10,25 +10,25 @@ mod common;
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_get_relationships_wasm() {
-    test_get_relationships().await
+    test_get_relationships()
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_get_mutual_relationships_wasm() {
-    test_get_mutual_relationships().await
+    test_get_mutual_relationships()
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_modify_relationship_friends_wasm() {
-    test_modify_relationship_friends().await
+    test_modify_relationship_friends()
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_modify_relationship_block_wasm() {
-    test_modify_relationship_block().await
+    test_modify_relationship_block()
 }
 
 #[tokio::test]

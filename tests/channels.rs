@@ -13,32 +13,32 @@ wasm_bindgen_test_configure!(run_in_browser);
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_get_channel_wasm() {
-    get_channel().await
+    get_channel()
 }
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_delete_channel_wasm() {
-    delete_channel().await
+    delete_channel()
 }
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_modify_channel_wasm() {
-    modify_channel().await
+    modify_channel()
 }
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_get_channel_messages_wasm() {
-    get_channel_messages().await
+    get_channel_messages()
 }
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_create_dm_wasm() {
-    create_dm().await
+    create_dm()
 }
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_remove_add_person_from_to_dm_wasm() {
-    remove_add_person_from_to_dm().await
+    remove_add_person_from_to_dm()
 }
 
 #[tokio::test]
