@@ -14,7 +14,7 @@ use crate::types::{self, Composite};
 pub struct GatewayHandle {
     pub url: String,
     pub events: Arc<Mutex<Events>>,
-    pub websocket_send: Arc<Mutex<WsSink>>,
+    pub websocket_send: Arc<Mutex<Sink>>,
     /// Tells gateway tasks to close
     pub(super) kill_send: tokio::sync::broadcast::Sender<()>,
     pub(crate) store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,

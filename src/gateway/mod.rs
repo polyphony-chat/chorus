@@ -1,13 +1,13 @@
 use async_trait::async_trait;
 
-#[cfg(not(target_arch = "wasm32"))]
-pub mod backend_tungstenite;
+pub mod backends;
 pub mod events;
 pub mod gateway;
 pub mod handle;
 pub mod heartbeat;
 pub mod message;
 
+pub use backends::*;
 pub use gateway::*;
 pub use handle::*;
 use heartbeat::*;
@@ -21,13 +21,6 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use tokio::sync::Mutex;
-
-#[cfg(not(target_arch = "wasm32"))]
-pub type WsSink = backend_tungstenite::WsSink;
-#[cfg(not(target_arch = "wasm32"))]
-pub type WsStream = backend_tungstenite::WsStream;
-#[cfg(not(target_arch = "wasm32"))]
-pub type WebSocketBackend = backend_tungstenite::WebSocketBackend;
 
 // Gateway opcodes
 /// Opcode received when the server dispatches a [crate::types::WebSocketEvent]

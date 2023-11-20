@@ -6,7 +6,7 @@ use chorus::{
     types::{GatewayIdentifyPayload, GatewayReady},
 };
 use std::{sync::Arc, time::Duration};
-use tokio::{self, time::sleep};
+use tokio::{self};
 
 // This example creates a simple gateway connection and a basic observer struct
 
@@ -54,9 +54,10 @@ async fn main() {
     let mut identify = GatewayIdentifyPayload::common();
     identify.token = token;
     gateway.send_identify(identify).await;
+    safina_timer::start_timer_thread();
 
     // Do something on the main thread so we don't quit
     loop {
-        sleep(Duration::MAX).await;
+        safina_timer::sleep_for(Duration::MAX).await
     }
 }

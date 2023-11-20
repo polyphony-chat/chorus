@@ -27,7 +27,7 @@ pub(super) struct HeartbeatHandler {
 impl HeartbeatHandler {
     pub fn new(
         heartbeat_interval: Duration,
-        websocket_tx: Arc<Mutex<WsSink>>,
+        websocket_tx: Arc<Mutex<Sink>>,
         kill_rc: tokio::sync::broadcast::Receiver<()>,
     ) -> Self {
         let (send, receive) = tokio::sync::mpsc::channel(32);
@@ -49,7 +49,7 @@ impl HeartbeatHandler {
     /// Can be killed by the kill broadcast;
     /// If the websocket is closed, will die out next time it tries to send a heartbeat;
     pub async fn heartbeat_task(
-        websocket_tx: Arc<Mutex<WsSink>>,
+        websocket_tx: Arc<Mutex<Sink>>,
         heartbeat_interval: Duration,
         mut receive: Receiver<HeartbeatThreadCommunication>,
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,
