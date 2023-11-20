@@ -13,25 +13,25 @@ mod common;
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn send_message_wasm() {
-    send_message()
+    send_message();
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn send_message_attachment_wasm() {
-    send_message_attachment()
+    send_message_attachment();
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn search_messages_wasm() {
-    search_messages()
+    search_messages();
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_stickies_wasm() {
-    test_stickies()
+    test_stickies();
 }
 
 #[tokio::test]

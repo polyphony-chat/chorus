@@ -23,5 +23,5 @@ async fn test_registration() {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn test_registration_wasm() {
-    test_registration()
+    test_registration();
 }

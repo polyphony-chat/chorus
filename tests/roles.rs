@@ -10,13 +10,13 @@ mod common;
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn create_and_get_roles_wasm() {
-    create_and_get_roles()
+    create_and_get_roles();
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
 async fn get_and_delete_role_wasm() {
-    get_and_delete_role()
+    get_and_delete_role();
 }
 
 #[tokio::test]
