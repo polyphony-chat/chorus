@@ -48,7 +48,7 @@ jobs:
           cargo build --verbose --all-features
           cargo test --verbose --all-features
         fi
-        GECKODRIVER=/usr/local/share/gecko_driver CHROMEDRIVER=/usr/local/share/chromedriver-linux64 cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
+        GECKODRIVER=$(which geckodriver) CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
   macos:
     runs-on: macos-latest
     steps:
