@@ -7,8 +7,8 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen_test]
-async fn guild_creation_deletion_wasm() {
-    guild_creation_deletion()
+async fn generate_general_configuration_schema_wasm() {
+    generate_general_configuration_schema()
 }
 
 #[tokio::test]
