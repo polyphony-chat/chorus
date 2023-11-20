@@ -39,12 +39,18 @@ jobs:
         if [ -n "${{ secrets.COVERALLS_REPO_TOKEN }}" ]; then
           curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
           cargo binstall --no-confirm cargo-tarpaulin --force
-          cargo tarpaulin --all-features --avoid-cfg-tarpaulin --tests --verbose --skip-clean --coveralls ${{ secrets.COVERALLS_REPO_TOKEN }} --timeout 120
+          cargo tarpaulin --all-features --avoid-cfg-tarpaulin --tests --verbose --skip-clean --timeout 120 --output-dir ./cargo/output-linux.lcov --out Lcov
         else
           echo "Code Coverage step is skipped on forks!"
           cargo build --verbose --all-features
           cargo test --verbose --all-features
         fi
+    - name: Upload coverage for Linux
+      if: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-linux
+        path: ./cargo/output-linux.lcov
   macos:
     runs-on: macos-latest
     steps:
@@ -72,6 +78,26 @@ jobs:
         rustup target add wasm32-unknown-unknown
         curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
         cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.88" --force
-        SAFARIDRIVER=$(which safaridriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
-        GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
-        CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
+        if [ -n "${{ secrets.COVERALLS_REPO_TOKEN }}" ]; then
+          cargo binstall --no-confirm cargo-tarpaulin --force
+          SAFARIDRIVER=$(which safaridriver) CHROMEDRIVER=$(which chromedriver) GECKODRIVER=$(which geckodriver) cargo tarpaulin --target wasm32-unknown-unknown --no-default-features --features="client, rt" --avoid-cfg-tarpaulin --tests --verbose --skip-clean --timeout 120 --output-dir ./cargo/output-macos.lcov --out Lcov
+        else
+          echo "Code Coverage step is skipped on forks!"
+          SAFARIDRIVER=$(which safaridriver) CHROMEDRIVER=$(which chromedriver) GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
+        fi
+    - name: Upload coverage for macOS
+      if: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-macos
+        path: ./cargo/output-macos.lcov
+        
+  upload-coverage:
+    needs: [linux, macos]
+    if: ${{ secrets.COVERALLS_REPO_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all workflow run artifacts
+      uses: actions/download-artifact@v2
+    - name: Upload coverage to Coveralls.io
+      uses: coverallsapp/github-action@v2
