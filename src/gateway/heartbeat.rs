@@ -33,13 +33,8 @@ impl HeartbeatHandler {
         let (send, receive) = tokio::sync::mpsc::channel(32);
         let kill_receive = kill_rc.resubscribe();
 
-        #[cfg(not(target_arch = "wasm32"))]
         let handle: JoinHandle<()> = task::spawn(async move {
             Self::heartbeat_task(websocket_tx, heartbeat_interval, receive, kill_receive).await;
-        });
-        #[cfg(target_arch = "wasm32")]
-        let handle: JoinHandle<()> = task::spawn_local(move || {
-            Self::heartbeat_task(websocket_tx, heartbeat_interval, receive, kill_receive);
         });
 
         Self {
