@@ -205,7 +205,6 @@ dependencies = [
  "lazy_static",
  "log",
  "native-tls",
- "pharos",
  "poem",
  "rand",
  "regex",
@@ -223,6 +222,7 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "url",
+ "wasm-bindgen",
  "wasm-bindgen-test",
  "ws_stream_wasm",
 ]
