@@ -74,6 +74,7 @@ impl Gateway {
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
+        // FIXME: Doesn't work in WASM
         task::spawn(async move {
             gateway.gateway_listen_task().await;
         });
