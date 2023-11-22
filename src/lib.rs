@@ -14,6 +14,8 @@
     clippy::new_without_default,
     clippy::useless_conversion
 )]
+#[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
+compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
 
 use url::{ParseError, Url};
 

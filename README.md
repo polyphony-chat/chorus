@@ -98,14 +98,33 @@ dbg!(&user.object.read().unwrap().username);
 ## Supported Platforms
 
 All major desktop operating systems (Windows, macOS (aarch64/x86_64), Linux (aarch64/x86_64)) are supported.
-We are currently working on adding full support for `wasm32-unknown-unknown`. This will allow you to use Chorus in
-your browser, or in any other environment that supports WebAssembly.
+`wasm32-unknown-unknown` is a supported compilation target on versions `0.12.0` and up. This allows you to use
+Chorus in your browser, or in any other environment that supports WebAssembly.
 
 We recommend checking out the examples directory, as well as the documentation for more information.
 
 ## MSRV (Minimum Supported Rust Version)
 
 Rust **1.67.1**. This number might change at any point while Chorus is not yet at version 1.0.0.
+
+## Development Setup
+
+Make sure that you have at least Rust 1.67.1 installed. You can check your Rust version by running `cargo --version`
+in your terminal. To compile for `wasm32-unknown-unknown`, you need to install the `wasm32-unknown-unknown` target.
+You can do this by running `rustup target add wasm32-unknown-unknown`.
+
+### Testing
+
+In general, the tests will require you to run a local instance of the Spacebar server. You can find instructions on how
+to do that [here](https://docs.spacebar.chat/setup/server/). You can find a pre-configured version of the server
+[here](https://github.com/bitfl0wer/server). It is recommended to use the pre-configured version, as certain things
+like "proxy connection checking" are already disabled on this version, which otherwise might break tests.
+
+### wasm
+
+To test for wasm, you will need to `cargo install wasm-pack`. You can then run
+`wasm-pack test --<chrome/firefox/safari> --headless -- --target wasm32-unknown-unknown --features="rt, client" --no-default-features`
+to run the tests for wasm.
 
 ## Versioning
 

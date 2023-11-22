@@ -2,24 +2,32 @@ mod common;
 
 use std::sync::{Arc, RwLock};
 
+use chorus::errors::GatewayError;
 use chorus::gateway::*;
 use chorus::types::{self, ChannelModifySchema, RoleCreateModifySchema, RoleObject};
+// PRETTYFYME: Move common wasm setup to common.rs
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 /// Tests establishing a connection (hello and heartbeats) on the local gateway;
 async fn test_gateway_establish() {
     let bundle = common::setup().await;
 
-    Gateway::new(bundle.urls.wss.clone()).await.unwrap();
+    let _: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 /// Tests establishing a connection and authenticating
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
-    let gateway = Gateway::new(bundle.urls.wss.clone()).await.unwrap();
+    let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
 
     let mut identify = types::GatewayIdentifyPayload::common();
     identify.token = bundle.user.token.clone();
@@ -28,7 +36,8 @@ async fn test_gateway_authenticate() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
     let received_channel = bundle
@@ -61,7 +70,8 @@ async fn test_self_updating_structs() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_recursive_self_updating_structs() {
     // Setup
     let mut bundle = common::setup().await;
@@ -115,4 +125,93 @@ async fn test_recursive_self_updating_structs() {
     let guild_role_inner = guild_role.get(0).unwrap().read().unwrap().clone();
     assert_eq!(guild_role_inner.name, "yippieee".to_string());
     common::teardown(bundle).await;
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+fn test_error() {
+    let error = GatewayMessage("4000".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::Unknown);
+    let error = GatewayMessage("4001".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::UnknownOpcode);
+    let error = GatewayMessage("4002".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::Decode);
+    let error = GatewayMessage("4003".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::NotAuthenticated);
+    let error = GatewayMessage("4004".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::AuthenticationFailed);
+    let error = GatewayMessage("4005".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::AlreadyAuthenticated);
+    let error = GatewayMessage("4007".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::InvalidSequenceNumber);
+    let error = GatewayMessage("4008".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::RateLimited);
+    let error = GatewayMessage("4009".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::SessionTimedOut);
+    let error = GatewayMessage("4010".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::InvalidShard);
+    let error = GatewayMessage("4011".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::ShardingRequired);
+    let error = GatewayMessage("4012".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::InvalidAPIVersion);
+    let error = GatewayMessage("4013".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::InvalidIntents);
+    let error = GatewayMessage("4014".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::DisallowedIntents);
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+fn test_error_message() {
+    let error = GatewayMessage("Unknown Error".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::Unknown);
+    let error = GatewayMessage("Unknown Opcode".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::UnknownOpcode);
+    let error = GatewayMessage("Decode Error".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::Decode);
+    let error = GatewayMessage("Not Authenticated".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::NotAuthenticated);
+    let error = GatewayMessage("Authentication Failed".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::AuthenticationFailed);
+    let error = GatewayMessage("Already Authenticated".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::AlreadyAuthenticated);
+    let error = GatewayMessage("Invalid Seq".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::InvalidSequenceNumber);
+    let error = GatewayMessage("Rate Limited".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::RateLimited);
+    let error = GatewayMessage("Session Timed Out".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::SessionTimedOut);
+    let error = GatewayMessage("Invalid Shard".to_string()).error().unwrap();
+    assert_eq!(error, GatewayError::InvalidShard);
+    let error = GatewayMessage("Sharding Required".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::ShardingRequired);
+    let error = GatewayMessage("Invalid API Version".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::InvalidAPIVersion);
+    let error = GatewayMessage("Invalid Intent(s)".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::InvalidIntents);
+    let error = GatewayMessage("Disallowed Intent(s)".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::DisallowedIntents);
+    // Also test the dot thing
+    let error = GatewayMessage("Invalid Intent(s).".to_string())
+        .error()
+        .unwrap();
+    assert_eq!(error, GatewayError::InvalidIntents);
 }

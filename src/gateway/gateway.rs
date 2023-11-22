@@ -1,5 +1,13 @@
+use std::time::Duration;
+
+use futures_util::{SinkExt, StreamExt};
+use log::*;
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::task;
+
 use self::event::Events;
 use super::*;
+use super::{Sink, Stream};
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
     ChannelUpdate, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject, SourceUrlField,
@@ -10,15 +18,8 @@ use crate::types::{
 pub struct Gateway {
     events: Arc<Mutex<Events>>,
     heartbeat_handler: HeartbeatHandler,
-    websocket_send: Arc<
-        Mutex<
-            SplitSink<
-                WebSocketStream<MaybeTlsStream<TcpStream>>,
-                tokio_tungstenite::tungstenite::Message,
-            >,
-        >,
-    >,
-    websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
+    websocket_send: Arc<Mutex<Sink>>,
+    websocket_receive: Stream,
     kill_send: tokio::sync::broadcast::Sender<()>,
     store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
     url: String,
@@ -26,35 +27,9 @@ pub struct Gateway {
 
 impl Gateway {
     #[allow(clippy::new_ret_no_self)]
-    pub async fn new(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
-        let mut roots = rustls::RootCertStore::empty();
-        for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
-        {
-            roots.add(&rustls::Certificate(cert.0)).unwrap();
-        }
-        let (websocket_stream, _) = match connect_async_tls_with_config(
-            &websocket_url,
-            None,
-            false,
-            Some(Connector::Rustls(
-                rustls::ClientConfig::builder()
-                    .with_safe_defaults()
-                    .with_root_certificates(roots)
-                    .with_no_client_auth()
-                    .into(),
-            )),
-        )
-        .await
-        {
-            Ok(websocket_stream) => websocket_stream,
-            Err(e) => {
-                return Err(GatewayError::CannotConnect {
-                    error: e.to_string(),
-                })
-            }
-        };
-
-        let (websocket_send, mut websocket_receive) = websocket_stream.split();
+    pub async fn spawn(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
+        let (websocket_send, mut websocket_receive) =
+            WebSocketBackend::connect(&websocket_url).await?;
 
         let shared_websocket_send = Arc::new(Mutex::new(websocket_send));
 
@@ -63,9 +38,11 @@ impl Gateway {
 
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
-        let msg = websocket_receive.next().await.unwrap().unwrap();
-        let gateway_payload: types::GatewayReceivePayload =
-            serde_json::from_str(msg.to_text().unwrap()).unwrap();
+        #[cfg(not(target_arch = "wasm32"))]
+        let msg: GatewayMessage = websocket_receive.next().await.unwrap().unwrap().into();
+        #[cfg(target_arch = "wasm32")]
+        let msg: GatewayMessage = websocket_receive.next().await.unwrap().into();
+        let gateway_payload: types::GatewayReceivePayload = serde_json::from_str(&msg.0).unwrap();
 
         if gateway_payload.op_code != GATEWAY_HELLO {
             return Err(GatewayError::NonHelloOnInitiate {
@@ -98,7 +75,12 @@ impl Gateway {
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
+        #[cfg(not(target_arch = "wasm32"))]
         task::spawn(async move {
+            gateway.gateway_listen_task().await;
+        });
+        #[cfg(target_arch = "wasm32")]
+        wasm_bindgen_futures::spawn_local(async move {
             gateway.gateway_listen_task().await;
         });
 
@@ -118,10 +100,16 @@ impl Gateway {
         loop {
             let msg = self.websocket_receive.next().await;
 
+            // PRETTYFYME: Remove inline conditional compiling
             // This if chain can be much better but if let is unstable on stable rust
+            #[cfg(not(target_arch = "wasm32"))]
             if let Some(Ok(message)) = msg {
-                self.handle_message(GatewayMessage::from_tungstenite_message(message))
-                    .await;
+                self.handle_message(message.into()).await;
+                continue;
+            }
+            #[cfg(target_arch = "wasm32")]
+            if let Some(message) = msg {
+                self.handle_message(message.into()).await;
                 continue;
             }
 
@@ -156,31 +144,23 @@ impl Gateway {
 
     /// This handles a message as a websocket event and updates its events along with the events' observers
     pub async fn handle_message(&mut self, msg: GatewayMessage) {
-        if msg.is_empty() {
+        if msg.0.is_empty() {
             return;
         }
 
-        if !msg.is_error() && !msg.is_payload() {
-            warn!(
-                "Message unrecognised: {:?}, please open an issue on the chorus github",
-                msg.message.to_string()
-            );
+        let Ok(gateway_payload) = msg.payload() else {
+            if let Some(error) = msg.error() {
+                warn!("GW: Received error {:?}, connection will close..", error);
+                self.close().await;
+                self.events.lock().await.error.notify(error).await;
+            } else {
+                warn!(
+                    "Message unrecognised: {:?}, please open an issue on the chorus github",
+                    msg.0
+                );
+            }
             return;
-        }
-
-        if msg.is_error() {
-            let error = msg.error().unwrap();
-
-            warn!("GW: Received error {:?}, connection will close..", error);
-
-            self.close().await;
-
-            self.events.lock().await.error.notify(error).await;
-
-            return;
-        }
-
-        let gateway_payload = msg.payload().unwrap();
+        };
 
         // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
         match gateway_payload.op_code {
