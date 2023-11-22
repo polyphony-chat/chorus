@@ -1,7 +1,7 @@
 [package]
 name = "chorus"
 description = "A library for interacting with multiple Spacebar-compatible Instances at once."
-version = "0.11.0"
+version = "0.12.0"
 license = "AGPL-3.0"
 edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
@@ -11,33 +11,38 @@ website = ["https://discord.com/invite/m3FpcapGDD"]
 
 
 [features]
-default = ["client"]
-backend = ["poem", "sqlx"]
+default = ["client", "rt-multi-thread"]
+backend = ["dep:poem", "dep:sqlx"]
+rt-multi-thread = ["tokio/rt-multi-thread"]
+rt = ["tokio/rt"]
 client = []
 
 [dependencies]
-tokio = { version = "1.29.1", features = ["macros"] }
+tokio = { version = "1.34.0", features = ["macros", "sync"] }
 serde = { version = "1.0.188", features = ["derive", "rc"] }
 serde_json = { version = "1.0.105", features = ["raw_value"] }
 serde-aux = "4.2.0"
 serde_with = "3.3.0"
 serde_repr = "0.1.16"
-reqwest = { version = "0.11.20", features = ["multipart", "json"] }
+reqwest = { git = "https://github.com/bitfl0wer/reqwest.git", branch = "wasm-headers", features = [
+    "multipart",
+    "json",
+] } # reqwest versions > 0.11.22 will have adequate support for WASM. Until there is such a version, we will use a fork of reqwest v.0.11.22 
 url = "2.4.0"
 chrono = { version = "0.4.26", features = ["serde"] }
 regex = "1.9.4"
 custom_error = "1.9.2"
-tokio-tungstenite = { version = "0.20.1", features = [
-    "rustls-tls-native-roots",
-    "rustls-native-certs",
-] }
 futures-util = "0.3.28"
 http = "0.2.9"
 base64 = "0.21.3"
-hostname = "0.3.1"
 bitflags = { version = "2.4.0", features = ["serde"] }
 lazy_static = "1.4.0"
 poem = { version = "1.3.57", optional = true }
+thiserror = "1.0.47"
+jsonwebtoken = "8.3.0"
+log = "0.4.20"
+async-trait = "0.1.73"
+chorus-macros = "0.2.0"
 sqlx = { version = "0.7.1", features = [
     "mysql",
     "sqlite",
@@ -47,16 +52,25 @@ sqlx = { version = "0.7.1", features = [
     "runtime-tokio-native-tls",
     "any",
 ], optional = true }
-thiserror = "1.0.47"
-jsonwebtoken = "8.3.0"
-log = "0.4.20"
-async-trait = "0.1.73"
-chorus-macros = "0.2.0"
-rustls = "0.21.8"
-rustls-native-certs = "0.6.3"
+safina-timer = "0.1.11"
 rand = "0.8.5"
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rustls = "0.21.8"
+rustls-native-certs = "0.6.3"
+tokio-tungstenite = { version = "0.20.1", features = [
+    "rustls-tls-native-roots",
+    "rustls-native-certs",
+] }
+native-tls = "0.2.11"
+hostname = "0.3.1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2.11", features = ["js"] }
+ws_stream_wasm = "0.7.4"
+wasm-bindgen-futures = "0.4.38"
+
 [dev-dependencies]
-tokio = { version = "1.32.0", features = ["full"] }
 lazy_static = "1.4.0"
-rusty-hook = "0.11.2"
+wasm-bindgen-test = "0.3.38"
+wasm-bindgen = "0.2.88"

@@ -11,7 +11,7 @@ name: rust-clippy analyze
 
 on:
   push:
-    branches: [ "main", "preserve/*", "dev" ]
+    branches: [ "main", "preserve/*" ]
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "main", "dev" ]

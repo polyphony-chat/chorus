@@ -36,14 +36,11 @@ impl Instance {
     pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
         let limits_information;
         if limited {
-            let limits_configuration =
-                Some(ChorusRequest::get_limits_config(&urls.api).await?.rate);
-            let limits = Some(ChorusRequest::limits_config_to_hashmap(
-                limits_configuration.as_ref().unwrap(),
-            ));
+            let limits_configuration = ChorusRequest::get_limits_config(&urls.api).await?.rate;
+            let limits = ChorusRequest::limits_config_to_hashmap(&limits_configuration);
             limits_information = Some(LimitsInformation {
-                ratelimits: limits.unwrap(),
-                configuration: limits_configuration.unwrap(),
+                ratelimits: limits,
+                configuration: limits_configuration,
             });
         } else {
             limits_information = None;
@@ -138,7 +135,7 @@ impl ChorusUser {
         let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
-        let gateway = Gateway::new(wss_url).await.unwrap();
+        let gateway = Gateway::spawn(wss_url).await.unwrap();
         ChorusUser {
             token,
             belongs_to: instance.clone(),
