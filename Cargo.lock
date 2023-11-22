@@ -223,6 +223,7 @@ dependencies = [
  "tokio-tungstenite",
  "url",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "wasm-bindgen-test",
  "ws_stream_wasm",
 ]
