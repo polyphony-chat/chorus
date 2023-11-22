@@ -20,8 +20,8 @@ use crate::types::{
     self, SelectProtocol, Speaking, VoiceGatewayReceivePayload, VoiceGatewaySendPayload,
     VoiceIdentify, WebSocketEvent, VOICE_BACKEND_VERSION, VOICE_CLIENT_CONNECT_FLAGS,
     VOICE_CLIENT_CONNECT_PLATFORM, VOICE_CLIENT_DISCONNECT, VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK,
-    VOICE_HELLO, VOICE_IDENTIFY, VOICE_READY, VOICE_RESUME, VOICE_SELECT_PROTOCOL,
-    VOICE_SESSION_DESCRIPTION, VOICE_SESSION_UPDATE, VOICE_SPEAKING,
+    VOICE_HELLO, VOICE_IDENTIFY, VOICE_MEDIA_SINK_WANTS, VOICE_READY, VOICE_RESUME,
+    VOICE_SELECT_PROTOCOL, VOICE_SESSION_DESCRIPTION, VOICE_SESSION_UPDATE, VOICE_SPEAKING,
 };
 
 use self::voice_events::VoiceEvents;
@@ -454,7 +454,19 @@ impl VoiceGateway {
                     return;
                 }
             }
+            VOICE_MEDIA_SINK_WANTS => {
+                trace!("VGW: Received Media Sink Wants");
 
+                let event = &mut self.events.lock().await.media_sink_wants;
+                let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
+                if result.is_err() {
+                    warn!(
+                        "Failed to parse VOICE_MEDIA_SINK_WANTS ({})",
+                        result.err().unwrap()
+                    );
+                    return;
+                }
+            }
             // We received a heartbeat from the server
             // "Discord may send the app a Heartbeat (opcode 1) event, in which case the app should send a Heartbeat event immediately."
             VOICE_HEARTBEAT => {
@@ -650,7 +662,7 @@ struct VoiceHeartbeatThreadCommunication {
 pub mod voice_events {
     use crate::types::{
         SessionDescription, SessionUpdate, VoiceBackendVersion, VoiceClientConnectFlags,
-        VoiceClientConnectPlatform, VoiceClientDisconnection, VoiceReady,
+        VoiceClientConnectPlatform, VoiceClientDisconnection, VoiceMediaSinkWants, VoiceReady,
     };
 
     use super::*;
@@ -665,6 +677,7 @@ pub mod voice_events {
         pub client_disconnect: GatewayEvent<VoiceClientDisconnection>,
         pub client_connect_flags: GatewayEvent<VoiceClientConnectFlags>,
         pub client_connect_platform: GatewayEvent<VoiceClientConnectPlatform>,
+        pub media_sink_wants: GatewayEvent<VoiceMediaSinkWants>,
         pub error: GatewayEvent<VoiceGatewayError>,
     }
 }
