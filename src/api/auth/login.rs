@@ -14,7 +14,7 @@ impl Instance {
     ///
     /// # Reference
     /// See <https://docs.spacebar.chat/routes/#post-/auth/login/>
-    pub async fn login_account(mut self, login_schema: LoginSchema) -> ChorusResult<ChorusUser> {
+    pub async fn login_account(&mut self, login_schema: LoginSchema) -> ChorusResult<ChorusUser> {
         let endpoint_url = self.urls.api.clone() + "/auth/login";
         let chorus_request = ChorusRequest {
             request: Client::new()
