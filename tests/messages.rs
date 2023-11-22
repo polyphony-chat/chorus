@@ -26,6 +26,9 @@ async fn send_message() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn send_message_attachment() {
+    /// FIXME: Fix this test for wasm32. wasm32-unknown-unknown does not have a filesystem and therefore cannot read files.
+    #[cfg(target_arch = "wasm32")]
+    return;
     let f = File::open("./README.md").unwrap();
     let mut reader = BufReader::new(f);
     let mut buffer = Vec::new();
@@ -64,6 +67,9 @@ async fn send_message_attachment() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn search_messages() {
+    /// FIXME: Fix this test for wasm32. wasm32-unknown-unknown does not have a filesystem and therefore cannot read files.
+    #[cfg(target_arch = "wasm32")]
+    return;
     let f = File::open("./README.md").unwrap();
     let mut reader = BufReader::new(f);
     let mut buffer = Vec::new();
