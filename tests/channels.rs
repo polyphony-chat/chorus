@@ -4,7 +4,6 @@ use chorus::types::{
 };
 
 mod common;
-// PRETTYFYME: Move common wasm setup to common.rs
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
