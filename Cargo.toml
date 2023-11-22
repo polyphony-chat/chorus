@@ -27,7 +27,7 @@ serde_repr = "0.1.16"
 reqwest = { git = "https://github.com/bitfl0wer/reqwest.git", branch = "wasm-headers", features = [
     "multipart",
     "json",
-] } # reqwest versions > 0.11.22 will have adequate support for WASM. Until there is such a version, we will use a fork of reqwest v.0.11.22 
+], version = "0.11.22" } # reqwest versions > 0.11.22 will have adequate support for WASM. Until there is such a version, we will use a fork of reqwest v.0.11.22 
 url = "2.4.0"
 chrono = { version = "0.4.26", features = ["serde"] }
 regex = "1.9.4"
