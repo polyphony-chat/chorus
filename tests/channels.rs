@@ -11,7 +11,8 @@ use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test_configure!(run_in_browser);
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn get_channel() {
     let mut bundle = common::setup().await;
     let bundle_channel = bundle.channel.read().unwrap().clone();
@@ -24,7 +25,8 @@ async fn get_channel() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn delete_channel() {
     let mut bundle = common::setup().await;
     let channel_guard = bundle.channel.write().unwrap().clone();
@@ -33,7 +35,8 @@ async fn delete_channel() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn modify_channel() {
     const CHANNEL_NAME: &str = "beepboop";
     let mut bundle = common::setup().await;
@@ -91,7 +94,8 @@ async fn modify_channel() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn get_channel_messages() {
     let mut bundle = common::setup().await;
     let channel_id: Snowflake = bundle.channel.read().unwrap().id;
@@ -147,7 +151,8 @@ async fn get_channel_messages() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn create_dm() {
     let mut bundle = common::setup().await;
     let other_user = bundle.create_user("integrationtestuser2").await;

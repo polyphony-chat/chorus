@@ -9,7 +9,8 @@ use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test_configure!(run_in_browser);
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn guild_creation_deletion() {
     let mut bundle = common::setup().await;
 
@@ -31,7 +32,8 @@ async fn guild_creation_deletion() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn get_channels() {
     let mut bundle = common::setup().await;
     let guild = bundle.guild.read().unwrap().clone();
@@ -39,7 +41,8 @@ async fn get_channels() {
     common::teardown(bundle).await;
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn guild_create_ban() {
     // TODO: When routes exist to check if user x is on guild y, add this as an assertion to check
     // if Spacebar actually bans the user.
@@ -76,7 +79,8 @@ async fn guild_create_ban() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn modify_guild() {
     let mut bundle = common::setup().await;
     let schema = GuildModifySchema {
@@ -91,7 +95,8 @@ async fn modify_guild() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn guild_remove_member() {
     let mut bundle = common::setup().await;
     let channel = bundle.channel.read().unwrap().clone();

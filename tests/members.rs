@@ -7,7 +7,8 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn add_remove_role() -> ChorusResult<()> {
     let mut bundle = common::setup().await;
     let guild = bundle.guild.read().unwrap().id;

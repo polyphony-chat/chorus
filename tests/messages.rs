@@ -10,7 +10,8 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn send_message() {
     let mut bundle = common::setup().await;
     let message = types::MessageSendSchema {
@@ -22,7 +23,8 @@ async fn send_message() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn send_message_attachment() {
     let f = File::open("./README.md").unwrap();
     let mut reader = BufReader::new(f);
@@ -59,7 +61,8 @@ async fn send_message_attachment() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn search_messages() {
     let f = File::open("./README.md").unwrap();
     let mut reader = BufReader::new(f);
@@ -105,7 +108,8 @@ async fn search_messages() {
     assert_eq!(query_result.get(0).unwrap().id, message.id);
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_stickies() {
     let mut bundle = common::setup().await;
     let message = types::MessageSendSchema {

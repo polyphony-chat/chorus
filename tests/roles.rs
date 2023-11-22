@@ -7,7 +7,8 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn create_and_get_roles() {
     let mut bundle = common::setup().await;
     let permissions = types::PermissionFlags::CONNECT | types::PermissionFlags::MANAGE_EVENTS;
@@ -36,7 +37,8 @@ async fn create_and_get_roles() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn get_and_delete_role() {
     let mut bundle = common::setup().await;
     let guild_id = bundle.guild.read().unwrap().id;
