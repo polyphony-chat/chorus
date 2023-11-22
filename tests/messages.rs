@@ -2,10 +2,16 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 
 use chorus::types::{self, Guild, Message, MessageSearchQuery};
+// PRETTYFYME: Move common wasm setup to common.rs
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn send_message() {
     let mut bundle = common::setup().await;
     let message = types::MessageSendSchema {
@@ -17,8 +23,12 @@ async fn send_message() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn send_message_attachment() {
+    /// FIXME: Fix this test for wasm32. wasm32-unknown-unknown does not have a filesystem and therefore cannot read files.
+    #[cfg(target_arch = "wasm32")]
+    return;
     let f = File::open("./README.md").unwrap();
     let mut reader = BufReader::new(f);
     let mut buffer = Vec::new();
@@ -54,8 +64,12 @@ async fn send_message_attachment() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn search_messages() {
+    /// FIXME: Fix this test for wasm32. wasm32-unknown-unknown does not have a filesystem and therefore cannot read files.
+    #[cfg(target_arch = "wasm32")]
+    return;
     let f = File::open("./README.md").unwrap();
     let mut reader = BufReader::new(f);
     let mut buffer = Vec::new();
@@ -100,7 +114,8 @@ async fn search_messages() {
     assert_eq!(query_result.get(0).unwrap().id, message.id);
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_stickies() {
     let mut bundle = common::setup().await;
     let message = types::MessageSendSchema {

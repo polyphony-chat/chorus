@@ -4,8 +4,14 @@ use std::sync::{Arc, RwLock};
 
 use chorus::gateway::*;
 use chorus::types::{self, ChannelModifySchema, RoleCreateModifySchema, RoleObject};
+// PRETTYFYME: Move common wasm setup to common.rs
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 /// Tests establishing a connection (hello and heartbeats) on the local gateway;
 async fn test_gateway_establish() {
     let bundle = common::setup().await;
@@ -14,7 +20,8 @@ async fn test_gateway_establish() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 /// Tests establishing a connection and authenticating
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
@@ -28,7 +35,8 @@ async fn test_gateway_authenticate() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
     let received_channel = bundle
@@ -61,7 +69,8 @@ async fn test_self_updating_structs() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_recursive_self_updating_structs() {
     // Setup
     let mut bundle = common::setup().await;

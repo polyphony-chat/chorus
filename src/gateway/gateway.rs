@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
 use log::*;
+#[cfg(not(target_arch = "wasm32"))]
 use tokio::task;
 
 use self::event::Events;
@@ -74,7 +75,12 @@ impl Gateway {
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
+        #[cfg(not(target_arch = "wasm32"))]
         task::spawn(async move {
+            gateway.gateway_listen_task().await;
+        });
+        #[cfg(target_arch = "wasm32")]
+        wasm_bindgen_futures::spawn_local(async move {
             gateway.gateway_listen_task().await;
         });
 

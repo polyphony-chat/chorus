@@ -4,7 +4,8 @@ use std::time::{self, Duration, Instant};
 use tokio::sync::mpsc::{Receiver, Sender};
 
 use safina_timer::sleep_until;
-use tokio::task::{self, JoinHandle};
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::task;
 
 use super::*;
 use crate::types;
@@ -20,8 +21,6 @@ pub(super) struct HeartbeatHandler {
     pub heartbeat_interval: Duration,
     /// The send channel for the heartbeat thread
     pub send: Sender<HeartbeatThreadCommunication>,
-    /// The handle of the thread
-    handle: JoinHandle<()>,
 }
 
 impl HeartbeatHandler {
@@ -33,14 +32,18 @@ impl HeartbeatHandler {
         let (send, receive) = tokio::sync::mpsc::channel(32);
         let kill_receive = kill_rc.resubscribe();
 
-        let handle: JoinHandle<()> = task::spawn(async move {
+        #[cfg(not(target_arch = "wasm32"))]
+        task::spawn(async move {
+            Self::heartbeat_task(websocket_tx, heartbeat_interval, receive, kill_receive).await;
+        });
+        #[cfg(target_arch = "wasm32")]
+        wasm_bindgen_futures::spawn_local(async move {
             Self::heartbeat_task(websocket_tx, heartbeat_interval, receive, kill_receive).await;
         });
 
         Self {
             heartbeat_interval,
             send,
-            handle,
         }
     }
 
