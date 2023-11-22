@@ -6,6 +6,7 @@ pub use client_connect::*;
 pub use client_disconnect::*;
 pub use hello::*;
 pub use identify::*;
+pub use media_sink_wants::*;
 pub use ready::*;
 pub use select_protocol::*;
 pub use session_description::*;
@@ -16,6 +17,7 @@ mod client_connect;
 mod client_disconnect;
 mod hello;
 mod identify;
+mod media_sink_wants;
 mod ready;
 mod select_protocol;
 mod session_description;
@@ -104,6 +106,13 @@ pub const VOICE_RESUMED: u8 = 9;
 pub const VOICE_VIDEO: u8 = 12;
 pub const VOICE_CLIENT_DISCONNECT: u8 = 13;
 pub const VOICE_SESSION_UPDATE: u8 = 14;
+
+/// What is this?
+///
+/// {"op":15,"d":{"any":100}}
+///
+/// Opcode from <https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#voice-opcodes>
+pub const VOICE_MEDIA_SINK_WANTS: u8 = 15;
 /// See <https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#voice-opcodes>
 /// Sent with empty data from the client, the server responds with the voice backend version;
 pub const VOICE_BACKEND_VERSION: u8 = 16;
