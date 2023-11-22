@@ -1,7 +1,7 @@
 [package]
 name = "chorus"
 description = "A library for interacting with multiple Spacebar-compatible Instances at once."
-version = "0.11.0"
+version = "0.12.0"
 license = "AGPL-3.0"
 edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
@@ -27,7 +27,7 @@ serde_repr = "0.1.16"
 reqwest = { git = "https://github.com/bitfl0wer/reqwest.git", branch = "wasm-headers", features = [
     "multipart",
     "json",
-] }
+] } # reqwest versions > 0.11.22 will have adequate support for WASM. Until there is such a version, we will use a fork of reqwest v.0.11.22 
 url = "2.4.0"
 chrono = { version = "0.4.26", features = ["serde"] }
 regex = "1.9.4"
