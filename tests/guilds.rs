@@ -9,36 +9,6 @@ use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test_configure!(run_in_browser);
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn guild_creation_deletion_wasm() {
-    guild_creation_deletion();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn get_channels_wasm() {
-    get_channels();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn guild_create_ban_wasm() {
-    guild_create_ban();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn modify_guild_wasm() {
-    modify_guild();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn guild_remove_member_wasm() {
-    guild_remove_member();
-}
-
 #[tokio::test]
 async fn guild_creation_deletion() {
     let mut bundle = common::setup().await;

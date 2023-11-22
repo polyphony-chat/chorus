@@ -7,30 +7,6 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_get_relationships_wasm() {
-    test_get_relationships();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_get_mutual_relationships_wasm() {
-    test_get_mutual_relationships();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_modify_relationship_friends_wasm() {
-    test_modify_relationship_friends();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_modify_relationship_block_wasm() {
-    test_modify_relationship_block();
-}
-
 #[tokio::test]
 async fn test_get_mutual_relationships() {
     let mut bundle = common::setup().await;

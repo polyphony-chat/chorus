@@ -5,12 +5,6 @@ use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test_configure!(run_in_browser);
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn generate_general_configuration_schema_wasm() {
-    generate_general_configuration_schema();
-}
-
 #[tokio::test]
 async fn generate_general_configuration_schema() {
     let bundle = common::setup().await;

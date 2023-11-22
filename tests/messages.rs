@@ -10,30 +10,6 @@ wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn send_message_wasm() {
-    send_message();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn send_message_attachment_wasm() {
-    send_message_attachment();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn search_messages_wasm() {
-    search_messages();
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_stickies_wasm() {
-    test_stickies();
-}
-
 #[tokio::test]
 async fn send_message() {
     let mut bundle = common::setup().await;

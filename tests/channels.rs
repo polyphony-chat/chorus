@@ -10,36 +10,6 @@ mod common;
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test_configure!(run_in_browser);
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_get_channel_wasm() {
-    get_channel();
-}
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_delete_channel_wasm() {
-    delete_channel();
-}
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_modify_channel_wasm() {
-    modify_channel();
-}
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_get_channel_messages_wasm() {
-    get_channel_messages();
-}
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_create_dm_wasm() {
-    create_dm();
-}
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_remove_add_person_from_to_dm_wasm() {
-    remove_add_person_from_to_dm();
-}
 
 #[tokio::test]
 async fn get_channel() {

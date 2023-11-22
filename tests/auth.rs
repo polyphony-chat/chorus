@@ -19,9 +19,3 @@ async fn test_registration() {
     bundle.instance.clone().register_account(reg).await.unwrap();
     common::teardown(bundle).await;
 }
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test]
-async fn test_registration_wasm() {
-    test_registration();
-}
