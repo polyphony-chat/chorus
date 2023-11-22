@@ -98,8 +98,8 @@ dbg!(&user.object.read().unwrap().username);
 ## Supported Platforms
 
 All major desktop operating systems (Windows, macOS (aarch64/x86_64), Linux (aarch64/x86_64)) are supported.
-`wasm32-unknown-unknown` is a supported compilation target on versions `>0.11.0`. This allows you to use Chorus in
-your browser, or in any other environment that supports WebAssembly.
+`wasm32-unknown-unknown` is a supported compilation target on versions `0.12.0` and up. This allows you to use
+Chorus in your browser, or in any other environment that supports WebAssembly.
 
 We recommend checking out the examples directory, as well as the documentation for more information.
 
