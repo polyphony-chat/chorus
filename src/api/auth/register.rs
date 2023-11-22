@@ -19,7 +19,7 @@ impl Instance {
     /// # Reference
     /// See <https://docs.spacebar.chat/routes/#post-/auth/register/>
     pub async fn register_account(
-        mut self,
+        &mut self,
         register_schema: RegisterSchema,
     ) -> ChorusResult<ChorusUser> {
         let endpoint_url = self.urls.api.clone() + "/auth/register";
@@ -43,7 +43,7 @@ impl Instance {
             self.limits_information.as_mut().unwrap().ratelimits = shell.limits.unwrap();
         }
         let user_object = self.get_user(token.clone(), None).await.unwrap();
-        let settings = ChorusUser::get_settings(&token, &self.urls.api.clone(), &mut self).await?;
+        let settings = ChorusUser::get_settings(&token, &self.urls.api.clone(), self).await?;
         let mut identify = GatewayIdentifyPayload::common();
         let gateway: GatewayHandle = Gateway::spawn(self.urls.wss.clone()).await.unwrap();
         identify.token = token.clone();
