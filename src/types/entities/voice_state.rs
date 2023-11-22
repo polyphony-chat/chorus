@@ -1,13 +1,16 @@
 use std::sync::{Arc, RwLock};
 
 #[cfg(feature = "client")]
-use chorus_macros::{Composite, Updateable};
+use chorus_macros::Composite;
 
 #[cfg(feature = "client")]
 use crate::types::Composite;
 
 #[cfg(feature = "client")]
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::GatewayHandle;
+
+#[cfg(feature = "client")]
+use crate::gateway::Updateable;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

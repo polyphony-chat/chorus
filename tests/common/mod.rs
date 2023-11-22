@@ -43,7 +43,9 @@ impl TestBundle {
             limits: self.user.limits.clone(),
             settings: self.user.settings.clone(),
             object: self.user.object.clone(),
-            gateway: Gateway::new(self.instance.urls.wss.clone()).await.unwrap(),
+            gateway: Gateway::spawn(self.instance.urls.wss.clone())
+                .await
+                .unwrap(),
         }
     }
 }

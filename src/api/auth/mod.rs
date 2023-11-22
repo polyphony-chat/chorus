@@ -3,9 +3,9 @@ use std::sync::{Arc, RwLock};
 pub use login::*;
 pub use register::*;
 
+use crate::gateway::Gateway;
 use crate::{
     errors::ChorusResult,
-    gateway::Gateway,
     instance::{ChorusUser, Instance},
     types::{GatewayIdentifyPayload, User},
 };
@@ -25,7 +25,7 @@ impl Instance {
             .await
             .unwrap();
         let mut identify = GatewayIdentifyPayload::common();
-        let gateway = Gateway::new(self.urls.wss.clone()).await.unwrap();
+        let gateway = Gateway::spawn(self.urls.wss.clone()).await.unwrap();
         identify.token = token.clone();
         gateway.send_identify(identify).await;
         let user = ChorusUser::new(

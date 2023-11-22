@@ -1,7 +1,7 @@
 use chorus::instance::Instance;
 use chorus::UrlBundle;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let bundle = UrlBundle::new(
         "https://example.com/api".to_string(),

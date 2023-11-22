@@ -7,10 +7,13 @@ use crate::types::entities::User;
 use crate::types::Snowflake;
 
 #[cfg(feature = "client")]
+use crate::gateway::GatewayHandle;
+
+#[cfg(feature = "client")]
 use crate::types::Composite;
 
 #[cfg(feature = "client")]
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use chorus_macros::{Composite, Updateable};

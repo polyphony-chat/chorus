@@ -1,8 +1,14 @@
 use chorus::types::{self, Relationship, RelationshipType};
+// PRETTYFYME: Move common wasm setup to common.rs
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
 
 mod common;
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_get_mutual_relationships() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
@@ -23,7 +29,8 @@ async fn test_get_mutual_relationships() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_get_relationships() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
@@ -46,7 +53,8 @@ async fn test_get_relationships() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_modify_relationship_friends() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
@@ -97,7 +105,8 @@ async fn test_modify_relationship_friends() {
     common::teardown(bundle).await
 }
 
-#[tokio::test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_modify_relationship_block() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;

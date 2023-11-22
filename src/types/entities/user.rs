@@ -5,10 +5,13 @@ use serde_aux::prelude::deserialize_option_number_from_string;
 use std::fmt::Debug;
 
 #[cfg(feature = "client")]
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use crate::types::Composite;
+
+#[cfg(feature = "client")]
+use crate::gateway::GatewayHandle;
 
 #[cfg(feature = "client")]
 use chorus_macros::{Composite, Updateable};

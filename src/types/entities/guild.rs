@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
+use bitflags::bitflags;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -11,18 +12,20 @@ use crate::types::{
     interfaces::WelcomeScreenObject,
     utils::Snowflake,
 };
-use bitflags::bitflags;
 
 use super::PublicUser;
 
 #[cfg(feature = "client")]
-use crate::gateway::{GatewayHandle, Updateable};
+use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};
 
 #[cfg(feature = "client")]
 use crate::types::Composite;
+
+#[cfg(feature = "client")]
+use crate::gateway::GatewayHandle;
 
 /// See <https://discord.com/developers/docs/resources/guild>
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
