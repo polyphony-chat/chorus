@@ -9,7 +9,7 @@
 </br>
 <div align="center">
   <a href="https://github.com/polyphony-chat/chorus">
-    <img src="https://raw.githubusercontent.com/polyphony-chat/design/main/branding/polyphony-chorus-round-8bit.png" alt="Logo" width="128" height="128">
+    <img src="https://github.com/polyphony-chat/branding/blob/main/logos/polyphony-chorus-round-8bit.png?raw=true" alt="The chorus logo. a dark, square background with rounded edges. on this background, there are three vertically stacked, purple lines. The lines each resemble a sine curve." width="128" height="128">
   </a>
 
 <h3 align="center">Chorus</h3>
