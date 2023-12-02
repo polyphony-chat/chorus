@@ -131,6 +131,16 @@ pub struct ChorusUser {
     pub gateway: GatewayHandle,
 }
 
+impl PartialEq for ChorusUser {
+    fn eq(&self, other: &Self) -> bool {
+        self.token == other.token
+            && self.limits == other.limits
+            && self.gateway.url == other.gateway.url
+    }
+}
+
+impl Eq for ChorusUser {}
+
 impl ChorusUser {
     pub fn token(&self) -> String {
         self.token.clone()
