@@ -7,7 +7,7 @@ use crate::types::{
     LimitType,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct RateLimits {
     pub enabled: bool,
     pub ip: RateLimitOptions,

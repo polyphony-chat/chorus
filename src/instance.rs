@@ -15,20 +15,58 @@ use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{GeneralConfiguration, Limit, LimitType, User, UserSettings};
 use crate::UrlBundle;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 /// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
 /// If `limits_information` is `None`, then the instance will not be rate limited.
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
     pub limits_information: Option<LimitsInformation>,
+    #[serde(skip)]
     pub client: Client,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+impl PartialEq for Instance {
+    fn eq(&self, other: &Self) -> bool {
+        self.urls == other.urls
+            && self.instance_info == other.instance_info
+            && self.limits_information == other.limits_information
+    }
+}
+
+impl Eq for Instance {}
+
+impl std::hash::Hash for Instance {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.urls.hash(state);
+        self.instance_info.hash(state);
+        if let Some(inf) = &self.limits_information {
+            inf.hash(state);
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, Eq)]
 pub struct LimitsInformation {
     pub ratelimits: HashMap<LimitType, Limit>,
     pub configuration: RateLimits,
+}
+
+impl std::hash::Hash for LimitsInformation {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        for (k, v) in self.ratelimits.iter() {
+            k.hash(state);
+            v.hash(state);
+        }
+        self.configuration.hash(state);
+    }
+}
+
+impl PartialEq for LimitsInformation {
+    fn eq(&self, other: &Self) -> bool {
+        self.ratelimits.iter().eq(other.ratelimits.iter())
+            && self.configuration == other.configuration
+    }
 }
 
 impl Instance {
