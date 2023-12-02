@@ -8,7 +8,7 @@ instead of worrying about the underlying implementation details.
 
 To connect to a Spacebar compatible server, you need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
 
-```
+```rs
 use chorus::instance::Instance;
 use chorus::UrlBundle;
 
@@ -35,7 +35,7 @@ This Instance can now be used to log in, register and from there on, interact wi
 Logging in correctly provides you with an instance of [`ChorusUser`](https://docs.rs/chorus/latest/chorus/instance/struct.ChorusUser.html), with which you can interact with the server and
 manipulate the account. Assuming you already have an account on the server, you can log in like this:
 
-```
+```rs
 use chorus::types::LoginSchema;
 // Assume, you already have an account created on this instance. Registering an account works
 // the same way, but you'd use the Register-specific Structs and methods instead.
