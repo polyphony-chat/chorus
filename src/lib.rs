@@ -104,6 +104,7 @@ This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
 
+use serde::{Serialize, Deserialize};
 use url::{ParseError, Url};
 
 #[cfg(feature = "client")]
@@ -119,7 +120,7 @@ pub mod types;
 #[cfg(feature = "client")]
 pub mod voice;
 
-#[derive(Clone, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// A URLBundle bundles together the API-, Gateway- and CDN-URLs of a Spacebar instance.
 ///
 /// # Notes

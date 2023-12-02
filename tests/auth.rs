@@ -1,5 +1,3 @@
-use std::borrow::BorrowMut;
-
 use chorus::types::{LoginSchema, RegisterSchema};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
