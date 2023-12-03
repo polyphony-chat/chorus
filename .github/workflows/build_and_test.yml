@@ -66,7 +66,7 @@ jobs:
     - uses: Swatinem/rust-cache@v2 
       with:
         cache-all-crates: "true"
-        prefix-key: "macos"
+        prefix-key: "macos-safari"
     - name: Run WASM tests with Safari, Firefox, Chrome
       run: |
         rustup target add wasm32-unknown-unknown
