@@ -70,7 +70,7 @@ impl PartialEq for LimitsInformation {
 }
 
 impl Instance {
-    /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle), where `limited` is whether or not to automatically use rate limits.
+    /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle), where `limited` is whether Chorus will track and enforce rate limits for this instance.
     pub async fn new(urls: UrlBundle, limited: bool) -> ChorusResult<Instance> {
         let limits_information;
         if limited {
@@ -99,11 +99,21 @@ impl Instance {
         };
         Ok(instance)
     }
+
     pub(crate) fn clone_limits_if_some(&self) -> Option<HashMap<LimitType, Limit>> {
         if self.limits_information.is_some() {
             return Some(self.limits_information.as_ref().unwrap().ratelimits.clone());
         }
         None
+    }
+
+    /// Creates a new [`Instance`] by trying to get the [relevant instance urls](UrlBundle) from a root domain.
+    /// Shorthand for `Instance::new(UrlBundle::from_root_domain(root_domain).await?)`.
+    ///
+    /// If `limited` is `true`, then Chorus will track and enforce rate limits for this instance.
+    pub async fn from_root_domain(root_domain: &str, limited: bool) -> ChorusResult<Instance> {
+        let urls = UrlBundle::from_root_domain(root_domain).await?;
+        Instance::new(urls, limited).await
     }
 }
 
