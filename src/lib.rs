@@ -189,7 +189,7 @@ impl UrlBundle {
         url_string
     }
 
-    /// Performs a few HTTP requests to try and retrieve a `UrlBundle` from an instances' root domain.
+    /// Performs a few HTTP requests to try and retrieve a `UrlBundle` from an instances' root url.
     /// The method tries to retrieve the `UrlBundle` via these three strategies, in order:
     /// - GET: `$url/.well-known/spacebar` -> Retrieve UrlBundle via `$wellknownurl/api/policies/instance/domains`
     /// - GET: `$url/api/policies/instance/domains`
@@ -199,7 +199,7 @@ impl UrlBundle {
     /// stores the CDN and WSS URLs under the `$api/policies/instance/domains` endpoint. If all three
     /// of the above approaches fail, it is very likely that the instance is misconfigured, unreachable, or that
     /// a wrong URL was provided.
-    pub async fn from_root_domain(url: &str) -> ChorusResult<UrlBundle> {
+    pub async fn from_root_url(url: &str) -> ChorusResult<UrlBundle> {
         let parsed = UrlBundle::parse_url(url.to_string());
         let client = reqwest::Client::new();
         let request_wellknown = client

@@ -107,12 +107,12 @@ impl Instance {
         None
     }
 
-    /// Creates a new [`Instance`] by trying to get the [relevant instance urls](UrlBundle) from a root domain.
+    /// Creates a new [`Instance`] by trying to get the [relevant instance urls](UrlBundle) from a root url.
     /// Shorthand for `Instance::new(UrlBundle::from_root_domain(root_domain).await?)`.
     ///
     /// If `limited` is `true`, then Chorus will track and enforce rate limits for this instance.
-    pub async fn from_root_domain(root_domain: &str, limited: bool) -> ChorusResult<Instance> {
-        let urls = UrlBundle::from_root_domain(root_domain).await?;
+    pub async fn from_root_url(root_url: &str, limited: bool) -> ChorusResult<Instance> {
+        let urls = UrlBundle::from_root_url(root_url).await?;
         Instance::new(urls, limited).await
     }
 }
