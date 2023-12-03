@@ -106,6 +106,7 @@ compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled
 
 use errors::ChorusResult;
 use serde::{Deserialize, Serialize};
+use types::types::domains_configuration::WellKnownResponse;
 use url::{ParseError, Url};
 
 use crate::errors::ChorusError;
@@ -221,11 +222,6 @@ impl UrlBundle {
     async fn from_api_url(url: &str) -> ChorusResult<UrlBundle> {
         todo!()
     }
-}
-
-#[derive(Deserialize)]
-struct WellKnownResponse {
-    pub(crate) api: String,
 }
 
 #[cfg(test)]
