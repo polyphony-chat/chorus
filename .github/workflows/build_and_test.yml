@@ -72,7 +72,7 @@ jobs:
         rustup target add wasm32-unknown-unknown
         curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
         cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.88" --force
-        SAFARIDRIVER=$(which safaridriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
+        SAFARIDRIVER=$(which safaridriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt" --no-fail-fast
   wasm-gecko:
     runs-on: macos-latest
     steps:
