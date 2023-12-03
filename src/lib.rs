@@ -101,6 +101,7 @@ This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read
     clippy::new_without_default,
     clippy::useless_conversion
 )]
+#![warn(clippy::todo, clippy::unimplemented)]
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
 
