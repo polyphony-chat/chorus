@@ -215,13 +215,29 @@ impl UrlBundle {
             {
                 Ok(response_api)
             } else {
-                Err(ChorusError::RequestFailed { url: url.to_string(), error: "Could not retrieve UrlBundle from url after trying 3 different approaches. Check the provided Url and if the instance is reachable.".to_string() } )
+                Err(ChorusError::RequestFailed { url: url.to_string(), error: "Could not retrieve UrlBundle from url after trying 3 different approaches. Check the provided Url and make sure the instance is reachable.".to_string() } )
             }
         }
     }
 
     async fn from_api_url(url: &str) -> ChorusResult<UrlBundle> {
-        todo!()
+        let client = reqwest::Client::new();
+        let request = client
+            .get(url)
+            .header(http::header::ACCEPT, "application/json")
+            .build()?;
+        let response = client.execute(request).await?;
+        if let Ok(body) = response
+            .json::<types::types::domains_configuration::Domains>()
+            .await
+        {
+            Ok(UrlBundle::new(body.api_endpoint, body.gateway, body.cdn))
+        } else {
+            Err(ChorusError::RequestFailed {
+                url: url.to_string(),
+                error: "Could not retrieve a UrlBundle from the given url. Check the provided url and make sure the instance is reachable.".to_string(),
+            })
+        }
     }
 }
 
