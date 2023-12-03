@@ -1,5 +1,6 @@
 //! Contains all the errors that can be returned by the library.
 use custom_error::custom_error;
+use url::Url;
 
 use crate::types::WebSocketEvent;
 
@@ -42,6 +43,18 @@ custom_error! {
     InvalidResponse{error: String} = "The response is malformed and cannot be processed. Error: {error}",
     /// Invalid, insufficient or too many arguments provided.
     InvalidArguments{error: String} = "Invalid arguments were provided. Error: {error}"
+}
+
+impl From<reqwest::Error> for ChorusError {
+    fn from(value: reqwest::Error) -> Self {
+        ChorusError::RequestFailed {
+            url: match value.url() {
+                Some(url) => url.to_string(),
+                None => "None".to_string(),
+            },
+            error: value.to_string(),
+        }
+    }
 }
 
 custom_error! {
