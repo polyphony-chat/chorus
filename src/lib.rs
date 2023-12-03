@@ -101,7 +101,13 @@ This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read
     clippy::new_without_default,
     clippy::useless_conversion
 )]
-#![warn(clippy::todo, clippy::unimplemented)]
+#![warn(
+    clippy::todo,
+    clippy::unimplemented,
+    clippy::dbg_macro,
+    clippy::print_stdout,
+    clippy::print_stderr
+)]
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
 
@@ -206,16 +212,16 @@ impl UrlBundle {
             UrlBundle::from_api_url(&body).await
         } else {
             if let Ok(response_slash_api) =
-                UrlBundle::from_api_url(&format!("{}/api/policies/instance/domains", url)).await
+                UrlBundle::from_api_url(&format!("{}/api/policies/instance/domains", parsed)).await
             {
                 return Ok(response_slash_api);
             }
             if let Ok(response_api) =
-                UrlBundle::from_api_url(&format!("{}/policies/instance/domains", url)).await
+                UrlBundle::from_api_url(&format!("{}/policies/instance/domains", parsed)).await
             {
                 Ok(response_api)
             } else {
-                Err(ChorusError::RequestFailed { url: url.to_string(), error: "Could not retrieve UrlBundle from url after trying 3 different approaches. Check the provided Url and make sure the instance is reachable.".to_string() } )
+                Err(ChorusError::RequestFailed { url: parsed.to_string(), error: "Could not retrieve UrlBundle from url after trying 3 different approaches. Check the provided Url and make sure the instance is reachable.".to_string() } )
             }
         }
     }
