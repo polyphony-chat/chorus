@@ -9,7 +9,7 @@ async fn main() {
         "wss://example.com/".to_string(),
         "https://example.com/cdn".to_string(),
     );
-    let mut instance = Instance::new(bundle, true)
+    let mut instance = Instance::new(bundle)
         .await
         .expect("Failed to connect to the Spacebar server");
     // Assume, you already have an account created on this instance. Registering an account works
