@@ -101,11 +101,22 @@ This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read
     clippy::new_without_default,
     clippy::useless_conversion
 )]
+#![warn(
+    clippy::todo,
+    clippy::unimplemented,
+    clippy::dbg_macro,
+    clippy::print_stdout,
+    clippy::print_stderr
+)]
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
 
+use errors::ChorusResult;
 use serde::{Deserialize, Serialize};
+use types::types::domains_configuration::WellKnownResponse;
 use url::{ParseError, Url};
+
+use crate::errors::ChorusError;
 
 #[cfg(feature = "client")]
 pub mod api;
@@ -168,7 +179,7 @@ impl UrlBundle {
                 let url_fmt = format!("http://{}", url);
                 return UrlBundle::parse_url(url_fmt);
             }
-            Err(_) => panic!("Invalid URL"),
+            Err(_) => panic!("Invalid URL"), // TODO: should not panic here
         };
         // if the last character of the string is a slash, remove it.
         let mut url_string = url.to_string();
@@ -176,6 +187,63 @@ impl UrlBundle {
             url_string.pop();
         }
         url_string
+    }
+
+    /// Performs a few HTTP requests to try and retrieve a `UrlBundle` from an instances' root url.
+    /// The method tries to retrieve the `UrlBundle` via these three strategies, in order:
+    /// - GET: `$url/.well-known/spacebar` -> Retrieve UrlBundle via `$wellknownurl/api/policies/instance/domains`
+    /// - GET: `$url/api/policies/instance/domains`
+    /// - GET: `$url/policies/instance/domains`
+    ///
+    /// The URL stored at `.well-known/spacebar` is the instances' API endpoint. The API
+    /// stores the CDN and WSS URLs under the `$api/policies/instance/domains` endpoint. If all three
+    /// of the above approaches fail, it is very likely that the instance is misconfigured, unreachable, or that
+    /// a wrong URL was provided.
+    pub async fn from_root_url(url: &str) -> ChorusResult<UrlBundle> {
+        let parsed = UrlBundle::parse_url(url.to_string());
+        let client = reqwest::Client::new();
+        let request_wellknown = client
+            .get(format!("{}/.well-known/spacebar", &parsed))
+            .header(http::header::ACCEPT, "application/json")
+            .build()?;
+        let response_wellknown = client.execute(request_wellknown).await?;
+        if response_wellknown.status().is_success() {
+            let body = response_wellknown.json::<WellKnownResponse>().await?.api;
+            UrlBundle::from_api_url(&body).await
+        } else {
+            if let Ok(response_slash_api) =
+                UrlBundle::from_api_url(&format!("{}/api/policies/instance/domains", parsed)).await
+            {
+                return Ok(response_slash_api);
+            }
+            if let Ok(response_api) =
+                UrlBundle::from_api_url(&format!("{}/policies/instance/domains", parsed)).await
+            {
+                Ok(response_api)
+            } else {
+                Err(ChorusError::RequestFailed { url: parsed.to_string(), error: "Could not retrieve UrlBundle from url after trying 3 different approaches. Check the provided Url and make sure the instance is reachable.".to_string() } )
+            }
+        }
+    }
+
+    async fn from_api_url(url: &str) -> ChorusResult<UrlBundle> {
+        let client = reqwest::Client::new();
+        let request = client
+            .get(url)
+            .header(http::header::ACCEPT, "application/json")
+            .build()?;
+        let response = client.execute(request).await?;
+        if let Ok(body) = response
+            .json::<types::types::domains_configuration::Domains>()
+            .await
+        {
+            Ok(UrlBundle::new(body.api_endpoint, body.gateway, body.cdn))
+        } else {
+            Err(ChorusError::RequestFailed {
+                url: url.to_string(),
+                error: "Could not retrieve a UrlBundle from the given url. Check the provided url and make sure the instance is reachable.".to_string(),
+            })
+        }
     }
 }
 
