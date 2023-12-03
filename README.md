@@ -3,7 +3,6 @@
 [![Discord]][Discord-invite]
 [![Build][build-shield]][build-url]
 [![Coverage][coverage-shield]][coverage-url]
-[![Contributors][contributors-shield]][contributors-url]
 <img src="https://img.shields.io/static/v1?label=Status&message=Alpha&color=blue">
 
 </br>
@@ -16,12 +15,12 @@
 
   <p align="center">
     <br />
-    <a href="https://github.com/polyphony-chat/chorus"><strong>Explore the docs »</strong></a>
+    <a href="https://docs.rs/chorus/latest/chorus/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/polyphony-chat/chorus/issues">Report Bug</a>
     ·
-    <a href="https://github.com/polyphony-chat/chorus/issues">Request Feature</a>
+    <a href="https://crates.io/crates/chorus">crates.io</a>
     ·
     <a href="https://discord.gg/8tKSC8wzDq">Join Discord</a>
   </p>
@@ -29,20 +28,23 @@
 
 </div>
 
-Chorus is a Rust library that allows developers to interact with multiple Spacebar-compatible APIs and Gateways (Including
-Discord.com) simultaneously. The library provides a simple and efficient way to communicate with these services, making it easier for developers to build applications that rely on them. Chorus is open-source and welcomes contributions from the community. 
+Chorus is a Rust library which poses as an API wrapper for [Spacebar Chat](https://github.com/spacebarchat/)
+and Discord. It is designed to be easy to use, and to be compatible with both Discord and Spacebar Chat.
+
+You can establish as many connections to as many servers as you want, and you can use them all at the same time.
 
 ## A Tour of Chorus
 
-Chorus combines all the required functionalities of a user-centric Spacebar library into one package. The library
-handles a lot of things for you, such as rate limiting, authentication, and more. This means that you can focus on
-building your application, instead of worrying about the underlying implementation details.
+Chorus combines all the required functionalities of a user-centric Spacebar library into one package. 
+The library handles various aspects on your behalf, such as rate limiting, authentication and maintaining
+a WebSocket connection to the Gateway. This means that you can focus on building your application,
+instead of worrying about the underlying implementation details.
 
 To get started with Chorus, import it into your project by adding the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-chorus = "0"
+chorus = "0.12.0"
 ```
 
 ### Establishing a Connection

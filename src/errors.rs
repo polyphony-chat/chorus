@@ -44,6 +44,18 @@ custom_error! {
     InvalidArguments{error: String} = "Invalid arguments were provided. Error: {error}"
 }
 
+impl From<reqwest::Error> for ChorusError {
+    fn from(value: reqwest::Error) -> Self {
+        ChorusError::RequestFailed {
+            url: match value.url() {
+                Some(url) => url.to_string(),
+                None => "None".to_string(),
+            },
+            error: value.to_string(),
+        }
+    }
+}
+
 custom_error! {
     #[derive(PartialEq, Eq)]
     pub ObserverError
