@@ -72,7 +72,7 @@ impl PartialEq for LimitsInformation {
 }
 
 impl Instance {
-    /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle), where `limited` is whether Chorus will track and enforce rate limits for this instance.
+    /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle). To create an Instance from one singular url, use [`Instance::from_root_url()`].
     pub async fn new(urls: UrlBundle) -> ChorusResult<Instance> {
         let is_limited: Option<LimitsConfiguration> = Instance::is_limited(&urls.api).await?;
         let limit_information;
