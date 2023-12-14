@@ -19,7 +19,7 @@ async fn main() {
         "wss://example.com/".to_string(),
         "https://example.com/cdn".to_string(),
     );
-    let instance = Instance::new(bundle, true)
+    let instance = Instance::new(bundle)
         .await
         .expect("Failed to connect to the Spacebar server");
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
@@ -137,6 +137,12 @@ pub mod voice;
 /// # Notes
 /// All the urls can be found on the /api/policies/instance/domains endpoint of a spacebar server
 pub struct UrlBundle {
+    /// The root url of an Instance. Usually, this would be the url where `.well-known/spacebar` can
+    /// be located under. If the instance you are connecting to for some reason does not have a
+    /// `.well-known` set up (for example, if it is a local/testing instance), you can use the api
+    /// url as a substitute.
+    /// Ex: `https://spacebar.chat`
+    pub root: String,
     /// The api's url.
     /// Ex: `https://old.server.spacebar.chat/api`
     pub api: String,
@@ -151,8 +157,9 @@ pub struct UrlBundle {
 
 impl UrlBundle {
     /// Creates a new UrlBundle from the relevant urls.
-    pub fn new(api: String, wss: String, cdn: String) -> Self {
+    pub fn new(root: String, api: String, wss: String, cdn: String) -> Self {
         Self {
+            root: UrlBundle::parse_url(root),
             api: UrlBundle::parse_url(api),
             wss: UrlBundle::parse_url(wss),
             cdn: UrlBundle::parse_url(cdn),
@@ -237,7 +244,12 @@ impl UrlBundle {
             .json::<types::types::domains_configuration::Domains>()
             .await
         {
-            Ok(UrlBundle::new(body.api_endpoint, body.gateway, body.cdn))
+            Ok(UrlBundle::new(
+                url.to_string(),
+                body.api_endpoint,
+                body.gateway,
+                body.cdn,
+            ))
         } else {
             Err(ChorusError::RequestFailed {
                 url: url.to_string(),

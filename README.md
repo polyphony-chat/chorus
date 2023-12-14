@@ -62,7 +62,7 @@ async fn main() {
         "wss://example.com/".to_string(),
         "https://example.com/cdn".to_string(),
     );
-    let instance = Instance::new(bundle, true)
+    let instance = Instance::new(bundle)
         .await
         .expect("Failed to connect to the Spacebar server");
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
