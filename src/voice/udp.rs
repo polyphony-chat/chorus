@@ -1,9 +1,11 @@
 //! Defines voice raw udp socket handling
 
+use super::crypto;
+
 use std::{net::SocketAddr, sync::Arc};
 
 use log::{debug, info, trace, warn};
-use tokio::{net::UdpSocket, sync::Mutex};
+use tokio::{net::UdpSocket, sync::RwLock};
 
 use crypto_secretbox::{
     aead::Aead, cipher::generic_array::GenericArray, KeyInit, XSalsa20Poly1305,
@@ -17,25 +19,123 @@ use discortp::{
 
 use super::voice_data::VoiceData;
 
+/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#voice-packet-structure>
+/// This always adds up to 12
+const RTP_HEADER_SIZE: u8 = 12;
+
 /// Handle to a voice udp connection
 ///
 /// Can be safely cloned and will still correspond to the same connection.
 #[derive(Debug, Clone)]
 pub struct UdpHandle {
-    /// Ip discovery data we received on init
-    pub ip_discovery: IpDiscovery,
     socket: Arc<UdpSocket>,
+    pub data: Arc<RwLock<VoiceData>>,
+}
+
+impl UdpHandle {
+    /// Constructs and sends encoded opus rtp data.
+    ///
+    /// Automatically makes an [RtpPacket](discorrtp::rtp::RtpPacket), encrypts it and sends it.
+    pub async fn send_opus_data(&self, sequence: u16, timestamp: u32, payload: Vec<u8>) {
+        let data_lock = self.data.read().await;
+        let ssrc = data_lock.ready_data.clone().unwrap().ssrc;
+
+        let payload_len = payload.len();
+
+        let rtp_data = discortp::rtp::Rtp {
+            // Always the same
+            version: 2,
+            padding: 0,
+            extension: 1,
+            csrc_count: 0,
+            csrc_list: Vec::new(),
+            marker: 0,
+            payload_type: discortp::rtp::RtpType::Dynamic(120),
+            // Actually variable
+            sequence: sequence.into(),
+            timestamp: timestamp.into(),
+            ssrc,
+            payload,
+        };
+
+        let mut buffer = Vec::new();
+
+        let buffer_size = payload_len + RTP_HEADER_SIZE as usize;
+
+        // Fill the buffer
+        for _i in 0..buffer_size {
+            buffer.push(0);
+        }
+
+        let mut rtp_packet = discortp::rtp::MutableRtpPacket::new(&mut buffer).unwrap();
+        rtp_packet.populate(&rtp_data);
+
+        self.send_rtp_packet(rtp_packet).await;
+    }
+
+    /// Encrypts and sends and rtp packet.
+    pub async fn send_rtp_packet(&self, packet: discortp::rtp::MutableRtpPacket<'_>) {
+        let mut mutable_packet = packet;
+        self.encrypt_rtp_packet(&mut mutable_packet).await;
+        self.send_encrypted_rtp_packet(mutable_packet.consume_to_immutable())
+            .await;
+    }
+
+    /// Encrypts an unecnrypted rtp packet, mutating its payload.
+    pub async fn encrypt_rtp_packet(&self, packet: &mut discortp::rtp::MutableRtpPacket<'_>) {
+        let payload = packet.payload();
+
+        let data_lock = self.data.read().await;
+
+        let session_description_result = data_lock.session_description.clone();
+
+        if session_description_result.is_none() {
+            // FIXME: Make this function reutrn a result with a proper error type for these kinds
+            // of functions
+            panic!("Trying to encrypt packet but no key provided yet");
+        }
+
+        let session_description = session_description_result.unwrap();
+
+        let nonce_bytes = crypto::get_xsalsa20_poly1305_nonce(packet.to_immutable());
+        let nonce = GenericArray::from_slice(&nonce_bytes);
+
+        let key = GenericArray::from_slice(&session_description.secret_key);
+
+        let encryptor = XSalsa20Poly1305::new(key);
+
+        let encryption_result = encryptor.encrypt(nonce, payload);
+
+        if encryption_result.is_err() {
+            // FIXME: See above fixme
+            panic!("Encryption error");
+        }
+
+        let encrypted_payload = encryption_result.unwrap();
+
+        packet.set_payload(&encrypted_payload);
+    }
+
+    /// Sends an (already encrypted) rtp packet to the connection.
+    pub async fn send_encrypted_rtp_packet(&self, packet: discortp::rtp::RtpPacket<'_>) {
+        let raw_bytes = packet.packet();
+
+        self.socket.send(raw_bytes).await.unwrap();
+    }
 }
 
 #[derive(Debug)]
 pub struct UdpHandler {
-    data: Arc<Mutex<VoiceData>>,
+    pub data: Arc<RwLock<VoiceData>>,
     socket: Arc<UdpSocket>,
 }
 
 impl UdpHandler {
+    /// Spawns a new udp handler and performs ip discovery.
+    ///
+    /// Mutates the given data_reference with the ip discovery data.
     pub async fn spawn(
-        data_reference: Arc<Mutex<VoiceData>>,
+        data_reference: Arc<RwLock<VoiceData>>,
         url: SocketAddr,
         ssrc: u32,
     ) -> UdpHandle {
@@ -92,18 +192,6 @@ impl UdpHandler {
             receieved_ip_discovery
         );
 
-        let socket = Arc::new(udp_socket);
-
-        let mut handler = UdpHandler {
-            data: data_reference,
-            socket: socket.clone(),
-        };
-
-        // Now we can continuously check for messages in a different task
-        tokio::spawn(async move {
-            handler.listen_task().await;
-        });
-
         let ip_discovery = IpDiscovery {
             pkt_type: receieved_ip_discovery.get_pkt_type(),
             length: receieved_ip_discovery.get_length(),
@@ -113,9 +201,25 @@ impl UdpHandler {
             payload: Vec::new(),
         };
 
+        let mut data_reference_lock = data_reference.write().await;
+        data_reference_lock.ip_discovery = Some(ip_discovery);
+        drop(data_reference_lock);
+
+        let socket = Arc::new(udp_socket);
+
+        let mut handler = UdpHandler {
+            data: data_reference.clone(),
+            socket: socket.clone(),
+        };
+
+        // Now we can continuously check for messages in a different task
+        tokio::spawn(async move {
+            handler.listen_task().await;
+        });
+
         UdpHandle {
-            ip_discovery,
             socket,
+            data: data_reference,
         }
     }
 
@@ -154,7 +258,7 @@ impl UdpHandler {
                     ciphertext
                 );
 
-                let data_lock = self.data.lock().await;
+                let data_lock = self.data.read().await;
 
                 let session_description_result = data_lock.session_description.clone();
 
@@ -165,24 +269,18 @@ impl UdpHandler {
 
                 let session_description = session_description_result.unwrap();
 
-                let nonce;
-
-                let mut rtp_header = buf[0..12].to_vec();
+                let nonce_bytes;
 
                 match session_description.encryption_mode {
                     crate::types::VoiceEncryptionMode::Xsalsa20Poly1305 => {
-                        // The header is only 12 bytes, but the nonce has to be 24
-                        // This actually works mind you, and anything else doesn't
-                        for _i in 0..12 {
-                            rtp_header.push(0);
-                        }
-
-                        nonce = GenericArray::from_slice(&rtp_header);
+                        nonce_bytes = crypto::get_xsalsa20_poly1305_nonce(rtp);
                     }
                     _ => {
                         unimplemented!();
                     }
                 }
+
+                let nonce = GenericArray::from_slice(&nonce_bytes);
 
                 let key = GenericArray::from_slice(&session_description.secret_key);
 
