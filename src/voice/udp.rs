@@ -1,9 +1,9 @@
 //! Defines voice raw udp socket handling
 
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 
 use log::{info, warn};
-use tokio::net::UdpSocket;
+use tokio::{net::UdpSocket, sync::Mutex};
 
 use discortp::{
     demux::{demux, Demuxed},
@@ -12,14 +12,24 @@ use discortp::{
     MutablePacket, Packet,
 };
 
+/// Handle to a voice udp connection
+///
+/// Can be safely cloned and will still correspond to the same connection.
+#[derive(Debug, Clone)]
+pub struct UdpHandle {
+    /// Ip discovery data we received on init
+    pub ip_discovery: IpDiscovery,
+    socket: Arc<UdpSocket>,
+}
+
 #[derive(Debug)]
 pub struct UdpHandler {
     url: SocketAddr,
-    socket: UdpSocket,
+    socket: Arc<UdpSocket>,
 }
 
 impl UdpHandler {
-    pub async fn new(url: SocketAddr, ssrc: u32) -> IpDiscovery {
+    pub async fn new(url: SocketAddr, ssrc: u32) -> UdpHandle {
         // Bind with a port number of 0, so the os assigns this listener a port
         let udp_socket = UdpSocket::bind("0.0.0.0:0").await.unwrap();
 
@@ -39,13 +49,13 @@ impl UdpHandler {
 
         let size = IpDiscoveryPacket::minimum_packet_size() + 64;
 
-        // wtf
         for _i in 0..size {
             buf.push(0);
         }
 
-        let mut ip_discovery_packet =
-            discortp::discord::MutableIpDiscoveryPacket::new(&mut buf).expect("FUcking kill me");
+        // TODO: Make this not panic everything
+        let mut ip_discovery_packet = discortp::discord::MutableIpDiscoveryPacket::new(&mut buf)
+            .expect("Mangled ip discovery packet");
 
         ip_discovery_packet.populate(&ip_discovery);
 
@@ -73,9 +83,11 @@ impl UdpHandler {
             receieved_ip_discovery
         );
 
+        let socket = Arc::new(udp_socket);
+
         let mut handler = UdpHandler {
             url,
-            socket: udp_socket,
+            socket: socket.clone(),
         };
 
         // Now we can continuously check for messages in a different task
@@ -83,13 +95,18 @@ impl UdpHandler {
             handler.listen_task().await;
         });
 
-        return IpDiscovery {
+        let ip_discovery = IpDiscovery {
             pkt_type: receieved_ip_discovery.get_pkt_type(),
             length: receieved_ip_discovery.get_length(),
             ssrc: receieved_ip_discovery.get_ssrc(),
             address: receieved_ip_discovery.get_address(),
             port: receieved_ip_discovery.get_port(),
             payload: Vec::new(),
+        };
+
+        return UdpHandle {
+            ip_discovery,
+            socket,
         };
     }
 
@@ -100,7 +117,7 @@ impl UdpHandler {
         loop {
             let mut buf: Vec<u8> = Vec::new();
 
-            // wtf
+            // FIXME: is there a better way to do this?
             for _i in 0..1_000 {
                 buf.push(0);
             }
