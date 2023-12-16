@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneralConfiguration {
     pub instance_name: String,

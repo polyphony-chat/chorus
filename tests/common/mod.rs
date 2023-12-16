@@ -57,7 +57,7 @@ pub(crate) async fn setup() -> TestBundle {
         "ws://localhost:3001".to_string(),
         "http://localhost:3001".to_string(),
     );
-    let instance = Instance::new(urls.clone(), true).await.unwrap();
+    let instance = Instance::new(urls.clone()).await.unwrap();
     // Requires the existance of the below user.
     let reg = RegisterSchema {
         username: "integrationtestuser".into(),

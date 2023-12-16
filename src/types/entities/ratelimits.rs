@@ -25,7 +25,7 @@ pub enum LimitType {
 
 /// A struct that represents the current ratelimits, either instance-wide or user-wide.
 /// See <https://discord.com/developers/docs/topics/rate-limits#rate-limits> for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Limit {
     pub bucket: LimitType,
     pub limit: u64,

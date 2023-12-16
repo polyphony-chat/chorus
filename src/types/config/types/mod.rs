@@ -1,6 +1,7 @@
 pub mod api_configuration;
 pub mod cdn_configuration;
 pub mod defaults_configuration;
+pub mod domains_configuration;
 pub mod email_configuration;
 pub mod endpoint_configuration;
 pub mod external_tokens_configuration;

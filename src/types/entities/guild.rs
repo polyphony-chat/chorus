@@ -346,6 +346,7 @@ pub struct VoiceRegion {
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#message-notification-level>
@@ -356,6 +357,7 @@ pub enum MessageNotificationLevel {
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#explicit-content-filter-level>
@@ -367,6 +369,7 @@ pub enum ExplicitContentFilterLevel {
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
@@ -380,6 +383,7 @@ pub enum VerificationLevel {
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
@@ -390,6 +394,7 @@ pub enum MFALevel {
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
@@ -402,6 +407,7 @@ pub enum NSFWLevel {
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Eq, PartialEq, Hash, Copy)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
