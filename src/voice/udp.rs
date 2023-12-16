@@ -3,13 +3,15 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use log::{info, warn};
-use tokio::net::UdpSocket;
+use tokio::{net::UdpSocket, sync::Mutex};
 
 use discortp::{
     demux::{demux, Demuxed},
     discord::{IpDiscovery, IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket},
     Packet,
 };
+
+use super::voice_data::VoiceData;
 
 /// Handle to a voice udp connection
 ///
@@ -23,11 +25,16 @@ pub struct UdpHandle {
 
 #[derive(Debug)]
 pub struct UdpHandler {
+    data: Arc<Mutex<VoiceData>>,
     socket: Arc<UdpSocket>,
 }
 
 impl UdpHandler {
-    pub async fn spawn(url: SocketAddr, ssrc: u32) -> UdpHandle {
+    pub async fn spawn(
+        data_reference: Arc<Mutex<VoiceData>>,
+        url: SocketAddr,
+        ssrc: u32,
+    ) -> UdpHandle {
         // Bind with a port number of 0, so the os assigns this listener a port
         let udp_socket = UdpSocket::bind("0.0.0.0:0").await.unwrap();
 
@@ -84,6 +91,7 @@ impl UdpHandler {
         let socket = Arc::new(udp_socket);
 
         let mut handler = UdpHandler {
+            data: data_reference,
             socket: socket.clone(),
         };
 
