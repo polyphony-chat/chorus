@@ -101,10 +101,10 @@ impl UdpHandler {
             payload: Vec::new(),
         };
 
-        return UdpHandle {
+        UdpHandle {
             ip_discovery,
             socket,
-        };
+        }
     }
 
     /// The main listen task;

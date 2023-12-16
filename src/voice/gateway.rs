@@ -361,7 +361,6 @@ impl VoiceGateway {
                 let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
                 if result.is_err() {
                     warn!("Failed to parse VOICE_READY ({})", result.err().unwrap());
-                    return;
                 }
             }
             VOICE_BACKEND_VERSION => {
@@ -374,7 +373,6 @@ impl VoiceGateway {
                         "Failed to parse VOICE_BACKEND_VERSION ({})",
                         result.err().unwrap()
                     );
-                    return;
                 }
             }
             VOICE_SESSION_DESCRIPTION => {
@@ -387,7 +385,6 @@ impl VoiceGateway {
                         "Failed to parse VOICE_SESSION_DESCRIPTION ({})",
                         result.err().unwrap()
                     );
-                    return;
                 }
             }
             VOICE_SESSION_UPDATE => {
@@ -400,7 +397,6 @@ impl VoiceGateway {
                         "Failed to parse VOICE_SESSION_UPDATE ({})",
                         result.err().unwrap()
                     );
-                    return;
                 }
             }
             VOICE_SPEAKING => {
@@ -410,7 +406,6 @@ impl VoiceGateway {
                 let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
                 if result.is_err() {
                     warn!("Failed to parse VOICE_SPEAKING ({})", result.err().unwrap());
-                    return;
                 }
             }
             VOICE_CLIENT_DISCONNECT => {
@@ -423,7 +418,6 @@ impl VoiceGateway {
                         "Failed to parse VOICE_CLIENT_DISCONNECT ({})",
                         result.err().unwrap()
                     );
-                    return;
                 }
             }
             VOICE_CLIENT_CONNECT_FLAGS => {
@@ -436,7 +430,6 @@ impl VoiceGateway {
                         "Failed to parse VOICE_CLIENT_CONNECT_FLAGS ({})",
                         result.err().unwrap()
                     );
-                    return;
                 }
             }
             VOICE_CLIENT_CONNECT_PLATFORM => {
@@ -449,7 +442,6 @@ impl VoiceGateway {
                         "Failed to parse VOICE_CLIENT_CONNECT_PLATFORM ({})",
                         result.err().unwrap()
                     );
-                    return;
                 }
             }
             VOICE_MEDIA_SINK_WANTS => {
@@ -462,7 +454,6 @@ impl VoiceGateway {
                         "Failed to parse VOICE_MEDIA_SINK_WANTS ({})",
                         result.err().unwrap()
                     );
-                    return;
                 }
             }
             // We received a heartbeat from the server
