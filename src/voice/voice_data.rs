@@ -1,6 +1,6 @@
 use discortp::discord::IpDiscovery;
 
-use crate::types::{Snowflake, VoiceReady, VoiceServerUpdate, SessionDescription};
+use crate::types::{SessionDescription, Snowflake, VoiceReady, VoiceServerUpdate};
 
 #[derive(Debug, Default)]
 /// Saves data shared between parts of the voice architecture
