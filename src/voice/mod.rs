@@ -2,3 +2,4 @@
 
 pub mod gateway;
 pub mod udp;
+pub mod voice_data;
