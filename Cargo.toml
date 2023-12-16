@@ -16,7 +16,7 @@ backend = ["dep:poem", "dep:sqlx"]
 rt-multi-thread = ["tokio/rt-multi-thread"]
 rt = ["tokio/rt"]
 client = ["voice"]
-voice = ["dep:discortp"]
+voice = ["dep:discortp", "dep:crypto_secretbox"]
 
 [dependencies]
 tokio = { version = "1.34.0", features = ["macros", "sync"] }
@@ -54,6 +54,7 @@ sqlx = { version = "0.7.1", features = [
 ], optional = true }
 thiserror = "1.0.47"
 discortp = { version = "0.5.0", optional = true, features = ["rtp", "discord", "demux"] }
+crypto_secretbox = {version = "0.1.1", optional = true}
 safina-timer = "0.1.11"
 rand = "0.8.5"
 
