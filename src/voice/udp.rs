@@ -3,13 +3,12 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use log::{info, warn};
-use tokio::{net::UdpSocket, sync::Mutex};
+use tokio::net::UdpSocket;
 
 use discortp::{
     demux::{demux, Demuxed},
-    discord::{IpDiscovery, IpDiscoveryPacket},
-    rtp::RtpPacket,
-    MutablePacket, Packet,
+    discord::{IpDiscovery, IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket},
+    Packet,
 };
 
 /// Handle to a voice udp connection
@@ -24,20 +23,19 @@ pub struct UdpHandle {
 
 #[derive(Debug)]
 pub struct UdpHandler {
-    url: SocketAddr,
     socket: Arc<UdpSocket>,
 }
 
 impl UdpHandler {
-    pub async fn new(url: SocketAddr, ssrc: u32) -> UdpHandle {
+    pub async fn spawn(url: SocketAddr, ssrc: u32) -> UdpHandle {
         // Bind with a port number of 0, so the os assigns this listener a port
         let udp_socket = UdpSocket::bind("0.0.0.0:0").await.unwrap();
 
         udp_socket.connect(url).await.unwrap();
 
         // First perform ip discovery
-        let ip_discovery = discortp::discord::IpDiscovery {
-            pkt_type: discortp::discord::IpDiscoveryType::Request,
+        let ip_discovery = IpDiscovery {
+            pkt_type: IpDiscoveryType::Request,
             ssrc,
             length: 70,
             address: Vec::new(),
@@ -54,8 +52,8 @@ impl UdpHandler {
         }
 
         // TODO: Make this not panic everything
-        let mut ip_discovery_packet = discortp::discord::MutableIpDiscoveryPacket::new(&mut buf)
-            .expect("Mangled ip discovery packet");
+        let mut ip_discovery_packet =
+            MutableIpDiscoveryPacket::new(&mut buf).expect("Mangled ip discovery packet");
 
         ip_discovery_packet.populate(&ip_discovery);
 
@@ -63,7 +61,7 @@ impl UdpHandler {
 
         info!("VUDP: Sending Ip Discovery {:?}", &data);
 
-        udp_socket.send(&data).await.unwrap();
+        udp_socket.send(data).await.unwrap();
 
         info!("VUDP: Sent packet discovery request");
 
@@ -76,7 +74,7 @@ impl UdpHandler {
             receieved_size
         );
 
-        let receieved_ip_discovery = discortp::discord::IpDiscoveryPacket::new(&buf).unwrap();
+        let receieved_ip_discovery = IpDiscoveryPacket::new(&buf).unwrap();
 
         info!(
             "VUDP: Received ip discovery!!! {:?}",
@@ -86,7 +84,6 @@ impl UdpHandler {
         let socket = Arc::new(udp_socket);
 
         let mut handler = UdpHandler {
-            url,
             socket: socket.clone(),
         };
 
@@ -153,7 +150,5 @@ impl UdpHandler {
                 unreachable!()
             }
         }
-
-        return;
     }
 }

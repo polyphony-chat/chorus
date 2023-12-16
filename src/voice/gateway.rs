@@ -192,12 +192,11 @@ pub struct VoiceGateway {
     >,
     websocket_receive: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
     kill_send: tokio::sync::broadcast::Sender<()>,
-    url: String,
 }
 
 impl VoiceGateway {
     #[allow(clippy::new_ret_no_self)]
-    pub async fn new(websocket_url: String) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
+    pub async fn spawn(websocket_url: String) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
         // Append the needed things to the websocket url
         let processed_url = format!("wss://{}/?v=7", websocket_url);
         trace!("Created voice socket url: {}", processed_url.clone());
@@ -269,7 +268,6 @@ impl VoiceGateway {
             websocket_send: shared_websocket_send.clone(),
             websocket_receive,
             kill_send: kill_send.clone(),
-            url: websocket_url.clone(),
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
@@ -501,13 +499,13 @@ impl VoiceGateway {
                     .unwrap();
             }
             VOICE_IDENTIFY | VOICE_SELECT_PROTOCOL | VOICE_RESUME => {
-                let error = VoiceGatewayError::UnexpectedOpcodeReceived {
-                    opcode: gateway_payload.op_code,
-                };
-                Err::<(), VoiceGatewayError>(error).unwrap();
+                info!(
+                    "VGW: Received unexpected opcode ({}) for current state. This might be due to a faulty server implementation and is likely not the fault of chorus.",
+                    gateway_payload.op_code
+                );
             }
             _ => {
-                warn!("Received unrecognized voice gateway op code ({})! Please open an issue on the chorus github so we can implement it", gateway_payload.op_code);
+                warn!("VGW: Received unrecognized voice gateway op code ({})! Please open an issue on the chorus github so we can implement it", gateway_payload.op_code);
             }
         }
     }
