@@ -2,8 +2,12 @@
 
 use std::{net::SocketAddr, sync::Arc};
 
-use log::{info, warn};
+use log::{debug, info, warn, trace};
 use tokio::{net::UdpSocket, sync::Mutex};
+
+use crypto_secretbox::{
+    aead::Aead, cipher::generic_array::GenericArray, KeyInit, XSalsa20Poly1305,
+};
 
 use discortp::{
     demux::{demux, Demuxed},
@@ -139,20 +143,71 @@ impl UdpHandler {
 
     /// Handles a message buf
     async fn handle_message(&self, buf: &[u8]) {
-        info!("VUDP: Received messsage");
 
         let parsed = demux(buf);
 
         match parsed {
             Demuxed::Rtp(rtp) => {
-                let data = buf[11..buf.len()].to_vec();
-                info!("VUDP: Parsed packet as rtp! {:?}; data: {:?}", rtp, data);
+                let ciphertext = buf[12..buf.len()].to_vec();
+                trace!(
+                    "VUDP: Parsed packet as rtp! {:?}; data: {:?}",
+                    rtp, ciphertext
+                );
+
+                let data_lock = self.data.lock().await;
+
+                let session_description_result = data_lock.session_description.clone();
+
+                if session_description_result.is_none() {
+                    warn!("VUDP: Received encyrpted voice data, but no encryption key, CANNOT DECRYPT!");
+                    return;
+                }
+
+                let session_description = session_description_result.unwrap();
+
+                let nonce;
+
+                let mut rtp_header = buf[0..12].to_vec();
+
+                match session_description.encryption_mode {
+                    crate::types::VoiceEncryptionMode::Xsalsa20Poly1305 => {
+
+                        // The header is only 12 bytes, but the nonce has to be 24
+                        // This actually works mind you, and anything else doesn't
+                        for _i in 0..12 {
+                            rtp_header.push(0);
+                        }
+
+                        nonce = GenericArray::from_slice(&rtp_header);
+                    }
+                    _ => {
+                        unimplemented!();
+                    }
+                }
+
+                let key = GenericArray::from_slice(&session_description.secret_key);
+
+                let decryptor = XSalsa20Poly1305::new(key);
+
+                let decryption_result = decryptor.decrypt(nonce, ciphertext.as_ref());
+
+                if let Err(decryption_error) = decryption_result {
+                    warn!(
+                        "VUDP: Failed to decypt voice data! ({:?})",
+                        decryption_error
+                    );
+                    return;
+                }
+
+                let decrypted = decryption_result.unwrap();
+
+                info!("VUDP: SUCCESSFULLY DECRYPTED VOICE DATA!!! {:?}", decrypted);
             }
             Demuxed::Rtcp(rtcp) => {
-                info!("VUDP: Parsed packet as rtcp! {:?}", rtcp);
+                trace!("VUDP: Parsed packet as rtcp! {:?}", rtcp);
             }
             Demuxed::FailedParse(e) => {
-                warn!("VUDP: Failed to parse packet: {:?}", e);
+                trace!("VUDP: Failed to parse packet: {:?}", e);
             }
             Demuxed::TooSmall => {
                 unreachable!()
