@@ -29,6 +29,7 @@ pub struct GuildCreate {
     pub json: String,
 }
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildCreate {
     fn id(&self) -> Option<Snowflake> {
         match &self.d {
@@ -89,6 +90,7 @@ pub struct GuildUpdate {
 
 impl WebSocketEvent for GuildUpdate {}
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildUpdate {
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild.id)
@@ -107,6 +109,7 @@ pub struct GuildDelete {
     pub json: String,
 }
 
+#[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildDelete {
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild.id)

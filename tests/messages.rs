@@ -2,7 +2,6 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 
 use chorus::types::{self, Guild, Message, MessageSearchQuery};
-// PRETTYFYME: Move common wasm setup to common.rs
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
