@@ -1,5 +1,3 @@
-use std::net::Ipv4Addr;
-
 use serde::{Deserialize, Serialize};
 
 use super::VoiceEncryptionMode;
@@ -35,7 +33,7 @@ pub enum VoiceProtocol {
     //Webrtc,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// The data field of the SelectProtocol Event
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#protocol-data-structure>
@@ -46,14 +44,4 @@ pub struct SelectProtocolData {
     pub port: u16,
     /// The mode of encryption to use
     pub mode: VoiceEncryptionMode,
-}
-
-impl Default for SelectProtocolData {
-    fn default() -> Self {
-        SelectProtocolData {
-            address: Vec::new(),
-            port: 0,
-            mode: Default::default(),
-        }
-    }
 }
