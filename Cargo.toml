@@ -54,8 +54,6 @@ sqlx = { version = "0.7.1", features = [
 ], optional = true }
 thiserror = "1.0.47"
 discortp = { version = "0.5.0", optional = true, features = ["rtp", "discord", "demux"] }
-rustls = "0.21.8"
-rustls-native-certs = "0.6.3"
 safina-timer = "0.1.11"
 rand = "0.8.5"
 
