@@ -14,7 +14,7 @@ pub struct Speaking {
     ///
     /// See [SpeakingBitFlags]
     pub speaking: u8,
-    pub ssrc: i32,
+    pub ssrc: u32,
     /// The user id of the speaking user, only sent by the server
     #[serde(skip_serializing)]
     pub user_id: Option<Snowflake>,

@@ -671,12 +671,15 @@ struct VoiceHeartbeatThreadCommunication {
 }
 
 pub mod voice_events {
-    use crate::types::{
-        SessionDescription, SessionUpdate, VoiceBackendVersion, VoiceClientConnectFlags,
-        VoiceClientConnectPlatform, VoiceClientDisconnection, VoiceMediaSinkWants, VoiceReady,
+    use crate::{
+        errors::VoiceGatewayError,
+        gateway::GatewayEvent,
+        types::{
+            SessionDescription, SessionUpdate, Speaking, SsrcDefinition, VoiceBackendVersion,
+            VoiceClientConnectFlags, VoiceClientConnectPlatform, VoiceClientDisconnection,
+            VoiceMediaSinkWants, VoiceReady,
+        },
     };
-
-    use super::*;
 
     #[derive(Default, Debug)]
     pub struct VoiceEvents {
