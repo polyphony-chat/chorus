@@ -2,7 +2,7 @@
 
 use std::{net::SocketAddr, sync::Arc};
 
-use log::{debug, info, warn, trace};
+use log::{debug, info, trace, warn};
 use tokio::{net::UdpSocket, sync::Mutex};
 
 use crypto_secretbox::{
@@ -143,7 +143,6 @@ impl UdpHandler {
 
     /// Handles a message buf
     async fn handle_message(&self, buf: &[u8]) {
-
         let parsed = demux(buf);
 
         match parsed {
@@ -151,7 +150,8 @@ impl UdpHandler {
                 let ciphertext = buf[12..buf.len()].to_vec();
                 trace!(
                     "VUDP: Parsed packet as rtp! {:?}; data: {:?}",
-                    rtp, ciphertext
+                    rtp,
+                    ciphertext
                 );
 
                 let data_lock = self.data.lock().await;
@@ -171,7 +171,6 @@ impl UdpHandler {
 
                 match session_description.encryption_mode {
                     crate::types::VoiceEncryptionMode::Xsalsa20Poly1305 => {
-
                         // The header is only 12 bytes, but the nonce has to be 24
                         // This actually works mind you, and anything else doesn't
                         for _i in 0..12 {
