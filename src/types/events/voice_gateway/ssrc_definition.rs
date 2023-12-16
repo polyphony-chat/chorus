@@ -1,5 +1,5 @@
 use crate::types::{Snowflake, WebSocketEvent};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Defines an event which provides ssrcs for voice and video for a user id.
 ///

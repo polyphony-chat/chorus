@@ -11,8 +11,8 @@ pub use ready::*;
 pub use select_protocol::*;
 pub use session_description::*;
 pub use speaking::*;
-pub use voice_backend_version::*;
 pub use ssrc_definition::*;
+pub use voice_backend_version::*;
 
 mod client_connect;
 mod client_disconnect;
@@ -23,8 +23,8 @@ mod ready;
 mod select_protocol;
 mod session_description;
 mod speaking;
-mod voice_backend_version;
 mod ssrc_definition;
+mod voice_backend_version;
 
 #[derive(Debug, Default, Serialize, Clone)]
 /// The payload used for sending events to the webrtc gateway.
