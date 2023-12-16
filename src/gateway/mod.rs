@@ -94,6 +94,12 @@ pub struct GatewayEvent<T: WebSocketEvent> {
 }
 
 impl<T: WebSocketEvent> GatewayEvent<T> {
+    pub fn new() -> Self {
+        Self {
+            observers: Vec::new(),
+        }
+    }
+
     /// Returns true if the GatewayEvent is observed by at least one Observer.
     pub fn is_observed(&self) -> bool {
         !self.observers.is_empty()

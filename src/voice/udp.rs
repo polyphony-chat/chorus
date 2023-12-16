@@ -1,11 +1,16 @@
 //! Defines voice raw udp socket handling
 
+use self::voice_udp_events::VoiceUDPEvents;
+
 use super::crypto;
 
 use std::{net::SocketAddr, sync::Arc};
 
 use log::{debug, info, trace, warn};
-use tokio::{net::UdpSocket, sync::RwLock};
+use tokio::{
+    net::UdpSocket,
+    sync::{Mutex, RwLock},
+};
 
 use crypto_secretbox::{
     aead::Aead, cipher::generic_array::GenericArray, KeyInit, XSalsa20Poly1305,
@@ -14,6 +19,7 @@ use crypto_secretbox::{
 use discortp::{
     demux::{demux, Demuxed},
     discord::{IpDiscovery, IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket},
+    rtcp::report::{ReceiverReport, SenderReport},
     Packet,
 };
 
@@ -28,6 +34,7 @@ const RTP_HEADER_SIZE: u8 = 12;
 /// Can be safely cloned and will still correspond to the same connection.
 #[derive(Debug, Clone)]
 pub struct UdpHandle {
+    pub events: Arc<Mutex<VoiceUDPEvents>>,
     socket: Arc<UdpSocket>,
     pub data: Arc<RwLock<VoiceData>>,
 }
@@ -75,14 +82,17 @@ impl UdpHandle {
 
     /// Encrypts and sends and rtp packet.
     pub async fn send_rtp_packet(&self, packet: discortp::rtp::MutableRtpPacket<'_>) {
-        let mut mutable_packet = packet;
-        self.encrypt_rtp_packet(&mut mutable_packet).await;
-        self.send_encrypted_rtp_packet(mutable_packet.consume_to_immutable())
+        let mut buffer = self.encrypt_rtp_packet_payload(&packet).await;
+        let new_packet = discortp::rtp::MutableRtpPacket::new(&mut buffer).unwrap();
+        self.send_encrypted_rtp_packet(new_packet.consume_to_immutable())
             .await;
     }
 
-    /// Encrypts an unecnrypted rtp packet, mutating its payload.
-    pub async fn encrypt_rtp_packet(&self, packet: &mut discortp::rtp::MutableRtpPacket<'_>) {
+    /// Encrypts an unencrypted rtp packet, returning an encrypted copy if its payload.
+    pub async fn encrypt_rtp_packet_payload(
+        &self,
+        packet: &discortp::rtp::MutableRtpPacket<'_>,
+    ) -> Vec<u8> {
         let payload = packet.payload();
 
         let data_lock = self.data.read().await;
@@ -97,7 +107,7 @@ impl UdpHandle {
 
         let session_description = session_description_result.unwrap();
 
-        let nonce_bytes = crypto::get_xsalsa20_poly1305_nonce(packet.to_immutable());
+        let nonce_bytes = crypto::get_xsalsa20_poly1305_nonce(packet.packet());
         let nonce = GenericArray::from_slice(&nonce_bytes);
 
         let key = GenericArray::from_slice(&session_description.secret_key);
@@ -113,7 +123,18 @@ impl UdpHandle {
 
         let encrypted_payload = encryption_result.unwrap();
 
-        packet.set_payload(&encrypted_payload);
+        // We need to allocate a new buffer, since the old one is too small for our new encrypted
+        // data
+        let mut new_buffer = packet.packet().to_vec();
+
+        let buffer_size = encrypted_payload.len() + RTP_HEADER_SIZE as usize;
+
+        // Fill the buffer
+        while new_buffer.len() <= buffer_size {
+            new_buffer.push(0);
+        }
+
+        new_buffer
     }
 
     /// Sends an (already encrypted) rtp packet to the connection.
@@ -121,11 +142,14 @@ impl UdpHandle {
         let raw_bytes = packet.packet();
 
         self.socket.send(raw_bytes).await.unwrap();
+
+        debug!("VUDP: Sent rtp packet!");
     }
 }
 
 #[derive(Debug)]
 pub struct UdpHandler {
+    events: Arc<Mutex<VoiceUDPEvents>>,
     pub data: Arc<RwLock<VoiceData>>,
     socket: Arc<UdpSocket>,
 }
@@ -207,7 +231,11 @@ impl UdpHandler {
 
         let socket = Arc::new(udp_socket);
 
+        let events = VoiceUDPEvents::default();
+        let shared_events = Arc::new(Mutex::new(events));
+
         let mut handler = UdpHandler {
+            events: shared_events.clone(),
             data: data_reference.clone(),
             socket: socket.clone(),
         };
@@ -218,6 +246,7 @@ impl UdpHandler {
         });
 
         UdpHandle {
+            events: shared_events,
             socket,
             data: data_reference,
         }
@@ -252,11 +281,7 @@ impl UdpHandler {
         match parsed {
             Demuxed::Rtp(rtp) => {
                 let ciphertext = buf[12..buf.len()].to_vec();
-                trace!(
-                    "VUDP: Parsed packet as rtp! {:?}; data: {:?}",
-                    rtp,
-                    ciphertext
-                );
+                trace!("VUDP: Parsed packet as rtp!");
 
                 let data_lock = self.data.read().await;
 
@@ -273,7 +298,7 @@ impl UdpHandler {
 
                 match session_description.encryption_mode {
                     crate::types::VoiceEncryptionMode::Xsalsa20Poly1305 => {
-                        nonce_bytes = crypto::get_xsalsa20_poly1305_nonce(rtp);
+                        nonce_bytes = crypto::get_xsalsa20_poly1305_nonce(rtp.packet());
                     }
                     _ => {
                         unimplemented!();
@@ -298,16 +323,97 @@ impl UdpHandler {
 
                 let decrypted = decryption_result.unwrap();
 
-                info!("VUDP: SUCCESSFULLY DECRYPTED VOICE DATA!!! {:?}", decrypted);
+                debug!("VUDP: Successfully decrypted voice data!");
+
+                let rtp_with_decrypted_data = discortp::rtp::Rtp {
+                    ssrc: rtp.get_ssrc(),
+                    marker: rtp.get_marker(),
+                    version: rtp.get_version(),
+                    padding: rtp.get_padding(),
+                    sequence: rtp.get_sequence(),
+                    extension: rtp.get_extension(),
+                    timestamp: rtp.get_timestamp(),
+                    csrc_list: rtp.get_csrc_list(),
+                    csrc_count: rtp.get_csrc_count(),
+                    payload_type: rtp.get_payload_type(),
+                    payload: decrypted,
+                };
+
+                self.events
+                    .lock()
+                    .await
+                    .rtp
+                    .notify(rtp_with_decrypted_data)
+                    .await;
             }
             Demuxed::Rtcp(rtcp) => {
-                trace!("VUDP: Parsed packet as rtcp! {:?}", rtcp);
+                trace!("VUDP: Parsed packet as rtcp!");
+
+                let rtcp_data;
+
+                match rtcp {
+                    discortp::rtcp::RtcpPacket::KnownType(knowntype) => {
+                        rtcp_data = discortp::rtcp::Rtcp::KnownType(knowntype);
+                    }
+                    discortp::rtcp::RtcpPacket::SenderReport(senderreport) => {
+                        rtcp_data = discortp::rtcp::Rtcp::SenderReport(SenderReport {
+                            payload: senderreport.payload().to_vec(),
+                            padding: senderreport.get_padding(),
+                            version: senderreport.get_version(),
+                            ssrc: senderreport.get_ssrc(),
+                            pkt_length: senderreport.get_pkt_length(),
+                            packet_type: senderreport.get_packet_type(),
+                            rx_report_count: senderreport.get_rx_report_count(),
+                        });
+                    }
+                    discortp::rtcp::RtcpPacket::ReceiverReport(receiverreport) => {
+                        rtcp_data = discortp::rtcp::Rtcp::ReceiverReport(ReceiverReport {
+                            payload: receiverreport.payload().to_vec(),
+                            padding: receiverreport.get_padding(),
+                            version: receiverreport.get_version(),
+                            ssrc: receiverreport.get_ssrc(),
+                            pkt_length: receiverreport.get_pkt_length(),
+                            packet_type: receiverreport.get_packet_type(),
+                            rx_report_count: receiverreport.get_rx_report_count(),
+                        });
+                    }
+                    _ => {
+                        unreachable!();
+                    }
+                }
+
+                self.events.lock().await.rtcp.notify(rtcp_data).await;
             }
             Demuxed::FailedParse(e) => {
                 trace!("VUDP: Failed to parse packet: {:?}", e);
             }
             Demuxed::TooSmall => {
                 unreachable!()
+            }
+        }
+    }
+}
+
+pub mod voice_udp_events {
+
+    use discortp::{rtcp::Rtcp, rtp::Rtp};
+
+    use crate::{gateway::GatewayEvent, types::WebSocketEvent};
+
+    impl WebSocketEvent for Rtp {}
+    impl WebSocketEvent for Rtcp {}
+
+    #[derive(Debug)]
+    pub struct VoiceUDPEvents {
+        pub rtp: GatewayEvent<Rtp>,
+        pub rtcp: GatewayEvent<Rtcp>,
+    }
+
+    impl Default for VoiceUDPEvents {
+        fn default() -> Self {
+            Self {
+                rtp: GatewayEvent::new(),
+                rtcp: GatewayEvent::new(),
             }
         }
     }
