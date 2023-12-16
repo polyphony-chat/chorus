@@ -17,11 +17,12 @@ use tokio_tungstenite::{connect_async_tls_with_config, Connector, WebSocketStrea
 use crate::errors::VoiceGatewayError;
 use crate::gateway::{heartbeat::HEARTBEAT_ACK_TIMEOUT, GatewayEvent};
 use crate::types::{
-    self, SelectProtocol, Speaking, VoiceGatewayReceivePayload, VoiceGatewaySendPayload,
-    VoiceIdentify, WebSocketEvent, VOICE_BACKEND_VERSION, VOICE_CLIENT_CONNECT_FLAGS,
-    VOICE_CLIENT_CONNECT_PLATFORM, VOICE_CLIENT_DISCONNECT, VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK,
-    VOICE_HELLO, VOICE_IDENTIFY, VOICE_MEDIA_SINK_WANTS, VOICE_READY, VOICE_RESUME,
-    VOICE_SELECT_PROTOCOL, VOICE_SESSION_DESCRIPTION, VOICE_SESSION_UPDATE, VOICE_SPEAKING,
+    self, SelectProtocol, Speaking, SsrcDefinition, VoiceGatewayReceivePayload,
+    VoiceGatewaySendPayload, VoiceIdentify, WebSocketEvent, VOICE_BACKEND_VERSION,
+    VOICE_CLIENT_CONNECT_FLAGS, VOICE_CLIENT_CONNECT_PLATFORM, VOICE_CLIENT_DISCONNECT,
+    VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK, VOICE_HELLO, VOICE_IDENTIFY, VOICE_MEDIA_SINK_WANTS,
+    VOICE_READY, VOICE_RESUME, VOICE_SELECT_PROTOCOL, VOICE_SESSION_DESCRIPTION,
+    VOICE_SESSION_UPDATE, VOICE_SPEAKING, VOICE_SSRC_DEFINITION,
 };
 
 use self::voice_events::VoiceEvents;
@@ -157,6 +158,15 @@ impl VoiceGatewayHandle {
         trace!("VGW: Sending Speaking");
 
         self.send_json(VOICE_SPEAKING, to_send_value).await;
+    }
+
+    /// Sends an ssrc definition event
+    pub async fn send_ssrc_definition(&self, to_send: SsrcDefinition) {
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        trace!("VGW: Sending SsrcDefinition");
+
+        self.send_json(VOICE_SSRC_DEFINITION, to_send_value).await;
     }
 
     /// Sends a voice backend version request to the gateway
@@ -406,6 +416,18 @@ impl VoiceGateway {
                 let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
                 if result.is_err() {
                     warn!("Failed to parse VOICE_SPEAKING ({})", result.err().unwrap());
+                }
+            }
+            VOICE_SSRC_DEFINITION => {
+                trace!("VGW: Received Ssrc Definition");
+
+                let event = &mut self.events.lock().await.ssrc_definition;
+                let result = VoiceGateway::handle_event(gateway_payload.data.get(), event).await;
+                if result.is_err() {
+                    warn!(
+                        "Failed to parse VOICE_SSRC_DEFINITION ({})",
+                        result.err().unwrap()
+                    );
                 }
             }
             VOICE_CLIENT_DISCONNECT => {
@@ -663,6 +685,7 @@ pub mod voice_events {
         pub session_description: GatewayEvent<SessionDescription>,
         pub session_update: GatewayEvent<SessionUpdate>,
         pub speaking: GatewayEvent<Speaking>,
+        pub ssrc_definition: GatewayEvent<SsrcDefinition>,
         pub client_disconnect: GatewayEvent<VoiceClientDisconnection>,
         pub client_connect_flags: GatewayEvent<VoiceClientConnectFlags>,
         pub client_connect_platform: GatewayEvent<VoiceClientConnectPlatform>,
