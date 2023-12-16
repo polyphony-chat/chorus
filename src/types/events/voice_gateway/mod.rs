@@ -12,6 +12,7 @@ pub use select_protocol::*;
 pub use session_description::*;
 pub use speaking::*;
 pub use voice_backend_version::*;
+pub use ssrc_definition::*;
 
 mod client_connect;
 mod client_disconnect;
@@ -23,6 +24,7 @@ mod select_protocol;
 mod session_description;
 mod speaking;
 mod voice_backend_version;
+mod ssrc_definition;
 
 #[derive(Debug, Default, Serialize, Clone)]
 /// The payload used for sending events to the webrtc gateway.
@@ -102,8 +104,7 @@ pub const VOICE_HEARTBEAT_ACK: u8 = 6;
 pub const VOICE_RESUME: u8 = 7;
 pub const VOICE_HELLO: u8 = 8;
 pub const VOICE_RESUMED: u8 = 9;
-/// See <https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#voice-opcodes>
-pub const VOICE_VIDEO: u8 = 12;
+pub const VOICE_SSRC_DEFINITION: u8 = 12;
 pub const VOICE_CLIENT_DISCONNECT: u8 = 13;
 pub const VOICE_SESSION_UPDATE: u8 = 14;
 
