@@ -24,8 +24,8 @@ pub use stage_instance::*;
 pub use thread::*;
 pub use user::*;
 pub use voice::*;
+pub use voice_gateway::*;
 pub use webhooks::*;
-pub use webrtc::*;
 
 #[cfg(feature = "client")]
 use super::Snowflake;
@@ -72,7 +72,7 @@ mod user;
 mod voice;
 mod webhooks;
 
-mod webrtc;
+mod voice_gateway;
 
 pub trait WebSocketEvent: Send + Sync + Debug {}
 
