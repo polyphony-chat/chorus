@@ -163,8 +163,6 @@ bitflags! {
         const USE_EXTERNAL_SOUNDS = 1 << 45;
         /// Allows sending voice messages
         const SEND_VOICE_MESSAGES = 1 << 46;
-        /// Allows creating encrypted voice channels
-        const MANAGE_ENCRYPTION = 1 << 63;
     }
 }
 
