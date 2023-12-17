@@ -53,7 +53,7 @@ impl UdpHandle {
             // Always the same
             version: 2,
             padding: 0,
-            extension: 1,
+            extension: 0,
             csrc_count: 0,
             csrc_list: Vec::new(),
             marker: 0,
@@ -64,6 +64,8 @@ impl UdpHandle {
             ssrc,
             payload,
         };
+
+        debug!("VUDP: Constructed udp data: {:?}", rtp_data);
 
         let mut buffer = Vec::new();
 
@@ -88,7 +90,8 @@ impl UdpHandle {
             .await;
     }
 
-    /// Encrypts an unencrypted rtp packet, returning an encrypted copy if its payload.
+    /// Encrypts an unencrypted rtp packet, returning a copy of the packet's bytes with an
+    /// encrypted payload
     pub async fn encrypt_rtp_packet_payload(
         &self,
         packet: &discortp::rtp::MutableRtpPacket<'_>,
@@ -263,8 +266,8 @@ impl UdpHandler {
             for _i in 0..1_000 {
                 buf.push(0);
             }
-            let msg = self.socket.recv(&mut buf).await;
-            if let Ok(size) = msg {
+            let result = self.socket.recv(&mut buf).await;
+            if let Ok(size) = result {
                 self.handle_message(&buf[0..size]).await;
                 continue;
             }
