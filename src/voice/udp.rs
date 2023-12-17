@@ -43,9 +43,10 @@ impl UdpHandle {
     /// Constructs and sends encoded opus rtp data.
     ///
     /// Automatically makes an [RtpPacket](discorrtp::rtp::RtpPacket), encrypts it and sends it.
-    pub async fn send_opus_data(&self, sequence: u16, timestamp: u32, payload: Vec<u8>) {
-        let data_lock = self.data.read().await;
-        let ssrc = data_lock.ready_data.clone().unwrap().ssrc;
+    pub async fn send_opus_data(&self, timestamp: u32, payload: Vec<u8>) {
+        let ssrc = self.data.read().await.ready_data.clone().unwrap().ssrc.clone();
+        let sequence_number = self.data.read().await.last_sequence_number.clone().wrapping_add(1);
+        self.data.write().await.last_sequence_number = sequence_number;
 
         let payload_len = payload.len();
 
@@ -59,13 +60,11 @@ impl UdpHandle {
             marker: 0,
             payload_type: discortp::rtp::RtpType::Dynamic(120),
             // Actually variable
-            sequence: sequence.into(),
+            sequence: sequence_number.into(),
             timestamp: timestamp.into(),
             ssrc,
             payload,
         };
-
-        debug!("VUDP: Constructed udp data: {:?}", rtp_data);
 
         let mut buffer = Vec::new();
 
@@ -98,9 +97,7 @@ impl UdpHandle {
     ) -> Vec<u8> {
         let payload = packet.payload();
 
-        let data_lock = self.data.read().await;
-
-        let session_description_result = data_lock.session_description.clone();
+        let session_description_result = self.data.read().await.session_description.clone();
 
         if session_description_result.is_none() {
             // FIXME: Make this function reutrn a result with a proper error type for these kinds
@@ -286,9 +283,7 @@ impl UdpHandler {
                 let ciphertext = buf[12..buf.len()].to_vec();
                 trace!("VUDP: Parsed packet as rtp!");
 
-                let data_lock = self.data.read().await;
-
-                let session_description_result = data_lock.session_description.clone();
+                let session_description_result = self.data.read().await.session_description.clone();
 
                 if session_description_result.is_none() {
                     warn!("VUDP: Received encyrpted voice data, but no encryption key, CANNOT DECRYPT!");

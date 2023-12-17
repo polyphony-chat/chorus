@@ -10,5 +10,7 @@ pub struct VoiceData {
     pub session_description: Option<SessionDescription>,
     pub user_id: Snowflake,
     pub session_id: String,
+    /// The last sequence number we used, has to be incremeted by one every time we send a message
+    pub last_sequence_number: u16,
     pub ip_discovery: Option<IpDiscovery>,
 }
