@@ -44,8 +44,8 @@ impl UdpHandle {
     ///
     /// Automatically makes an [RtpPacket](discorrtp::rtp::RtpPacket), encrypts it and sends it.
     pub async fn send_opus_data(&self, timestamp: u32, payload: Vec<u8>) {
-        let ssrc = self.data.read().await.ready_data.clone().unwrap().ssrc.clone();
-        let sequence_number = self.data.read().await.last_sequence_number.clone().wrapping_add(1);
+        let ssrc = self.data.read().await.ready_data.clone().unwrap().ssrc;
+        let sequence_number = self.data.read().await.last_sequence_number.wrapping_add(1);
         self.data.write().await.last_sequence_number = sequence_number;
 
         let payload_len = payload.len();
