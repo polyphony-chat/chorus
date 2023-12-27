@@ -11,7 +11,7 @@ use crate::{
 };
 
 impl ChorusUser {
-    /// Gets a user by id, or if the id is None, gets the current user.
+    /// Fetches a user by id, or if the id is None, gets the current user.
     ///
     /// # Notes
     /// This function is a wrapper around [`User::get`].
@@ -23,7 +23,7 @@ impl ChorusUser {
         User::get(self, id).await
     }
 
-    /// Gets the user's settings.
+    /// Fetches the user's settings.
     ///
     /// # Notes
     /// This functions is a wrapper around [`User::get_settings`].
@@ -82,7 +82,7 @@ impl ChorusUser {
 }
 
 impl User {
-    /// Gets a user by id, or if the id is None, gets the current user.
+    /// Fetches a user by id, or if the id is None, gets the current user.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
@@ -110,7 +110,7 @@ impl User {
         }
     }
 
-    /// Gets the user's settings.
+    /// Fetches the user's settings.
     ///
     /// # Reference
     /// See <https://luna.gitlab.io/discord-unofficial-docs/user_settings.html#get-users-me-settings>

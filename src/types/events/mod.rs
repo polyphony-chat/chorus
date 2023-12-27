@@ -140,6 +140,8 @@ where
 
 pub(crate) trait JsonField: Clone {
     fn set_json(&mut self, json: String);
+    // RAGC: Perhaps this and get_source_url should be renamed, but that requires a new version of
+    // the macros crate aswell, and I don't know if it's worth it
     fn get_json(&self) -> String;
 }
 

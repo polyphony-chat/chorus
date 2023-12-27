@@ -47,6 +47,7 @@ impl ReactionMeta {
     ///
     /// # Reference
     /// See <https://discord.com/developers/docs/resources/channel#get-reactions>
+    // Consider renaming this, maybe get_reaction_users or get_emoji_users
     pub async fn get(&self, emoji: &str, user: &mut ChorusUser) -> ChorusResult<Vec<PublicUser>> {
         let url = format!(
             "{}/channels/{}/messages/{}/reactions/{}",
