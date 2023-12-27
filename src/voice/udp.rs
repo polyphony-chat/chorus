@@ -292,16 +292,14 @@ impl UdpHandler {
 
                 let session_description = session_description_result.unwrap();
 
-                let nonce_bytes;
-
-                match session_description.encryption_mode {
+                let nonce_bytes = match session_description.encryption_mode {
                     crate::types::VoiceEncryptionMode::Xsalsa20Poly1305 => {
-                        nonce_bytes = crypto::get_xsalsa20_poly1305_nonce(rtp.packet());
+                        crypto::get_xsalsa20_poly1305_nonce(rtp.packet())
                     }
                     _ => {
                         unimplemented!();
                     }
-                }
+                };
 
                 let nonce = GenericArray::from_slice(&nonce_bytes);
 
@@ -346,15 +344,13 @@ impl UdpHandler {
             }
             Demuxed::Rtcp(rtcp) => {
                 trace!("VUDP: Parsed packet as rtcp!");
-
-                let rtcp_data;
-
-                match rtcp {
+                
+                let rtcp_data = match rtcp {
                     discortp::rtcp::RtcpPacket::KnownType(knowntype) => {
-                        rtcp_data = discortp::rtcp::Rtcp::KnownType(knowntype);
+                        discortp::rtcp::Rtcp::KnownType(knowntype)
                     }
                     discortp::rtcp::RtcpPacket::SenderReport(senderreport) => {
-                        rtcp_data = discortp::rtcp::Rtcp::SenderReport(SenderReport {
+                        discortp::rtcp::Rtcp::SenderReport(SenderReport {
                             payload: senderreport.payload().to_vec(),
                             padding: senderreport.get_padding(),
                             version: senderreport.get_version(),
@@ -362,10 +358,10 @@ impl UdpHandler {
                             pkt_length: senderreport.get_pkt_length(),
                             packet_type: senderreport.get_packet_type(),
                             rx_report_count: senderreport.get_rx_report_count(),
-                        });
+                        })
                     }
                     discortp::rtcp::RtcpPacket::ReceiverReport(receiverreport) => {
-                        rtcp_data = discortp::rtcp::Rtcp::ReceiverReport(ReceiverReport {
+                        discortp::rtcp::Rtcp::ReceiverReport(ReceiverReport {
                             payload: receiverreport.payload().to_vec(),
                             padding: receiverreport.get_padding(),
                             version: receiverreport.get_version(),
@@ -373,12 +369,12 @@ impl UdpHandler {
                             pkt_length: receiverreport.get_pkt_length(),
                             packet_type: receiverreport.get_packet_type(),
                             rx_report_count: receiverreport.get_rx_report_count(),
-                        });
+                        })
                     }
                     _ => {
                         unreachable!();
                     }
-                }
+                };
 
                 self.events.lock().await.rtcp.notify(rtcp_data).await;
             }

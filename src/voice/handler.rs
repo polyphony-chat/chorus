@@ -1,11 +1,22 @@
-use std::{sync::Arc, net::SocketAddrV4};
+use std::{net::SocketAddrV4, sync::Arc};
 
 use async_trait::async_trait;
 use tokio::sync::{Mutex, RwLock};
 
-use crate::{gateway::Observer, types::{VoiceServerUpdate, VoiceIdentify, VoiceReady, SessionDescription, GatewayReady, Snowflake, SelectProtocol, VoiceProtocol, SelectProtocolData, VoiceEncryptionMode}};
+use crate::{
+    gateway::Observer,
+    types::{
+        GatewayReady, SelectProtocol, SelectProtocolData, SessionDescription, Snowflake,
+        VoiceEncryptionMode, VoiceIdentify, VoiceProtocol, VoiceReady, VoiceServerUpdate,
+    },
+};
 
-use super::{gateway::{VoiceGatewayHandle, VoiceGateway}, udp::UdpHandle, udp::UdpHandler, voice_data::VoiceData};
+use super::{
+    gateway::{VoiceGateway, VoiceGatewayHandle},
+    udp::UdpHandle,
+    udp::UdpHandler,
+    voice_data::VoiceData,
+};
 
 /// Handles inbetween connections between the gateway and udp modules
 #[derive(Debug, Clone)]
@@ -26,13 +37,19 @@ impl VoiceHandler {
     }
 }
 
+impl Default for VoiceHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 // On [VoiceServerUpdate] we get our starting data and url for the voice gateway server.
 impl Observer<VoiceServerUpdate> for VoiceHandler {
     async fn update(&self, data: &VoiceServerUpdate) {
         let mut data_lock = self.data.write().await;
         data_lock.server_data = Some(data.clone());
-        let user_id = data_lock.user_id.clone();
+        let user_id = data_lock.user_id;
         let session_id = data_lock.session_id.clone();
         drop(data_lock);
 
@@ -43,9 +60,9 @@ impl Observer<VoiceServerUpdate> for VoiceHandler {
         let server_id: Snowflake;
 
         if data.guild_id.is_some() {
-            server_id = data.guild_id.clone().unwrap();
+            server_id = data.guild_id.unwrap();
         } else {
-            server_id = data.channel_id.clone().unwrap();
+            server_id = data.channel_id.unwrap();
         }
 
         let voice_identify = VoiceIdentify {
@@ -65,7 +82,9 @@ impl Observer<VoiceServerUpdate> for VoiceHandler {
         let self_reference = Arc::new(self.clone());
 
         voice_events.voice_ready.subscribe(self_reference.clone());
-        voice_events.session_description.subscribe(self_reference.clone());
+        voice_events
+            .session_description
+            .subscribe(self_reference.clone());
 
         *self.voice_gateway_connection.lock().await = Some(voice_gateway_handle);
     }
@@ -76,14 +95,13 @@ impl Observer<VoiceServerUpdate> for VoiceHandler {
 // connection for ip discovery.
 impl Observer<VoiceReady> for VoiceHandler {
     async fn update(&self, data: &VoiceReady) {
-
         let mut data_lock = self.data.write().await;
         data_lock.ready_data = Some(data.clone());
-        drop(data_lock); 
+        drop(data_lock);
 
         let udp_handle = UdpHandler::spawn(
             self.data.clone(),
-            std::net::SocketAddr::V4(SocketAddrV4::new(data.ip.clone(), data.port)),
+            std::net::SocketAddr::V4(SocketAddrV4::new(data.ip, data.port)),
             data.ssrc,
         )
         .await;
@@ -114,7 +132,6 @@ impl Observer<VoiceReady> for VoiceHandler {
 // Session descryption gives us final info regarding codecs and our encryption key
 impl Observer<SessionDescription> for VoiceHandler {
     async fn update(&self, data: &SessionDescription) {
-
         let mut data_write = self.data.write().await;
 
         data_write.session_description = Some(data.clone());
@@ -127,8 +144,8 @@ impl Observer<SessionDescription> for VoiceHandler {
 impl Observer<GatewayReady> for VoiceHandler {
     async fn update(&self, data: &GatewayReady) {
         let mut lock = self.data.write().await;
-        lock.user_id = data.user.id.clone();
+        lock.user_id = data.user.id;
         lock.session_id = data.session_id.clone();
         drop(lock);
     }
-} 
+}
