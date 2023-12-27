@@ -191,10 +191,13 @@ impl Guild {
         Ok(response)
     }
 
-    /// Returns a guild preview object for the given guild ID. If the user is not in the guild, the guild must be discoverable.
+    /// Fetches a guild preview object for the given guild ID. If the user is not in the guild, the guild must be discoverable.
     /// # Reference:
     ///
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-preview>
+    // RAGC: These aren't just getters, they fetch something on the server.
+    // I am going to excuse these namings, since .preview() indicates we are just returning
+    // something we have already saved.
     pub async fn get_preview(
         guild_id: Snowflake,
         user: &mut ChorusUser,
@@ -216,7 +219,7 @@ impl Guild {
         Ok(response)
     }
 
-    /// Returns a list of guild member objects that are members of the guild.
+    /// Fetches a list of guild member objects that are members of the guild.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-members>
@@ -383,7 +386,7 @@ impl Guild {
             .await
     }
 
-    /// Returns a list of ban objects for the guild. Requires the `BAN_MEMBERS` permission.
+    /// Fetches a list of ban objects for the guild. Requires the `BAN_MEMBERS` permission.
     ///
     /// # Reference:
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-bans>
@@ -413,7 +416,7 @@ impl Guild {
         request.deserialize_response::<Vec<GuildBan>>(user).await
     }
 
-    /// Returns a ban object for the given user. Requires the `BAN_MEMBERS` permission.
+    /// Fetches a ban object for the given user. Requires the `BAN_MEMBERS` permission.
     ///
     /// # Reference:
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-ban>

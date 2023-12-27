@@ -31,7 +31,7 @@ impl ChorusUser {
         .await
     }
 
-    /// Returns a list of user guild objects representing the guilds the current user is a member of.
+    /// Fetches a list of user guild objects representing the guilds the current user is a member of.
     /// This endpoint returns 200 guilds by default
     ///
     /// # Reference:

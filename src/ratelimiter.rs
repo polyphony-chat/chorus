@@ -342,7 +342,7 @@ impl ChorusRequest {
         }
     }
 
-    /// Gets the ratelimit configuration.
+    /// Fetches the ratelimit configuration.
     ///
     /// # Notes
     /// This is a spacebar only endpoint.
