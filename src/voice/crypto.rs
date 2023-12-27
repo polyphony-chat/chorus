@@ -12,5 +12,5 @@ pub(crate) fn get_xsalsa20_poly1305_nonce(packet: &[u8]) -> Vec<u8> {
         rtp_header.push(0);
     }
 
-    return rtp_header;
+    rtp_header
 }
