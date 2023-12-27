@@ -57,6 +57,7 @@ pub struct PartialDiscordFileAttachment {
 }
 
 impl PartialDiscordFileAttachment {
+    // RAGC: Is move_x proper naming?
     /// Moves `self.content` out of `self` and returns it.
     pub fn move_content(self) -> (Vec<u8>, PartialDiscordFileAttachment) {
         let content = self.content;

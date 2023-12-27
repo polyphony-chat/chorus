@@ -124,6 +124,7 @@ bitflags! {
 }
 
 impl Rights {
+    // FIXME: Why are any and has the same??
     pub fn any(&self, permission: Rights, check_operator: bool) -> bool {
         (check_operator && self.contains(Rights::OPERATOR)) || self.contains(permission)
     }
@@ -138,6 +139,9 @@ impl Rights {
     /// # Notes
     /// Unlike has, this returns an Error if we are missing rights
     /// and Ok(true) otherwise
+    // RAGC: Is this proper naming?
+    // I don't think it is mentioned anywhere how this should be named
+    // Also, isn't it redundant to return a bool, if it's always going to be true?
     pub fn has_throw(&self, permission: Rights) -> Result<bool, &'static str> {
         if self.has(permission, true) {
             Ok(true)

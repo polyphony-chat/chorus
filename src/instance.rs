@@ -112,8 +112,9 @@ impl Instance {
 
     /// Creates a new [`Instance`] by trying to get the [relevant instance urls](UrlBundle) from a root url.
     /// Shorthand for `Instance::new(UrlBundle::from_root_domain(root_domain).await?)`.
-    ///
-    /// If `limited` is `true`, then Chorus will track and enforce rate limits for this instance.
+    // RAGC: Can we really call this a conversion?
+    // Would with_root_url be better? Not really I think, because with is for more details
+    // Where are this is with.. less? (or rather with other ones)
     pub async fn from_root_url(root_url: &str) -> ChorusResult<Instance> {
         let urls = UrlBundle::from_root_url(root_url).await?;
         Instance::new(urls).await
