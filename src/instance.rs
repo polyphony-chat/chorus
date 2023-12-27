@@ -48,6 +48,26 @@ impl std::hash::Hash for Instance {
     }
 }
 
+impl std::fmt::Display for Instance {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let name = &self.instance_info.instance_name;
+
+        let mut description = String::new();
+        if let Some(desc) = &self.instance_info.instance_description {
+            if desc != &String::from("This is a spacebar-compatible instance.") {
+                description = format!(" - {}", desc);
+            }
+        }
+
+        let mut url = &self.urls.api;
+        if let Some(front_page) = &self.instance_info.front_page {
+            url = front_page;
+        }
+
+        write!(f, "{}{} (at {})", name, description, url)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Eq)]
 pub struct LimitsInformation {
     pub ratelimits: HashMap<LimitType, Limit>,
@@ -170,7 +190,36 @@ impl PartialEq for ChorusUser {
     }
 }
 
+impl std::hash::Hash for ChorusUser {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.token.hash(state);
+        // Cannot hash limits, do we need to?
+        self.gateway.url.hash(state);
+    }
+}
+
 impl Eq for ChorusUser {}
+
+impl std::fmt::Display for ChorusUser {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+
+        let user_object_lock = self.object.read();
+        if let Ok(user_object) = user_object_lock {
+            let mut discriminator = user_object.discriminator.clone();
+            if discriminator == String::from("0") {
+                discriminator = String::new();
+            }
+            else {
+                discriminator = String::from("#") + discriminator.as_str();
+            }
+
+           return write!(f, "{}{}", user_object.username, discriminator);
+        }
+        else {
+            return write!(f, "Unknown user");
+        }
+    }
+}
 
 impl ChorusUser {
     pub fn token(&self) -> String {
