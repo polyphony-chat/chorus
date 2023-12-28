@@ -344,7 +344,7 @@ impl UdpHandler {
             }
             Demuxed::Rtcp(rtcp) => {
                 trace!("VUDP: Parsed packet as rtcp!");
-                
+
                 let rtcp_data = match rtcp {
                     discortp::rtcp::RtcpPacket::KnownType(knowntype) => {
                         discortp::rtcp::Rtcp::KnownType(knowntype)
