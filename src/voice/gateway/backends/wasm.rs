@@ -28,7 +28,7 @@ impl WasmBackend {
     }
 }
 
-impl From<GatewayMessage> for WsMessage {
+impl From<VoiceGatewayMessage> for WsMessage {
     fn from(message: VoiceGatewayMessage) -> Self {
         Self::Text(message.0)
     }

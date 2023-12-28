@@ -3,9 +3,9 @@ use crate::{errors::VoiceGatewayError, types::VoiceGatewayReceivePayload};
 /// Represents a messsage received from the webrtc socket. This will be either a [GatewayReceivePayload], containing webrtc events, or a [WebrtcError].
 /// This struct is used internally when handling messages.
 #[derive(Clone, Debug)]
-pub struct VoiceGatewayMesssage(pub String);
+pub struct VoiceGatewayMessage(pub String);
 
-impl VoiceGatewayMesssage {
+impl VoiceGatewayMessage {
     /// Parses the message as an error;
     /// Returns the error if succesfully parsed, None if the message isn't an error
     pub fn error(&self) -> Option<VoiceGatewayError> {
@@ -34,6 +34,6 @@ impl VoiceGatewayMesssage {
     /// Parses the message as a payload;
     /// Returns a result of deserializing
     pub fn payload(&self) -> Result<VoiceGatewayReceivePayload, serde_json::Error> {
-        return serde_json::from_str(&self.0);
+        serde_json::from_str(&self.0)
     }
 }

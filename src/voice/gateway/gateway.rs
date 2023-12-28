@@ -18,7 +18,7 @@ use crate::{
         VOICE_SESSION_UPDATE, VOICE_SPEAKING, VOICE_SSRC_DEFINITION,
     },
     voice::gateway::{
-        heartbeat::VoiceHeartbeatThreadCommunication, VoiceGatewayMesssage, WebSocketBackend,
+        heartbeat::VoiceHeartbeatThreadCommunication, VoiceGatewayMessage, WebSocketBackend,
     },
 };
 
@@ -53,7 +53,7 @@ impl VoiceGateway {
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
         #[cfg(not(target_arch = "wasm32"))]
-        let msg: VoiceGatewayMesssage = websocket_receive.next().await.unwrap().unwrap().into();
+        let msg: VoiceGatewayMessage = websocket_receive.next().await.unwrap().unwrap().into();
         #[cfg(target_arch = "wasm32")]
         let msg: VoiceGatewayMessage = websocket_receive.next().await.unwrap().into();
         let gateway_payload: VoiceGatewayReceivePayload = serde_json::from_str(&msg.0).unwrap();
@@ -153,7 +153,7 @@ impl VoiceGateway {
     }
 
     /// This handles a message as a websocket event and updates its events along with the events' observers
-    pub async fn handle_message(&mut self, msg: VoiceGatewayMesssage) {
+    pub async fn handle_message(&mut self, msg: VoiceGatewayMessage) {
         if msg.0.is_empty() {
             return;
         }
