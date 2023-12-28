@@ -7,7 +7,7 @@ use tokio_tungstenite::{
     connect_async_tls_with_config, tungstenite, Connector, MaybeTlsStream, WebSocketStream,
 };
 
-use crate::{errors::VoiceGatewayError, voice::gateway::VoiceGatewayMesssage};
+use crate::{errors::VoiceGatewayError, voice::gateway::VoiceGatewayMessage};
 
 #[derive(Debug, Clone)]
 pub struct TungsteniteBackend;
@@ -52,13 +52,13 @@ impl TungsteniteBackend {
     }
 }
 
-impl From<VoiceGatewayMesssage> for tungstenite::Message {
-    fn from(message: VoiceGatewayMesssage) -> Self {
+impl From<VoiceGatewayMessage> for tungstenite::Message {
+    fn from(message: VoiceGatewayMessage) -> Self {
         Self::Text(message.0)
     }
 }
 
-impl From<tungstenite::Message> for VoiceGatewayMesssage {
+impl From<tungstenite::Message> for VoiceGatewayMessage {
     fn from(value: tungstenite::Message) -> Self {
         Self(value.to_string())
     }

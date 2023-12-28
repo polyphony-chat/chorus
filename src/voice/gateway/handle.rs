@@ -13,7 +13,7 @@ use crate::types::{
     VOICE_SSRC_DEFINITION,
 };
 
-use super::{events::VoiceEvents, Sink, VoiceGatewayMesssage};
+use super::{events::VoiceEvents, Sink, VoiceGatewayMessage};
 
 /// Represents a handle to a Voice Gateway connection.
 /// Using this handle you can send Gateway Events directly.
@@ -35,7 +35,7 @@ impl VoiceGatewayHandle {
         };
 
         let payload_json = serde_json::to_string(&gateway_payload).unwrap();
-        let message = VoiceGatewayMesssage(payload_json);
+        let message = VoiceGatewayMessage(payload_json);
 
         self.websocket_send
             .lock()

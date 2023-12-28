@@ -11,7 +11,7 @@ use tokio::sync::{mpsc::Sender, Mutex};
 use crate::{
     gateway::heartbeat::HEARTBEAT_ACK_TIMEOUT,
     types::{VoiceGatewaySendPayload, VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK},
-    voice::gateway::VoiceGatewayMesssage,
+    voice::gateway::VoiceGatewayMessage,
 };
 
 use super::Sink;
@@ -133,7 +133,7 @@ impl VoiceHeartbeatHandler {
 
                 let heartbeat_json = serde_json::to_string(&heartbeat).unwrap();
 
-                let msg = VoiceGatewayMesssage(heartbeat_json);
+                let msg = VoiceGatewayMessage(heartbeat_json);
 
                 let send_result = websocket_tx.lock().await.send(msg.into()).await;
                 if send_result.is_err() {
