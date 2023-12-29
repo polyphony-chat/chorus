@@ -7,9 +7,14 @@ use discortp::Packet;
 
 use log::*;
 
-use tokio::{net::UdpSocket, sync::Mutex, sync::RwLock};
+use tokio::{sync::Mutex, sync::RwLock};
 
-use crate::voice::{crypto, voice_data::VoiceData};
+use super::UdpSocket;
+
+use crate::{
+    errors::VoiceUdpError,
+    voice::{crypto, voice_data::VoiceData},
+};
 
 use super::{events::VoiceUDPEvents, RTP_HEADER_SIZE};
 
@@ -27,8 +32,25 @@ impl UdpHandle {
     /// Constructs and sends encoded opus rtp data.
     ///
     /// Automatically makes an [RtpPacket](discorrtp::rtp::RtpPacket), encrypts it and sends it.
-    pub async fn send_opus_data(&self, timestamp: u32, payload: Vec<u8>) {
-        let ssrc = self.data.read().await.ready_data.clone().unwrap().ssrc;
+    ///
+    /// # Errors
+    /// If we do not have VoiceReady data, which contains our ssrc, this returns a
+    /// [VoiceUdpError::NoData] error.
+    ///
+    /// If we have not received an encryption key, this returns a [VoiceUdpError::NoKey] error.
+    ///
+    /// If the Udp socket is broken, this returns a [VoiceUdpError::BrokenSocket] error.
+    pub async fn send_opus_data(
+        &self,
+        timestamp: u32,
+        payload: Vec<u8>,
+    ) -> Result<(), VoiceUdpError> {
+        let voice_ready_data_result = self.data.read().await.ready_data.clone();
+        if let None = voice_ready_data_result {
+            return Err(VoiceUdpError::NoData);
+        }
+
+        let ssrc = voice_ready_data_result.unwrap().ssrc;
         let sequence_number = self.data.read().await.last_sequence_number.wrapping_add(1);
         self.data.write().await.last_sequence_number = sequence_number;
 
@@ -54,34 +76,46 @@ impl UdpHandle {
 
         let mut buffer = vec![0; buffer_size];
 
-        let mut rtp_packet = discortp::rtp::MutableRtpPacket::new(&mut buffer).unwrap();
+        let mut rtp_packet = discortp::rtp::MutableRtpPacket::new(&mut buffer).expect("Mangled rtp packet creation buffer, something is very wrong. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new");
         rtp_packet.populate(&rtp_data);
 
-        self.send_rtp_packet(rtp_packet).await;
+        self.send_rtp_packet(rtp_packet).await
     }
 
     /// Encrypts and sends and rtp packet.
-    pub async fn send_rtp_packet(&self, packet: discortp::rtp::MutableRtpPacket<'_>) {
-        let mut buffer = self.encrypt_rtp_packet_payload(&packet).await;
+    ///
+    /// # Errors
+    /// If we have not received an encryption key, this returns a [VoiceUdpError::NoKey] error.
+    ///
+    /// If the Udp socket is broken, this returns a [VoiceUdpError::BrokenSocket] error.
+    pub async fn send_rtp_packet(
+        &self,
+        packet: discortp::rtp::MutableRtpPacket<'_>,
+    ) -> Result<(), VoiceUdpError> {
+        let mut buffer = self.encrypt_rtp_packet_payload(&packet).await?;
         let new_packet = discortp::rtp::MutableRtpPacket::new(&mut buffer).unwrap();
         self.send_encrypted_rtp_packet(new_packet.consume_to_immutable())
-            .await;
+            .await?;
+        Ok(())
     }
 
     /// Encrypts an unencrypted rtp packet, returning a copy of the packet's bytes with an
     /// encrypted payload
+    ///
+    /// # Errors
+    /// If we have not received an encryption key, this returns a [VoiceUdpError::NoKey] error.
     pub async fn encrypt_rtp_packet_payload(
         &self,
         packet: &discortp::rtp::MutableRtpPacket<'_>,
-    ) -> Vec<u8> {
+    ) -> Result<Vec<u8>, VoiceUdpError> {
         let payload = packet.payload();
 
         let session_description_result = self.data.read().await.session_description.clone();
 
+        // We are trying to encrypt, but have not received SessionDescription yet,
+        // which contains the secret key.
         if session_description_result.is_none() {
-            // FIXME: Make this function reutrn a result with a proper error type for these kinds
-            // of functions
-            panic!("Trying to encrypt packet but no key provided yet");
+            return Err(VoiceUdpError::NoKey);
         }
 
         let session_description = session_description_result.unwrap();
@@ -96,8 +130,11 @@ impl UdpHandle {
         let encryption_result = encryptor.encrypt(nonce, payload);
 
         if encryption_result.is_err() {
-            // FIXME: See above fixme
-            panic!("Encryption error");
+            // Safety: If encryption errors here, it's chorus' fault, and it makes no sense to
+            // return the error to the user.
+            //
+            // This is not an error the user should account for, which is why we throw it here.
+            panic!("{}", VoiceUdpError::FailedEncryption);
         }
 
         let mut encrypted_payload = encryption_result.unwrap();
@@ -113,15 +150,28 @@ impl UdpHandle {
         new_buffer.append(&mut rtp_header);
         new_buffer.append(&mut encrypted_payload);
 
-        new_buffer
+        Ok(new_buffer)
     }
 
     /// Sends an (already encrypted) rtp packet to the connection.
-    pub async fn send_encrypted_rtp_packet(&self, packet: discortp::rtp::RtpPacket<'_>) {
+    ///
+    /// # Errors
+    /// If the Udp socket is broken, this returns a [VoiceUdpError::BrokenSocket] error.
+    pub async fn send_encrypted_rtp_packet(
+        &self,
+        packet: discortp::rtp::RtpPacket<'_>,
+    ) -> Result<(), VoiceUdpError> {
         let raw_bytes = packet.packet();
 
-        self.socket.send(raw_bytes).await.unwrap();
+        let send_res = self.socket.send(raw_bytes).await;
+        if let Err(e) = send_res {
+            return Err(VoiceUdpError::BrokenSocket {
+                error: format!("{:?}", e),
+            });
+        }
 
         debug!("VUDP: Sent rtp packet!");
+
+        Ok(())
     }
 }

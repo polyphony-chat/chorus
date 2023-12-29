@@ -129,3 +129,23 @@ custom_error! {
 }
 
 impl WebSocketEvent for VoiceGatewayError {}
+
+custom_error! {
+    /// Voice UDP errors.
+    #[derive(Clone, PartialEq, Eq)]
+    pub VoiceUdpError
+
+    // General errors
+    BrokenSocket{error: String} = "Could not write / read from udp socket: {error}",
+    NoData = "We have not set received the necessary data to perform this operation.",
+
+    // Encryption errors
+    NoKey = "Tried to encrypt / decrypt rtp data, but no key has been received yet",
+    FailedEncryption = "Tried to encrypt rtp data, but failed. Most likely this is an issue chorus' nonce generation. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new",
+
+    // Errors when initiating a socket connection
+    CannotBind{error: String} = "Cannot bind socket due to a udp error: {error}",
+    CannotConnect{error: String} = "Cannot connect due to a udp error: {error}",
+}
+
+impl WebSocketEvent for VoiceUdpError {}
