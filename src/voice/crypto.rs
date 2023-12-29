@@ -4,7 +4,6 @@
 
 /// Gets an xsalsa20poly1305 nonce from an rtppacket.
 pub(crate) fn get_xsalsa20_poly1305_nonce(packet: &[u8]) -> Vec<u8> {
-
     let mut rtp_header = Vec::with_capacity(24);
     rtp_header.append(&mut packet[0..12].to_vec());
 

@@ -104,7 +104,8 @@ impl Observer<VoiceReady> for VoiceHandler {
             std::net::SocketAddr::V4(SocketAddrV4::new(data.ip, data.port)),
             data.ssrc,
         )
-        .await;
+        .await
+        .unwrap();
 
         let ip_discovery = self.data.read().await.ip_discovery.clone().unwrap();
 

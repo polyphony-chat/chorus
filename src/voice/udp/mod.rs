@@ -4,9 +4,11 @@
 /// This always adds up to 12 bytes
 const RTP_HEADER_SIZE: u8 = 12;
 
-pub mod handle;
+pub mod backends;
 pub mod events;
+pub mod handle;
 pub mod handler;
 
+pub use backends::*;
 pub use handle::*;
 pub use handler::*;

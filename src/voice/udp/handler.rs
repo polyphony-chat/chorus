@@ -12,13 +12,14 @@ use discortp::discord::{
 use discortp::rtcp::report::ReceiverReport;
 use discortp::rtcp::report::SenderReport;
 use discortp::{demux::demux, Packet};
-use tokio::{
-    net::UdpSocket,
-    sync::{Mutex, RwLock},
-};
+use tokio::sync::{Mutex, RwLock};
 
-use crate::voice::crypto::get_xsalsa20_poly1305_nonce;
+use super::UdpBackend;
+use super::UdpSocket;
+
 use super::RTP_HEADER_SIZE;
+use crate::errors::VoiceUdpError;
+use crate::voice::crypto::get_xsalsa20_poly1305_nonce;
 use crate::voice::voice_data::VoiceData;
 
 use super::{events::VoiceUDPEvents, UdpHandle};
@@ -41,11 +42,8 @@ impl UdpHandler {
         data_reference: Arc<RwLock<VoiceData>>,
         url: SocketAddr,
         ssrc: u32,
-    ) -> UdpHandle {
-        // Bind with a port number of 0, so the os assigns this listener a port
-        let udp_socket = UdpSocket::bind("0.0.0.0:0").await.unwrap();
-
-        udp_socket.connect(url).await.unwrap();
+    ) -> Result<UdpHandle, VoiceUdpError> {
+        let udp_socket = UdpBackend::connect(url).await?;
 
         // First perform ip discovery
         let ip_discovery = IpDiscovery {
@@ -57,14 +55,15 @@ impl UdpHandler {
             payload: Vec::new(),
         };
 
+        // Minimum size with an empty Address value, + 64 bytes for the actual address size
         let size = IpDiscoveryPacket::minimum_packet_size() + 64;
 
         let mut buf: Vec<u8> = vec![0; size];
 
-        // TODO: Make this not panic everything
-        // Actually, if this panics, something is very, very wrong
+        // Safety: expect is justified here, since this is an error which should never happen.
+        // If this errors, the code at fault is the buffer size calculation.
         let mut ip_discovery_packet =
-            MutableIpDiscoveryPacket::new(&mut buf).expect("Mangled ip discovery packet");
+            MutableIpDiscoveryPacket::new(&mut buf).expect("Mangled ip discovery packet creation buffer, something is very wrong. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new");
 
         ip_discovery_packet.populate(&ip_discovery);
 
@@ -72,20 +71,34 @@ impl UdpHandler {
 
         info!("VUDP: Sending Ip Discovery {:?}", &data);
 
-        udp_socket.send(data).await.unwrap();
+        let send_res = udp_socket.send(data).await;
+        if let Err(e) = send_res {
+            return Err(VoiceUdpError::BrokenSocket {
+                error: format!("{:?}", e),
+            });
+        }
 
         info!("VUDP: Sent packet discovery request");
 
         // Handle the ip discovery response
-        let receieved_size = udp_socket.recv(&mut buf).await.unwrap();
+        let received_size_or_err = udp_socket.recv(&mut buf).await;
+
+        if let Err(e) = received_size_or_err {
+            return Err(VoiceUdpError::BrokenSocket {
+                error: format!("{:?}", e),
+            });
+        }
+
+        let received_size = received_size_or_err.unwrap();
+
         info!(
             "VUDP: Receiving messsage: {:?} - (expected {} vs real {})",
             buf.clone(),
             size,
-            receieved_size
+            received_size
         );
 
-        let receieved_ip_discovery = IpDiscoveryPacket::new(&buf).unwrap();
+        let receieved_ip_discovery = IpDiscoveryPacket::new(&buf).expect("Could not make ipdiscovery packet from received data, something is very wrong. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new");
 
         info!(
             "VUDP: Received ip discovery!!! {:?}",
@@ -121,11 +134,11 @@ impl UdpHandler {
             handler.listen_task().await;
         });
 
-        UdpHandle {
+        Ok(UdpHandle {
             events: shared_events,
             socket,
             data: data_reference,
-        }
+        })
     }
 
     /// The main listen task;
