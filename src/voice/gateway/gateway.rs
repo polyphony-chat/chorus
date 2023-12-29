@@ -43,7 +43,7 @@ impl VoiceGateway {
         trace!("Created voice socket url: {}", processed_url.clone());
 
         let (websocket_send, mut websocket_receive) =
-            WebSocketBackend::connect(&websocket_url).await?;
+            WebSocketBackend::connect(&processed_url).await?;
 
         let shared_websocket_send = Arc::new(Mutex::new(websocket_send));
 
