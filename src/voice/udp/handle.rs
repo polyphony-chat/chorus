@@ -46,7 +46,7 @@ impl UdpHandle {
         payload: Vec<u8>,
     ) -> Result<(), VoiceUdpError> {
         let voice_ready_data_result = self.data.read().await.ready_data.clone();
-        if let None = voice_ready_data_result {
+        if voice_ready_data_result.is_none() {
             return Err(VoiceUdpError::NoData);
         }
 
