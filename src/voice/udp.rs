@@ -66,14 +66,9 @@ impl UdpHandle {
             payload,
         };
 
-        let mut buffer = Vec::new();
-
         let buffer_size = payload_len + RTP_HEADER_SIZE as usize;
 
-        // Fill the buffer
-        for _i in 0..buffer_size {
-            buffer.push(0);
-        }
+        let mut buffer = vec![0; buffer_size];
 
         let mut rtp_packet = discortp::rtp::MutableRtpPacket::new(&mut buffer).unwrap();
         rtp_packet.populate(&rtp_data);
@@ -121,18 +116,18 @@ impl UdpHandle {
             panic!("Encryption error");
         }
 
-        let encrypted_payload = encryption_result.unwrap();
+        let mut encrypted_payload = encryption_result.unwrap();
 
         // We need to allocate a new buffer, since the old one is too small for our new encrypted
         // data
-        let mut new_buffer = packet.packet().to_vec();
-
         let buffer_size = encrypted_payload.len() + RTP_HEADER_SIZE as usize;
 
-        // Fill the buffer
-        while new_buffer.len() <= buffer_size {
-            new_buffer.push(0);
-        }
+        let mut new_buffer: Vec<u8> = Vec::with_capacity(buffer_size);
+
+        let mut rtp_header = packet.packet().to_vec()[0..RTP_HEADER_SIZE as usize].to_vec();
+
+        new_buffer.append(&mut rtp_header);
+        new_buffer.append(&mut encrypted_payload);
 
         new_buffer
     }
@@ -257,12 +252,10 @@ impl UdpHandler {
     /// Receives udp messages and parses them.
     pub async fn listen_task(&mut self) {
         loop {
-            let mut buf: Vec<u8> = Vec::new();
+            // FIXME: is there a max size for these packets?
+            // Allocating 512 bytes seems a bit extreme
+            let mut buf: Vec<u8> = vec![0; 512];
 
-            // FIXME: is there a better way to do this?
-            for _i in 0..1_000 {
-                buf.push(0);
-            }
             let result = self.socket.recv(&mut buf).await;
             if let Ok(size) = result {
                 self.handle_message(&buf[0..size]).await;
@@ -280,7 +273,7 @@ impl UdpHandler {
 
         match parsed {
             Demuxed::Rtp(rtp) => {
-                let ciphertext = buf[12..buf.len()].to_vec();
+                let ciphertext = buf[(RTP_HEADER_SIZE as usize)..buf.len()].to_vec();
                 trace!("VUDP: Parsed packet as rtp!");
 
                 let session_description_result = self.data.read().await.session_description.clone();
