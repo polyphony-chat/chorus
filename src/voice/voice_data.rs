@@ -3,7 +3,9 @@ use discortp::discord::IpDiscovery;
 use crate::types::{SessionDescription, Snowflake, VoiceReady, VoiceServerUpdate};
 
 #[derive(Debug, Default)]
-/// Saves data shared between parts of the voice architecture
+/// Saves data shared between parts of the voice architecture;
+///
+/// Struct used to give the Udp connection data received from the gateway.
 pub struct VoiceData {
     pub server_data: Option<VoiceServerUpdate>,
     pub ready_data: Option<VoiceReady>,
