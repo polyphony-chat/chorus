@@ -15,7 +15,7 @@ default = ["client", "rt-multi-thread"]
 backend = ["dep:poem", "dep:sqlx"]
 rt-multi-thread = ["tokio/rt-multi-thread"]
 rt = ["tokio/rt"]
-client = ["voice"]
+client = []
 voice = ["dep:discortp", "dep:crypto_secretbox"]
 
 [dependencies]

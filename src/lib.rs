@@ -128,7 +128,7 @@ pub mod instance;
 #[cfg(feature = "client")]
 pub mod ratelimiter;
 pub mod types;
-#[cfg(feature = "client")]
+#[cfg(all(feature = "client", feature = "voice"))]
 pub mod voice;
 
 #[derive(Clone, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
