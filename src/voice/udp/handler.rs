@@ -151,6 +151,12 @@ impl UdpHandler {
         loop {
             // FIXME: is there a max size for these packets?
             // Allocating 512 bytes seems a bit extreme
+            //
+            // Update: see <https://stackoverflow.com/questions/58097580/rtp-packet-maximum-size>
+            // > "The RTP standard does not set a maximum size.."
+            //
+            // The theorhetical max for this buffer would be 1458 bytes, but that is imo
+            // unreasonable to allocate for every message.
             let mut buf: Vec<u8> = vec![0; 512];
 
             let result = self.socket.recv(&mut buf).await;
