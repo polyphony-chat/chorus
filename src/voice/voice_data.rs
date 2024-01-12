@@ -15,4 +15,7 @@ pub struct VoiceData {
     /// The last sequence number we used, has to be incremeted by one every time we send a message
     pub last_sequence_number: u16,
     pub ip_discovery: Option<IpDiscovery>,
+
+    /// The last udp encryption nonce, if we are using an encryption mode with incremental nonces.
+    pub last_udp_encryption_nonce: Option<u32>,
 }

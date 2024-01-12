@@ -19,7 +19,10 @@ use super::UdpSocket;
 
 use super::RTP_HEADER_SIZE;
 use crate::errors::VoiceUdpError;
+use crate::types::VoiceEncryptionMode;
+use crate::voice::crypto::get_xsalsa20_poly1305_lite_nonce;
 use crate::voice::crypto::get_xsalsa20_poly1305_nonce;
+use crate::voice::crypto::get_xsalsa20_poly1305_suffix_nonce;
 use crate::voice::voice_data::VoiceData;
 
 use super::{events::VoiceUDPEvents, UdpHandle};
@@ -167,41 +170,24 @@ impl UdpHandler {
 
         match parsed {
             Demuxed::Rtp(rtp) => {
-                let ciphertext = buf[(RTP_HEADER_SIZE as usize)..buf.len()].to_vec();
-                trace!("VUDP: Parsed packet as rtp!");
+                trace!("VUDP: Parsed packet as rtp! {:?}", buf);
 
-                let session_description_result = self.data.read().await.session_description.clone();
+                let decryption_result = self.decrypt_rtp_packet_payload(&rtp).await;
 
-                if session_description_result.is_none() {
-                    warn!("VUDP: Received encyrpted voice data, but no encryption key, CANNOT DECRYPT!");
-                    return;
-                }
-
-                let session_description = session_description_result.unwrap();
-
-                let nonce_bytes = match session_description.encryption_mode {
-                    crate::types::VoiceEncryptionMode::Xsalsa20Poly1305 => {
-                        get_xsalsa20_poly1305_nonce(rtp.packet())
+                if let Err(err) = decryption_result {
+                    match err {
+                        VoiceUdpError::NoKey => {
+                            warn!("VUDP: Received encyrpted voice data, but no encryption key, CANNOT DECRYPT!");
+                            return;
+                        }
+                        VoiceUdpError::FailedDecryption => {
+                            warn!("VUDP: Failed to decrypt voice data!");
+                            return;
+                        }
+                        _ => {
+                            unreachable!();
+                        }
                     }
-                    _ => {
-                        unimplemented!();
-                    }
-                };
-
-                let nonce = GenericArray::from_slice(&nonce_bytes);
-
-                let key = GenericArray::from_slice(&session_description.secret_key);
-
-                let decryptor = XSalsa20Poly1305::new(key);
-
-                let decryption_result = decryptor.decrypt(nonce, ciphertext.as_ref());
-
-                if let Err(decryption_error) = decryption_result {
-                    warn!(
-                        "VUDP: Failed to decypt voice data! ({:?})",
-                        decryption_error
-                    );
-                    return;
                 }
 
                 let decrypted = decryption_result.unwrap();
@@ -272,5 +258,70 @@ impl UdpHandler {
                 unreachable!()
             }
         }
+    }
+
+    /// Decrypts an encrypted rtp packet, returning a decrypted copy of the packet's payload
+    /// bytes.
+    ///
+    /// # Errors
+    /// If we have not received an encryption key, this returns a [VoiceUdpError::NoKey] error.
+    ///
+    /// If the decryption fails, this returns a [VoiceUdpError::FailedDecryption].
+    pub async fn decrypt_rtp_packet_payload(
+        &self,
+        rtp: &discortp::rtp::RtpPacket<'_>,
+    ) -> Result<Vec<u8>, VoiceUdpError> {
+        let packet_bytes = rtp.packet();
+
+        let mut ciphertext: Vec<u8> =
+            packet_bytes[(RTP_HEADER_SIZE as usize)..packet_bytes.len()].to_vec();
+
+        let session_description_result = self.data.read().await.session_description.clone();
+
+        // We are trying to decrypt, but have not received SessionDescription yet,
+        // which contains the secret key
+        if session_description_result.is_none() {
+            return Err(VoiceUdpError::NoKey);
+        }
+
+        let session_description = session_description_result.unwrap();
+
+        let nonce_bytes = match session_description.encryption_mode {
+            VoiceEncryptionMode::Xsalsa20Poly1305 => get_xsalsa20_poly1305_nonce(packet_bytes),
+            VoiceEncryptionMode::Xsalsa20Poly1305Suffix => {
+                // Remove the suffix from the ciphertext
+                ciphertext = ciphertext[0..ciphertext.len() - 24].to_vec();
+                get_xsalsa20_poly1305_suffix_nonce(packet_bytes)
+            }
+            // Note: Rtpsize is documented by userdoccers to be the same, yet decryption
+            // doesn't work.
+            //
+            // I have no idea how Rtpsize works.
+            VoiceEncryptionMode::Xsalsa20Poly1305Lite => {
+                // Remove the suffix from the ciphertext
+                ciphertext = ciphertext[0..ciphertext.len() - 4].to_vec();
+                get_xsalsa20_poly1305_lite_nonce(packet_bytes)
+            }
+            _ => {
+                // TODO: Implement aead_aes256_gcm
+                todo!("This voice encryption mode is not yet implemented.");
+            }
+        };
+
+        let nonce = GenericArray::from_slice(&nonce_bytes);
+
+        let key = GenericArray::from_slice(&session_description.secret_key);
+
+        let decryptor = XSalsa20Poly1305::new(key);
+
+        let decryption_result = decryptor.decrypt(nonce, ciphertext.as_ref());
+
+        // Note: this may seem like we are throwing away valuable error handling data,
+        // but the decryption error provides no extra info.
+        if decryption_result.is_err() {
+            return Err(VoiceUdpError::FailedDecryption);
+        }
+
+        Ok(decryption_result.unwrap())
     }
 }

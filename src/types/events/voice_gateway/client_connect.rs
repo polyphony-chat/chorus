@@ -12,7 +12,9 @@ use serde::{Deserialize, Serialize};
 pub struct VoiceClientConnectFlags {
     pub user_id: Snowflake,
     // Likely some sort of bitflags
-    pub flags: u8,
+    //
+    // Not always sent, sometimes null?
+    pub flags: Option<u8>,
 }
 
 impl WebSocketEvent for VoiceClientConnectFlags {}
