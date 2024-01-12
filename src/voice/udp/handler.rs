@@ -161,7 +161,9 @@ impl UdpHandler {
 
             let result = self.socket.recv(&mut buf).await;
             if let Ok(size) = result {
-                self.handle_message(&buf[0..size]).await;
+                let message_bytes = buf[0..size];
+                drop(buf);
+                self.handle_message(&message_bytes).await;
                 continue;
             }
 
