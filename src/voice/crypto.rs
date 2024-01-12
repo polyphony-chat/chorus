@@ -44,15 +44,9 @@ pub(crate) fn get_xsalsa20_poly1305_lite_nonce(packet: &[u8]) -> Vec<u8> {
     nonce
 }
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen_test::*;
-#[cfg(target_arch = "wasm32")]
-wasm_bindgen_test_configure!(run_in_browser);
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[test]
 // Asserts all functions that retrieve a nonce from packet bytes
-async fn test_packet_nonce_derives() {
+fn test_packet_nonce_derives() {
     let test_packet_bytes = vec![
         144, 120, 98, 5, 71, 174, 52, 64, 0, 4, 85, 36, 178, 8, 37, 146, 35, 154, 141, 36, 125, 15,
         65, 179, 227, 108, 165, 56, 68, 68, 3, 62, 87, 233, 7, 81, 147, 93, 22, 95, 115, 202, 48,
