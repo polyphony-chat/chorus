@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 
 /// Defines an event which provides ssrcs for voice and video for a user id.
 ///
+/// This event is sent when we begin to speak.
+///
+/// It must be sent before sending audio, or else clients will not be able to play the stream.
+///
 /// This event is sent via opcode 12.
 ///
 /// Examples of the event:
@@ -28,12 +32,18 @@ pub struct SsrcDefinition {
     /// Is always sent and received, though is 0 if describing only the video ssrc.
     #[serde(default)]
     pub audio_ssrc: usize,
+    // Not sure what this is
+    // It is usually 0
+    #[serde(default)]
+    pub rtx_ssrc: usize,
     /// The user id these ssrcs apply to.
     ///
     /// Is never sent by the user and is filled in by the server
     #[serde(skip_serializing)]
     pub user_id: Option<Snowflake>,
     // TODO: Add video streams
+    #[serde(default)]
+    pub streams: Vec<String>,
 }
 
 impl WebSocketEvent for SsrcDefinition {}

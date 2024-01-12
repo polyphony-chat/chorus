@@ -1,8 +1,8 @@
 //! Module for all voice functionality within chorus.
 
+mod crypto;
 #[cfg(feature = "voice_gateway")]
 pub mod gateway;
-mod crypto;
 #[cfg(all(feature = "voice_udp", feature = "voice_gateway"))]
 pub mod handler;
 #[cfg(feature = "voice_udp")]

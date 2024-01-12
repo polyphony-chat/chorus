@@ -142,6 +142,8 @@ custom_error! {
     // Encryption errors
     NoKey = "Tried to encrypt / decrypt rtp data, but no key has been received yet",
     FailedEncryption = "Tried to encrypt rtp data, but failed. Most likely this is an issue chorus' nonce generation. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new",
+    FailedDecryption = "Tried to decrypt rtp data, but failed. Most likely this is an issue chorus' nonce generation. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new",
+    FailedNonceGeneration{error: String} = "Tried to generate nonce, but failed due to error: {error}.",
 
     // Errors when initiating a socket connection
     CannotBind{error: String} = "Cannot bind socket due to a udp error: {error}",

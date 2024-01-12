@@ -5,6 +5,7 @@ use crypto_secretbox::{
 };
 use discortp::Packet;
 
+use getrandom::getrandom;
 use log::*;
 
 use tokio::{sync::Mutex, sync::RwLock};
@@ -13,7 +14,11 @@ use super::UdpSocket;
 
 use crate::{
     errors::VoiceUdpError,
-    voice::{crypto, voice_data::VoiceData},
+    types::VoiceEncryptionMode,
+    voice::{
+        crypto::{self, get_xsalsa20_poly1305_nonce},
+        voice_data::VoiceData,
+    },
 };
 
 use super::{events::VoiceUDPEvents, RTP_HEADER_SIZE};
@@ -104,6 +109,8 @@ impl UdpHandle {
     ///
     /// # Errors
     /// If we have not received an encryption key, this returns a [VoiceUdpError::NoKey] error.
+    ///
+    /// When using voice encryption modes which require special nonce generation, and said generation fails, this returns a [VoiceUdpError::FailedNonceGeneration] error.
     pub async fn encrypt_rtp_packet_payload(
         &self,
         packet: &discortp::rtp::MutableRtpPacket<'_>,
@@ -120,7 +127,42 @@ impl UdpHandle {
 
         let session_description = session_description_result.unwrap();
 
-        let nonce_bytes = crypto::get_xsalsa20_poly1305_nonce(packet.packet());
+        let mut nonce_bytes = match session_description.encryption_mode {
+            VoiceEncryptionMode::Xsalsa20Poly1305 => get_xsalsa20_poly1305_nonce(packet.packet()),
+            VoiceEncryptionMode::Xsalsa20Poly1305Suffix => {
+                // Generate 24 random bytes
+                let mut random_destinaton: Vec<u8> = vec![0; 24];
+                let random_result = getrandom(&mut random_destinaton);
+                if let Err(e) = random_result {
+                    return Err(VoiceUdpError::FailedNonceGeneration {
+                        error: format!("{:?}", e),
+                    });
+                }
+                random_destinaton
+            }
+            VoiceEncryptionMode::Xsalsa20Poly1305Lite => {
+                // "Incremental 4 bytes (32bit) int value"
+                let mut data_lock = self.data.write().await;
+                let nonce = data_lock
+                    .last_udp_encryption_nonce
+                    .unwrap_or_default()
+                    .wrapping_add(1);
+                data_lock.last_udp_encryption_nonce = Some(nonce);
+                drop(data_lock);
+                // TODO: Is le correct? This is not documented anywhere
+                let mut bytes = nonce.to_le_bytes().to_vec();
+                // This is 4 bytes, it has to be 24, so we need to append 20
+                while bytes.len() < 24 {
+                    bytes.push(0);
+                }
+                bytes
+            }
+            _ => {
+                // TODO: Implement aead_aes256_gcm
+                todo!("This voice encryption mode is not yet implemented.");
+            }
+        };
+
         let nonce = GenericArray::from_slice(&nonce_bytes);
 
         let key = GenericArray::from_slice(&session_description.secret_key);
@@ -138,6 +180,13 @@ impl UdpHandle {
         }
 
         let mut encrypted_payload = encryption_result.unwrap();
+
+        // Append the nonce bytes, if needed
+        // All other encryption modes have an explicit nonce, where as Xsalsa20Poly1305
+        // has the nonce as the rtp header.
+        if session_description.encryption_mode != VoiceEncryptionMode::Xsalsa20Poly1305 {
+            encrypted_payload.append(&mut nonce_bytes);
+        }
 
         // We need to allocate a new buffer, since the old one is too small for our new encrypted
         // data
