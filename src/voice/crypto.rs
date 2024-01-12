@@ -2,8 +2,6 @@
 //!
 //! All functions in this module return a 24 byte long [Vec<u8>].
 
-use crypto_secretbox::cipher::typenum::Len;
-
 /// Gets an xsalsa20_poly1305 nonce from an rtppacket.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#encryption-mode>
