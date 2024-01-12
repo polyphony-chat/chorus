@@ -15,10 +15,7 @@ use super::UdpSocket;
 use crate::{
     errors::VoiceUdpError,
     types::VoiceEncryptionMode,
-    voice::{
-        crypto::{self, get_xsalsa20_poly1305_nonce},
-        voice_data::VoiceData,
-    },
+    voice::{crypto::get_xsalsa20_poly1305_nonce, voice_data::VoiceData},
 };
 
 use super::{events::VoiceUDPEvents, RTP_HEADER_SIZE};
