@@ -43,3 +43,50 @@ pub(crate) fn get_xsalsa20_poly1305_lite_nonce(packet: &[u8]) -> Vec<u8> {
 
     nonce
 }
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::*;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+// Asserts all functions that retrieve a nonce from packet bytes
+async fn test_packet_nonce_derives() {
+    let test_packet_bytes = vec![
+        144, 120, 98, 5, 71, 174, 52, 64, 0, 4, 85, 36, 178, 8, 37, 146, 35, 154, 141, 36, 125, 15,
+        65, 179, 227, 108, 165, 56, 68, 68, 3, 62, 87, 233, 7, 81, 147, 93, 22, 95, 115, 202, 48,
+        66, 190, 229, 69, 146, 66, 108, 60, 114, 2, 228, 111, 40, 108, 5, 68, 226, 76, 240, 20,
+        231, 210, 214, 123, 175, 188, 161, 10, 125, 13, 196, 114, 248, 50, 84, 103, 139, 86, 223,
+        82, 173, 8, 209, 78, 188, 169, 151, 157, 42, 189, 153, 228, 105, 199, 19, 185, 16, 33, 133,
+        113, 253, 145, 36, 106, 14, 222, 128, 226, 239, 10, 39, 72, 113, 33, 113,
+    ];
+
+    let nonce_1 = get_xsalsa20_poly1305_nonce(&test_packet_bytes);
+    let nonce_1_expected = vec![
+        144, 120, 98, 5, 71, 174, 52, 64, 0, 4, 85, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
+
+    let nonce_2 = get_xsalsa20_poly1305_suffix_nonce(&test_packet_bytes);
+    let nonce_2_expected = vec![
+        228, 105, 199, 19, 185, 16, 33, 133, 113, 253, 145, 36, 106, 14, 222, 128, 226, 239, 10,
+        39, 72, 113, 33, 113,
+    ];
+
+    let nonce_3 = get_xsalsa20_poly1305_lite_nonce(&test_packet_bytes);
+    let nonce_3_expected = vec![
+        72, 113, 33, 113, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
+
+    println!("nonce 1: {:?}", nonce_1);
+    println!("nonce 2: {:?}", nonce_2);
+    println!("nonce 3: {:?}", nonce_3);
+
+    assert_eq!(nonce_1.len(), 24);
+    assert_eq!(nonce_2.len(), 24);
+    assert_eq!(nonce_3.len(), 24);
+
+    assert_eq!(nonce_1, nonce_1_expected);
+    assert_eq!(nonce_2, nonce_2_expected);
+    assert_eq!(nonce_3, nonce_3_expected);
+}
