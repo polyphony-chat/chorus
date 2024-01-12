@@ -57,7 +57,11 @@ pub struct VoiceGatewayReceivePayload<'a> {
 
 impl<'a> WebSocketEvent for VoiceGatewayReceivePayload<'a> {}
 
-/// The modes of encryption available in webrtc connections;
+/// The modes of encryption available in voice udp connections;
+///
+/// Not all encryption modes are implemented; it is generally recommended
+/// to use either [[VoiceEncryptionMode::Xsalsa20Poly1305]] or
+/// [[VoiceEncryptionMode::Xsalsa20Poly1305Suffix]]
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#encryption-mode> and <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-udp-connection-encryption-modes>
 #[derive(Debug, Default, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
@@ -65,13 +69,26 @@ impl<'a> WebSocketEvent for VoiceGatewayReceivePayload<'a> {}
 pub enum VoiceEncryptionMode {
     #[default]
     // Officially Documented
+    /// Use XSalsa20Poly1305 encryption, using the rtp header as a nonce.
+    ///
+    /// Fully implemented
     Xsalsa20Poly1305,
+    /// Use XSalsa20Poly1305 encryption, using a random 24 byte suffix as a nonce.
+    ///
+    /// Fully implemented
     Xsalsa20Poly1305Suffix,
+    /// Use XSalsa20Poly1305 encryption, using a 4 byte incremental value as a nonce.
+    ///
+    /// Fully implemented
     Xsalsa20Poly1305Lite,
     // Officially Undocumented
+    /// Not implemented yet, we have no idea what the rtpsize nonces are.
     Xsalsa20Poly1305LiteRtpsize,
+    /// Not implemented yet
     AeadAes256Gcm,
+    /// Not implemented yet
     AeadAes256GcmRtpsize,
+    /// Not implemented yet, we have no idea what the rtpsize nonces are.
     AeadXchacha20Poly1305Rtpsize,
 }
 
