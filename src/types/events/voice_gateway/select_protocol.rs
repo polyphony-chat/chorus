@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use super::VoiceEncryptionMode;
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
-/// An event sent by the client to the webrtc server, detailing what protocol, address and encryption to use;
+/// An event sent by the client to the voice gateway server,
+/// detailing what protocol, address and encryption to use;
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#select-protocol-structure>
 pub struct SelectProtocol {
@@ -39,6 +40,7 @@ pub enum VoiceProtocol {
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#protocol-data-structure>
 pub struct SelectProtocolData {
     /// Our external ip
+    // FIXME: This is a string
     pub address: Vec<u8>,
     /// Our external udp port
     pub port: u16,

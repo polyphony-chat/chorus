@@ -2,7 +2,7 @@ use crate::types::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
-/// Received from the server to describe the backend version.
+/// Received from the voice gateway server to describe the backend version.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#voice-backend-version>
 pub struct VoiceBackendVersion {

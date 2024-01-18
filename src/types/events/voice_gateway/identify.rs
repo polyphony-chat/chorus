@@ -2,9 +2,9 @@ use crate::types::{Snowflake, WebSocketEvent};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
-/// The identify payload for the webrtc stream;
+/// The identify payload for the voice gateway connection;
 ///
-/// Contains info to begin a webrtc connection;
+/// Contains authentication info and context to authenticate to the voice gateway.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#identify-structure>
 pub struct VoiceIdentify {

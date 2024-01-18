@@ -33,7 +33,7 @@ pub struct UdpHandle {
 impl UdpHandle {
     /// Constructs and sends encoded opus rtp data.
     ///
-    /// Automatically makes an [RtpPacket](discorrtp::rtp::RtpPacket), encrypts it and sends it.
+    /// Automatically makes an [RtpPacket](discortp::rtp::RtpPacket), encrypts it and sends it.
     ///
     /// # Errors
     /// If we do not have VoiceReady data, which contains our ssrc, this returns a
