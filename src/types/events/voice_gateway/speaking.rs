@@ -12,7 +12,7 @@ use crate::types::{Snowflake, WebSocketEvent};
 pub struct Speaking {
     /// Data about the audio we're transmitting.
     ///
-    /// See [SpeakingBitFlags]
+    /// See [SpeakingBitflags]
     pub speaking: u8,
     pub ssrc: u32,
     /// The user id of the speaking user, only sent by the server

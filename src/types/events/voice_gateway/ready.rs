@@ -6,9 +6,12 @@ use serde::{Deserialize, Serialize};
 use super::VoiceEncryptionMode;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
-/// The ready event for the webrtc stream;
+/// The voice gateway's ready event;
 ///
-/// Used to give info after the identify event;
+/// Gives the user info about the udp connection ip and port, srrc to use,
+/// available encryption modes and other data.
+///
+/// Sent in response to an Identify event.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#ready-structure>
 pub struct VoiceReady {
@@ -16,7 +19,7 @@ pub struct VoiceReady {
     pub ssrc: u32,
     pub ip: Ipv4Addr,
     pub port: u16,
-    /// The available encryption modes for the webrtc connection
+    /// The available encryption modes for the udp connection
     pub modes: Vec<VoiceEncryptionMode>,
     #[serde(default)]
     pub experiments: Vec<String>,

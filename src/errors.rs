@@ -63,7 +63,7 @@ custom_error! {
 }
 
 custom_error! {
-    /// For errors we receive from the gateway, see https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#gateway-close-event-codes;
+    /// For errors we receive from the gateway, see <https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#gateway-close-event-codes>;
     ///
     /// Supposed to be sent as numbers, though they are sent as string most of the time?
     ///
@@ -102,14 +102,14 @@ custom_error! {
     ///
     /// Similar to [GatewayError].
     ///
-    /// See https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice;
+    /// See <https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice-voice-close-event-codes>;
     #[derive(Clone, Default, PartialEq, Eq)]
     pub VoiceGatewayError
     // Errors we receive
     #[default]
     UnknownOpcode = "You sent an invalid opcode",
-    FailedToDecodePayload = "You sent an invalid payload in your identifying to the (Webrtc) Gateway",
-    NotAuthenticated = "You sent a payload before identifying with the (Webrtc) Gateway",
+    FailedToDecodePayload = "You sent an invalid payload in your identifying to the (Voice) Gateway",
+    NotAuthenticated = "You sent a payload before identifying with the (Voice) Gateway",
     AuthenticationFailed = "The token you sent in your identify payload is incorrect",
     AlreadyAuthenticated = "You sent more than one identify payload",
     SessionNoLongerValid = "Your session is no longer valid",

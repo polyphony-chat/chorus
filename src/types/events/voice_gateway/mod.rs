@@ -27,7 +27,7 @@ mod ssrc_definition;
 mod voice_backend_version;
 
 #[derive(Debug, Default, Serialize, Clone)]
-/// The payload used for sending events to the webrtc gateway.
+/// The payload used for sending events to the voice gateway.
 ///
 /// Similar to [VoiceGatewayReceivePayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
 pub struct VoiceGatewaySendPayload {
@@ -41,7 +41,7 @@ pub struct VoiceGatewaySendPayload {
 impl WebSocketEvent for VoiceGatewaySendPayload {}
 
 #[derive(Debug, Deserialize, Clone)]
-/// The payload used for receiving events from the webrtc gateway.
+/// The payload used for receiving events from the voice gateway.
 ///
 /// Note that this is similar to the regular gateway, except we no longer have s or t
 ///

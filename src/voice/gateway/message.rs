@@ -1,6 +1,9 @@
 use crate::{errors::VoiceGatewayError, types::VoiceGatewayReceivePayload};
 
-/// Represents a messsage received from the webrtc socket. This will be either a [GatewayReceivePayload], containing webrtc events, or a [WebrtcError].
+/// Represents a messsage received from the voice websocket connection.
+///
+/// This will be either a [VoiceGatewayReceivePayload], containing voice gateway events, or a [VoiceGatewayError].
+///
 /// This struct is used internally when handling messages.
 #[derive(Clone, Debug)]
 pub struct VoiceGatewayMessage(pub String);

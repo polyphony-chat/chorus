@@ -1,8 +1,8 @@
 //! Defines cryptography functions used within the voice implementation.
 //!
-//! All functions in this module return a 24 byte long [Vec<u8>].
+//! All functions in this module return a 24 byte long `Vec<u8>`.
 
-/// Gets an xsalsa20_poly1305 nonce from an rtppacket.
+/// Gets an `xsalsa20_poly1305` nonce from an rtppacket.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#encryption-mode>
 pub(crate) fn get_xsalsa20_poly1305_nonce(packet: &[u8]) -> Vec<u8> {
@@ -17,7 +17,7 @@ pub(crate) fn get_xsalsa20_poly1305_nonce(packet: &[u8]) -> Vec<u8> {
     rtp_header
 }
 
-/// Gets an xsalsa20_poly1305_suffix nonce from an rtppacket.
+/// Gets an `xsalsa20_poly1305_suffix` nonce from an rtppacket.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#encryption-mode>
 pub(crate) fn get_xsalsa20_poly1305_suffix_nonce(packet: &[u8]) -> Vec<u8> {
@@ -28,7 +28,7 @@ pub(crate) fn get_xsalsa20_poly1305_suffix_nonce(packet: &[u8]) -> Vec<u8> {
     nonce
 }
 
-/// Gets an xsalsa20_poly1305_lite nonce from an rtppacket.
+/// Gets an `xsalsa20_poly1305_lite` nonce from an rtppacket.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#encryption-mode>
 pub(crate) fn get_xsalsa20_poly1305_lite_nonce(packet: &[u8]) -> Vec<u8> {
