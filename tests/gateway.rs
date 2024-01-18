@@ -61,9 +61,11 @@ async fn test_gateway_authenticate() {
 
     gateway.send_identify(identify).await;
 
+    let current_time = std::time::Instant::now();
+
     tokio::select! {
         // Fail, we timed out waiting for it
-        () = safina_timer::sleep_for(Duration::from_secs(20)) => {
+        () = safina_timer::sleep_until(current_time + Duration::from_secs(20)) => {
             println!("Timed out waiting for event, failing..");
             assert!(false);
         }
