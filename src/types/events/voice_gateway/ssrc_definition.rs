@@ -12,12 +12,12 @@ use serde::{Deserialize, Serialize};
 /// Examples of the event:
 ///
 /// When receiving:
-/// ```
+/// ```json
 /// {"op":12,"d":{"video_ssrc":0,"user_id":"463640391196082177","streams":[{"ssrc":26595,"rtx_ssrc":26596,"rid":"100","quality":100,"max_resolution":{"width":1280,"type":"fixed","height":720},"max_framerate":30,"active":false}],"audio_ssrc":26597}}{"op":12,"d":{"video_ssrc":0,"user_id":"463640391196082177","streams":[{"ssrc":26595,"rtx_ssrc":26596,"rid":"100","quality":100,"max_resolution":{"width":1280,"type":"fixed","height":720},"max_framerate":30,"active":false}],"audio_ssrc":26597}}
 /// ```
 ///
 /// When sending:
-/// ```
+/// ```json
 /// {"op":12,"d":{"audio_ssrc":2307250864,"video_ssrc":0,"rtx_ssrc":0,"streams":[{"type":"video","rid":"100","ssrc":26595,"active":false,"quality":100,"rtx_ssrc":26596,"max_bitrate":2500000,"max_framerate":30,"max_resolution":{"type":"fixed","width":1280,"height":720}}]}}
 /// ```
 #[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
