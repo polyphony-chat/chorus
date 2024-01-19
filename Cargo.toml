@@ -18,32 +18,32 @@ rt = ["tokio/rt"]
 client = []
 
 [dependencies]
-tokio = { version = "1.34.0", features = ["macros", "sync"] }
-serde = { version = "1.0.188", features = ["derive", "rc"] }
-serde_json = { version = "1.0.105", features = ["raw_value"] }
-serde-aux = "4.2.0"
-serde_with = "3.3.0"
-serde_repr = "0.1.16"
-reqwest = { git = "https://github.com/bitfl0wer/reqwest.git", branch = "wasm-headers", features = [
+tokio = { version = "1.35.1", features = ["macros", "sync"] }
+serde = { version = "1.0.195", features = ["derive", "rc"] }
+serde_json = { version = "1.0.111", features = ["raw_value"] }
+serde-aux = "4.3.1"
+serde_with = "3.4.0"
+serde_repr = "0.1.18"
+reqwest = { features = [
     "multipart",
     "json",
-], version = "0.11.22" } # reqwest versions > 0.11.22 will have adequate support for WASM. Until there is such a version, we will use a fork of reqwest v.0.11.22 
-url = "2.4.0"
-chrono = { version = "0.4.26", features = ["serde"] }
-regex = "1.9.4"
+], version = "0.11.23" } 
+url = "2.5.0"
+chrono = { version = "0.4.31", features = ["serde"] }
+regex = "1.10.2"
 custom_error = "1.9.2"
-futures-util = "0.3.28"
-http = "0.2.9"
-base64 = "0.21.3"
-bitflags = { version = "2.4.0", features = ["serde"] }
+futures-util = "0.3.30"
+http = "0.2.11"
+base64 = "0.21.7"
+bitflags = { version = "2.4.1", features = ["serde"] }
 lazy_static = "1.4.0"
-poem = { version = "1.3.57", optional = true }
-thiserror = "1.0.47"
+poem = { version = "1.3.59", optional = true }
+thiserror = "1.0.56"
 jsonwebtoken = "8.3.0"
 log = "0.4.20"
-async-trait = "0.1.73"
+async-trait = "0.1.77"
 chorus-macros = "0.2.0"
-sqlx = { version = "0.7.1", features = [
+sqlx = { version = "0.7.3", features = [
     "mysql",
     "sqlite",
     "json",
@@ -52,11 +52,10 @@ sqlx = { version = "0.7.1", features = [
     "runtime-tokio-native-tls",
     "any",
 ], optional = true }
-safina-timer = "0.1.11"
 rand = "0.8.5"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-rustls = "0.21.8"
+rustls = "0.21.10"
 rustls-native-certs = "0.6.3"
 tokio-tungstenite = { version = "0.20.1", features = [
     "rustls-tls-native-roots",
@@ -66,11 +65,12 @@ native-tls = "0.2.11"
 hostname = "0.3.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.2.11", features = ["js"] }
+getrandom = { version = "0.2.12", features = ["js"] }
 ws_stream_wasm = "0.7.4"
-wasm-bindgen-futures = "0.4.38"
+wasm-bindgen-futures = "0.4.39"
+wasmtimer = "0.2.0"
 
 [dev-dependencies]
 lazy_static = "1.4.0"
-wasm-bindgen-test = "0.3.38"
-wasm-bindgen = "0.2.88"
+wasm-bindgen-test = "0.3.39"
+wasm-bindgen = "0.2.89"

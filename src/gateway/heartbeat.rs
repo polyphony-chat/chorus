@@ -1,9 +1,20 @@
 use futures_util::SinkExt;
 use log::*;
-use std::time::{self, Duration, Instant};
+
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::Instant;
+#[cfg(target_arch = "wasm32")]
+use wasmtimer::std::Instant;
+
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::sleep_until;
+#[cfg(target_arch = "wasm32")]
+use wasmtimer::tokio::sleep_until;
+
+use std::time::Duration;
+
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use safina_timer::sleep_until;
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::task;
 
@@ -57,12 +68,10 @@ impl HeartbeatHandler {
         mut receive: Receiver<HeartbeatThreadCommunication>,
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,
     ) {
-        let mut last_heartbeat_timestamp: Instant = time::Instant::now();
+        let mut last_heartbeat_timestamp: Instant = Instant::now();
         let mut last_heartbeat_acknowledged = true;
         let mut last_seq_number: Option<u64> = None;
-
-        safina_timer::start_timer_thread();
-
+         
         loop {
             if kill_receive.try_recv().is_ok() {
                 trace!("GW: Closing heartbeat task");
@@ -123,7 +132,7 @@ impl HeartbeatHandler {
                     break;
                 }
 
-                last_heartbeat_timestamp = time::Instant::now();
+                last_heartbeat_timestamp = Instant::now();
                 last_heartbeat_acknowledged = false;
             }
         }
