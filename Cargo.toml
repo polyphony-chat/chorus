@@ -11,7 +11,7 @@ website = ["https://discord.com/invite/m3FpcapGDD"]
 
 
 [features]
-default = ["client", "rt-multi-thread"]
+default = ["client", "rt-multi-thread", "voice"]
 backend = ["dep:poem", "dep:sqlx"]
 rt-multi-thread = ["tokio/rt-multi-thread"]
 rt = ["tokio/rt"]
@@ -57,7 +57,6 @@ sqlx = { version = "0.7.3", features = [
 ], optional = true }
 discortp = { version = "0.5.0", optional = true, features = ["rtp", "discord", "demux"] }
 crypto_secretbox = {version = "0.1.1", optional = true}
-safina-timer = "0.1.11"
 rand = "0.8.5"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
