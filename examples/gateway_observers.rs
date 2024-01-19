@@ -11,7 +11,7 @@ use tokio::{self};
 #[cfg(not(target_arch = "wasm32"))]
 use safina_timer::sleep_for;
 #[cfg(target_arch = "wasm32")]
-use wasmtimer::tokio::sleep_for;
+use wasmtimer::tokio::sleep;
 
 // This example creates a simple gateway connection and a basic observer struct
 
@@ -65,6 +65,9 @@ async fn main() {
 
     // Do something on the main thread so we don't quit
     loop {
-        sleep_for(Duration::MAX).await
+        #[cfg(not(target_arch = "wasm32"))]
+        sleep_for(Duration::MAX).await;
+        #[cfg(target_arch = "wasm32")]
+        sleep(Duration::MAX).await;
     }
 }
