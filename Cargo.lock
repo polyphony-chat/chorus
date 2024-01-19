@@ -221,7 +221,6 @@ dependencies = [
  "reqwest",
  "rustls",
  "rustls-native-certs",
- "safina-timer",
  "serde",
  "serde-aux",
  "serde_json",
@@ -1688,15 +1687,6 @@ name = "ryu"
 version = "1.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f98d2aa92eebf49b69786be48e4477826b256916e84a57ff2a4f21923b48eb4c"
-
-[[package]]
-name = "safina-timer"
-version = "0.1.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1081a264d1a3e81b75c4bcd5696094fb6ce470c2ded14cbd47bcb5229079b9df"
-dependencies = [
- "once_cell",
-]
 
 [[package]]
 name = "schannel"

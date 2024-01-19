@@ -4,7 +4,7 @@ use chorus::gateway::Gateway;
 use chorus::{self, types::GatewayIdentifyPayload};
 
 #[cfg(not(target_arch = "wasm32"))]
-use safina_timer::sleep_for;
+use tokio::time::sleep;
 #[cfg(target_arch = "wasm32")]
 use wasmtimer::tokio::sleep;
 
@@ -33,14 +33,8 @@ async fn main() {
     // Send off the event
     gateway.send_identify(identify).await; 
     
-    #[cfg(not(target_arch = "wasm32"))]
-    safina_timer::start_timer_thread();
-
     // Do something on the main thread so we don't quit
     loop {
-        #[cfg(not(target_arch = "wasm32"))]
-        sleep_for(Duration::MAX).await;
-        #[cfg(target_arch = "wasm32")]
-        sleep(Duration::MAX).await;
+        sleep(Duration::from_secs(3600)).await;
     }
 }
