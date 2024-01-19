@@ -11,7 +11,7 @@ website = ["https://discord.com/invite/m3FpcapGDD"]
 
 
 [features]
-default = ["client", "rt-multi-thread", "voice"]
+default = ["client", "rt-multi-thread"]
 backend = ["dep:poem", "dep:sqlx"]
 rt-multi-thread = ["tokio/rt-multi-thread"]
 rt = ["tokio/rt"]
