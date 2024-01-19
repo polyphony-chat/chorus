@@ -26,6 +26,10 @@ async fn test_gateway_establish() {
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
+    // Make println! work
+    #[cfg(target_arch = "wasm32")]
+    wasm_glue::hook();
+
     let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
 
     let mut identify = types::GatewayIdentifyPayload::common();
