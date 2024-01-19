@@ -71,7 +71,8 @@ impl HeartbeatHandler {
         let mut last_heartbeat_timestamp: Instant = Instant::now();
         let mut last_heartbeat_acknowledged = true;
         let mut last_seq_number: Option<u64> = None;
-
+         
+        #[cfg(not(target_arch = "wasm32"))]
         safina_timer::start_timer_thread();
 
         loop {
