@@ -8,6 +8,11 @@ use chorus::{
 use std::{sync::Arc, time::Duration};
 use tokio::{self};
 
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::sleep;
+#[cfg(target_arch = "wasm32")]
+use wasmtimer::tokio::sleep;
+
 // This example creates a simple gateway connection and a basic observer struct
 
 // Due to certain limitations all observers must impl debug
@@ -54,10 +59,9 @@ async fn main() {
     let mut identify = GatewayIdentifyPayload::common();
     identify.token = token;
     gateway.send_identify(identify).await;
-    safina_timer::start_timer_thread();
 
     // Do something on the main thread so we don't quit
     loop {
-        safina_timer::sleep_for(Duration::MAX).await
+        sleep(Duration::from_secs(3600)).await;
     }
 }
