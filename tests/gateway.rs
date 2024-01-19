@@ -32,7 +32,9 @@ async fn test_gateway_authenticate() {
     identify.token = bundle.user.token.clone();
 
     gateway.send_identify(identify).await;
-    common::teardown(bundle).await
+    common::teardown(bundle).await;
+
+    assert!(false);
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]

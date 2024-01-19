@@ -73,6 +73,11 @@ impl HeartbeatHandler {
         let mut last_seq_number: Option<u64> = None;
          
         loop {
+            #[cfg(target_arch = "wasm32")]
+             web_sys::console::log_1(&String::from("Heartbeat works!").into());
+            
+             println!("Heartbeat works!");
+
             if kill_receive.try_recv().is_ok() {
                 trace!("GW: Closing heartbeat task");
                 break;
