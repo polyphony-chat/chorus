@@ -12,6 +12,16 @@ use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test_configure!(run_in_browser);
 
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::Instant;
+#[cfg(target_arch = "wasm32")]
+use wasmtimer::std::Instant;
+
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::sleep;
+#[cfg(target_arch = "wasm32")]
+use wasmtimer::tokio::sleep;
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 /// Tests establishing a connection (hello and heartbeats) on the local gateway;
@@ -61,11 +71,9 @@ async fn test_gateway_authenticate() {
 
     gateway.send_identify(identify).await;
 
-    let current_time = std::time::Instant::now();
-
     tokio::select! {
         // Fail, we timed out waiting for it
-        () = safina_timer::sleep_until(current_time + Duration::from_secs(20)) => {
+        () = sleep(Duration::from_secs(20)) => {
             println!("Timed out waiting for event, failing..");
             assert!(false);
         }
