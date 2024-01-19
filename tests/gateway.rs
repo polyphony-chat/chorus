@@ -13,11 +13,6 @@ use wasm_bindgen_test::*;
 wasm_bindgen_test_configure!(run_in_browser);
 
 #[cfg(not(target_arch = "wasm32"))]
-use tokio::time::Instant;
-#[cfg(target_arch = "wasm32")]
-use wasmtimer::std::Instant;
-
-#[cfg(not(target_arch = "wasm32"))]
 use tokio::time::sleep;
 #[cfg(target_arch = "wasm32")]
 use wasmtimer::tokio::sleep;
