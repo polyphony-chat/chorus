@@ -30,7 +30,7 @@ impl HeartbeatHandler {
         kill_rc: tokio::sync::broadcast::Receiver<()>,
     ) -> Self {
         #[cfg(target_arch = "wasm32")]
-        web_sys::console::log_1("HBH: Creating new self");
+        web_sys::console::log_1("HBH: Creating new self".into());
 
         let (send, receive) = tokio::sync::mpsc::channel(32);
         let kill_receive = kill_rc.resubscribe();
@@ -44,7 +44,7 @@ impl HeartbeatHandler {
             Self::heartbeat_task(websocket_tx, heartbeat_interval, receive, kill_receive).await;
         });
         #[cfg(target_arch = "wasm32")]
-        web_sys::console::log_1("HBH: Spawned task");
+        web_sys::console::log_1("HBH: Spawned task".into());
 
         Self {
             heartbeat_interval,
@@ -63,23 +63,23 @@ impl HeartbeatHandler {
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,
     ) {
         #[cfg(target_arch = "wasm32")]
-        web_sys::console::log_1("HBH: Running task");
+        web_sys::console::log_1("HBH: Running task".into());
         let mut last_heartbeat_timestamp: Instant = time::Instant::now();
         let mut last_heartbeat_acknowledged = true;
         let mut last_seq_number: Option<u64> = None;
         #[cfg(target_arch = "wasm32")]
-        web_sys::console::log_1("HBH: Initialized variables");
+        web_sys::console::log_1("HBH: Initialized variables".into());
 
         safina_timer::start_timer_thread();
 
         loop {
             #[cfg(target_arch = "wasm32")]
-            web_sys::console::log_1("HBH: L0");
+            web_sys::console::log_1("HBH: L0".into());
 
             println!("HBH: L0");
             if kill_receive.try_recv().is_ok() {
                 #[cfg(target_arch = "wasm32")]
-                web_sys::console::log_1("HBH: dying");
+                web_sys::console::log_1("HBH: dying".into());
 
                 println!("HBH: dying");
                 trace!("GW: Closing heartbeat task");
@@ -96,7 +96,7 @@ impl HeartbeatHandler {
             let mut should_send = false;
 
             #[cfg(target_arch = "wasm32")]
-            web_sys::console::log_1("HBH: L1");
+            web_sys::console::log_1("HBH: L1".into());
 
             println!("HBH: L1");
 
@@ -127,7 +127,7 @@ impl HeartbeatHandler {
             }
 
             #[cfg(target_arch = "wasm32")]
-            web_sys::console::log_1("HBH: L2");
+            web_sys::console::log_1("HBH: L2".into());
 
             println!("HBH: L2");
 
@@ -135,7 +135,7 @@ impl HeartbeatHandler {
                 trace!("GW: Sending Heartbeat..");
 
                 #[cfg(target_arch = "wasm32")]
-                web_sys::console::log_1("HBH: L3, sending");
+                web_sys::console::log_1("HBH: L3, sending".into());
 
                 println!("HBH: L3, sending");
 
@@ -159,7 +159,7 @@ impl HeartbeatHandler {
                 last_heartbeat_acknowledged = false;
 
                 #[cfg(target_arch = "wasm32")]
-                web_sys::console::log_1("HBH: L4, sending done");
+                web_sys::console::log_1("HBH: L4, sending done".into());
             }
         }
     }
