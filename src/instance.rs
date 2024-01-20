@@ -19,6 +19,7 @@ use crate::UrlBundle;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 /// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
+///
 /// If `limits_information` is `None`, then the instance will not be rate limited.
 pub struct Instance {
     pub urls: UrlBundle,
@@ -72,8 +73,18 @@ impl PartialEq for LimitsInformation {
 }
 
 impl Instance {
-    /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle). To create an Instance from one singular url, use [`Instance::from_root_url()`].
-    async fn from_url_bundle(urls: UrlBundle) -> ChorusResult<Instance> {
+
+    pub(crate) fn clone_limits_if_some(&self) -> Option<HashMap<LimitType, Limit>> {
+        if self.limits_information.is_some() {
+            return Some(self.limits_information.as_ref().unwrap().ratelimits.clone());
+        }
+        None
+    }
+
+    /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle).
+    ///
+    /// To create an Instance from one singular url, use [`Instance::new()`].
+    pub async fn from_url_bundle(urls: UrlBundle) -> ChorusResult<Instance> {
         let is_limited: Option<LimitsConfiguration> = Instance::is_limited(&urls.api).await?;
         let limit_information;
 
@@ -103,17 +114,9 @@ impl Instance {
         Ok(instance)
     }
 
-    pub(crate) fn clone_limits_if_some(&self) -> Option<HashMap<LimitType, Limit>> {
-        if self.limits_information.is_some() {
-            return Some(self.limits_information.as_ref().unwrap().ratelimits.clone());
-        }
-        None
-    }
-
     /// Creates a new [`Instance`] by trying to get the [relevant instance urls](UrlBundle) from a root url.
-    /// Shorthand for `Instance::new(UrlBundle::from_root_domain(root_domain).await?)`.
     ///
-    /// If `limited` is `true`, then Chorus will track and enforce rate limits for this instance.
+    /// Shorthand for `Instance::from_url_bundle(UrlBundle::from_root_domain(root_domain).await?)`.
     pub async fn new(root_url: &str) -> ChorusResult<Instance> {
         let urls = UrlBundle::from_root_url(root_url).await?;
         Instance::from_url_bundle(urls).await
