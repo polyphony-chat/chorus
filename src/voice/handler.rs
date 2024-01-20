@@ -111,6 +111,8 @@ impl Observer<VoiceReady> for VoiceHandler {
 
         *self.voice_udp_connection.lock().await = Some(udp_handle.clone());
 
+        let string_ip_address = String::from_utf8(ip_discovery.address).expect("Ip discovery gave non string ip");
+
         self.voice_gateway_connection
             .lock()
             .await
@@ -119,7 +121,7 @@ impl Observer<VoiceReady> for VoiceHandler {
             .send_select_protocol(SelectProtocol {
                 protocol: VoiceProtocol::Udp,
                 data: SelectProtocolData {
-                    address: ip_discovery.address,
+                    address: string_ip_address,
                     port: ip_discovery.port,
                     mode: VoiceEncryptionMode::Xsalsa20Poly1305,
                 },

@@ -39,10 +39,9 @@ pub enum VoiceProtocol {
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#protocol-data-structure>
 pub struct SelectProtocolData {
-    /// Our external ip
-    // FIXME: This is a string
-    pub address: Vec<u8>,
-    /// Our external udp port
+    /// Our external ip we got from ip discovery
+    pub address: String,
+    /// Our external udp port we got from id discovery
     pub port: u16,
     /// The mode of encryption to use
     pub mode: VoiceEncryptionMode,
