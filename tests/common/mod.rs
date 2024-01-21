@@ -1,6 +1,5 @@
-use std::sync::{Arc, RwLock};
-
-use chorus::gateway::Gateway;
+use chorus::gateway::{Gateway, Shared};
+use chorus::types::Composite;
 use chorus::{
     instance::{ChorusUser, Instance},
     types::{
@@ -16,9 +15,9 @@ pub(crate) struct TestBundle {
     pub urls: UrlBundle,
     pub user: ChorusUser,
     pub instance: Instance,
-    pub guild: Arc<RwLock<Guild>>,
-    pub role: Arc<RwLock<RoleObject>>,
-    pub channel: Arc<RwLock<Channel>>,
+    pub guild: Shared<Guild>,
+    pub role: Shared<RoleObject>,
+    pub channel: Shared<Channel>,
 }
 
 #[allow(unused)]
@@ -119,9 +118,9 @@ pub(crate) async fn setup() -> TestBundle {
         urls,
         user,
         instance,
-        guild: Arc::new(RwLock::new(guild)),
-        role: Arc::new(RwLock::new(role)),
-        channel: Arc::new(RwLock::new(channel)),
+        guild: guild.to_shared(),
+        role: role.to_shared(),
+        channel: channel.to_shared(),
     }
 }
 

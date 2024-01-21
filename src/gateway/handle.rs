@@ -42,8 +42,8 @@ impl GatewayHandle {
 
     pub async fn observe<T: Updateable + Clone + Debug + Composite<T>>(
         &self,
-        object: Arc<RwLock<T>>,
-    ) -> Arc<RwLock<T>> {
+        object: Shared<T>,
+    ) -> Shared<T> {
         let mut store = self.store.lock().await;
         let id = object.read().unwrap().id();
         if let Some(channel) = store.get(&id) {
@@ -84,7 +84,7 @@ impl GatewayHandle {
     /// with all of its observable fields being observed.
     pub async fn observe_and_into_inner<T: Updateable + Clone + Debug + Composite<T>>(
         &self,
-        object: Arc<RwLock<T>>,
+        object: Shared<T>,
     ) -> T {
         let channel = self.observe(object.clone()).await;
         let object = channel.read().unwrap().clone();
