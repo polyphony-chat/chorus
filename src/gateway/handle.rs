@@ -40,6 +40,15 @@ impl GatewayHandle {
             .unwrap();
     }
 
+    /// Recursively observes a [`Shared`] object, by making sure all [`Composite `] fields within
+    /// that object and its children are being watched.
+    ///
+    /// Observing means, that if new information arrives about the observed object or its children,
+    /// the object automatically gets updated, without you needing to request new information about
+    /// the object in question from the API, which is expensive and can lead to rate limiting.
+    ///
+    /// The [`Shared`] object returned by this method points to a different object than the one
+    /// being supplied as a &self function argument.
     pub async fn observe<T: Updateable + Clone + Debug + Composite<T>>(
         &self,
         object: Shared<T>,
