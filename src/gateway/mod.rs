@@ -122,3 +122,11 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
         }
     }
 }
+
+/// A type alias for [`Arc<RwLock<T>>`], used to make the public facing API concerned with
+/// Composite structs more ergonomic.
+/// ## Note
+///
+/// While `T` does not have to implement `Composite` to be used with `Shared`,
+/// the primary use of `Shared` is with types that implement `Composite`.
+pub type Shared<T> = Arc<RwLock<T>>;
