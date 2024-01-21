@@ -124,7 +124,7 @@ pub trait Composite<T: Updateable + Clone + Debug> {
         vec
     }
 
-    fn to_shared(self) -> Shared<Self>
+    fn into_shared(self) -> Shared<Self>
     where
         Self: Sized,
     {

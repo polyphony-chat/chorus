@@ -118,9 +118,9 @@ pub(crate) async fn setup() -> TestBundle {
         urls,
         user,
         instance,
-        guild: guild.to_shared(),
-        role: role.to_shared(),
-        channel: channel.to_shared(),
+        guild: guild.into_shared(),
+        role: role.into_shared(),
+        channel: channel.into_shared(),
     }
 }
 
