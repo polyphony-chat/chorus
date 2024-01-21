@@ -23,6 +23,8 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 
+use crate::gateway::Shared;
+
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
 
@@ -120,5 +122,12 @@ pub trait Composite<T: Updateable + Clone + Debug> {
             vec.push(gateway.observe(component).await);
         }
         vec
+    }
+
+    fn to_shared(self) -> Shared<Self>
+    where
+        Self: Sized,
+    {
+        Arc::new(RwLock::new(self))
     }
 }
