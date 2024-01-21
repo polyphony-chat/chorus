@@ -1,10 +1,8 @@
 mod common;
 
-use std::sync::{Arc, RwLock};
-
 use chorus::errors::GatewayError;
 use chorus::gateway::*;
-use chorus::types::{self, ChannelModifySchema, RoleCreateModifySchema, RoleObject};
+use chorus::types::{self, ChannelModifySchema, Composite, RoleCreateModifySchema, RoleObject};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
@@ -97,11 +95,7 @@ async fn test_recursive_self_updating_structs() {
         .await
         .unwrap();
     // Watch role;
-    bundle
-        .user
-        .gateway
-        .observe(Arc::new(RwLock::new(role.clone())))
-        .await;
+    bundle.user.gateway.observe(role.into_shared()).await;
     // Update Guild and check for Guild
     let inner_guild = guild.read().unwrap().clone();
     assert!(inner_guild.roles.is_some());
@@ -113,7 +107,7 @@ async fn test_recursive_self_updating_structs() {
     let role_inner = bundle
         .user
         .gateway
-        .observe_and_into_inner(Arc::new(RwLock::new(role.clone())))
+        .observe_and_into_inner(role.into_shared())
         .await;
     assert_eq!(role_inner.name, "yippieee");
     // Check if the change propagated
