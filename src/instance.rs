@@ -73,7 +73,6 @@ impl PartialEq for LimitsInformation {
 }
 
 impl Instance {
-
     pub(crate) fn clone_limits_if_some(&self) -> Option<HashMap<LimitType, Limit>> {
         if self.limits_information.is_some() {
             return Some(self.limits_information.as_ref().unwrap().ratelimits.clone());
