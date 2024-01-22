@@ -71,9 +71,9 @@ pub trait Composite<T: Updateable + Clone + Debug> {
     async fn watch_whole(self, gateway: &GatewayHandle) -> Self;
 
     async fn option_observe_fn(
-        value: Option<Arc<RwLock<T>>>,
+        value: Option<Shared<T>>,
         gateway: &GatewayHandle,
-    ) -> Option<Arc<RwLock<T>>>
+    ) -> Option<Shared<T>>
     where
         T: Composite<T> + Debug,
     {
@@ -86,9 +86,9 @@ pub trait Composite<T: Updateable + Clone + Debug> {
     }
 
     async fn option_vec_observe_fn(
-        value: Option<Vec<Arc<RwLock<T>>>>,
+        value: Option<Vec<Shared<T>>>,
         gateway: &GatewayHandle,
-    ) -> Option<Vec<Arc<RwLock<T>>>>
+    ) -> Option<Vec<Shared<T>>>
     where
         T: Composite<T>,
     {
@@ -103,17 +103,14 @@ pub trait Composite<T: Updateable + Clone + Debug> {
         }
     }
 
-    async fn value_observe_fn(value: Arc<RwLock<T>>, gateway: &GatewayHandle) -> Arc<RwLock<T>>
+    async fn value_observe_fn(value: Shared<T>, gateway: &GatewayHandle) -> Shared<T>
     where
         T: Composite<T>,
     {
         gateway.observe(value).await
     }
 
-    async fn vec_observe_fn(
-        value: Vec<Arc<RwLock<T>>>,
-        gateway: &GatewayHandle,
-    ) -> Vec<Arc<RwLock<T>>>
+    async fn vec_observe_fn(value: Vec<Shared<T>>, gateway: &GatewayHandle) -> Vec<Shared<T>>
     where
         T: Composite<T>,
     {
@@ -123,17 +120,16 @@ pub trait Composite<T: Updateable + Clone + Debug> {
         }
         vec
     }
+}
 
-    /// Uses [`Shared`] to provide an ergonomic alternative to `Arc::new(RwLock::new(obj))`.
-    ///
-    /// [`Shared<Self>`] can then be observed using the [`Gateway`], turning the underlying
-    /// `dyn Composite<Self>` into a self-updating struct, which is a tracked variant of a chorus
-    /// entity struct, updating its' held information when new information concerning itself arrives
-    /// over the [`Gateway`] connection, reducing the need for expensive network-API calls.
-    fn into_shared(self) -> Shared<Self>
-    where
-        Self: Sized,
-    {
-        Arc::new(RwLock::new(self))
-    }
+/// Uses [`Shared`] to provide an ergonomic alternative to `Arc::new(RwLock::new(obj))`.
+///
+/// [`Shared<Self>`] can then be observed using the [`Gateway`], turning the underlying
+/// `dyn Composite<Self>` into a self-updating struct, which is a tracked variant of a chorus
+/// entity struct, updating its' held information when new information concerning itself arrives
+/// over the [`Gateway`] connection, reducing the need for expensive network-API calls.
+pub fn into_shared<T: Composite<T> + Updateable + Clone + Debug + Sized>(
+    composite: T,
+) -> Shared<T> {
+    Arc::new(RwLock::new(composite))
 }
