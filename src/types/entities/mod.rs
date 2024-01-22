@@ -122,14 +122,18 @@ pub trait Composite<T: Updateable + Clone + Debug> {
     }
 }
 
-/// Uses [`Shared`] to provide an ergonomic alternative to `Arc::new(RwLock::new(obj))`.
-///
-/// [`Shared<Self>`] can then be observed using the [`Gateway`], turning the underlying
-/// `dyn Composite<Self>` into a self-updating struct, which is a tracked variant of a chorus
-/// entity struct, updating its' held information when new information concerning itself arrives
-/// over the [`Gateway`] connection, reducing the need for expensive network-API calls.
-pub fn into_shared<T: Composite<T> + Updateable + Clone + Debug + Sized>(
-    composite: T,
-) -> Shared<T> {
-    Arc::new(RwLock::new(composite))
+pub trait IntoShared {
+    /// Uses [`Shared`] to provide an ergonomic alternative to `Arc::new(RwLock::new(obj))`.
+    ///
+    /// [`Shared<Self>`] can then be observed using the [`Gateway`], turning the underlying
+    /// `dyn Composite<Self>` into a self-updating struct, which is a tracked variant of a chorus
+    /// entity struct, updating its' held information when new information concerning itself arrives
+    /// over the [`Gateway`] connection, reducing the need for expensive network-API calls.
+    fn into_shared(self) -> Shared<Self>;
+}
+
+impl<T: Composite<T> + Updateable + Clone + Debug + ?Sized> IntoShared for T {
+    fn into_shared(self) -> Shared<Self> {
+        Arc::new(RwLock::new(self))
+    }
 }

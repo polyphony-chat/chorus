@@ -1,5 +1,5 @@
 use chorus::gateway::{Gateway, Shared};
-use chorus::types::into_shared;
+use chorus::types::IntoShared;
 use chorus::{
     instance::{ChorusUser, Instance},
     types::{
@@ -118,9 +118,9 @@ pub(crate) async fn setup() -> TestBundle {
         urls,
         user,
         instance,
-        guild: into_shared(guild),
-        role: into_shared(role),
-        channel: into_shared(channel),
+        guild: guild.into_shared(),
+        role: role.into_shared(),
+        channel: channel.into_shared(),
     }
 }
 
