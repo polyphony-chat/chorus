@@ -31,8 +31,8 @@ async fn main() {
     identify.token = token;
 
     // Send off the event
-    gateway.send_identify(identify).await; 
-    
+    gateway.send_identify(identify).await;
+
     // Do something on the main thread so we don't quit
     loop {
         sleep(Duration::from_secs(3600)).await;
