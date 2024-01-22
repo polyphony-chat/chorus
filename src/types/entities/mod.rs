@@ -132,7 +132,7 @@ pub trait IntoShared {
     fn into_shared(self) -> Shared<Self>;
 }
 
-impl<T: Composite<T> + Updateable + Clone + Debug + ?Sized> IntoShared for T {
+impl<T: Sized> IntoShared for T {
     fn into_shared(self) -> Shared<Self> {
         Arc::new(RwLock::new(self))
     }
