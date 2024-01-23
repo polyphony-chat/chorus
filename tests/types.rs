@@ -1001,4 +1001,36 @@ mod entities {
             assert_eq!(guild1, guild2);
         }
     }
+
+    mod relationship {
+        use chorus::types::{IntoShared, Relationship, User};
+
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        #[cfg_attr(not(target_arch = "wasm32"), test)]
+        fn relationship_partial_eq() {
+            let user = User::default();
+            // These 2 users are different, because they do not have the same Snowflake "id".
+            let user_2 = User::default();
+            let relationship_1 = Relationship {
+                id: 32_u64.into(),
+                relationship_type: chorus::types::RelationshipType::Friends,
+                nickname: Some("Xenia".to_string()),
+                user: user.into_public_user().into_shared(),
+                since: None,
+            };
+
+            let relationship_2 = Relationship {
+                id: 32_u64.into(),
+                relationship_type: chorus::types::RelationshipType::Friends,
+                nickname: Some("Xenia".to_string()),
+                user: user_2.into_public_user().into_shared(),
+                since: None,
+            };
+
+            // This should succeed, even though the two users' IDs are different. This is because
+            // `User` is only `PartialEq`, and the actual user object is not checked, since the
+            // `RwLock` would have to be locked.
+            assert_eq!(relationship_1, relationship_2);
+        }
+    }
 }
