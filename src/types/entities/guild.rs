@@ -217,8 +217,6 @@ impl std::cmp::PartialEq for Guild {
     }
 }
 
-impl std::cmp::Eq for Guild {}
-
 /// See <https://docs.spacebar.chat/routes/#get-/guilds/-guild_id-/bans/-user->
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
