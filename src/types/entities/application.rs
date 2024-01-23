@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+use crate::gateway::Shared;
 use crate::types::utils::Snowflake;
 use crate::types::{Team, User};
 
@@ -27,7 +28,7 @@ pub struct Application {
     pub bot_require_code_grant: bool,
     pub verify_key: String,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub owner: Arc<RwLock<User>>,
+    pub owner: Shared<User>,
     pub flags: u64,
     #[cfg(feature = "sqlx")]
     pub redirect_uris: Option<sqlx::types::Json<Vec<String>>>,
@@ -49,7 +50,7 @@ pub struct Application {
     #[cfg(feature = "sqlx")]
     pub install_params: Option<sqlx::types::Json<InstallParams>>,
     #[cfg(not(feature = "sqlx"))]
-    pub install_params: Option<Arc<RwLock<InstallParams>>>,
+    pub install_params: Option<Shared<InstallParams>>,
     pub terms_of_service_url: Option<String>,
     pub privacy_policy_url: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
@@ -142,7 +143,7 @@ pub struct ApplicationCommand {
     pub application_id: Snowflake,
     pub name: String,
     pub description: String,
-    pub options: Vec<Arc<RwLock<ApplicationCommandOption>>>,
+    pub options: Vec<Shared<ApplicationCommandOption>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -154,7 +155,7 @@ pub struct ApplicationCommandOption {
     pub description: String,
     pub required: bool,
     pub choices: Vec<ApplicationCommandOptionChoice>,
-    pub options: Arc<RwLock<Vec<ApplicationCommandOption>>>,
+    pub options: Shared<Vec<ApplicationCommandOption>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -190,14 +191,14 @@ pub enum ApplicationCommandOptionType {
 pub struct ApplicationCommandInteractionData {
     pub id: Snowflake,
     pub name: String,
-    pub options: Vec<Arc<RwLock<ApplicationCommandInteractionDataOption>>>,
+    pub options: Vec<Shared<ApplicationCommandInteractionDataOption>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApplicationCommandInteractionDataOption {
     pub name: String,
     pub value: Value,
-    pub options: Vec<Arc<RwLock<ApplicationCommandInteractionDataOption>>>,
+    pub options: Vec<Shared<ApplicationCommandInteractionDataOption>>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -206,7 +207,7 @@ pub struct GuildApplicationCommandPermissions {
     pub id: Snowflake,
     pub application_id: Snowflake,
     pub guild_id: Snowflake,
-    pub permissions: Vec<Arc<RwLock<ApplicationCommandPermission>>>,
+    pub permissions: Vec<Shared<ApplicationCommandPermission>>,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]

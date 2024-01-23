@@ -6,6 +6,7 @@ use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::Debug;
 
+use crate::gateway::Shared;
 use crate::types::{
     entities::{GuildMember, User},
     utils::Snowflake,
@@ -71,13 +72,13 @@ pub struct Channel {
     pub permission_overwrites: Option<sqlx::types::Json<Vec<PermissionOverwrite>>>,
     #[cfg(not(feature = "sqlx"))]
     #[cfg_attr(feature = "client", observe_option_vec)]
-    pub permission_overwrites: Option<Vec<Arc<RwLock<PermissionOverwrite>>>>,
+    pub permission_overwrites: Option<Vec<Shared<PermissionOverwrite>>>,
     pub permissions: Option<String>,
     pub position: Option<i32>,
     pub rate_limit_per_user: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[cfg_attr(feature = "client", observe_option_vec)]
-    pub recipients: Option<Vec<Arc<RwLock<User>>>>,
+    pub recipients: Option<Vec<Shared<User>>>,
     pub rtc_region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub thread_metadata: Option<ThreadMetadata>,
@@ -171,7 +172,7 @@ pub struct ThreadMember {
     pub user_id: Option<Snowflake>,
     pub join_timestamp: Option<String>,
     pub flags: Option<u64>,
-    pub member: Option<Arc<RwLock<GuildMember>>>,
+    pub member: Option<Shared<GuildMember>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]

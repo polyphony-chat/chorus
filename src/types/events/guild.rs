@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{Guild, PublicUser, UnavailableGuild};
 use crate::types::events::WebSocketEvent;
 use crate::types::{
-    AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, JsonField, RoleObject, Snowflake,
-    SourceUrlField, Sticker,
+    AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, IntoShared, JsonField, RoleObject,
+    Snowflake, SourceUrlField, Sticker,
 };
 
 use super::PresenceUpdate;
@@ -14,7 +14,7 @@ use super::PresenceUpdate;
 #[cfg(feature = "client")]
 use super::UpdateMessage;
 #[cfg(feature = "client")]
-use std::sync::{Arc, RwLock};
+use crate::gateway::Shared;
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, SourceUrlField, JsonField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-create>;
@@ -38,7 +38,7 @@ impl UpdateMessage<Guild> for GuildCreate {
         }
     }
 
-    fn update(&mut self, _: Arc<RwLock<Guild>>) {}
+    fn update(&mut self, _: Shared<Guild>) {}
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -114,7 +114,7 @@ impl UpdateMessage<Guild> for GuildDelete {
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild.id)
     }
-    fn update(&mut self, _: Arc<RwLock<Guild>>) {}
+    fn update(&mut self, _: Shared<Guild>) {}
 }
 
 impl WebSocketEvent for GuildDelete {}
@@ -229,16 +229,16 @@ impl UpdateMessage<Guild> for GuildRoleCreate {
         Some(self.guild_id)
     }
 
-    fn update(&mut self, object_to_update: Arc<RwLock<Guild>>) {
+    fn update(&mut self, object_to_update: Shared<Guild>) {
         let mut object_to_update = object_to_update.write().unwrap();
         if object_to_update.roles.is_some() {
             object_to_update
                 .roles
                 .as_mut()
                 .unwrap()
-                .push(Arc::new(RwLock::new(self.role.clone())));
+                .push(self.role.clone().into_shared());
         } else {
-            object_to_update.roles = Some(Vec::from([Arc::new(RwLock::new(self.role.clone()))]));
+            object_to_update.roles = Some(Vec::from([self.role.clone().into_shared()]));
         }
     }
 }
@@ -262,7 +262,7 @@ impl UpdateMessage<RoleObject> for GuildRoleUpdate {
         Some(self.role.id)
     }
 
-    fn update(&mut self, object_to_update: Arc<RwLock<RoleObject>>) {
+    fn update(&mut self, object_to_update: Shared<RoleObject>) {
         let mut write = object_to_update.write().unwrap();
         *write = self.role.clone();
     }

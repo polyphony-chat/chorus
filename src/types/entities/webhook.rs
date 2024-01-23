@@ -3,6 +3,7 @@ use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Shared;
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
 
@@ -36,10 +37,10 @@ pub struct Webhook {
     pub application_id: Snowflake,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<Arc<RwLock<User>>>,
+    pub user: Option<Shared<User>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub source_guild: Option<Arc<RwLock<Guild>>>,
+    pub source_guild: Option<Shared<Guild>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 }

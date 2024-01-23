@@ -3,6 +3,7 @@ use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Shared;
 use crate::types::entities::User;
 use crate::types::Snowflake;
 
@@ -31,7 +32,7 @@ pub struct Emoji {
     #[cfg(not(feature = "sqlx"))]
     pub roles: Option<Vec<Snowflake>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<Arc<RwLock<User>>>,
+    pub user: Option<Shared<User>>,
     pub require_colons: Option<bool>,
     pub managed: Option<bool>,
     pub animated: Option<bool>,

@@ -6,6 +6,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+use crate::gateway::Shared;
 use crate::types::types::guild_configuration::GuildFeaturesList;
 use crate::types::{
     entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
@@ -45,14 +46,14 @@ pub struct Guild {
     pub bans: Option<Vec<GuildBan>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[cfg_attr(feature = "client", observe_option_vec)]
-    pub channels: Option<Vec<Arc<RwLock<Channel>>>>,
+    pub channels: Option<Vec<Shared<Channel>>>,
     pub default_message_notifications: Option<MessageNotificationLevel>,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[cfg_attr(feature = "client", observe_vec)]
     #[serde(default)]
-    pub emojis: Vec<Arc<RwLock<Emoji>>>,
+    pub emojis: Vec<Shared<Emoji>>,
     pub explicit_content_filter: Option<i32>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
     pub features: Option<GuildFeaturesList>,
@@ -88,7 +89,7 @@ pub struct Guild {
     pub region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[cfg_attr(feature = "client", observe_option_vec)]
-    pub roles: Option<Vec<Arc<RwLock<RoleObject>>>>,
+    pub roles: Option<Vec<Shared<RoleObject>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub rules_channel: Option<String>,
     pub rules_channel_id: Option<Snowflake>,
@@ -102,10 +103,10 @@ pub struct Guild {
     pub verification_level: Option<VerificationLevel>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[cfg_attr(feature = "client", observe_option_vec)]
-    pub voice_states: Option<Vec<Arc<RwLock<VoiceState>>>>,
+    pub voice_states: Option<Vec<Shared<VoiceState>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[cfg_attr(feature = "client", observe_option_vec)]
-    pub webhooks: Option<Vec<Arc<RwLock<Webhook>>>>,
+    pub webhooks: Option<Vec<Shared<Webhook>>>,
     #[cfg(feature = "sqlx")]
     pub welcome_screen: Option<sqlx::types::Json<WelcomeScreenObject>>,
     #[cfg(not(feature = "sqlx"))]
@@ -239,11 +240,11 @@ pub struct GuildInvite {
     pub created_at: DateTime<Utc>,
     pub expires_at: Option<DateTime<Utc>>,
     pub guild_id: Snowflake,
-    pub guild: Option<Arc<RwLock<Guild>>>,
+    pub guild: Option<Shared<Guild>>,
     pub channel_id: Snowflake,
-    pub channel: Option<Arc<RwLock<Channel>>>,
+    pub channel: Option<Shared<Channel>>,
     pub inviter_id: Option<Snowflake>,
-    pub inviter: Option<Arc<RwLock<User>>>,
+    pub inviter: Option<Shared<User>>,
     pub target_user_id: Option<Snowflake>,
     pub target_user: Option<String>,
     pub target_user_type: Option<i32>,
@@ -296,7 +297,7 @@ pub struct GuildScheduledEvent {
     pub entity_type: GuildScheduledEventEntityType,
     pub entity_id: Option<Snowflake>,
     pub entity_metadata: Option<GuildScheduledEventEntityMetadata>,
-    pub creator: Option<Arc<RwLock<User>>>,
+    pub creator: Option<Shared<User>>,
     pub user_count: Option<u64>,
     pub image: Option<String>,
 }

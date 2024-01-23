@@ -1,5 +1,6 @@
 use std::sync::{Arc, RwLock};
 
+use crate::gateway::Shared;
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
 
@@ -21,8 +22,8 @@ pub struct AutoModerationRule {
     pub creator_id: Snowflake,
     pub event_type: AutoModerationRuleEventType,
     pub trigger_type: AutoModerationRuleTriggerType,
-    pub trigger_metadata: Arc<RwLock<AutoModerationRuleTriggerMetadata>>,
-    pub actions: Vec<Arc<RwLock<AutoModerationAction>>>,
+    pub trigger_metadata: Shared<AutoModerationRuleTriggerMetadata>,
+    pub actions: Vec<Shared<AutoModerationAction>>,
     pub enabled: bool,
     pub exempt_roles: Vec<Snowflake>,
     pub exempt_channels: Vec<Snowflake>,
@@ -99,7 +100,7 @@ pub enum AutoModerationRuleKeywordPresetType {
 pub struct AutoModerationAction {
     #[serde(rename = "type")]
     pub action_type: AutoModerationActionType,
-    pub metadata: Option<Arc<RwLock<AutoModerationActionMetadata>>>,
+    pub metadata: Option<Shared<AutoModerationActionMetadata>>,
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]

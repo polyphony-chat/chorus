@@ -2,6 +2,7 @@ use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Shared;
 use crate::types::{entities::User, utils::Snowflake};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -24,7 +25,7 @@ pub struct Sticker {
     pub available: Option<bool>,
     pub guild_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<Arc<RwLock<User>>>,
+    pub user: Option<Shared<User>>,
     pub sort_value: Option<u8>,
 }
 

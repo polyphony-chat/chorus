@@ -39,9 +39,9 @@ use serde_json::{from_str, from_value, to_value, Value};
 #[cfg(feature = "client")]
 use std::collections::HashMap;
 
-use std::fmt::Debug;
 #[cfg(feature = "client")]
-use std::sync::{Arc, RwLock};
+use crate::gateway::Shared;
+use std::fmt::Debug;
 
 #[cfg(feature = "client")]
 use serde::de::DeserializeOwned;
@@ -132,7 +132,7 @@ pub(crate) trait UpdateMessage<T>: Clone + JsonField + SourceUrlField
 where
     T: Updateable + Serialize + DeserializeOwned + Clone,
 {
-    fn update(&mut self, object_to_update: Arc<RwLock<T>>) {
+    fn update(&mut self, object_to_update: Shared<T>) {
         update_object(self.get_json(), object_to_update)
     }
     fn id(&self) -> Option<Snowflake>;
@@ -152,8 +152,10 @@ pub trait SourceUrlField: Clone {
 /// Only applicable for events where the Update struct is the same as the Entity struct
 pub(crate) fn update_object(
     value: String,
-    object: Arc<RwLock<(impl Updateable + Serialize + DeserializeOwned + Clone)>>,
+    object: Shared<(impl Updateable + Serialize + DeserializeOwned + Clone)>,
 ) {
+    use crate::gateway::Shared;
+
     let data_from_event: HashMap<String, Value> = from_str(&value).unwrap();
     let mut original_data: HashMap<String, Value> =
         from_value(to_value(object.clone()).unwrap()).unwrap();
