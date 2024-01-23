@@ -947,4 +947,58 @@ mod entities {
         assert_ne!(emoji.id, another_emoji.id);
         assert_ne!(emoji, another_emoji);
     }
+
+    mod guild {
+        use std::hash::{Hash, Hasher};
+
+        use chorus::types::{Guild, GuildInvite};
+
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        #[cfg_attr(not(target_arch = "wasm32"), test)]
+        fn guild_hash() {
+            let id: u64 = 1;
+            let mut guild1 = Guild::default();
+            let mut guild2 = Guild::default();
+            guild1.id = id.into();
+            guild2.id = id.into();
+            let mut hasher1 = std::collections::hash_map::DefaultHasher::new();
+            guild1.hash(&mut hasher1);
+
+            let mut hasher2 = std::collections::hash_map::DefaultHasher::new();
+            guild2.hash(&mut hasher2);
+
+            assert_eq!(hasher1.finish(), hasher2.finish());
+        }
+
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        #[cfg_attr(not(target_arch = "wasm32"), test)]
+        fn guild_invite_hash() {
+            let id: u64 = 1;
+            let mut invite1 = GuildInvite::default();
+            let mut invite2 = GuildInvite::default();
+            invite1.channel_id = id.into();
+            invite2.channel_id = id.into();
+            invite1.guild_id = id.into();
+            invite2.guild_id = id.into();
+            let mut hasher1 = std::collections::hash_map::DefaultHasher::new();
+            invite1.hash(&mut hasher1);
+
+            let mut hasher2 = std::collections::hash_map::DefaultHasher::new();
+            invite2.hash(&mut hasher2);
+
+            assert_eq!(hasher1.finish(), hasher2.finish());
+        }
+
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        #[cfg_attr(not(target_arch = "wasm32"), test)]
+        fn guild_partial_eq() {
+            let id: u64 = 1;
+            let mut guild1 = Guild::default();
+            let mut guild2 = Guild::default();
+            guild1.id = id.into();
+            guild2.id = id.into();
+
+            assert_eq!(guild1, guild2);
+        }
+    }
 }
