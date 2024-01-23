@@ -1033,4 +1033,22 @@ mod entities {
             assert_eq!(relationship_1, relationship_2);
         }
     }
+
+    mod message {
+        use chorus::types::{Message, Snowflake};
+
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+        #[cfg_attr(not(target_arch = "wasm32"), test)]
+        fn message_partial_eq() {
+            let id: Snowflake = 1_u64.into();
+            let mut message1 = Message::default();
+            let mut message2 = Message::default();
+            message1.id = id;
+            message1.channel_id = id;
+            message2.id = id;
+            message2.channel_id = id;
+
+            assert_eq!(message1, message2);
+        }
+    }
 }
