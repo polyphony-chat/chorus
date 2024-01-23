@@ -62,37 +62,3 @@ impl PartialEq for Emoji {
             || self.available != other.available)
     }
 }
-
-impl PartialOrd for Emoji {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match self.id.partial_cmp(&other.id) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.name.partial_cmp(&other.name) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.roles.partial_cmp(&other.roles) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.roles.partial_cmp(&other.roles) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.require_colons.partial_cmp(&other.require_colons) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.managed.partial_cmp(&other.managed) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.animated.partial_cmp(&other.animated) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        self.available.partial_cmp(&other.available)
-    }
-}

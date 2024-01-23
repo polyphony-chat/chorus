@@ -218,7 +218,7 @@ pub struct EmbedField {
     inline: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Reaction {
     pub count: u32,
     pub burst_count: u32,
