@@ -37,8 +37,6 @@ impl PartialEq for Instance {
     }
 }
 
-impl Eq for Instance {}
-
 impl std::hash::Hash for Instance {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.urls.hash(state);
@@ -170,8 +168,6 @@ impl PartialEq for ChorusUser {
             && self.gateway.url == other.gateway.url
     }
 }
-
-impl Eq for ChorusUser {}
 
 impl ChorusUser {
     pub fn token(&self) -> String {
