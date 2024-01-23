@@ -1,5 +1,3 @@
-use std::sync::{Arc, RwLock};
-
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

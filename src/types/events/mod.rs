@@ -154,8 +154,6 @@ pub(crate) fn update_object(
     value: String,
     object: Shared<(impl Updateable + Serialize + DeserializeOwned + Clone)>,
 ) {
-    use crate::gateway::Shared;
-
     let data_from_event: HashMap<String, Value> = from_str(&value).unwrap();
     let mut original_data: HashMap<String, Value> =
         from_value(to_value(object.clone()).unwrap()).unwrap();

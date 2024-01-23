@@ -1,5 +1,3 @@
-use std::sync::{Arc, RwLock};
-
 #[cfg(feature = "client")]
 use chorus_macros::Composite;
 

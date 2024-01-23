@@ -1,5 +1,3 @@
-use std::sync::{Arc, RwLock};
-
 use serde::{Deserialize, Serialize};
 
 use crate::gateway::Shared;

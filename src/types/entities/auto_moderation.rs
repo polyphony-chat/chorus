@@ -1,5 +1,3 @@
-use std::sync::{Arc, RwLock};
-
 use crate::gateway::Shared;
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
