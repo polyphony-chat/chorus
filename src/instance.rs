@@ -9,7 +9,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::ChorusResult;
-use crate::gateway::{Gateway, GatewayHandle};
+use crate::gateway::{Gateway, GatewayHandle, Shared};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
@@ -36,8 +36,6 @@ impl PartialEq for Instance {
             && self.limits_information == other.limits_information
     }
 }
-
-impl Eq for Instance {}
 
 impl std::hash::Hash for Instance {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -73,7 +71,6 @@ impl PartialEq for LimitsInformation {
 }
 
 impl Instance {
-
     pub(crate) fn clone_limits_if_some(&self) -> Option<HashMap<LimitType, Limit>> {
         if self.limits_information.is_some() {
             return Some(self.limits_information.as_ref().unwrap().ratelimits.clone());
@@ -156,11 +153,11 @@ impl fmt::Display for Token {
 /// It is used for most authenticated actions on a Spacebar server.
 /// It also has its own [Gateway] connection.
 pub struct ChorusUser {
-    pub belongs_to: Arc<RwLock<Instance>>,
+    pub belongs_to: Shared<Instance>,
     pub token: String,
     pub limits: Option<HashMap<LimitType, Limit>>,
-    pub settings: Arc<RwLock<UserSettings>>,
-    pub object: Arc<RwLock<User>>,
+    pub settings: Shared<UserSettings>,
+    pub object: Shared<User>,
     pub gateway: GatewayHandle,
 }
 
@@ -171,8 +168,6 @@ impl PartialEq for ChorusUser {
             && self.gateway.url == other.gateway.url
     }
 }
-
-impl Eq for ChorusUser {}
 
 impl ChorusUser {
     pub fn token(&self) -> String {
@@ -189,11 +184,11 @@ impl ChorusUser {
     /// This isn't the prefered way to create a ChorusUser.
     /// See [Instance::login_account] and [Instance::register_account] instead.
     pub fn new(
-        belongs_to: Arc<RwLock<Instance>>,
+        belongs_to: Shared<Instance>,
         token: String,
         limits: Option<HashMap<LimitType, Limit>>,
-        settings: Arc<RwLock<UserSettings>>,
-        object: Arc<RwLock<User>>,
+        settings: Shared<UserSettings>,
+        object: Shared<User>,
         gateway: GatewayHandle,
     ) -> ChorusUser {
         ChorusUser {
@@ -211,7 +206,7 @@ impl ChorusUser {
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
-    pub(crate) async fn shell(instance: Arc<RwLock<Instance>>, token: String) -> ChorusUser {
+    pub(crate) async fn shell(instance: Shared<Instance>, token: String) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
         let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();

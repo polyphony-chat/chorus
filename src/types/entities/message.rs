@@ -1,7 +1,6 @@
-use std::sync::{Arc, RwLock};
-
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Shared;
 use crate::types::{
     entities::{
         Application, Attachment, Channel, Emoji, GuildMember, PublicUser, RoleSubscriptionData,
@@ -121,7 +120,7 @@ pub struct MessageInteraction {
     pub interaction_type: u8,
     pub name: String,
     pub user: User,
-    pub member: Option<Arc<RwLock<GuildMember>>>,
+    pub member: Option<Shared<GuildMember>>,
 }
 
 #[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, Eq, PartialOrd, Ord)]
@@ -219,7 +218,7 @@ pub struct EmbedField {
     inline: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Reaction {
     pub count: u32,
     pub burst_count: u32,
