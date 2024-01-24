@@ -47,6 +47,7 @@ pub struct VoiceState {
 }
 
 impl Updateable for VoiceState {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Snowflake {
         if let Some(id) = self.id {
             id // ID exists: Only the case for Spacebar Server impls
