@@ -2,7 +2,10 @@ mod common;
 
 use chorus::errors::GatewayError;
 use chorus::gateway::*;
-use chorus::types::{self, ChannelModifySchema, IntoShared, RoleCreateModifySchema, RoleObject};
+use chorus::types::{
+    self, Channel, ChannelCreateSchema, ChannelModifySchema, IntoShared, RoleCreateModifySchema,
+    RoleObject,
+};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
@@ -37,6 +40,7 @@ async fn test_gateway_authenticate() {
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_self_updating_structs() {
     let mut bundle = common::setup().await;
+
     let received_channel = bundle
         .user
         .gateway
@@ -63,6 +67,34 @@ async fn test_self_updating_structs() {
             .unwrap(),
         "selfupdating".to_string()
     );
+
+    let guild = bundle
+        .user
+        .gateway
+        .observe_and_into_inner(bundle.guild.clone())
+        .await;
+    assert!(guild.channels.is_none());
+
+    Channel::create(
+        &mut bundle.user,
+        guild.id,
+        None,
+        ChannelCreateSchema {
+            name: "selfupdating2".to_string(),
+            channel_type: Some(types::ChannelType::GuildText),
+            ..Default::default()
+        },
+    )
+    .await
+    .unwrap();
+
+    let guild = bundle
+        .user
+        .gateway
+        .observe_and_into_inner(guild.into_shared())
+        .await;
+    assert!(guild.channels.is_some());
+    assert!(guild.channels.as_ref().unwrap().len() == 1);
 
     common::teardown(bundle).await
 }
