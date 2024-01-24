@@ -39,6 +39,8 @@ async fn test_gateway_authenticate() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_self_updating_structs() {
+    // PRETTYFYME: This test is a bit of a mess, but it works. Ideally, each self-updating struct
+    // would have its own test.
     let mut bundle = common::setup().await;
 
     let received_channel = bundle
