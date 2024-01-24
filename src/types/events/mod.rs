@@ -135,6 +135,7 @@ where
     fn update(&mut self, object_to_update: Shared<T>) {
         update_object(self.get_json(), object_to_update)
     }
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake>;
 }
 

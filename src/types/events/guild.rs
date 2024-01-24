@@ -30,7 +30,9 @@ pub struct GuildCreate {
 }
 
 #[cfg(feature = "client")]
+#[cfg(not(tarpaulin_include))]
 impl UpdateMessage<Guild> for GuildCreate {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         match &self.d {
             GuildCreateDataOption::UnavailableGuild(unavailable) => Some(unavailable.id),
@@ -92,6 +94,7 @@ impl WebSocketEvent for GuildUpdate {}
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildUpdate {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild.id)
     }
@@ -111,6 +114,7 @@ pub struct GuildDelete {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildDelete {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild.id)
     }
@@ -225,6 +229,7 @@ impl WebSocketEvent for GuildRoleCreate {}
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildRoleCreate {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild_id)
     }
@@ -258,6 +263,7 @@ impl WebSocketEvent for GuildRoleUpdate {}
 
 #[cfg(feature = "client")]
 impl UpdateMessage<RoleObject> for GuildRoleUpdate {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.role.id)
     }
