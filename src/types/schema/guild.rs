@@ -78,7 +78,7 @@ impl std::default::Default for GetUserGuildSchema {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 pub struct GuildPreview {
     pub id: Snowflake,
     pub name: String,

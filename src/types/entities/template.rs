@@ -1,8 +1,7 @@
-use std::sync::{Arc, RwLock};
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Shared;
 use crate::types::{
     entities::{Guild, User},
     utils::Snowflake,
@@ -18,13 +17,13 @@ pub struct GuildTemplate {
     pub usage_count: Option<u64>,
     pub creator_id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub creator: Arc<RwLock<User>>,
+    pub creator: Shared<User>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub source_guild_id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub source_guild: Vec<Arc<RwLock<Guild>>>,
+    pub source_guild: Vec<Shared<Guild>>,
     // Unsure how a {recursive: Guild} looks like, might be a Vec?
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub serialized_source_guild: Vec<Arc<RwLock<Guild>>>,
+    pub serialized_source_guild: Vec<Shared<Guild>>,
 }

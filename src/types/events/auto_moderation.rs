@@ -31,7 +31,9 @@ pub struct AutoModerationRuleUpdate {
 }
 
 #[cfg(feature = "client")]
+#[cfg(not(tarpaulin_include))]
 impl UpdateMessage<AutoModerationRule> for AutoModerationRuleUpdate {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.rule.id)
     }

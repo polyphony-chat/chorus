@@ -111,7 +111,8 @@ impl Observer<VoiceReady> for VoiceHandler {
 
         *self.voice_udp_connection.lock().await = Some(udp_handle.clone());
 
-        let string_ip_address = String::from_utf8(ip_discovery.address).expect("Ip discovery gave non string ip");
+        let string_ip_address =
+            String::from_utf8(ip_discovery.address).expect("Ip discovery gave non string ip");
 
         self.voice_gateway_connection
             .lock()

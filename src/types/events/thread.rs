@@ -32,6 +32,7 @@ impl WebSocketEvent for ThreadUpdate {}
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Channel> for ThreadUpdate {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.thread.id)
     }

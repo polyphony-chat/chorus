@@ -15,20 +15,29 @@ impl ConfigEntity {
         let Some(v) = self.value.as_ref() else {
             return None;
         };
-        Some(v.as_str().expect("value is not a string").to_string())
+        let Some(v) = v.as_str() else {
+            return None;
+        };
+        Some(v.to_string())
     }
 
     pub fn as_bool(&self) -> Option<bool> {
         let Some(v) = self.value.as_ref() else {
             return None;
         };
-        Some(v.as_bool().expect("value is not a boolean"))
+        let Some(v) = v.as_bool() else {
+            return None;
+        };
+        Some(v)
     }
 
     pub fn as_int(&self) -> Option<i64> {
         let Some(v) = self.value.as_ref() else {
             return None;
         };
-        Some(v.as_i64().expect("value is not a number"))
+        let Some(v) = v.as_i64() else {
+            return None;
+        };
+        Some(v)
     }
 }

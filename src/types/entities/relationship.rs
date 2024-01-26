@@ -1,9 +1,8 @@
-use std::sync::{Arc, RwLock};
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+use crate::gateway::Shared;
 use crate::types::Snowflake;
 
 use super::PublicUser;
@@ -15,7 +14,7 @@ pub struct Relationship {
     #[serde(rename = "type")]
     pub relationship_type: RelationshipType,
     pub nickname: Option<String>,
-    pub user: Arc<RwLock<PublicUser>>,
+    pub user: Shared<PublicUser>,
     pub since: Option<DateTime<Utc>>,
 }
 

@@ -26,7 +26,7 @@ pub struct UserData {
 }
 
 impl User {
-    pub fn to_public_user(self) -> PublicUser {
+    pub fn into_public_user(self) -> PublicUser {
         PublicUser::from(self)
     }
 }
@@ -133,7 +133,7 @@ bitflags::bitflags! {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct UserProfileMetadata {
     pub guild_id: Option<Snowflake>,
     pub pronouns: String,

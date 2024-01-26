@@ -1,4 +1,5 @@
 use crate::types::events::WebSocketEvent;
+use crate::types::IntoShared;
 use crate::types::{entities::Channel, JsonField, Snowflake, SourceUrlField};
 use chorus_macros::{JsonField, SourceUrlField};
 use chrono::{DateTime, Utc};
@@ -8,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use super::UpdateMessage;
 
 #[cfg(feature = "client")]
-use std::sync::{Arc, RwLock};
+use crate::gateway::Shared;
 
 #[cfg(feature = "client")]
 use crate::types::Guild;
@@ -38,13 +39,14 @@ impl WebSocketEvent for ChannelCreate {}
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for ChannelCreate {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         self.channel.guild_id
     }
 
-    fn update(&mut self, object_to_update: Arc<RwLock<Guild>>) {
+    fn update(&mut self, object_to_update: Shared<Guild>) {
         let mut write = object_to_update.write().unwrap();
-        let update = Arc::new(RwLock::new(self.channel.clone()));
+        let update = self.channel.clone().into_shared();
         if write.channels.is_some() {
             write.channels.as_mut().unwrap().push(update);
         } else {
@@ -68,10 +70,12 @@ impl WebSocketEvent for ChannelUpdate {}
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Channel> for ChannelUpdate {
-    fn update(&mut self, object_to_update: Arc<RwLock<Channel>>) {
+    fn update(&mut self, object_to_update: Shared<Channel>) {
         let mut write = object_to_update.write().unwrap();
         *write = self.channel.clone();
     }
+
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.channel.id)
     }
@@ -110,11 +114,12 @@ pub struct ChannelDelete {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for ChannelDelete {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         self.channel.guild_id
     }
 
-    fn update(&mut self, object_to_update: Arc<RwLock<Guild>>) {
+    fn update(&mut self, object_to_update: Shared<Guild>) {
         if self.id().is_none() {
             return;
         }
