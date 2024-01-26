@@ -1,12 +1,15 @@
 mod common;
 
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use chorus::errors::GatewayError;
 use chorus::gateway::*;
-use chorus::types::{self, ChannelModifySchema, GatewayReady, RoleCreateModifySchema, RoleObject};
+use chorus::types::{
+    self, Channel, ChannelCreateSchema, ChannelModifySchema, GatewayReady, IntoShared,
+    RoleCreateModifySchema, RoleObject,
+};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
@@ -82,7 +85,10 @@ async fn test_gateway_authenticate() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_self_updating_structs() {
+    // PRETTYFYME: This test is a bit of a mess, but it works. Ideally, each self-updating struct
+    // would have its own test.
     let mut bundle = common::setup().await;
+
     let received_channel = bundle
         .user
         .gateway
@@ -109,6 +115,34 @@ async fn test_self_updating_structs() {
             .unwrap(),
         "selfupdating".to_string()
     );
+
+    let guild = bundle
+        .user
+        .gateway
+        .observe_and_into_inner(bundle.guild.clone())
+        .await;
+    assert!(guild.channels.is_none());
+
+    Channel::create(
+        &mut bundle.user,
+        guild.id,
+        None,
+        ChannelCreateSchema {
+            name: "selfupdating2".to_string(),
+            channel_type: Some(types::ChannelType::GuildText),
+            ..Default::default()
+        },
+    )
+    .await
+    .unwrap();
+
+    let guild = bundle
+        .user
+        .gateway
+        .observe_and_into_inner(guild.into_shared())
+        .await;
+    assert!(guild.channels.is_some());
+    assert!(guild.channels.as_ref().unwrap().len() == 1);
 
     common::teardown(bundle).await
 }
@@ -144,7 +178,7 @@ async fn test_recursive_self_updating_structs() {
     bundle
         .user
         .gateway
-        .observe(Arc::new(RwLock::new(role.clone())))
+        .observe(role.clone().into_shared())
         .await;
     // Update Guild and check for Guild
     let inner_guild = guild.read().unwrap().clone();
@@ -157,7 +191,7 @@ async fn test_recursive_self_updating_structs() {
     let role_inner = bundle
         .user
         .gateway
-        .observe_and_into_inner(Arc::new(RwLock::new(role.clone())))
+        .observe_and_into_inner(role.clone().into_shared())
         .await;
     assert_eq!(role_inner.name, "yippieee");
     // Check if the change propagated

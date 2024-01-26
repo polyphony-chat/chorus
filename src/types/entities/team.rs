@@ -1,7 +1,6 @@
-use std::sync::{Arc, RwLock};
-
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Shared;
 use crate::types::entities::User;
 use crate::types::Snowflake;
 
@@ -21,5 +20,5 @@ pub struct TeamMember {
     pub membership_state: u8,
     pub permissions: Vec<String>,
     pub team_id: Snowflake,
-    pub user: Arc<RwLock<User>>,
+    pub user: Shared<User>,
 }
