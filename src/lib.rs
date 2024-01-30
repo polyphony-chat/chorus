@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 /*!
 Chorus combines all the required functionalities of a user-centric Spacebar library into one package.
 The library handles various aspects on your behalf, such as rate limiting, authentication and maintaining
