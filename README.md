@@ -53,16 +53,10 @@ To connect to a Spacebar compatible server, you need to create an [`Instance`](h
 
 ```rs
 use chorus::instance::Instance;
-use chorus::UrlBundle;
 
 #[tokio::main]
 async fn main() {
-    let bundle = UrlBundle::new(
-        "https://example.com/api".to_string(),
-        "wss://example.com/".to_string(),
-        "https://example.com/cdn".to_string(),
-    );
-    let instance = Instance::new(bundle)
+    let instance = Instance::new("https://example.com")
         .await
         .expect("Failed to connect to the Spacebar server");
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
