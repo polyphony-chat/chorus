@@ -128,7 +128,7 @@ impl HeartbeatHandler {
                 let send_result = websocket_tx.lock().await.send(msg.into()).await;
                 if send_result.is_err() {
                     // We couldn't send, the websocket is broken
-                    warn!("GW: Couldnt send heartbeat, websocket seems broken");
+                    warn!("GW: Couldn't send heartbeat, websocket seems broken");
                     break;
                 }
 

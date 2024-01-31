@@ -131,7 +131,7 @@ impl WebSocketEvent for MessageReactionRemoveEmoji {}
 /// Not documented anywhere unofficially
 ///
 /// Apparently "Message ACK refers to marking a message as read for Discord's API." (<https://github.com/Rapptz/discord.py/issues/1851>)
-/// I suspect this is sent and recieved from the gateway to let clients on other devices know the user has read a message
+/// I suspect this is sent and received from the gateway to let clients on other devices know the user has read a message
 ///
 /// {"t":"MESSAGE_ACK","s":3,"op":0,"d":{"version":52,"message_id":"1107236673638633472","last_viewed":null,"flags":null,"channel_id":"967363950217936897"}}
 pub struct MessageACK {
