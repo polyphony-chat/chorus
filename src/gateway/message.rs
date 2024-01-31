@@ -2,14 +2,14 @@ use crate::types;
 
 use super::*;
 
-/// Represents a messsage received from the gateway. This will be either a [types::GatewayReceivePayload], containing events, or a [GatewayError].
+/// Represents a message received from the gateway. This will be either a [types::GatewayReceivePayload], containing events, or a [GatewayError].
 /// This struct is used internally when handling messages.
 #[derive(Clone, Debug)]
 pub struct GatewayMessage(pub String);
 
 impl GatewayMessage {
     /// Parses the message as an error;
-    /// Returns the error if succesfully parsed, None if the message isn't an error
+    /// Returns the error if successfully parsed, None if the message isn't an error
     pub fn error(&self) -> Option<GatewayError> {
         // Some error strings have dots on the end, which we don't care about
         let processed_content = self.0.to_lowercase().replace('.', "");

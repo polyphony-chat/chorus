@@ -11,7 +11,7 @@ use super::WebSocketEvent;
 ///
 /// Sent to the server to signify lazy loading of a guild;
 /// Sent by the official client when switching to a guild or channel;
-/// After this, you should recieve message updates
+/// After this, you should receive message updates
 ///
 /// See <https://luna.gitlab.io/discord-unofficial-docs/lazy_guilds.html#op-14-lazy-request>
 ///
