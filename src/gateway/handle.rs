@@ -169,7 +169,7 @@ impl GatewayHandle {
 
     /// Closes the websocket connection and stops all gateway tasks;
     ///
-    /// Esentially pulls the plug on the gateway, leaving it possible to resume;
+    /// Essentially pulls the plug on the gateway, leaving it possible to resume;
     pub async fn close(&self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();

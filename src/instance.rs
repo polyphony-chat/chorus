@@ -181,7 +181,7 @@ impl ChorusUser {
     /// Creates a new [ChorusUser] from existing data.
     ///
     /// # Notes
-    /// This isn't the prefered way to create a ChorusUser.
+    /// This isn't the preferred way to create a ChorusUser.
     /// See [Instance::login_account] and [Instance::register_account] instead.
     pub fn new(
         belongs_to: Shared<Instance>,

@@ -44,7 +44,7 @@ let login_schema = LoginSchema {
     password: "Correct-Horse-Battery-Staple".to_string(),
     ..Default::default()
 };
-// Each user connects to the Gateway. The Gateway connection lives on a seperate thread. Depending on
+// Each user connects to the Gateway. The Gateway connection lives on a separate thread. Depending on
 // the runtime feature you choose, this can potentially take advantage of all of your computers' threads.
 let user = instance
     .login_account(login_schema)

@@ -52,7 +52,7 @@ impl TestBundle {
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 pub(crate) async fn setup() -> TestBundle {
     let instance = Instance::new("http://localhost:3001/api").await.unwrap();
-    // Requires the existance of the below user.
+    // Requires the existence of the below user.
     let reg = RegisterSchema {
         username: "integrationtestuser".into(),
         consent: true,
