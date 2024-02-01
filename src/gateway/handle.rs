@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use futures_util::SinkExt;
 use log::*;
 
@@ -169,7 +173,7 @@ impl GatewayHandle {
 
     /// Closes the websocket connection and stops all gateway tasks;
     ///
-    /// Esentially pulls the plug on the gateway, leaving it possible to resume;
+    /// Essentially pulls the plug on the gateway, leaving it possible to resume;
     pub async fn close(&self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();
