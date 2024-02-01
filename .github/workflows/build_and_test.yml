@@ -12,7 +12,7 @@ env:
 jobs:
   linux:
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
     steps:
     - uses: actions/checkout@v4
@@ -74,7 +74,7 @@ jobs:
   #       cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.88" --force
   #       SAFARIDRIVER=$(which safaridriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt" --no-fail-fast
   wasm-gecko:
-    runs-on: macos-latest
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v4
     - name: Clone spacebar server
@@ -102,7 +102,7 @@ jobs:
         cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.88" --force
         GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
   wasm-chrome:
-    runs-on: macos-latest
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v4
     - name: Clone spacebar server
