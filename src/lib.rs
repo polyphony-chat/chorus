@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 /*!
 Chorus combines all the required functionalities of a user-centric Spacebar library into one package.
 The library handles various aspects on your behalf, such as rate limiting, authentication and maintaining
@@ -44,7 +48,7 @@ let login_schema = LoginSchema {
     password: "Correct-Horse-Battery-Staple".to_string(),
     ..Default::default()
 };
-// Each user connects to the Gateway. The Gateway connection lives on a seperate thread. Depending on
+// Each user connects to the Gateway. The Gateway connection lives on a separate thread. Depending on
 // the runtime feature you choose, this can potentially take advantage of all of your computers' threads.
 let user = instance
     .login_account(login_schema)

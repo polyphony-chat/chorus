@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 //! Instance and ChorusUser objects.
 
 use std::collections::HashMap;
@@ -181,7 +185,7 @@ impl ChorusUser {
     /// Creates a new [ChorusUser] from existing data.
     ///
     /// # Notes
-    /// This isn't the prefered way to create a ChorusUser.
+    /// This isn't the preferred way to create a ChorusUser.
     /// See [Instance::login_account] and [Instance::register_account] instead.
     pub fn new(
         belongs_to: Shared<Instance>,

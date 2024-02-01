@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 //! Contains all the errors that can be returned by the library.
 use custom_error::custom_error;
 
@@ -17,7 +21,7 @@ custom_error! {
     /// Server did not respond.
     NoResponse = "Did not receive a response from the Server.",
     /// Reqwest returned an Error instead of a Response object.
-    RequestFailed{url:String, error: String} = "An error occured while trying to GET from {url}: {error}",
+    RequestFailed{url:String, error: String} = "An error occurred while trying to GET from {url}: {error}",
     /// Response received, however, it was not of the successful responses type. Used when no other, special case applies.
     ReceivedErrorCode{error_code: u16, error: String} = "Received the following error code while requesting from the route: {error_code}",
     /// Used when there is likely something wrong with the instance, the request was directed to.
