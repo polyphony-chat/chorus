@@ -76,7 +76,7 @@ impl UdpHandler {
 
         let data = ip_discovery_packet.packet();
 
-        info!("VUDP: Sending Ip Discovery {:?}", &data);
+        debug!("VUDP: Sending Ip Discovery {:?}", &data);
 
         let send_res = udp_socket.send(data).await;
         if let Err(e) = send_res {
@@ -85,7 +85,7 @@ impl UdpHandler {
             });
         }
 
-        info!("VUDP: Sent packet discovery request");
+        debug!("VUDP: Sent packet discovery request");
 
         // Handle the ip discovery response
         let received_size_or_err = udp_socket.recv(&mut buf).await;
@@ -98,16 +98,9 @@ impl UdpHandler {
 
         let received_size = received_size_or_err.unwrap();
 
-        info!(
-            "VUDP: Receiving messsage: {:?} - (expected {} vs real {})",
-            buf.clone(),
-            size,
-            received_size
-        );
-
         let receieved_ip_discovery = IpDiscoveryPacket::new(&buf).expect("Could not make ipdiscovery packet from received data, something is very wrong. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new");
 
-        info!(
+        debug!(
             "VUDP: Received ip discovery!!! {:?}",
             receieved_ip_discovery
         );
@@ -202,7 +195,7 @@ impl UdpHandler {
 
                 let decrypted = decryption_result.unwrap();
 
-                debug!("VUDP: Successfully decrypted voice data!");
+                trace!("VUDP: Successfully decrypted voice data!");
 
                 let rtp_with_decrypted_data = discortp::rtp::Rtp {
                     ssrc: rtp.get_ssrc(),
