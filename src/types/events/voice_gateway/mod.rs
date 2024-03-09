@@ -99,21 +99,21 @@ pub enum VoiceEncryptionMode {
 impl VoiceEncryptionMode {
     /// Returns whether this encryption mode uses Xsalsa20Poly1305 encryption.
     pub fn is_xsalsa20_poly1305(&self) -> bool {
-        match *self {
+        matches!(
+            *self,
             VoiceEncryptionMode::Xsalsa20Poly1305
-            | VoiceEncryptionMode::Xsalsa20Poly1305Lite
-            | VoiceEncryptionMode::Xsalsa20Poly1305Suffix
-            | VoiceEncryptionMode::Xsalsa20Poly1305LiteRtpsize => true,
-            _ => false,
-        }
+                | VoiceEncryptionMode::Xsalsa20Poly1305Lite
+                | VoiceEncryptionMode::Xsalsa20Poly1305Suffix
+                | VoiceEncryptionMode::Xsalsa20Poly1305LiteRtpsize
+        )
     }
 
     /// Returns whether this encryption mode uses AeadAes256Gcm encryption.
     pub fn is_aead_aes256_gcm(&self) -> bool {
-        match *self {
-            VoiceEncryptionMode::AeadAes256Gcm | VoiceEncryptionMode::AeadAes256GcmRtpsize => true,
-            _ => false,
-        }
+        matches!(
+            *self,
+            VoiceEncryptionMode::AeadAes256Gcm | VoiceEncryptionMode::AeadAes256GcmRtpsize
+        )
     }
 
     /// Returns whether this encryption mode uses AeadXchacha20Poly1305 encryption.
