@@ -117,7 +117,7 @@ impl User {
     /// Gets the user's settings.
     ///
     /// # Reference
-    /// See <https://luna.gitlab.io/discord-unofficial-docs/user_settings.html#get-users-me-settings>
+    /// See <https://luna.gitlab.io/discord-unofficial-docs/docs/user_settings.html#get-usersmesettings>
     pub async fn get_settings(
         token: &String,
         url_api: &String,
