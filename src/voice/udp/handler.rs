@@ -96,8 +96,6 @@ impl UdpHandler {
             });
         }
 
-        let received_size = received_size_or_err.unwrap();
-
         let receieved_ip_discovery = IpDiscoveryPacket::new(&buf).expect("Could not make ipdiscovery packet from received data, something is very wrong. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new");
 
         debug!(
