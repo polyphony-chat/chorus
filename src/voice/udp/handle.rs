@@ -220,7 +220,7 @@ impl UdpHandle {
             });
         }
 
-        debug!("VUDP: Sent rtp packet!");
+        trace!("VUDP: Sent rtp packet!");
 
         Ok(())
     }
