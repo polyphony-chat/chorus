@@ -7,8 +7,6 @@
 mod crypto;
 #[cfg(feature = "voice_gateway")]
 pub mod gateway;
-#[cfg(all(feature = "voice_udp", feature = "voice_gateway"))]
-pub mod handler;
 #[cfg(feature = "voice_udp")]
 pub mod udp;
 #[cfg(feature = "voice_udp")]
