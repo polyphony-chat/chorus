@@ -88,12 +88,38 @@ pub enum VoiceEncryptionMode {
     // Officially Undocumented
     /// Not implemented yet, we have no idea what the rtpsize nonces are.
     Xsalsa20Poly1305LiteRtpsize,
-    /// Not implemented yet
+    /// Not implemented yet, we have no idea what the nonce is.
     AeadAes256Gcm,
-    /// Not implemented yet
+    /// Not implemented yet, we have no idea what the rtpsize nonces are.
     AeadAes256GcmRtpsize,
     /// Not implemented yet, we have no idea what the rtpsize nonces are.
     AeadXchacha20Poly1305Rtpsize,
+}
+
+impl VoiceEncryptionMode {
+    /// Returns whether this encryption mode uses Xsalsa20Poly1305 encryption.
+    pub fn is_xsalsa20_poly1305(&self) -> bool {
+        match *self {
+            VoiceEncryptionMode::Xsalsa20Poly1305
+            | VoiceEncryptionMode::Xsalsa20Poly1305Lite
+            | VoiceEncryptionMode::Xsalsa20Poly1305Suffix
+            | VoiceEncryptionMode::Xsalsa20Poly1305LiteRtpsize => true,
+            _ => false,
+        }
+    }
+
+    /// Returns whether this encryption mode uses AeadAes256Gcm encryption.
+    pub fn is_aead_aes256_gcm(&self) -> bool {
+        match *self {
+            VoiceEncryptionMode::AeadAes256Gcm | VoiceEncryptionMode::AeadAes256GcmRtpsize => true,
+            _ => false,
+        }
+    }
+
+    /// Returns whether this encryption mode uses AeadXchacha20Poly1305 encryption.
+    pub fn is_aead_xchacha20_poly1305(&self) -> bool {
+        *self == VoiceEncryptionMode::AeadXchacha20Poly1305Rtpsize
+    }
 }
 
 /// The possible audio codecs to use

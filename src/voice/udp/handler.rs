@@ -188,7 +188,8 @@ impl UdpHandler {
                             return;
                         }
                         _ => {
-                            unreachable!();
+                            error!("VUDP: Failed to decrypt voice data: {}", err);
+                            return;
                         }
                     }
                 }
@@ -306,18 +307,45 @@ impl UdpHandler {
                 get_xsalsa20_poly1305_lite_nonce(packet_bytes)
             }
             _ => {
-                // TODO: Implement aead_aes256_gcm
-                todo!("This voice encryption mode is not yet implemented.");
+                error!(
+                    "This voice encryption mode ({:?}) is not yet implemented.",
+                    session_description.encryption_mode
+                );
+                return Err(VoiceUdpError::EncryptionModeNotImplemented {
+                    encryption_mode: format!("{:?}", session_description.encryption_mode),
+                });
             }
         };
 
-        let nonce = GenericArray::from_slice(&nonce_bytes);
-
         let key = GenericArray::from_slice(&session_description.secret_key);
 
-        let decryptor = XSalsa20Poly1305::new(key);
+        let decryption_result;
 
-        let decryption_result = decryptor.decrypt(nonce, ciphertext.as_ref());
+        if session_description.encryption_mode.is_xsalsa20_poly1305() {
+            let nonce = GenericArray::from_slice(&nonce_bytes);
+
+            let decryptor = XSalsa20Poly1305::new(key);
+
+            decryption_result = decryptor.decrypt(nonce, ciphertext.as_ref());
+        }
+        // Note: currently unused because I have no idea what the AeadAes256Gcm nonce is
+        /*else if session_description.encryption_mode.is_aead_aes256_gcm() {
+            let nonce = GenericArray::from_slice(&nonce_bytes);
+
+            let decryptor = Aes256Gcm::new(key);
+
+            decryption_result = decryptor.decrypt(nonce, ciphertext.as_ref());
+
+        }*/
+        else {
+            error!(
+                "This voice encryption mode ({:?}) is not yet implemented.",
+                session_description.encryption_mode
+            );
+            return Err(VoiceUdpError::EncryptionModeNotImplemented {
+                encryption_mode: format!("{:?}", session_description.encryption_mode),
+            });
+        }
 
         // Note: this may seem like we are throwing away valuable error handling data,
         // but the decryption error provides no extra info.

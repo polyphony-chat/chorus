@@ -148,32 +148,61 @@ impl UdpHandle {
                     .last_udp_encryption_nonce
                     .unwrap_or_default()
                     .wrapping_add(1);
+
                 data_lock.last_udp_encryption_nonce = Some(nonce);
                 drop(data_lock);
                 // TODO: Is le correct? This is not documented anywhere
                 let mut bytes = nonce.to_le_bytes().to_vec();
-                // This is 4 bytes, it has to be 24, so we need to append 20
+
+                // This is 4 bytes, it has to be a different size, appends 0s
                 while bytes.len() < 24 {
                     bytes.push(0);
                 }
                 bytes
             }
             _ => {
-                // TODO: Implement aead_aes256_gcm
-                todo!("This voice encryption mode is not yet implemented.");
+                error!(
+                    "This voice encryption mode ({:?}) is not yet implemented.",
+                    session_description.encryption_mode
+                );
+                return Err(VoiceUdpError::EncryptionModeNotImplemented {
+                    encryption_mode: format!("{:?}", session_description.encryption_mode),
+                });
             }
         };
 
-        let nonce = GenericArray::from_slice(&nonce_bytes);
-
         let key = GenericArray::from_slice(&session_description.secret_key);
 
-        let encryptor = XSalsa20Poly1305::new(key);
+        let encryption_result;
 
-        let encryption_result = encryptor.encrypt(nonce, payload);
+        if session_description.encryption_mode.is_xsalsa20_poly1305() {
+            let nonce = GenericArray::from_slice(&nonce_bytes);
+
+            let encryptor = XSalsa20Poly1305::new(key);
+
+            encryption_result = encryptor.encrypt(nonce, payload);
+        }
+        // Note: currently unused because I have no idea what the AeadAes256Gcm nonce is
+        /*else if session_description.encryption_mode.is_aead_aes256_gcm() {
+            let nonce = GenericArray::from_slice(&nonce_bytes);
+
+            let encryptor = Aes256Gcm::new(key);
+
+            encryption_result = encryptor.encrypt(nonce, payload);
+
+        }*/
+        else {
+            error!(
+                "This voice encryption mode ({:?}) is not yet implemented.",
+                session_description.encryption_mode
+            );
+            return Err(VoiceUdpError::EncryptionModeNotImplemented {
+                encryption_mode: format!("{:?}", session_description.encryption_mode),
+            });
+        }
 
         if encryption_result.is_err() {
-            // Safety: If encryption errors here, it's chorus' fault, and it makes no sense to
+            // Safety: If encryption fails here, it's chorus' fault, and it makes no sense to
             // return the error to the user.
             //
             // This is not an error the user should account for, which is why we throw it here.
