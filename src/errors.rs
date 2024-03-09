@@ -144,6 +144,7 @@ custom_error! {
     NoData = "We have not set received the necessary data to perform this operation.",
 
     // Encryption errors
+    EncryptionModeNotImplemented{encryption_mode: String} = "Voice encryption mode {encryption_mode} is not yet implemented.",
     NoKey = "Tried to encrypt / decrypt rtp data, but no key has been received yet",
     FailedEncryption = "Tried to encrypt rtp data, but failed. Most likely this is an issue chorus' nonce generation. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new",
     FailedDecryption = "Tried to decrypt rtp data, but failed. Most likely this is an issue chorus' nonce generation. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new",
