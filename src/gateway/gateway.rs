@@ -14,8 +14,9 @@ use super::*;
 use super::{Sink, Stream};
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
-    ChannelUpdate, Guild, GuildRoleCreate, GuildRoleUpdate, JsonField, RoleObject, SourceUrlField,
-    ThreadUpdate, UpdateMessage, WebSocketEvent,
+    ChannelUpdate, GatewayInvalidSession, GatewayReconnect, Guild, GuildRoleCreate,
+    GuildRoleUpdate, JsonField, RoleObject, SourceUrlField, ThreadUpdate, UpdateMessage,
+    WebSocketEvent,
 };
 
 #[derive(Debug)]
@@ -338,10 +339,42 @@ impl Gateway {
                     .unwrap();
             }
             GATEWAY_RECONNECT => {
-                todo!()
+                trace!("GW: Received Reconnect");
+
+                let reconnect = GatewayReconnect {};
+
+                self.events
+                    .lock()
+                    .await
+                    .session
+                    .reconnect
+                    .notify(reconnect)
+                    .await;
             }
             GATEWAY_INVALID_SESSION => {
-                todo!()
+                trace!("GW: Received Invalid Session");
+
+                let mut resumable: bool = false;
+
+                if let Some(raw_value) = gateway_payload.event_data {
+                    if let Ok(deserialized) = serde_json::from_str(raw_value.get()) {
+                        resumable = deserialized;
+                    } else {
+                        warn!("Failed to parse part of INVALID_SESSION ('{}' as bool), assuming non-resumable", raw_value.get());
+                    }
+                } else {
+                    warn!("Failed to parse part of INVALID_SESSION ('d' missing), assuming non-resumable");
+                }
+
+                let invalid_session = GatewayInvalidSession { resumable };
+
+                self.events
+                    .lock()
+                    .await
+                    .session
+                    .invalid
+                    .notify(invalid_session)
+                    .await;
             }
             // Starts our heartbeat
             // We should have already handled this in gateway init
