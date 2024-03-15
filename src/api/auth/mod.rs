@@ -4,7 +4,10 @@
 
 use std::sync::{Arc, RwLock};
 
+#[allow(unused_imports)]
 pub use login::*;
+
+#[allow(unused_imports)]
 pub use register::*;
 
 use crate::gateway::Gateway;
