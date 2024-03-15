@@ -38,7 +38,7 @@ pub struct GuildBanCreateSchema {
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
-/// Represents the schema user to modify a guild.
+/// Represents the schema used to modify a guild.
 /// See: <https://docs.discord.sex/resources/guild#modify-guild>
 pub struct GuildModifySchema {
     pub name: Option<String>,
