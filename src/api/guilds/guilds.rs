@@ -18,6 +18,25 @@ use crate::types::{
 use crate::types::{GuildBan, Snowflake};
 
 impl Guild {
+    /// Fetches a guild by its id.
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild>
+    pub async fn get(guild_id: Snowflake, user: &mut ChorusUser) -> ChorusResult<Guild> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .get(format!(
+                    "{}/guilds/{}",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id
+                ))
+                .header("Authorization", user.token()),
+            limit_type: LimitType::Guild(guild_id),
+        };
+        let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        Ok(response)
+    }
+
     /// Creates a new guild.
     ///
     /// # Reference
@@ -36,6 +55,35 @@ impl Guild {
             limit_type: LimitType::Global,
         };
         chorus_request.deserialize_response::<Guild>(user).await
+    }
+
+    /// Modify a guild's settings.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// Returns the updated guild.
+    ///
+    /// # Reference
+    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild>
+    pub async fn modify(
+        guild_id: Snowflake,
+        schema: GuildModifySchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<Guild> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/guilds/{}",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .header("Authorization", user.token())
+                .header("Content-Type", "application/json")
+                .body(to_string(&schema).unwrap()),
+            limit_type: LimitType::Guild(guild_id),
+        };
+        let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        Ok(response)
     }
 
     /// Deletes a guild by its id.
@@ -127,77 +175,11 @@ impl Guild {
         };
     }
 
-    /// Fetches a guild by its id.
+    /// Returns a guild preview object for the given guild ID.
     ///
-    /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild>
-    pub async fn get(guild_id: Snowflake, user: &mut ChorusUser) -> ChorusResult<Guild> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .get(format!(
-                    "{}/guilds/{}",
-                    user.belongs_to.read().unwrap().urls.api,
-                    guild_id
-                ))
-                .header("Authorization", user.token()),
-            limit_type: LimitType::Guild(guild_id),
-        };
-        let response = chorus_request.deserialize_response::<Guild>(user).await?;
-        Ok(response)
-    }
-
-    pub async fn create_ban(
-        guild_id: Snowflake,
-        user_id: Snowflake,
-        audit_log_reason: Option<String>,
-        schema: GuildBanCreateSchema,
-        user: &mut ChorusUser,
-    ) -> ChorusResult<()> {
-        // FIXME: Return GuildBan instead of (). Requires <https://github.com/spacebarchat/server/issues/1096> to be resolved.
-        let request = ChorusRequest::new(
-            http::Method::PUT,
-            format!(
-                "{}/guilds/{}/bans/{}",
-                user.belongs_to.read().unwrap().urls.api,
-                guild_id,
-                user_id
-            )
-            .as_str(),
-            Some(to_string(&schema).unwrap()),
-            audit_log_reason.as_deref(),
-            None,
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
-        request.handle_request_as_result(user).await
-    }
-
-    /// # Reference
-    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild>
-    pub async fn modify(
-        guild_id: Snowflake,
-        schema: GuildModifySchema,
-        user: &mut ChorusUser,
-    ) -> ChorusResult<Guild> {
-        let chorus_request = ChorusRequest {
-            request: Client::new()
-                .patch(format!(
-                    "{}/guilds/{}",
-                    user.belongs_to.read().unwrap().urls.api,
-                    guild_id,
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&schema).unwrap()),
-            limit_type: LimitType::Guild(guild_id),
-        };
-        let response = chorus_request.deserialize_response::<Guild>(user).await?;
-        Ok(response)
-    }
-
-    /// Returns a guild preview object for the given guild ID. If the user is not in the guild, the guild must be discoverable.
+    /// If the user is not in the guild, the guild must be discoverable.
+    ///
     /// # Reference:
-    ///
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-preview>
     pub async fn get_preview(
         guild_id: Snowflake,
@@ -274,7 +256,9 @@ impl Guild {
         request.deserialize_response::<Vec<GuildMember>>(user).await
     }
 
-    /// Removes a member from a guild. Requires the KICK_MEMBERS permission. Returns a 204 empty response on success.
+    /// Removes a member from a guild.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member>
@@ -387,7 +371,9 @@ impl Guild {
             .await
     }
 
-    /// Returns a list of ban objects for the guild. Requires the `BAN_MEMBERS` permission.
+    /// Returns a list of ban objects for the guild.
+    ///
+    /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
     /// # Reference:
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-bans>
@@ -417,7 +403,9 @@ impl Guild {
         request.deserialize_response::<Vec<GuildBan>>(user).await
     }
 
-    /// Returns a ban object for the given user. Requires the `BAN_MEMBERS` permission.
+    /// Returns a ban object for the given user.
+    ///
+    /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
     /// # Reference:
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-ban>
@@ -445,7 +433,39 @@ impl Guild {
         request.deserialize_response::<GuildBan>(user).await
     }
 
-    /// Removes the ban for a user. Requires the BAN_MEMBERS permissions. Returns a 204 empty response on success.
+    /// Creates a ban from the guild.
+    ///
+    /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
+    ///
+    pub async fn create_ban(
+        guild_id: Snowflake,
+        user_id: Snowflake,
+        audit_log_reason: Option<String>,
+        schema: GuildBanCreateSchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<()> {
+        // FIXME: Return GuildBan instead of (). Requires <https://github.com/spacebarchat/server/issues/1096> to be resolved.
+        let request = ChorusRequest::new(
+            http::Method::PUT,
+            format!(
+                "{}/guilds/{}/bans/{}",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id,
+                user_id
+            )
+            .as_str(),
+            Some(to_string(&schema).unwrap()),
+            audit_log_reason.as_deref(),
+            None,
+            Some(user),
+            LimitType::Guild(guild_id),
+        );
+        request.handle_request_as_result(user).await
+    }
+
+    /// Removes the ban for a user.
+    ///
+    /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
     /// # Reference:
     /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild-ban>

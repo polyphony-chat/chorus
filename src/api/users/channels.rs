@@ -13,6 +13,26 @@ use crate::{
 };
 
 impl ChorusUser {
+    /// Fetches a list of private channels the user is in.
+    ///
+    /// # Reference:
+    /// See <https://docs.discord.sex/resources/channel#get-private-channels>
+    pub async fn get_private_channels(&mut self) -> ChorusResult<Vec<Channel>> {
+        let url = format!(
+            "{}/users/@me/channels",
+            self.belongs_to.read().unwrap().urls.api
+        );
+        ChorusRequest {
+            request: Client::new()
+                .get(url)
+                .header("Authorization", self.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Global,
+        }
+        .deserialize_response::<Vec<Channel>>(self)
+        .await
+    }
+
     /// Creates a DM channel or group DM channel.
     ///
     /// One recipient creates or returns an existing DM channel,
