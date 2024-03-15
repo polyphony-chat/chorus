@@ -3,6 +3,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 //! All of the API's endpoints.
+
+#![allow(unused_imports)]
 pub use channels::messages::*;
 pub use guilds::*;
 pub use invites::*;
