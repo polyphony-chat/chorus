@@ -13,7 +13,7 @@ impl Guild {
     /// permission to be present on the current user.
     ///
     /// If the guild/channel you are searching is not yet indexed, the endpoint will return a 202 accepted response.
-    /// In this case, the method will return a [`ChorusError::InvalidResponse`] error.
+    /// In this case, the method will return a [`ChorusError::InvalidResponse`](crate::errors::ChorusError::InvalidResponse) error.
     ///
     /// # Reference:
     /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>

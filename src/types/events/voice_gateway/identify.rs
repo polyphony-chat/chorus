@@ -6,17 +6,20 @@ use crate::types::{Snowflake, WebSocketEvent};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
-/// The identify payload for the webrtc stream;
-/// Contains info to begin a webrtc connection;
-/// See https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload;
+/// The identify payload for the voice gateway connection;
+///
+/// Contains authentication info and context to authenticate to the voice gateway.
+///
+/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#identify-structure>
 pub struct VoiceIdentify {
-    server_id: Snowflake,
-    user_id: Snowflake,
-    session_id: String,
-    token: String,
+    /// The ID of the guild or the private channel being connected to
+    pub server_id: Snowflake,
+    pub user_id: Snowflake,
+    pub session_id: String,
+    pub token: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    /// Undocumented field, but is also in discord client comms
-    video: Option<bool>,
+    pub video: Option<bool>,
+    // TODO: Add video streams
 }
 
 impl WebSocketEvent for VoiceIdentify {}

@@ -98,6 +98,12 @@ pub struct GatewayEvent<T: WebSocketEvent> {
 }
 
 impl<T: WebSocketEvent> GatewayEvent<T> {
+    pub fn new() -> Self {
+        Self {
+            observers: Vec::new(),
+        }
+    }
+
     /// Returns true if the GatewayEvent is observed by at least one Observer.
     pub fn is_observed(&self) -> bool {
         !self.observers.is_empty()
@@ -120,7 +126,7 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 
     /// Notifies the observers of the GatewayEvent.
-    async fn notify(&self, new_event_data: T) {
+    pub(crate) async fn notify(&self, new_event_data: T) {
         for observer in &self.observers {
             observer.update(&new_event_data).await;
         }

@@ -4,16 +4,25 @@
 
 mod common;
 
+use std::sync::Arc;
+use std::time::Duration;
+
+use async_trait::async_trait;
 use chorus::errors::GatewayError;
 use chorus::gateway::*;
 use chorus::types::{
-    self, Channel, ChannelCreateSchema, ChannelModifySchema, IntoShared, RoleCreateModifySchema,
-    RoleObject,
+    self, Channel, ChannelCreateSchema, ChannelModifySchema, GatewayReady, IntoShared,
+    RoleCreateModifySchema, RoleObject,
 };
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test_configure!(run_in_browser);
+
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::sleep;
+#[cfg(target_arch = "wasm32")]
+use wasmtimer::tokio::sleep;
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
@@ -25,6 +34,18 @@ async fn test_gateway_establish() {
     common::teardown(bundle).await
 }
 
+#[derive(Debug)]
+struct GatewayReadyObserver {
+    channel: tokio::sync::mpsc::Sender<()>,
+}
+
+#[async_trait]
+impl Observer<GatewayReady> for GatewayReadyObserver {
+    async fn update(&self, _data: &GatewayReady) {
+        self.channel.send(()).await.unwrap();
+    }
+}
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 /// Tests establishing a connection and authenticating
@@ -33,10 +54,35 @@ async fn test_gateway_authenticate() {
 
     let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
 
+    let (ready_send, mut ready_receive) = tokio::sync::mpsc::channel(1);
+
+    let observer = Arc::new(GatewayReadyObserver {
+        channel: ready_send,
+    });
+
+    gateway
+        .events
+        .lock()
+        .await
+        .session
+        .ready
+        .subscribe(observer);
+
     let mut identify = types::GatewayIdentifyPayload::common();
     identify.token = bundle.user.token.clone();
 
     gateway.send_identify(identify).await;
+
+    tokio::select! {
+        // Fail, we timed out waiting for it
+        () = sleep(Duration::from_secs(20)) => {
+            println!("Timed out waiting for event, failing..");
+            assert!(false);
+        }
+        // Sucess, we have received it
+        Some(_) = ready_receive.recv() => {}
+    };
+
     common::teardown(bundle).await
 }
 
