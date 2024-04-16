@@ -7,7 +7,7 @@ use log::*;
 
 use std::fmt::Debug;
 
-use super::{event::Events, *};
+use super::{events::Events, *};
 use crate::types::{self, Composite};
 
 /// Represents a handle to a Gateway connection. A Gateway connection will create observable

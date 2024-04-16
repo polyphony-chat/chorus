@@ -67,7 +67,7 @@ custom_error! {
 }
 
 custom_error! {
-    /// For errors we receive from the gateway, see https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#gateway-close-event-codes;
+    /// For errors we receive from the gateway, see <https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#gateway-close-event-codes>;
     ///
     /// Supposed to be sent as numbers, though they are sent as string most of the time?
     ///
@@ -100,3 +100,59 @@ custom_error! {
 }
 
 impl WebSocketEvent for GatewayError {}
+
+custom_error! {
+    /// Voice Gateway errors
+    ///
+    /// Similar to [GatewayError].
+    ///
+    /// See <https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice-voice-close-event-codes>;
+    #[derive(Clone, Default, PartialEq, Eq)]
+    pub VoiceGatewayError
+    // Errors we receive
+    #[default]
+    UnknownOpcode = "You sent an invalid opcode",
+    FailedToDecodePayload = "You sent an invalid payload in your identifying to the (Voice) Gateway",
+    NotAuthenticated = "You sent a payload before identifying with the (Voice) Gateway",
+    AuthenticationFailed = "The token you sent in your identify payload is incorrect",
+    AlreadyAuthenticated = "You sent more than one identify payload",
+    SessionNoLongerValid = "Your session is no longer valid",
+    SessionTimeout = "Your session has timed out",
+    ServerNotFound = "We can't find the server you're trying to connect to",
+    UnknownProtocol = "We didn't recognize the protocol you sent",
+    Disconnected = "Channel was deleted, you were kicked, voice server changed, or the main gateway session was dropped. Should not reconnect.",
+    VoiceServerCrashed = "The server crashed, try resuming",
+    UnknownEncryptionMode = "Server failed to decrypt data",
+
+    // Errors when initiating a gateway connection
+    CannotConnect{error: String} = "Cannot connect due to a tungstenite error: {error}",
+    NonHelloOnInitiate{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
+
+    // Other misc errors
+    UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
+}
+
+impl WebSocketEvent for VoiceGatewayError {}
+
+custom_error! {
+    /// Voice UDP errors.
+    #[derive(Clone, PartialEq, Eq)]
+    pub VoiceUdpError
+
+    // General errors
+    BrokenSocket{error: String} = "Could not write / read from UDP socket: {error}",
+    NoData = "We have not set received the necessary data to perform this operation.",
+
+    // Encryption errors
+    EncryptionModeNotImplemented{encryption_mode: String} = "Voice encryption mode {encryption_mode} is not yet implemented.",
+    NoKey = "Tried to encrypt / decrypt rtp data, but no key has been received yet",
+    FailedEncryption = "Tried to encrypt rtp data, but failed. Most likely this is an issue chorus' nonce generation. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new",
+    FailedDecryption = "Tried to decrypt rtp data, but failed. Most likely this is an issue chorus' nonce generation. Please open an issue on the chorus github: https://github.com/polyphony-chat/chorus/issues/new",
+    FailedNonceGeneration{error: String} = "Tried to generate nonce, but failed due to error: {error}.",
+
+    // Errors when initiating a socket connection
+    CannotBind{error: String} = "Cannot bind socket due to a UDP error: {error}",
+    CannotConnect{error: String} = "Cannot connect due to a UDP error: {error}",
+}
+
+impl WebSocketEvent for VoiceUdpError {}

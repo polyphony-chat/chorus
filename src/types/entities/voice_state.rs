@@ -37,6 +37,7 @@ pub struct VoiceState {
     pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
     pub member: Option<Shared<GuildMember>>,
+    /// Includes alphanumeric characters, not a snowflake
     pub session_id: String,
     pub token: Option<String>,
     pub deaf: bool,
