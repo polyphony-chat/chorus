@@ -9,7 +9,7 @@ use crate::types::{Snowflake, WebSocketEvent};
 
 /// Event that tells the server we are speaking;
 ///
-/// Essentially, what allows us to send udp data and lights up the green circle around your avatar.
+/// Essentially, what allows us to send UDP data and lights up the green circle around your avatar.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#speaking-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]

@@ -34,7 +34,7 @@ pub enum VoiceProtocol {
     #[default]
     /// Sending data via UDP, documented and the only protocol chorus supports.
     Udp,
-    // Possible value, yet NOT RECOMMENED, AS CHORUS DOES NOT SUPPORT WEBRTC
+    // Possible value, yet NOT RECOMMENDED, AS CHORUS DOES NOT SUPPORT WEBRTC
     //Webrtc,
 }
 
@@ -43,9 +43,9 @@ pub enum VoiceProtocol {
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#protocol-data-structure>
 pub struct SelectProtocolData {
-    /// Our external ip we got from ip discovery
+    /// Our external IP we got from IP discovery
     pub address: String,
-    /// Our external udp port we got from id discovery
+    /// Our external UDP port we got from IP discovery
     pub port: u16,
     /// The mode of encryption to use
     pub mode: VoiceEncryptionMode,

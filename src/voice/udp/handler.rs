@@ -42,9 +42,9 @@ pub struct UdpHandler {
 }
 
 impl UdpHandler {
-    /// Spawns a new udp handler and performs ip discovery.
+    /// Spawns a new UDP handler and performs IP discovery.
     ///
-    /// Mutates the given data_reference with the ip discovery data.
+    /// Mutates the given data_reference with the IP discovery data.
     pub async fn spawn(
         data_reference: Arc<RwLock<VoiceData>>,
         url: SocketAddr,
@@ -141,7 +141,7 @@ impl UdpHandler {
 
     /// The main listen task;
     ///
-    /// Receives udp messages and parses them.
+    /// Receives UDP messages and parses them.
     async fn listen_task(&mut self) {
         loop {
             // FIXME: is there a max size for these packets?
@@ -150,7 +150,7 @@ impl UdpHandler {
             // Update: see <https://stackoverflow.com/questions/58097580/rtp-packet-maximum-size>
             // > "The RTP standard does not set a maximum size.."
             //
-            // The theorhetical max for this buffer would be 1458 bytes, but that is imo
+            // The theoretical max for this buffer would be 1458 bytes, but that is imo
             // unreasonable to allocate for every message.
             let mut buf: Vec<u8> = vec![0; 512];
 

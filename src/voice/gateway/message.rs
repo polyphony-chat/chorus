@@ -14,7 +14,7 @@ pub struct VoiceGatewayMessage(pub String);
 
 impl VoiceGatewayMessage {
     /// Parses the message as an error;
-    /// Returns the error if succesfully parsed, None if the message isn't an error
+    /// Returns the error if successfully parsed, None if the message isn't an error
     pub fn error(&self) -> Option<VoiceGatewayError> {
         // Some error strings have dots on the end, which we don't care about
         let processed_content = self.0.to_lowercase().replace('.', "");

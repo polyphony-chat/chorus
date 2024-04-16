@@ -140,7 +140,7 @@ custom_error! {
     pub VoiceUdpError
 
     // General errors
-    BrokenSocket{error: String} = "Could not write / read from udp socket: {error}",
+    BrokenSocket{error: String} = "Could not write / read from UDP socket: {error}",
     NoData = "We have not set received the necessary data to perform this operation.",
 
     // Encryption errors
@@ -151,8 +151,8 @@ custom_error! {
     FailedNonceGeneration{error: String} = "Tried to generate nonce, but failed due to error: {error}.",
 
     // Errors when initiating a socket connection
-    CannotBind{error: String} = "Cannot bind socket due to a udp error: {error}",
-    CannotConnect{error: String} = "Cannot connect due to a udp error: {error}",
+    CannotBind{error: String} = "Cannot bind socket due to a UDP error: {error}",
+    CannotConnect{error: String} = "Cannot connect due to a UDP error: {error}",
 }
 
 impl WebSocketEvent for VoiceUdpError {}

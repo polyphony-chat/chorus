@@ -61,7 +61,7 @@ pub struct VoiceGatewayReceivePayload<'a> {
 
 impl<'a> WebSocketEvent for VoiceGatewayReceivePayload<'a> {}
 
-/// The modes of encryption available in voice udp connections;
+/// The modes of encryption available in voice UDP connections;
 ///
 /// Not all encryption modes are implemented; it is generally recommended
 /// to use either [[VoiceEncryptionMode::Xsalsa20Poly1305]] or

@@ -40,7 +40,7 @@ use tokio::sync::{Mutex, RwLock};
 extern crate chorus;
 extern crate tokio;
 
-/// Handles inbetween connections between the gateway and udp modules
+/// Handles in between connections between the gateway and UDP modules
 #[derive(Debug, Clone)]
 pub struct VoiceHandler {
     pub voice_gateway_connection: Arc<Mutex<Option<VoiceGatewayHandle>>>,
@@ -49,7 +49,7 @@ pub struct VoiceHandler {
 }
 
 impl VoiceHandler {
-    /// Creates a new voicehandler, only initializing the data
+    /// Creates a new [VoiceHandler], only initializing the data
     pub fn new() -> VoiceHandler {
         Self {
             data: Arc::new(RwLock::new(VoiceData::default())),
@@ -66,7 +66,7 @@ impl Default for VoiceHandler {
 }
 
 #[async_trait]
-// On [VoiceServerUpdate] we get our starting data and url for the voice gateway server.
+// On [VoiceServerUpdate] we get our starting data and URL for the voice gateway server.
 impl Observer<VoiceServerUpdate> for VoiceHandler {
     async fn update(&self, data: &VoiceServerUpdate) {
         let mut data_lock = self.data.write().await;
@@ -121,7 +121,7 @@ impl Observer<VoiceServerUpdate> for VoiceHandler {
 }
 
 #[async_trait]
-// On [VoiceReady] we get info for establishing a UDP connection, and we immedietly need said UDP
+// On [VoiceReady] we get info for establishing a UDP connection, and we immediately need said UDP
 // connection for ip discovery.
 impl Observer<VoiceReady> for VoiceHandler {
     async fn update(&self, data: &VoiceReady) {
