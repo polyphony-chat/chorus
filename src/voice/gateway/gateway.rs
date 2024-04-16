@@ -37,6 +37,7 @@ pub struct VoiceGateway {
     websocket_send: Arc<Mutex<Sink>>,
     websocket_receive: Stream,
     kill_send: tokio::sync::broadcast::Sender<()>,
+    kill_receive: tokio::sync::broadcast::Receiver<()>,
 }
 
 impl VoiceGateway {
@@ -89,6 +90,7 @@ impl VoiceGateway {
             websocket_send: shared_websocket_send.clone(),
             websocket_receive,
             kill_send: kill_send.clone(),
+            kill_receive: kill_send.subscribe(),
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
@@ -114,7 +116,17 @@ impl VoiceGateway {
     /// Can only be stopped by closing the websocket, cannot be made to listen for kill
     pub async fn gateway_listen_task(&mut self) {
         loop {
-            let msg = self.websocket_receive.next().await;
+            let msg;
+
+            tokio::select! {
+                Ok(_) = self.kill_receive.recv() => {
+                    log::trace!("VGW: Closing listener task");
+                    break;
+                }
+                message = self.websocket_receive.next() => {
+                    msg = message;
+                }
+            }
 
             // PRETTYFYME: Remove inline conditional compiling
             #[cfg(not(target_arch = "wasm32"))]

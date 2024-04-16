@@ -98,11 +98,6 @@ impl VoiceHeartbeatHandler {
         let mut nonce: u64 = starting_nonce;
 
         loop {
-            if kill_receive.try_recv().is_ok() {
-                trace!("VGW: Closing heartbeat task");
-                break;
-            }
-
             let timeout = if last_heartbeat_acknowledged {
                 heartbeat_interval
             } else {
@@ -135,6 +130,10 @@ impl VoiceHeartbeatHandler {
                             _ => {}
                         }
                     }
+                }
+                Ok(_) = kill_receive.recv() => {
+                    log::trace!("VGW: Closing heartbeat task");
+                    break;
                 }
             }
 
