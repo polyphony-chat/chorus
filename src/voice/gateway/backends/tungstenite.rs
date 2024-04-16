@@ -30,7 +30,7 @@ impl TungsteniteBackend {
 
         if let Err(e) = certs {
             log::error!("Failed to load platform native certs! {:?}", e);
-            return Err(GatewayError::CannotConnect {
+            return Err(VoiceGatewayError::CannotConnect {
                 error: format!("{:?}", e),
             });
         }
