@@ -1,13 +1,14 @@
 [package]
 name = "chorus"
 description = "A library for interacting with multiple Spacebar-compatible Instances at once."
-version = "0.14.0"
+version = "0.15.0"
 license = "MPL-2.0"
 edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
 readme = "README.md"
 keywords = ["spacebar", "discord", "polyphony"]
 website = ["https://discord.com/invite/m3FpcapGDD"]
+rust-version = "1.67.1"
 
 
 [features]
