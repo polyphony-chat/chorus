@@ -112,8 +112,6 @@ impl VoiceGateway {
     }
 
     /// The main gateway listener task;
-    ///
-    /// Can only be stopped by closing the websocket, cannot be made to listen for kill
     pub async fn gateway_listen_task(&mut self) {
         loop {
             let msg;
