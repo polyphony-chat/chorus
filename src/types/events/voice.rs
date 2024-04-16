@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use crate::types::{events::WebSocketEvent, Snowflake, VoiceState};
 use serde::{Deserialize, Serialize};
 
@@ -34,7 +38,10 @@ impl WebSocketEvent for VoiceStateUpdate {}
 /// Received to indicate which voice endpoint, token and guild_id to use;
 pub struct VoiceServerUpdate {
     pub token: String,
-    pub guild_id: Snowflake,
+    /// The guild this voice server update is for
+    pub guild_id: Option<Snowflake>,
+    /// The private channel this voice server update is for
+    pub channel_id: Option<Snowflake>,
     pub endpoint: Option<String>,
 }
 

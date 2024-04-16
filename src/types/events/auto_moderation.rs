@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use crate::types::{JsonField, SourceUrlField};
 use chorus_macros::{JsonField, SourceUrlField};
 use serde::{Deserialize, Serialize};
@@ -31,7 +35,9 @@ pub struct AutoModerationRuleUpdate {
 }
 
 #[cfg(feature = "client")]
+#[cfg(not(tarpaulin_include))]
 impl UpdateMessage<AutoModerationRule> for AutoModerationRuleUpdate {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.rule.id)
     }

@@ -1,6 +1,9 @@
-use std::sync::{Arc, RwLock};
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use chorus::gateway::Gateway;
+use chorus::gateway::{Gateway, Shared};
+use chorus::types::IntoShared;
 use chorus::{
     instance::{ChorusUser, Instance},
     types::{
@@ -16,9 +19,9 @@ pub(crate) struct TestBundle {
     pub urls: UrlBundle,
     pub user: ChorusUser,
     pub instance: Instance,
-    pub guild: Arc<RwLock<Guild>>,
-    pub role: Arc<RwLock<RoleObject>>,
-    pub channel: Arc<RwLock<Channel>>,
+    pub guild: Shared<Guild>,
+    pub role: Shared<RoleObject>,
+    pub channel: Shared<Channel>,
 }
 
 #[allow(unused)]
@@ -53,7 +56,7 @@ impl TestBundle {
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 pub(crate) async fn setup() -> TestBundle {
     let instance = Instance::new("http://localhost:3001/api").await.unwrap();
-    // Requires the existance of the below user.
+    // Requires the existence of the below user.
     let reg = RegisterSchema {
         username: "integrationtestuser".into(),
         consent: true,
@@ -119,9 +122,9 @@ pub(crate) async fn setup() -> TestBundle {
         urls,
         user,
         instance,
-        guild: Arc::new(RwLock::new(guild)),
-        role: Arc::new(RwLock::new(role)),
-        channel: Arc::new(RwLock::new(channel)),
+        guild: guild.into_shared(),
+        role: role.into_shared(),
+        channel: channel.into_shared(),
     }
 }
 

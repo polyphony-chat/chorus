@@ -13,13 +13,14 @@ jobs:
   linux:
 
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     
     steps:
     - uses: actions/checkout@v4
     - name: Clone spacebar server
       run: |
         git clone https://github.com/bitfl0wer/server.git
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
           node-version: 18
           cache: 'npm'
@@ -52,7 +53,7 @@ jobs:
   #   - name: Clone spacebar server
   #     run: |
   #       git clone https://github.com/bitfl0wer/server.git
-  #   - uses: actions/setup-node@v3
+  #   - uses: actions/setup-node@v4
   #     with:
   #         node-version: 18
   #         cache: 'npm'
@@ -75,12 +76,13 @@ jobs:
   #       SAFARIDRIVER=$(which safaridriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt" --no-fail-fast
   wasm-gecko:
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
     - name: Clone spacebar server
       run: |
         git clone https://github.com/bitfl0wer/server.git
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
           node-version: 18
           cache: 'npm'
@@ -100,15 +102,16 @@ jobs:
         rustup target add wasm32-unknown-unknown
         curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
         cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.88" --force
-        GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
+        GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt, voice_gateway"
   wasm-chrome:
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
     - name: Clone spacebar server
       run: |
         git clone https://github.com/bitfl0wer/server.git
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
           node-version: 18
           cache: 'npm'
@@ -128,4 +131,4 @@ jobs:
         rustup target add wasm32-unknown-unknown
         curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
         cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.88" --force
-        CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
+        CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt, voice_gateway"

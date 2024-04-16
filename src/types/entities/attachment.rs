@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
@@ -54,74 +58,4 @@ pub struct PartialDiscordFileAttachment {
     pub waveform: Option<String>,
     #[serde(skip_serializing)]
     pub content: Vec<u8>,
-}
-
-impl PartialDiscordFileAttachment {
-    /// Moves `self.content` out of `self` and returns it.
-    pub fn move_content(self) -> (Vec<u8>, PartialDiscordFileAttachment) {
-        let content = self.content;
-        let updated_struct = PartialDiscordFileAttachment {
-            id: self.id,
-            filename: self.filename,
-            description: self.description,
-            content_type: self.content_type,
-            size: self.size,
-            url: self.url,
-            proxy_url: self.proxy_url,
-            height: self.height,
-            width: self.width,
-            ephemeral: self.ephemeral,
-            duration_secs: self.duration_secs,
-            waveform: self.waveform,
-            content: Vec::new(),
-        };
-        (content, updated_struct)
-    }
-
-    /// Moves `self.filename` out of `self` and returns it.
-    pub fn move_filename(self) -> (String, PartialDiscordFileAttachment) {
-        let filename = self.filename;
-        let updated_struct = PartialDiscordFileAttachment {
-            id: self.id,
-            filename: String::new(),
-            description: self.description,
-            content_type: self.content_type,
-            size: self.size,
-            url: self.url,
-            proxy_url: self.proxy_url,
-            height: self.height,
-            width: self.width,
-
-            ephemeral: self.ephemeral,
-            duration_secs: self.duration_secs,
-            waveform: self.waveform,
-            content: self.content,
-        };
-        (filename, updated_struct)
-    }
-
-    /// Moves `self.content_type` out of `self` and returns it.
-    pub fn move_content_type(self) -> (Option<String>, PartialDiscordFileAttachment) {
-        let content_type = self.content_type;
-        let updated_struct = PartialDiscordFileAttachment {
-            id: self.id,
-            filename: self.filename,
-            description: self.description,
-            content_type: None,
-            size: self.size,
-            url: self.url,
-            proxy_url: self.proxy_url,
-            height: self.height,
-            width: self.width,
-            ephemeral: self.ephemeral,
-            duration_secs: self.duration_secs,
-            waveform: self.waveform,
-            content: self.content,
-        };
-        (content_type, updated_struct)
-    }
-
-    pub fn set_id(&mut self, id: i16) {
-        self.id = Some(id);
-    }
 }

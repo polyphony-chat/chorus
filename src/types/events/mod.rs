@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use serde::{Deserialize, Serialize};
 
 pub use application::*;
@@ -10,12 +14,14 @@ pub use hello::*;
 pub use identify::*;
 pub use integration::*;
 pub use interaction::*;
+pub use invalid_session::*;
 pub use invite::*;
 pub use lazy_request::*;
 pub use message::*;
 pub use passive_update::*;
 pub use presence::*;
 pub use ready::*;
+pub use reconnect::*;
 pub use relationship::*;
 pub use request_members::*;
 pub use resume::*;
@@ -24,8 +30,8 @@ pub use stage_instance::*;
 pub use thread::*;
 pub use user::*;
 pub use voice::*;
+pub use voice_gateway::*;
 pub use webhooks::*;
-pub use webrtc::*;
 
 #[cfg(feature = "client")]
 use super::Snowflake;
@@ -39,9 +45,9 @@ use serde_json::{from_str, from_value, to_value, Value};
 #[cfg(feature = "client")]
 use std::collections::HashMap;
 
-use std::fmt::Debug;
 #[cfg(feature = "client")]
-use std::sync::{Arc, RwLock};
+use crate::gateway::Shared;
+use std::fmt::Debug;
 
 #[cfg(feature = "client")]
 use serde::de::DeserializeOwned;
@@ -56,12 +62,14 @@ mod hello;
 mod identify;
 mod integration;
 mod interaction;
+mod invalid_session;
 mod invite;
 mod lazy_request;
 mod message;
 mod passive_update;
 mod presence;
 mod ready;
+mod reconnect;
 mod relationship;
 mod request_members;
 mod resume;
@@ -72,7 +80,7 @@ mod user;
 mod voice;
 mod webhooks;
 
-mod webrtc;
+mod voice_gateway;
 
 pub trait WebSocketEvent: Send + Sync + Debug {}
 
@@ -132,9 +140,10 @@ pub(crate) trait UpdateMessage<T>: Clone + JsonField + SourceUrlField
 where
     T: Updateable + Serialize + DeserializeOwned + Clone,
 {
-    fn update(&mut self, object_to_update: Arc<RwLock<T>>) {
+    fn update(&mut self, object_to_update: Shared<T>) {
         update_object(self.get_json(), object_to_update)
     }
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Option<Snowflake>;
 }
 
@@ -152,7 +161,7 @@ pub trait SourceUrlField: Clone {
 /// Only applicable for events where the Update struct is the same as the Entity struct
 pub(crate) fn update_object(
     value: String,
-    object: Arc<RwLock<(impl Updateable + Serialize + DeserializeOwned + Clone)>>,
+    object: Shared<(impl Updateable + Serialize + DeserializeOwned + Clone)>,
 ) {
     let data_from_event: HashMap<String, Value> = from_str(&value).unwrap();
     let mut original_data: HashMap<String, Value> =

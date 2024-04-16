@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 #[cfg(feature = "sqlx")]
@@ -12,23 +16,20 @@ pub struct ConfigEntity {
 
 impl ConfigEntity {
     pub fn as_string(&self) -> Option<String> {
-        let Some(v) = self.value.as_ref() else {
-            return None;
-        };
-        Some(v.as_str().expect("value is not a string").to_string())
+        let v = self.value.as_ref()?;
+        let v = v.as_str()?;
+        Some(v.to_string())
     }
 
     pub fn as_bool(&self) -> Option<bool> {
-        let Some(v) = self.value.as_ref() else {
-            return None;
-        };
-        Some(v.as_bool().expect("value is not a boolean"))
+        let v = self.value.as_ref()?;
+        let v = v.as_bool()?;
+        Some(v)
     }
 
     pub fn as_int(&self) -> Option<i64> {
-        let Some(v) = self.value.as_ref() else {
-            return None;
-        };
-        Some(v.as_i64().expect("value is not a number"))
+        let v = self.value.as_ref()?;
+        let v = v.as_i64()?;
+        Some(v)
     }
 }

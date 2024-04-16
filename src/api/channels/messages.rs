@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use http::header::CONTENT_DISPOSITION;
 use http::HeaderMap;
 use reqwest::{multipart, Client};
@@ -36,7 +40,7 @@ impl Message {
             chorus_request.deserialize_response::<Message>(user).await
         } else {
             for (index, attachment) in message.attachments.iter_mut().enumerate() {
-                attachment.get_mut(index).unwrap().set_id(index as i16);
+                attachment.get_mut(index).unwrap().id = Some(index as i16);
             }
             let mut form = reqwest::multipart::Form::new();
             let payload_json = to_string(&message).unwrap();
@@ -45,8 +49,8 @@ impl Message {
             form = form.part("payload_json", payload_field);
 
             for (index, attachment) in message.attachments.unwrap().into_iter().enumerate() {
-                let (attachment_content, current_attachment) = attachment.move_content();
-                let (attachment_filename, _) = current_attachment.move_filename();
+                let attachment_content = attachment.content;
+                let attachment_filename = attachment.filename;
                 let part_name = format!("files[{}]", index);
                 let content_disposition = format!(
                     "form-data; name=\"{}\"'; filename=\"{}\"",

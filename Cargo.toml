@@ -1,13 +1,14 @@
 [package]
 name = "chorus"
 description = "A library for interacting with multiple Spacebar-compatible Instances at once."
-version = "0.14.0"
-license = "AGPL-3.0"
+version = "0.15.0"
+license = "MPL-2.0"
 edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
 readme = "README.md"
 keywords = ["spacebar", "discord", "polyphony"]
 website = ["https://discord.com/invite/m3FpcapGDD"]
+rust-version = "1.67.1"
 
 
 [features]
@@ -16,6 +17,9 @@ backend = ["dep:poem", "dep:sqlx"]
 rt-multi-thread = ["tokio/rt-multi-thread"]
 rt = ["tokio/rt"]
 client = []
+voice = ["voice_udp", "voice_gateway"]
+voice_udp = ["dep:discortp", "dep:crypto_secretbox"]
+voice_gateway = []
 
 [dependencies]
 tokio = { version = "1.35.1", features = ["macros", "sync"] }
@@ -24,10 +28,7 @@ serde_json = { version = "1.0.111", features = ["raw_value"] }
 serde-aux = "4.3.1"
 serde_with = "3.4.0"
 serde_repr = "0.1.18"
-reqwest = { features = [
-    "multipart",
-    "json",
-], version = "0.11.23" } 
+reqwest = { features = ["multipart", "json"], version = "0.11.23" }
 url = "2.5.0"
 chrono = { version = "0.4.31", features = ["serde"] }
 regex = "1.10.2"
@@ -52,6 +53,8 @@ sqlx = { version = "0.7.3", features = [
     "runtime-tokio-native-tls",
     "any",
 ], optional = true }
+discortp = { version = "0.5.0", optional = true, features = ["rtp", "discord", "demux"] }
+crypto_secretbox = { version = "0.1.1", optional = true }
 rand = "0.8.5"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -63,6 +66,7 @@ tokio-tungstenite = { version = "0.20.1", features = [
 ] }
 native-tls = "0.2.11"
 hostname = "0.3.1"
+getrandom = { version = "0.2.12" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.12", features = ["js"] }

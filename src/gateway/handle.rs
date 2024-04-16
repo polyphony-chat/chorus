@@ -1,9 +1,13 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use futures_util::SinkExt;
 use log::*;
 
 use std::fmt::Debug;
 
-use super::{event::Events, *};
+use super::{events::Events, *};
 use crate::types::{self, Composite};
 
 /// Represents a handle to a Gateway connection. A Gateway connection will create observable
@@ -40,10 +44,19 @@ impl GatewayHandle {
             .unwrap();
     }
 
+    /// Recursively observes a [`Shared`] object, by making sure all [`Composite `] fields within
+    /// that object and its children are being watched.
+    ///
+    /// Observing means, that if new information arrives about the observed object or its children,
+    /// the object automatically gets updated, without you needing to request new information about
+    /// the object in question from the API, which is expensive and can lead to rate limiting.
+    ///
+    /// The [`Shared`] object returned by this method points to a different object than the one
+    /// being supplied as a &self function argument.
     pub async fn observe<T: Updateable + Clone + Debug + Composite<T>>(
         &self,
-        object: Arc<RwLock<T>>,
-    ) -> Arc<RwLock<T>> {
+        object: Shared<T>,
+    ) -> Shared<T> {
         let mut store = self.store.lock().await;
         let id = object.read().unwrap().id();
         if let Some(channel) = store.get(&id) {
@@ -84,7 +97,7 @@ impl GatewayHandle {
     /// with all of its observable fields being observed.
     pub async fn observe_and_into_inner<T: Updateable + Clone + Debug + Composite<T>>(
         &self,
-        object: Arc<RwLock<T>>,
+        object: Shared<T>,
     ) -> T {
         let channel = self.observe(object.clone()).await;
         let object = channel.read().unwrap().clone();
@@ -160,7 +173,7 @@ impl GatewayHandle {
 
     /// Closes the websocket connection and stops all gateway tasks;
     ///
-    /// Esentially pulls the plug on the gateway, leaving it possible to resume;
+    /// Essentially pulls the plug on the gateway, leaving it possible to resume;
     pub async fn close(&self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();

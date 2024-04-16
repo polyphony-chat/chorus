@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use bitflags::bitflags;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -34,6 +38,8 @@ pub struct GuildBanCreateSchema {
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
+/// Represents the schema used to modify a guild.
+/// See: <https://docs.discord.sex/resources/guild#modify-guild>
 pub struct GuildModifySchema {
     pub name: Option<String>,
     pub icon: Option<Vec<u8>>,
@@ -43,6 +49,7 @@ pub struct GuildModifySchema {
     pub discovery_splash: Option<Vec<u8>>,
     pub owner_id: Option<Snowflake>,
     pub description: Option<String>,
+    /// Deprecated
     pub region: Option<String>,
     pub afk_channel_id: Option<Snowflake>,
     pub afk_timeout: Option<u16>,
@@ -52,6 +59,9 @@ pub struct GuildModifySchema {
     pub features: Option<Vec<GuildFeatures>>,
     pub system_channel_id: Option<Snowflake>,
     pub system_channel_flags: Option<SystemChannelFlags>,
+    /// If set to Some(1), will create a new #rules channel
+    ///
+    /// Reference: <https://docs.discord.sex/resources/guild#modify-guild>
     pub rules_channel_id: Option<Snowflake>,
     pub public_updates_channel_id: Option<Snowflake>,
     pub safety_alerts_channel_id: Option<Snowflake>,
@@ -78,7 +88,7 @@ impl std::default::Default for GetUserGuildSchema {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 pub struct GuildPreview {
     pub id: Snowflake,
     pub name: String,

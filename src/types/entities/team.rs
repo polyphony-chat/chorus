@@ -1,7 +1,10 @@
-use std::sync::{Arc, RwLock};
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Shared;
 use crate::types::entities::User;
 use crate::types::Snowflake;
 
@@ -21,5 +24,5 @@ pub struct TeamMember {
     pub membership_state: u8,
     pub permissions: Vec<String>,
     pub team_id: Snowflake,
-    pub user: Arc<RwLock<User>>,
+    pub user: Shared<User>,
 }

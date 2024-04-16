@@ -1,9 +1,12 @@
-use std::sync::{Arc, RwLock};
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+use crate::gateway::Shared;
 use crate::types::Snowflake;
 
 use super::PublicUser;
@@ -15,7 +18,7 @@ pub struct Relationship {
     #[serde(rename = "type")]
     pub relationship_type: RelationshipType,
     pub nickname: Option<String>,
-    pub user: Arc<RwLock<PublicUser>>,
+    pub user: Shared<PublicUser>,
     pub since: Option<DateTime<Utc>>,
 }
 

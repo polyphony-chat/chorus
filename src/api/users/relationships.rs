@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use reqwest::Client;
 use serde_json::to_string;
 
@@ -15,7 +19,7 @@ impl ChorusUser {
     /// Retrieves a list of mutual friends between the authenticated user and a given user.
     ///
     /// # Reference
-    /// See <https://luna.gitlab.io/discord-unofficial-docs/relationships.html#get-users-peer-id-relationships>
+    /// See <https://luna.gitlab.io/discord-unofficial-docs/docs/relationships.html#get-userspeer_idrelationships>
     pub async fn get_mutual_relationships(
         &mut self,
         user_id: Snowflake,
@@ -37,7 +41,7 @@ impl ChorusUser {
     /// Retrieves the user's relationships.
     ///
     /// # Reference
-    /// See <https://luna.gitlab.io/discord-unofficial-docs/relationships.html#get-users-me-relationships>
+    /// See <https://luna.gitlab.io/discord-unofficial-docs/docs/relationships.html#get-usersmerelationships>
     pub async fn get_relationships(&mut self) -> ChorusResult<Vec<types::Relationship>> {
         let url = format!(
             "{}/users/@me/relationships",
@@ -55,7 +59,7 @@ impl ChorusUser {
     /// Sends a friend request to a user.
     ///
     /// # Reference
-    /// See <https://luna.gitlab.io/discord-unofficial-docs/relationships.html#post-users-me-relationships>
+    /// See <https://luna.gitlab.io/discord-unofficial-docs/docs/relationships.html#post-usersmerelationships>
     pub async fn send_friend_request(
         &mut self,
         schema: FriendRequestSendSchema,
@@ -132,7 +136,7 @@ impl ChorusUser {
     /// Removes the relationship between the authenticated user and a given user.
     ///
     /// # Reference
-    /// See <https://luna.gitlab.io/discord-unofficial-docs/relationships.html#delete-users-me-relationships-peer-id>
+    /// See <https://luna.gitlab.io/discord-unofficial-docs/docs/relationships.html#delete-usersmerelationshipspeer_id>
     pub async fn remove_relationship(&mut self, user_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/{}",

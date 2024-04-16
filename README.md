@@ -44,7 +44,7 @@ To get started with Chorus, import it into your project by adding the following 
 
 ```toml
 [dependencies]
-chorus = "0.14.0"
+chorus = "0.15.0"
 ```
 
 ### Establishing a Connection
@@ -53,16 +53,10 @@ To connect to a Spacebar compatible server, you need to create an [`Instance`](h
 
 ```rs
 use chorus::instance::Instance;
-use chorus::UrlBundle;
 
 #[tokio::main]
 async fn main() {
-    let bundle = UrlBundle::new(
-        "https://example.com/api".to_string(),
-        "wss://example.com/".to_string(),
-        "https://example.com/cdn".to_string(),
-    );
-    let instance = Instance::new(bundle)
+    let instance = Instance::new("https://example.com")
         .await
         .expect("Failed to connect to the Spacebar server");
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
@@ -87,7 +81,7 @@ let login_schema = LoginSchema {
     password: "Correct-Horse-Battery-Staple".to_string(),
     ..Default::default()
 };
-// Each user connects to the Gateway. The Gateway connection lives on a seperate thread. Depending on
+// Each user connects to the Gateway. The Gateway connection lives on a separate thread. Depending on
 // the runtime feature you choose, this can potentially take advantage of all of your computers' threads.
 let user = instance
     .login_account(login_schema)
@@ -125,7 +119,7 @@ like "proxy connection checking" are already disabled on this version, which oth
 ### wasm
 
 To test for wasm, you will need to `cargo install wasm-pack`. You can then run
-`wasm-pack test --<chrome/firefox/safari> --headless -- --target wasm32-unknown-unknown --features="rt, client" --no-default-features`
+`wasm-pack test --<chrome/firefox/safari> --headless -- --target wasm32-unknown-unknown --features="rt, client, voice_gateway" --no-default-features`
 to run the tests for wasm.
 
 ## Versioning
@@ -134,11 +128,7 @@ This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read
 
 ## Contributing
 
-Chorus is currently missing voice support and a lot of API endpoints, many of which should be trivial to implement,
-ever since [we streamlined the process of doing so](https://github.com/polyphony-chat/chorus/discussions/401).
-
-If you'd like to contribute new functionality, check out [The 'Meta'-issues.](https://github.com/polyphony-chat/chorus/issues?q=is%3Aissue+label%3A%22Type%3A+Meta%22+) They contain a comprehensive list of all features which are yet missing for full Discord.com compatibility.
-Please feel free to open an Issue with the idea you have, or a Pull Request. Please keep our [contribution guidelines](https://github.com/polyphony-chat/.github/blob/main/CONTRIBUTION_GUIDELINES.md) in mind. Your contribution might not be accepted if it violates these guidelines or [our Code of Conduct](https://github.com/polyphony-chat/.github/blob/main/CODE_OF_CONDUCT.md).
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 <details>
   <summary>Progress Tracker/Roadmap</summary>

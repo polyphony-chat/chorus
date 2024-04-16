@@ -1,7 +1,13 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use std::sync::{Arc, RwLock};
 
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
+
+use crate::gateway::Shared;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
@@ -77,7 +83,7 @@ pub struct UserSettings {
     #[cfg(not(feature = "sqlx"))]
     pub restricted_guilds: Vec<String>,
     pub show_current_game: bool,
-    pub status: Arc<RwLock<UserStatus>>,
+    pub status: Shared<UserStatus>,
     pub stream_notifications_enabled: bool,
     pub theme: UserTheme,
     pub timezone_offset: i16,
@@ -153,5 +159,5 @@ pub struct GuildFolder {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginResult {
     pub token: String,
-    pub settings: Arc<RwLock<UserSettings>>,
+    pub settings: Shared<UserSettings>,
 }
