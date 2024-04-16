@@ -26,6 +26,7 @@ pub struct Gateway {
     websocket_send: Arc<Mutex<Sink>>,
     websocket_receive: Stream,
     kill_send: tokio::sync::broadcast::Sender<()>,
+    kill_receive: tokio::sync::broadcast::Receiver<()>,
     store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
     url: String,
 }
@@ -75,6 +76,7 @@ impl Gateway {
             websocket_send: shared_websocket_send.clone(),
             websocket_receive,
             kill_send: kill_send.clone(),
+            kill_receive: kill_send.subscribe(),
             store: store.clone(),
             url: websocket_url.clone(),
         };
@@ -103,7 +105,17 @@ impl Gateway {
     /// Can only be stopped by closing the websocket, cannot be made to listen for kill
     pub async fn gateway_listen_task(&mut self) {
         loop {
-            let msg = self.websocket_receive.next().await;
+            let msg;
+
+            tokio::select! {
+                Ok(_) = self.kill_receive.recv() => {
+                    log::trace!("GW: Closing listener task");
+                    break;
+                }
+                message = self.websocket_receive.next() => {
+                    msg = message;
+                }
+            }
 
             // PRETTYFYME: Remove inline conditional compiling
             #[cfg(not(target_arch = "wasm32"))]

@@ -77,11 +77,6 @@ impl HeartbeatHandler {
         let mut last_seq_number: Option<u64> = None;
 
         loop {
-            if kill_receive.try_recv().is_ok() {
-                trace!("GW: Closing heartbeat task");
-                break;
-            }
-
             let timeout = if last_heartbeat_acknowledged {
                 heartbeat_interval
             } else {
@@ -114,6 +109,10 @@ impl HeartbeatHandler {
                             _ => {}
                         }
                     }
+                }
+                Ok(_) = kill_receive.recv() => {
+                    log::trace!("GW: Closing heartbeat task");
+                    break;
                 }
             }
 
