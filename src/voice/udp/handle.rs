@@ -151,8 +151,8 @@ impl UdpHandle {
 
                 data_lock.last_udp_encryption_nonce = Some(nonce);
                 drop(data_lock);
-                // TODO: Is le correct? This is not documented anywhere
-                let mut bytes = nonce.to_le_bytes().to_vec();
+                // TODO: Is big endian correct? This is not documented anywhere
+                let mut bytes = nonce.to_be_bytes().to_vec();
 
                 // This is 4 bytes, it has to be a different size, appends 0s
                 while bytes.len() < 24 {
