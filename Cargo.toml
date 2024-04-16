@@ -17,6 +17,9 @@ backend = ["dep:poem", "dep:sqlx"]
 rt-multi-thread = ["tokio/rt-multi-thread"]
 rt = ["tokio/rt"]
 client = []
+voice = ["voice_udp", "voice_gateway"]
+voice_udp = ["dep:discortp", "dep:crypto_secretbox"]
+voice_gateway = []
 
 [dependencies]
 tokio = { version = "1.35.1", features = ["macros", "sync"] }
@@ -50,6 +53,8 @@ sqlx = { version = "0.7.3", features = [
     "runtime-tokio-native-tls",
     "any",
 ], optional = true }
+discortp = { version = "0.5.0", optional = true, features = ["rtp", "discord", "demux"] }
+crypto_secretbox = { version = "0.1.1", optional = true }
 rand = "0.8.5"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -61,6 +66,7 @@ tokio-tungstenite = { version = "0.20.1", features = [
 ] }
 native-tls = "0.2.11"
 hostname = "0.3.1"
+getrandom = { version = "0.2.12" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.12", features = ["js"] }

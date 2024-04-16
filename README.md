@@ -119,7 +119,7 @@ like "proxy connection checking" are already disabled on this version, which oth
 ### wasm
 
 To test for wasm, you will need to `cargo install wasm-pack`. You can then run
-`wasm-pack test --<chrome/firefox/safari> --headless -- --target wasm32-unknown-unknown --features="rt, client" --no-default-features`
+`wasm-pack test --<chrome/firefox/safari> --headless -- --target wasm32-unknown-unknown --features="rt, client, voice_gateway" --no-default-features`
 to run the tests for wasm.
 
 ## Versioning

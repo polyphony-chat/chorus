@@ -2,6 +2,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// This example showcase how to properly use gateway observers.
+//
+// To properly run it, you will need to change the token below.
+
+const TOKEN: &str = "";
+
+/// Find the gateway websocket url of the server we want to connect to
+const GATEWAY_URL: &str = "wss://gateway.old.server.spacebar.chat/";
+
 use async_trait::async_trait;
 use chorus::gateway::Gateway;
 use chorus::{
@@ -36,11 +45,10 @@ impl Observer<GatewayReady> for ExampleObserver {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    // Find the gateway websocket url of the server we want to connect to
-    let websocket_url_spacebar = "wss://gateway.old.server.spacebar.chat/".to_string();
+    let gateway_websocket_url = GATEWAY_URL.to_string();
 
     // Initiate the gateway connection
-    let gateway = Gateway::spawn(websocket_url_spacebar).await.unwrap();
+    let gateway = Gateway::spawn(gateway_websocket_url).await.unwrap();
 
     // Create an instance of our observer
     let observer = ExampleObserver {};
@@ -59,7 +67,7 @@ async fn main() {
         .subscribe(shared_observer);
 
     // Authenticate so we will receive any events
-    let token = "SecretToken".to_string();
+    let token = TOKEN.to_string();
     let mut identify = GatewayIdentifyPayload::common();
     identify.token = token;
     gateway.send_identify(identify).await;
