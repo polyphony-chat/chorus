@@ -14,12 +14,14 @@ pub use hello::*;
 pub use identify::*;
 pub use integration::*;
 pub use interaction::*;
+pub use invalid_session::*;
 pub use invite::*;
 pub use lazy_request::*;
 pub use message::*;
 pub use passive_update::*;
 pub use presence::*;
 pub use ready::*;
+pub use reconnect::*;
 pub use relationship::*;
 pub use request_members::*;
 pub use resume::*;
@@ -28,8 +30,8 @@ pub use stage_instance::*;
 pub use thread::*;
 pub use user::*;
 pub use voice::*;
+pub use voice_gateway::*;
 pub use webhooks::*;
-pub use webrtc::*;
 
 #[cfg(feature = "client")]
 use super::Snowflake;
@@ -60,12 +62,14 @@ mod hello;
 mod identify;
 mod integration;
 mod interaction;
+mod invalid_session;
 mod invite;
 mod lazy_request;
 mod message;
 mod passive_update;
 mod presence;
 mod ready;
+mod reconnect;
 mod relationship;
 mod request_members;
 mod resume;
@@ -76,7 +80,7 @@ mod user;
 mod voice;
 mod webhooks;
 
-mod webrtc;
+mod voice_gateway;
 
 pub trait WebSocketEvent: Send + Sync + Debug {}
 

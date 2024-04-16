@@ -11,8 +11,7 @@ use tokio_tungstenite::{
     connect_async_tls_with_config, tungstenite, Connector, MaybeTlsStream, WebSocketStream,
 };
 
-use crate::errors::GatewayError;
-use crate::gateway::GatewayMessage;
+use crate::{errors::VoiceGatewayError, voice::gateway::VoiceGatewayMessage};
 
 #[derive(Debug, Clone)]
 pub struct TungsteniteBackend;
@@ -25,13 +24,13 @@ pub type TungsteniteStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStrea
 impl TungsteniteBackend {
     pub async fn connect(
         websocket_url: &str,
-    ) -> Result<(TungsteniteSink, TungsteniteStream), crate::errors::GatewayError> {
+    ) -> Result<(TungsteniteSink, TungsteniteStream), crate::errors::VoiceGatewayError> {
         let mut roots = rustls::RootCertStore::empty();
         let certs = rustls_native_certs::load_native_certs();
 
         if let Err(e) = certs {
             log::error!("Failed to load platform native certs! {:?}", e);
-            return Err(GatewayError::CannotConnect {
+            return Err(VoiceGatewayError::CannotConnect {
                 error: format!("{:?}", e),
             });
         }
@@ -55,7 +54,7 @@ impl TungsteniteBackend {
         {
             Ok(websocket_stream) => websocket_stream,
             Err(e) => {
-                return Err(GatewayError::CannotConnect {
+                return Err(VoiceGatewayError::CannotConnect {
                     error: e.to_string(),
                 })
             }
@@ -65,13 +64,13 @@ impl TungsteniteBackend {
     }
 }
 
-impl From<GatewayMessage> for tungstenite::Message {
-    fn from(message: GatewayMessage) -> Self {
+impl From<VoiceGatewayMessage> for tungstenite::Message {
+    fn from(message: VoiceGatewayMessage) -> Self {
         Self::Text(message.0)
     }
 }
 
-impl From<tungstenite::Message> for GatewayMessage {
+impl From<tungstenite::Message> for VoiceGatewayMessage {
     fn from(value: tungstenite::Message) -> Self {
         Self(value.to_string())
     }

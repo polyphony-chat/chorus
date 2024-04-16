@@ -15,32 +15,38 @@ use tokio::time::sleep_until;
 #[cfg(target_arch = "wasm32")]
 use wasmtimer::tokio::sleep_until;
 
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
-use tokio::sync::mpsc::{Receiver, Sender};
+use tokio::sync::{
+    mpsc::{Receiver, Sender},
+    Mutex,
+};
 
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::task;
 
-use super::*;
-use crate::types;
+use crate::{
+    gateway::heartbeat::HEARTBEAT_ACK_TIMEOUT,
+    types::{VoiceGatewaySendPayload, VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK},
+    voice::gateway::VoiceGatewayMessage,
+};
 
-/// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
-pub const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
+use super::Sink;
 
-/// Handles sending heartbeats to the gateway in another thread
-#[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
+/// Handles sending heartbeats to the voice gateway in another thread
+#[allow(dead_code)] // FIXME: Remove this, once all fields of VoiceHeartbeatHandler are used
 #[derive(Debug)]
-pub(super) struct HeartbeatHandler {
-    /// How ofter heartbeats need to be sent at a minimum
+pub(super) struct VoiceHeartbeatHandler {
+    /// The heartbeat interval in milliseconds
     pub heartbeat_interval: Duration,
     /// The send channel for the heartbeat thread
-    pub send: Sender<HeartbeatThreadCommunication>,
+    pub send: Sender<VoiceHeartbeatThreadCommunication>,
 }
 
-impl HeartbeatHandler {
+impl VoiceHeartbeatHandler {
     pub fn new(
         heartbeat_interval: Duration,
+        starting_nonce: u64,
         websocket_tx: Arc<Mutex<Sink>>,
         kill_rc: tokio::sync::broadcast::Receiver<()>,
     ) -> Self {
@@ -49,11 +55,25 @@ impl HeartbeatHandler {
 
         #[cfg(not(target_arch = "wasm32"))]
         task::spawn(async move {
-            Self::heartbeat_task(websocket_tx, heartbeat_interval, receive, kill_receive).await;
+            Self::heartbeat_task(
+                websocket_tx,
+                heartbeat_interval,
+                starting_nonce,
+                receive,
+                kill_receive,
+            )
+            .await;
         });
         #[cfg(target_arch = "wasm32")]
         wasm_bindgen_futures::spawn_local(async move {
-            Self::heartbeat_task(websocket_tx, heartbeat_interval, receive, kill_receive).await;
+            Self::heartbeat_task(
+                websocket_tx,
+                heartbeat_interval,
+                starting_nonce,
+                receive,
+                kill_receive,
+            )
+            .await;
         });
 
         Self {
@@ -69,12 +89,13 @@ impl HeartbeatHandler {
     pub async fn heartbeat_task(
         websocket_tx: Arc<Mutex<Sink>>,
         heartbeat_interval: Duration,
-        mut receive: Receiver<HeartbeatThreadCommunication>,
+        starting_nonce: u64,
+        mut receive: Receiver<VoiceHeartbeatThreadCommunication>,
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,
     ) {
         let mut last_heartbeat_timestamp: Instant = Instant::now();
         let mut last_heartbeat_acknowledged = true;
-        let mut last_seq_number: Option<u64> = None;
+        let mut nonce: u64 = starting_nonce;
 
         loop {
             let timeout = if last_heartbeat_acknowledged {
@@ -91,18 +112,18 @@ impl HeartbeatHandler {
                     should_send = true;
                 }
                 Some(communication) = receive.recv() => {
-                    // If we received a seq number update, use that as the last seq number
-                    if communication.sequence_number.is_some() {
-                        last_seq_number = communication.sequence_number;
+                    // If we received a nonce update, use that nonce now
+                    if communication.updated_nonce.is_some() {
+                        nonce = communication.updated_nonce.unwrap();
                     }
 
                     if let Some(op_code) = communication.op_code {
                         match op_code {
-                            GATEWAY_HEARTBEAT => {
+                            VOICE_HEARTBEAT => {
                                 // As per the api docs, if the server sends us a Heartbeat, that means we need to respond with a heartbeat immediately
                                 should_send = true;
                             }
-                            GATEWAY_HEARTBEAT_ACK => {
+                            VOICE_HEARTBEAT_ACK => {
                                 // The server received our heartbeat
                                 last_heartbeat_acknowledged = true;
                             }
@@ -111,27 +132,27 @@ impl HeartbeatHandler {
                     }
                 }
                 Ok(_) = kill_receive.recv() => {
-                    log::trace!("GW: Closing heartbeat task");
+                    log::trace!("VGW: Closing heartbeat task");
                     break;
                 }
             }
 
             if should_send {
-                trace!("GW: Sending Heartbeat..");
+                trace!("VGW: Sending Heartbeat..");
 
-                let heartbeat = types::GatewayHeartbeat {
-                    op: GATEWAY_HEARTBEAT,
-                    d: last_seq_number,
+                let heartbeat = VoiceGatewaySendPayload {
+                    op_code: VOICE_HEARTBEAT,
+                    data: nonce.into(),
                 };
 
                 let heartbeat_json = serde_json::to_string(&heartbeat).unwrap();
 
-                let msg = GatewayMessage(heartbeat_json);
+                let msg = VoiceGatewayMessage(heartbeat_json);
 
                 let send_result = websocket_tx.lock().await.send(msg.into()).await;
                 if send_result.is_err() {
                     // We couldn't send, the websocket is broken
-                    warn!("GW: Couldn't send heartbeat, websocket seems broken");
+                    warn!("VGW: Couldnt send heartbeat, websocket seems broken");
                     break;
                 }
 
@@ -142,12 +163,12 @@ impl HeartbeatHandler {
     }
 }
 
-/// Used for communications between the heartbeat and gateway thread.
-/// Either signifies a sequence number update, a heartbeat ACK or a Heartbeat request by the server
+/// Used for communications between the voice heartbeat and voice gateway thread.
+/// Either signifies a nonce update, a heartbeat ACK or a Heartbeat request by the server
 #[derive(Clone, Copy, Debug)]
-pub(super) struct HeartbeatThreadCommunication {
+pub(super) struct VoiceHeartbeatThreadCommunication {
     /// The opcode for the communication we received, if relevant
     pub(super) op_code: Option<u8>,
-    /// The sequence number we got from discord, if any
-    pub(super) sequence_number: Option<u64>,
+    /// The new nonce to use, if any
+    pub(super) updated_nonce: Option<u64>,
 }
