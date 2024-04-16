@@ -13,6 +13,7 @@ jobs:
   linux:
 
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     
     steps:
     - uses: actions/checkout@v4
@@ -75,6 +76,7 @@ jobs:
   #       SAFARIDRIVER=$(which safaridriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt" --no-fail-fast
   wasm-gecko:
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
     - name: Clone spacebar server
@@ -103,6 +105,7 @@ jobs:
         GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt"
   wasm-chrome:
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
     - name: Clone spacebar server
