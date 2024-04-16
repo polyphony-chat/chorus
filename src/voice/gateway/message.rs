@@ -4,7 +4,7 @@
 
 use crate::{errors::VoiceGatewayError, types::VoiceGatewayReceivePayload};
 
-/// Represents a messsage received from the voice websocket connection.
+/// Represents a message received from the voice websocket connection.
 ///
 /// This will be either a [VoiceGatewayReceivePayload], containing voice gateway events, or a [VoiceGatewayError].
 ///
