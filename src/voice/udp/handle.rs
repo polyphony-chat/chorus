@@ -24,7 +24,7 @@ use crate::{
 
 use super::{events::VoiceUDPEvents, RTP_HEADER_SIZE};
 
-/// Handle to a voice udp connection
+/// Handle to a voice UDP connection
 ///
 /// Can be safely cloned and will still correspond to the same connection.
 #[derive(Debug, Clone)]
@@ -45,7 +45,7 @@ impl UdpHandle {
     ///
     /// If we have not received an encryption key, this returns a [VoiceUdpError::NoKey] error.
     ///
-    /// If the Udp socket is broken, this returns a [VoiceUdpError::BrokenSocket] error.
+    /// If the UDP socket is broken, this returns a [VoiceUdpError::BrokenSocket] error.
     pub async fn send_opus_data(
         &self,
         timestamp: u32,
@@ -212,7 +212,7 @@ impl UdpHandle {
         let mut encrypted_payload = encryption_result.unwrap();
 
         // Append the nonce bytes, if needed
-        // All other encryption modes have an explicit nonce, where as Xsalsa20Poly1305
+        // All other encryption modes have an explicit nonce, whereas Xsalsa20Poly1305
         // has the nonce as the rtp header.
         if session_description.encryption_mode != VoiceEncryptionMode::Xsalsa20Poly1305 {
             encrypted_payload.append(&mut nonce_bytes);
