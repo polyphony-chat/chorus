@@ -16,32 +16,20 @@ pub struct ConfigEntity {
 
 impl ConfigEntity {
     pub fn as_string(&self) -> Option<String> {
-        let Some(v) = self.value.as_ref() else {
-            return None;
-        };
-        let Some(v) = v.as_str() else {
-            return None;
-        };
+        let v = self.value.as_ref()?;
+        let v = v.as_str()?;
         Some(v.to_string())
     }
 
     pub fn as_bool(&self) -> Option<bool> {
-        let Some(v) = self.value.as_ref() else {
-            return None;
-        };
-        let Some(v) = v.as_bool() else {
-            return None;
-        };
+        let v = self.value.as_ref()?;
+        let v = v.as_bool()?;
         Some(v)
     }
 
     pub fn as_int(&self) -> Option<i64> {
-        let Some(v) = self.value.as_ref() else {
-            return None;
-        };
-        let Some(v) = v.as_i64() else {
-            return None;
-        };
+        let v = self.value.as_ref()?;
+        let v = v.as_i64()?;
         Some(v)
     }
 }
