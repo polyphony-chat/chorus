@@ -6,6 +6,18 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput, Field, Fields, FieldsNamed};
 
+#[proc_macro_derive(WebSocketEvent)]
+pub fn websocket_event_macro_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+
+    let name = &ast.ident;
+
+    quote! {
+        impl WebSocketEvent for #name {}
+    }
+    .into()
+}
+
 #[proc_macro_derive(Updateable)]
 pub fn updateable_macro_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
