@@ -5,11 +5,10 @@
 use crate::types::events::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, WebSocketEvent)]
 pub struct GatewayResume {
     pub token: String,
     pub session_id: String,
     pub seq: String,
 }
 
-impl WebSocketEvent for GatewayResume {}

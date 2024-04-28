@@ -3,9 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::types::{Snowflake, WebSocketEvent};
+use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Copy)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Copy, WebSocketEvent)]
 /// Sent when another user connects to the voice server.
 ///
 /// Contains the user id and "flags".
@@ -21,9 +22,7 @@ pub struct VoiceClientConnectFlags {
     pub flags: Option<u8>,
 }
 
-impl WebSocketEvent for VoiceClientConnectFlags {}
-
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Copy)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Copy, WebSocketEvent)]
 /// Sent when another user connects to the voice server.
 ///
 /// Contains the user id and "platform".
@@ -37,4 +36,3 @@ pub struct VoiceClientConnectPlatform {
     pub platform: u8,
 }
 
-impl WebSocketEvent for VoiceClientConnectPlatform {}

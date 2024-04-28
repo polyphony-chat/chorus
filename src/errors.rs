@@ -6,6 +6,7 @@
 use custom_error::custom_error;
 
 use crate::types::WebSocketEvent;
+use chorus_macros::WebSocketEvent;
 
 custom_error! {
     #[derive(PartialEq, Eq, Clone, Hash)]
@@ -72,7 +73,7 @@ custom_error! {
     /// Supposed to be sent as numbers, though they are sent as string most of the time?
     ///
     /// Also includes errors when initiating a connection and unexpected opcodes
-    #[derive(PartialEq, Eq, Default, Clone)]
+    #[derive(PartialEq, Eq, Default, Clone, WebSocketEvent)]
     pub GatewayError
     // Errors we have received from the gateway
     #[default]
@@ -99,15 +100,13 @@ custom_error! {
     UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
 }
 
-impl WebSocketEvent for GatewayError {}
-
 custom_error! {
     /// Voice Gateway errors
     ///
     /// Similar to [GatewayError].
     ///
     /// See <https://discord.com/developers/docs/topics/opcodes-and-status-codes#voice-voice-close-event-codes>;
-    #[derive(Clone, Default, PartialEq, Eq)]
+    #[derive(Clone, Default, PartialEq, Eq, WebSocketEvent)]
     pub VoiceGatewayError
     // Errors we receive
     #[default]
@@ -132,11 +131,9 @@ custom_error! {
     UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
 }
 
-impl WebSocketEvent for VoiceGatewayError {}
-
 custom_error! {
     /// Voice UDP errors.
-    #[derive(Clone, PartialEq, Eq)]
+    #[derive(Clone, PartialEq, Eq, WebSocketEvent)]
     pub VoiceUdpError
 
     // General errors
@@ -155,4 +152,3 @@ custom_error! {
     CannotConnect{error: String} = "Cannot connect due to a UDP error: {error}",
 }
 
-impl WebSocketEvent for VoiceUdpError {}

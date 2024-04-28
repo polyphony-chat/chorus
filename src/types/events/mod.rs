@@ -33,6 +33,8 @@ pub use voice::*;
 pub use voice_gateway::*;
 pub use webhooks::*;
 
+use chorus_macros::WebSocketEvent;
+
 #[cfg(feature = "client")]
 use super::Snowflake;
 
@@ -84,7 +86,7 @@ mod voice_gateway;
 
 pub trait WebSocketEvent: Send + Sync + Debug {}
 
-#[derive(Debug, Default, Serialize, Clone)]
+#[derive(Debug, Default, Serialize, Clone, WebSocketEvent)]
 /// The payload used for sending events to the gateway
 ///
 /// Similar to [GatewayReceivePayload], except we send a [serde_json::value::Value] for d whilst we receive a [serde_json::value::RawValue]
@@ -101,8 +103,6 @@ pub struct GatewaySendPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sequence_number: Option<u64>,
 }
-
-impl WebSocketEvent for GatewaySendPayload {}
 
 #[derive(Debug, Default, Deserialize, Clone)]
 /// The payload used for receiving events from the gateway
