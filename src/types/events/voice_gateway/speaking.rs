@@ -6,13 +6,14 @@ use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 
 use crate::types::{Snowflake, WebSocketEvent};
+use chorus_macros::WebSocketEvent;
 
 /// Event that tells the server we are speaking;
 ///
 /// Essentially, what allows us to send UDP data and lights up the green circle around your avatar.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#speaking-structure>
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, WebSocketEvent)]
 pub struct Speaking {
     /// Data about the audio we're transmitting.
     ///
@@ -26,8 +27,6 @@ pub struct Speaking {
     #[serde(default)]
     pub delay: u64,
 }
-
-impl WebSocketEvent for Speaking {}
 
 bitflags! {
     /// Bitflags of speaking types;

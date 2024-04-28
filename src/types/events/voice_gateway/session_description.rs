@@ -1,8 +1,9 @@
 use super::{AudioCodec, VideoCodec, VoiceEncryptionMode};
 use crate::types::WebSocketEvent;
+use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, WebSocketEvent)]
 /// Event that describes our encryption mode and secret key for encryption
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#session-description-structure>
@@ -19,9 +20,7 @@ pub struct SessionDescription {
     pub keyframe_interval: Option<u64>,
 }
 
-impl WebSocketEvent for SessionDescription {}
-
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, WebSocketEvent)]
 /// Event that might be sent to update session parameters
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#session-update-structure>
@@ -36,4 +35,3 @@ pub struct SessionUpdate {
     pub new_media_session_id: Option<String>,
 }
 
-impl WebSocketEvent for SessionUpdate {}

@@ -3,9 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::types::{Snowflake, WebSocketEvent};
+use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Copy)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Copy, WebSocketEvent)]
 /// Sent when another user disconnects from the voice server.
 ///
 /// When received, the SSRC of the user should be discarded.
@@ -15,4 +16,3 @@ pub struct VoiceClientDisconnection {
     pub user_id: Snowflake,
 }
 
-impl WebSocketEvent for VoiceClientDisconnection {}

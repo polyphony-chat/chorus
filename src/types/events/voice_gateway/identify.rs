@@ -3,9 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::types::{Snowflake, WebSocketEvent};
+use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, WebSocketEvent)]
 /// The identify payload for the voice gateway connection;
 ///
 /// Contains authentication info and context to authenticate to the voice gateway.
@@ -22,4 +23,3 @@ pub struct VoiceIdentify {
     // TODO: Add video streams
 }
 
-impl WebSocketEvent for VoiceIdentify {}
