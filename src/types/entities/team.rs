@@ -4,9 +4,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
 use crate::types::entities::User;
 use crate::types::Snowflake;
+use crate::types::Shared;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]

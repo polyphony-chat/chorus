@@ -6,7 +6,8 @@ use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
+use crate::types::Shared;
+
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
 

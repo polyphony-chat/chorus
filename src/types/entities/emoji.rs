@@ -6,7 +6,7 @@ use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
+use crate::types::Shared;
 use crate::types::entities::User;
 use crate::types::Snowflake;
 

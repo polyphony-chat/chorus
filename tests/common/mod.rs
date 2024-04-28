@@ -2,13 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use chorus::gateway::{Gateway, Shared};
+use chorus::gateway::Gateway;
 use chorus::types::IntoShared;
 use chorus::{
     instance::{ChorusUser, Instance},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
-        RoleCreateModifySchema, RoleObject,
+        RoleCreateModifySchema, RoleObject, Shared
     },
     UrlBundle,
 };

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::gateway::Shared;
+use crate::types::Shared;
 use crate::types::utils::Snowflake;
 use crate::types::{Team, User};
 

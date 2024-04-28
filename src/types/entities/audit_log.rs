@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
+use crate::types::Shared;
 use crate::types::utils::Snowflake;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]

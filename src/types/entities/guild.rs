@@ -9,7 +9,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::gateway::Shared;
+use crate::types::Shared;
 use crate::types::types::guild_configuration::GuildFeaturesList;
 use crate::types::{
     entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
