@@ -4,8 +4,8 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
 use crate::types::{
+    Shared,
     entities::{
         Application, Attachment, Channel, Emoji, GuildMember, PublicUser, RoleSubscriptionData,
         Sticker, StickerItem, User,

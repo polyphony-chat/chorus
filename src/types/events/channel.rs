@@ -3,7 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::types::events::WebSocketEvent;
-use crate::types::IntoShared;
 use crate::types::{entities::Channel, JsonField, Snowflake, SourceUrlField};
 use chorus_macros::{JsonField, SourceUrlField};
 use chrono::{DateTime, Utc};
@@ -13,7 +12,10 @@ use serde::{Deserialize, Serialize};
 use super::UpdateMessage;
 
 #[cfg(feature = "client")]
-use crate::gateway::Shared;
+use crate::types::Shared;
+
+#[cfg(feature = "client")]
+use crate::types::IntoShared;
 
 #[cfg(feature = "client")]
 use crate::types::Guild;

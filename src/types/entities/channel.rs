@@ -8,7 +8,7 @@ use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::Debug;
 
-use crate::gateway::Shared;
+use crate::types::Shared;
 use crate::types::{
     entities::{GuildMember, User},
     utils::Snowflake,

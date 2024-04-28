@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{Guild, PublicUser, UnavailableGuild};
 use crate::types::events::WebSocketEvent;
 use crate::types::{
-    AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, IntoShared, JsonField, RoleObject,
+    AuditLogEntry, Emoji, GuildMember, GuildScheduledEvent, JsonField, RoleObject,
     Snowflake, SourceUrlField, Sticker,
 };
 
@@ -18,7 +18,9 @@ use super::PresenceUpdate;
 #[cfg(feature = "client")]
 use super::UpdateMessage;
 #[cfg(feature = "client")]
-use crate::gateway::Shared;
+use crate::types::Shared;
+#[cfg(feature = "client")]
+use crate::types::IntoShared;
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, SourceUrlField, JsonField)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-create>;
