@@ -27,7 +27,9 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 
-use crate::gateway::Shared;
+use crate::types::Shared;
+use std::sync::{Arc, RwLock};
+
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
 
@@ -39,8 +41,6 @@ use async_trait::async_trait;
 
 #[cfg(feature = "client")]
 use std::fmt::Debug;
-#[cfg(feature = "client")]
-use std::sync::{Arc, RwLock};
 
 mod application;
 mod attachment;

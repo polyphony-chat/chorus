@@ -48,7 +48,7 @@ use serde_json::{from_str, from_value, to_value, Value};
 use std::collections::HashMap;
 
 #[cfg(feature = "client")]
-use crate::gateway::Shared;
+use crate::types::Shared;
 use std::fmt::Debug;
 
 #[cfg(feature = "client")]

@@ -5,7 +5,8 @@
 #[cfg(feature = "client")]
 use chorus_macros::Composite;
 
-use crate::gateway::Shared;
+use crate::types::Shared;
+
 #[cfg(feature = "client")]
 use crate::types::Composite;
 
@@ -51,6 +52,7 @@ pub struct VoiceState {
     pub id: Option<Snowflake>, // Only exists on Spacebar
 }
 
+#[cfg(feature = "client")]
 impl Updateable for VoiceState {
     #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Snowflake {
