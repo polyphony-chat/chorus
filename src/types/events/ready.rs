@@ -9,7 +9,7 @@ use crate::types::events::{Session, WebSocketEvent};
 use crate::types::interfaces::ClientStatusObject;
 use crate::types::{Activity, GuildMember, PresenceUpdate, VoiceState};
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// 1/2 half documented;
 /// Received after identifying, provides initial user info;
 /// See <https://discord.com/developers/docs/topics/gateway-events#ready;>
@@ -30,9 +30,7 @@ pub struct GatewayReady {
     pub shard: Option<(u64, u64)>,
 }
 
-impl WebSocketEvent for GatewayReady {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Officially Undocumented;
 /// Sent after the READY event when a client is a user, seems to somehow add onto the ready event;
 pub struct GatewayReadySupplemental {
@@ -44,8 +42,6 @@ pub struct GatewayReadySupplemental {
     // ? pomelo
     pub disclose: Vec<String>,
 }
-
-impl WebSocketEvent for GatewayReadySupplemental {}
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct MergedPresences {

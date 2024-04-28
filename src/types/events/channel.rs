@@ -18,7 +18,7 @@ use crate::gateway::Shared;
 #[cfg(feature = "client")]
 use crate::types::Guild;
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-pins-update>
 pub struct ChannelPinsUpdate {
     pub guild_id: Option<Snowflake>,
@@ -26,9 +26,7 @@ pub struct ChannelPinsUpdate {
     pub last_pin_timestamp: Option<DateTime<Utc>>,
 }
 
-impl WebSocketEvent for ChannelPinsUpdate {}
-
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-create>
 pub struct ChannelCreate {
     #[serde(flatten)]
@@ -38,8 +36,6 @@ pub struct ChannelCreate {
     #[serde(skip)]
     pub source_url: String,
 }
-
-impl WebSocketEvent for ChannelCreate {}
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for ChannelCreate {
@@ -59,7 +55,7 @@ impl UpdateMessage<Guild> for ChannelCreate {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-update>
 pub struct ChannelUpdate {
     #[serde(flatten)]
@@ -69,8 +65,6 @@ pub struct ChannelUpdate {
     #[serde(skip)]
     pub source_url: String,
 }
-
-impl WebSocketEvent for ChannelUpdate {}
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Channel> for ChannelUpdate {
@@ -85,7 +79,7 @@ impl UpdateMessage<Channel> for ChannelUpdate {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, WebSocketEvent)]
 /// Officially undocumented.
 /// Sends updates to client about a new message with its id
 /// {"channel_unread_updates": [{"id": "816412869766938648", "last_message_id": "1085892012085104680"}}
@@ -103,9 +97,7 @@ pub struct ChannelUnreadUpdateObject {
     pub last_pin_timestamp: Option<String>,
 }
 
-impl WebSocketEvent for ChannelUnreadUpdate {}
-
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-delete>
 pub struct ChannelDelete {
     #[serde(flatten)]
@@ -140,4 +132,3 @@ impl UpdateMessage<Guild> for ChannelDelete {
     }
 }
 
-impl WebSocketEvent for ChannelDelete {}

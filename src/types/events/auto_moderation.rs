@@ -2,28 +2,27 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::types::{JsonField, SourceUrlField};
-use chorus_macros::{JsonField, SourceUrlField};
+use crate::types::{JsonField, SourceUrlField, WebSocketEvent};
+use chorus_macros::{JsonField, SourceUrlField, WebSocketEvent};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
     AutoModerationAction, AutoModerationRule, AutoModerationRuleTriggerType, Snowflake,
-    WebSocketEvent,
 };
 
 #[cfg(feature = "client")]
 use super::UpdateMessage;
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-create>
 pub struct AutoModerationRuleCreate {
     #[serde(flatten)]
     pub rule: AutoModerationRule,
 }
 
-impl WebSocketEvent for AutoModerationRuleCreate {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone, JsonField, SourceUrlField)]
+#[derive(
+    Debug, Deserialize, Serialize, Default, Clone, JsonField, SourceUrlField, WebSocketEvent,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-update>
 pub struct AutoModerationRuleUpdate {
     #[serde(flatten)]
@@ -43,18 +42,14 @@ impl UpdateMessage<AutoModerationRule> for AutoModerationRuleUpdate {
     }
 }
 
-impl WebSocketEvent for AutoModerationRuleUpdate {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#auto-moderation-rule-delete>
 pub struct AutoModerationRuleDelete {
     #[serde(flatten)]
     pub rule: AutoModerationRule,
 }
 
-impl WebSocketEvent for AutoModerationRuleDelete {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#auto-moderation-action-execution>
 pub struct AutoModerationActionExecution {
     pub guild_id: Snowflake,
@@ -69,5 +64,3 @@ pub struct AutoModerationActionExecution {
     pub matched_keyword: Option<String>,
     pub matched_content: Option<String>,
 }
-
-impl WebSocketEvent for AutoModerationActionExecution {}
