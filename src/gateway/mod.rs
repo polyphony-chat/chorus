@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use async_trait::async_trait;
 
 pub mod backends;
@@ -94,6 +98,12 @@ pub struct GatewayEvent<T: WebSocketEvent> {
 }
 
 impl<T: WebSocketEvent> GatewayEvent<T> {
+    pub fn new() -> Self {
+        Self {
+            observers: Vec::new(),
+        }
+    }
+
     /// Returns true if the GatewayEvent is observed by at least one Observer.
     pub fn is_observed(&self) -> bool {
         !self.observers.is_empty()
@@ -116,9 +126,17 @@ impl<T: WebSocketEvent> GatewayEvent<T> {
     }
 
     /// Notifies the observers of the GatewayEvent.
-    async fn notify(&self, new_event_data: T) {
+    pub(crate) async fn notify(&self, new_event_data: T) {
         for observer in &self.observers {
             observer.update(&new_event_data).await;
         }
     }
 }
+
+/// A type alias for [`Arc<RwLock<T>>`], used to make the public facing API concerned with
+/// Composite structs more ergonomic.
+/// ## Note
+///
+/// While `T` does not have to implement `Composite` to be used with `Shared`,
+/// the primary use of `Shared` is with types that implement `Composite`.
+pub type Shared<T> = Arc<RwLock<T>>;

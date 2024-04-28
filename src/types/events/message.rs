@@ -1,13 +1,17 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
     entities::{Emoji, GuildMember, Message, PublicUser},
-    Snowflake,
+    Snowflake, WebSocketEvent
 };
 
-use super::WebSocketEvent;
+use chorus_macros::WebSocketEvent;
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#typing-start>
 pub struct TypingStartEvent {
@@ -18,9 +22,7 @@ pub struct TypingStartEvent {
     pub member: Option<GuildMember>,
 }
 
-impl WebSocketEvent for TypingStartEvent {}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-create>
 pub struct MessageCreate {
     #[serde(flatten)]
@@ -30,7 +32,7 @@ pub struct MessageCreate {
     pub mentions: Option<Vec<MessageCreateUser>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-create-message-create-extra-fields>
 pub struct MessageCreateUser {
     #[serde(flatten)]
@@ -38,9 +40,7 @@ pub struct MessageCreateUser {
     pub member: Option<GuildMember>,
 }
 
-impl WebSocketEvent for MessageCreate {}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-update>
 pub struct MessageUpdate {
@@ -51,9 +51,7 @@ pub struct MessageUpdate {
     pub mentions: Option<Vec<MessageCreateUser>>,
 }
 
-impl WebSocketEvent for MessageUpdate {}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-delete>
 pub struct MessageDelete {
@@ -62,9 +60,7 @@ pub struct MessageDelete {
     pub guild_id: Option<Snowflake>,
 }
 
-impl WebSocketEvent for MessageDelete {}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-delete-bulk>
 pub struct MessageDeleteBulk {
@@ -73,9 +69,7 @@ pub struct MessageDeleteBulk {
     pub guild_id: Option<Snowflake>,
 }
 
-impl WebSocketEvent for MessageDeleteBulk {}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-reaction-add>
 pub struct MessageReactionAdd {
@@ -87,9 +81,7 @@ pub struct MessageReactionAdd {
     pub emoji: Emoji,
 }
 
-impl WebSocketEvent for MessageReactionAdd {}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-reaction-remove>
 pub struct MessageReactionRemove {
@@ -100,9 +92,7 @@ pub struct MessageReactionRemove {
     pub emoji: Emoji,
 }
 
-impl WebSocketEvent for MessageReactionRemove {}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-reaction-remove-all>
 pub struct MessageReactionRemoveAll {
@@ -111,9 +101,7 @@ pub struct MessageReactionRemoveAll {
     pub guild_id: Option<Snowflake>,
 }
 
-impl WebSocketEvent for MessageReactionRemoveAll {}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-reaction-remove-emoji>
 pub struct MessageReactionRemoveEmoji {
@@ -123,15 +111,13 @@ pub struct MessageReactionRemoveEmoji {
     pub emoji: Emoji,
 }
 
-impl WebSocketEvent for MessageReactionRemoveEmoji {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Officially Undocumented
 ///
 /// Not documented anywhere unofficially
 ///
 /// Apparently "Message ACK refers to marking a message as read for Discord's API." (<https://github.com/Rapptz/discord.py/issues/1851>)
-/// I suspect this is sent and recieved from the gateway to let clients on other devices know the user has read a message
+/// I suspect this is sent and received from the gateway to let clients on other devices know the user has read a message
 ///
 /// {"t":"MESSAGE_ACK","s":3,"op":0,"d":{"version":52,"message_id":"1107236673638633472","last_viewed":null,"flags":null,"channel_id":"967363950217936897"}}
 pub struct MessageACK {
@@ -146,4 +132,3 @@ pub struct MessageACK {
     pub channel_id: Snowflake,
 }
 
-impl WebSocketEvent for MessageACK {}

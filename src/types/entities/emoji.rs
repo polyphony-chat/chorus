@@ -1,8 +1,12 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use std::fmt::Debug;
-use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Shared;
 use crate::types::entities::User;
 use crate::types::Snowflake;
 
@@ -31,7 +35,7 @@ pub struct Emoji {
     #[cfg(not(feature = "sqlx"))]
     pub roles: Option<Vec<Snowflake>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub user: Option<Arc<RwLock<User>>>,
+    pub user: Option<Shared<User>>,
     pub require_colons: Option<bool>,
     pub managed: Option<bool>,
     pub animated: Option<bool>,
@@ -60,39 +64,5 @@ impl PartialEq for Emoji {
             || self.managed != other.managed
             || self.animated != other.animated
             || self.available != other.available)
-    }
-}
-
-impl PartialOrd for Emoji {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match self.id.partial_cmp(&other.id) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.name.partial_cmp(&other.name) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.roles.partial_cmp(&other.roles) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.roles.partial_cmp(&other.roles) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.require_colons.partial_cmp(&other.require_colons) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.managed.partial_cmp(&other.managed) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.animated.partial_cmp(&other.animated) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        self.available.partial_cmp(&other.available)
     }
 }

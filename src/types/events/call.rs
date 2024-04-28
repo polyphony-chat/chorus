@@ -1,8 +1,13 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::{Snowflake, VoiceState, WebSocketEvent};
+use chorus_macros::WebSocketEvent;
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Officially Undocumented;
 /// Is sent to a client by the server to signify a new call being created;
 ///
@@ -19,9 +24,7 @@ pub struct CallCreate {
     pub channel_id: Snowflake,
 }
 
-impl WebSocketEvent for CallCreate {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, WebSocketEvent)]
 /// Officially Undocumented;
 /// Updates the client on which calls are ringing, along with a specific call?;
 ///
@@ -36,9 +39,7 @@ pub struct CallUpdate {
     pub channel_id: Snowflake,
 }
 
-impl WebSocketEvent for CallUpdate {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, WebSocketEvent)]
 /// Officially Undocumented;
 /// Deletes a ringing call;
 /// Ex: {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
@@ -46,9 +47,7 @@ pub struct CallDelete {
     pub channel_id: Snowflake,
 }
 
-impl WebSocketEvent for CallDelete {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, WebSocketEvent)]
 /// Officially Undocumented;
 /// See <https://unofficial-discord-docs.vercel.app/gateway/op13>;
 ///
@@ -57,4 +56,3 @@ pub struct CallSync {
     pub channel_id: Snowflake,
 }
 
-impl WebSocketEvent for CallSync {}

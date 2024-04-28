@@ -1,9 +1,24 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use futures_util::SinkExt;
 use log::*;
-use std::time::{self, Duration, Instant};
+
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::Instant;
+#[cfg(target_arch = "wasm32")]
+use wasmtimer::std::Instant;
+
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::sleep_until;
+#[cfg(target_arch = "wasm32")]
+use wasmtimer::tokio::sleep_until;
+
+use std::time::Duration;
+
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use safina_timer::sleep_until;
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::task;
 
@@ -11,7 +26,7 @@ use super::*;
 use crate::types;
 
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
-const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
+pub const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
 
 /// Handles sending heartbeats to the gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
@@ -57,18 +72,11 @@ impl HeartbeatHandler {
         mut receive: Receiver<HeartbeatThreadCommunication>,
         mut kill_receive: tokio::sync::broadcast::Receiver<()>,
     ) {
-        let mut last_heartbeat_timestamp: Instant = time::Instant::now();
+        let mut last_heartbeat_timestamp: Instant = Instant::now();
         let mut last_heartbeat_acknowledged = true;
         let mut last_seq_number: Option<u64> = None;
 
-        safina_timer::start_timer_thread();
-
         loop {
-            if kill_receive.try_recv().is_ok() {
-                trace!("GW: Closing heartbeat task");
-                break;
-            }
-
             let timeout = if last_heartbeat_acknowledged {
                 heartbeat_interval
             } else {
@@ -102,6 +110,10 @@ impl HeartbeatHandler {
                         }
                     }
                 }
+                Ok(_) = kill_receive.recv() => {
+                    log::trace!("GW: Closing heartbeat task");
+                    break;
+                }
             }
 
             if should_send {
@@ -119,11 +131,11 @@ impl HeartbeatHandler {
                 let send_result = websocket_tx.lock().await.send(msg.into()).await;
                 if send_result.is_err() {
                     // We couldn't send, the websocket is broken
-                    warn!("GW: Couldnt send heartbeat, websocket seems broken");
+                    warn!("GW: Couldn't send heartbeat, websocket seems broken");
                     break;
                 }
 
-                last_heartbeat_timestamp = time::Instant::now();
+                last_heartbeat_timestamp = Instant::now();
                 last_heartbeat_acknowledged = false;
             }
         }

@@ -1,8 +1,11 @@
-use std::sync::{Arc, RwLock};
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::gateway::Shared;
 use crate::types::{Snowflake, WelcomeScreenObject};
 
 use super::guild::GuildScheduledEvent;
@@ -21,7 +24,7 @@ pub struct Invite {
     pub flags: Option<i32>,
     pub guild: Option<InviteGuild>,
     pub guild_id: Option<Snowflake>,
-    pub guild_scheduled_event: Option<Arc<RwLock<GuildScheduledEvent>>>,
+    pub guild_scheduled_event: Option<Shared<GuildScheduledEvent>>,
     #[serde(rename = "type")]
     pub invite_type: Option<i32>,
     pub inviter: Option<User>,
@@ -59,7 +62,7 @@ pub struct InviteGuild {
 /// See <https://discord-userdoccers.vercel.app/resources/invite#invite-stage-instance-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InviteStageInstance {
-    pub members: Vec<Arc<RwLock<GuildMember>>>,
+    pub members: Vec<Shared<GuildMember>>,
     pub participant_count: i32,
     pub speaker_count: i32,
     pub topic: String,

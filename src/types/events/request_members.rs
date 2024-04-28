@@ -1,7 +1,11 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use crate::types::{events::WebSocketEvent, Snowflake};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#request-guild-members-request-guild-members-structure>
 pub struct GatewayRequestGuildMembers {
     pub guild_id: Snowflake,
@@ -13,4 +17,3 @@ pub struct GatewayRequestGuildMembers {
     pub nonce: Option<String>,
 }
 
-impl WebSocketEvent for GatewayRequestGuildMembers {}

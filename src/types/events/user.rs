@@ -1,10 +1,14 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::PublicUser;
 use crate::types::events::WebSocketEvent;
 use crate::types::utils::Snowflake;
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#user-update>;
 /// Sent to indicate updates to a user object; (name changes, discriminator changes, etc);
 pub struct UserUpdate {
@@ -12,9 +16,7 @@ pub struct UserUpdate {
     pub user: PublicUser,
 }
 
-impl WebSocketEvent for UserUpdate {}
-
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
 /// Undocumented;
 ///
 /// Possibly an update for muted guild / channel settings for the current user;
@@ -36,8 +38,6 @@ pub struct UserGuildSettingsUpdate {
     pub flags: i32,
     pub channel_overrides: Vec<UserGuildSettingsChannelOverride>,
 }
-
-impl WebSocketEvent for UserGuildSettingsUpdate {}
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Undocumented;

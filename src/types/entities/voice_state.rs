@@ -1,8 +1,11 @@
-use std::sync::{Arc, RwLock};
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #[cfg(feature = "client")]
 use chorus_macros::Composite;
 
+use crate::gateway::Shared;
 #[cfg(feature = "client")]
 use crate::types::Composite;
 
@@ -33,7 +36,8 @@ pub struct VoiceState {
     pub guild: Option<Guild>,
     pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
-    pub member: Option<Arc<RwLock<GuildMember>>>,
+    pub member: Option<Shared<GuildMember>>,
+    /// Includes alphanumeric characters, not a snowflake
     pub session_id: String,
     pub token: Option<String>,
     pub deaf: bool,
@@ -48,6 +52,7 @@ pub struct VoiceState {
 }
 
 impl Updateable for VoiceState {
+    #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Snowflake {
         if let Some(id) = self.id {
             id // ID exists: Only the case for Spacebar Server impls

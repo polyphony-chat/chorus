@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use reqwest::Client;
 use serde_json::to_string;
 
@@ -9,6 +13,26 @@ use crate::{
 };
 
 impl ChorusUser {
+    /// Fetches a list of private channels the user is in.
+    ///
+    /// # Reference:
+    /// See <https://docs.discord.sex/resources/channel#get-private-channels>
+    pub async fn get_private_channels(&mut self) -> ChorusResult<Vec<Channel>> {
+        let url = format!(
+            "{}/users/@me/channels",
+            self.belongs_to.read().unwrap().urls.api
+        );
+        ChorusRequest {
+            request: Client::new()
+                .get(url)
+                .header("Authorization", self.token())
+                .header("Content-Type", "application/json"),
+            limit_type: LimitType::Global,
+        }
+        .deserialize_response::<Vec<Channel>>(self)
+        .await
+    }
+
     /// Creates a DM channel or group DM channel.
     ///
     /// One recipient creates or returns an existing DM channel,

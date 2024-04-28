@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use futures_util::{
     stream::{SplitSink, SplitStream},
     StreamExt,
@@ -23,8 +27,16 @@ impl TungsteniteBackend {
         websocket_url: &str,
     ) -> Result<(TungsteniteSink, TungsteniteStream), crate::errors::GatewayError> {
         let mut roots = rustls::RootCertStore::empty();
-        for cert in rustls_native_certs::load_native_certs().expect("could not load platform certs")
-        {
+        let certs = rustls_native_certs::load_native_certs();
+
+        if let Err(e) = certs {
+            log::error!("Failed to load platform native certs! {:?}", e);
+            return Err(GatewayError::CannotConnect {
+                error: format!("{:?}", e),
+            });
+        }
+
+        for cert in certs.unwrap() {
             roots.add(&rustls::Certificate(cert.0)).unwrap();
         }
         let (websocket_stream, _) = match connect_async_tls_with_config(

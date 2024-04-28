@@ -1,7 +1,11 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use crate::types::{events::WebSocketEvent, Relationship, RelationshipType, Snowflake};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, WebSocketEvent)]
 /// See <https://github.com/spacebarchat/server/issues/204>
 pub struct RelationshipAdd {
     #[serde(flatten)]
@@ -9,9 +13,7 @@ pub struct RelationshipAdd {
     pub should_notify: bool,
 }
 
-impl WebSocketEvent for RelationshipAdd {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// See <https://github.com/spacebarchat/server/issues/203>
 pub struct RelationshipRemove {
     pub id: Snowflake,
@@ -19,4 +21,3 @@ pub struct RelationshipRemove {
     pub relationship_type: RelationshipType,
 }
 
-impl WebSocketEvent for RelationshipRemove {}

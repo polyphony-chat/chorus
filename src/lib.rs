@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 /*!
 Chorus combines all the required functionalities of a user-centric Spacebar library into one package.
 The library handles various aspects on your behalf, such as rate limiting, authentication and maintaining
@@ -44,7 +48,7 @@ let login_schema = LoginSchema {
     password: "Correct-Horse-Battery-Staple".to_string(),
     ..Default::default()
 };
-// Each user connects to the Gateway. The Gateway connection lives on a seperate thread. Depending on
+// Each user connects to the Gateway. The Gateway connection lives on a separate thread. Depending on
 // the runtime feature you choose, this can potentially take advantage of all of your computers' threads.
 let user = instance
     .login_account(login_schema)
@@ -128,7 +132,10 @@ pub mod instance;
 #[cfg(feature = "client")]
 pub mod ratelimiter;
 pub mod types;
-#[cfg(feature = "client")]
+#[cfg(all(
+    feature = "client",
+    any(feature = "voice_udp", feature = "voice_gateway")
+))]
 pub mod voice;
 
 #[derive(Clone, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -137,6 +144,12 @@ pub mod voice;
 /// # Notes
 /// All the urls can be found on the /api/policies/instance/domains endpoint of a spacebar server
 pub struct UrlBundle {
+    /// The root url of an Instance. Usually, this would be the url where `.well-known/spacebar` can
+    /// be located under. If the instance you are connecting to for some reason does not have a
+    /// `.well-known` set up (for example, if it is a local/testing instance), you can use the api
+    /// url as a substitute.
+    /// Ex: `https://spacebar.chat`
+    pub root: String,
     /// The api's url.
     /// Ex: `https://old.server.spacebar.chat/api`
     pub api: String,
@@ -151,8 +164,9 @@ pub struct UrlBundle {
 
 impl UrlBundle {
     /// Creates a new UrlBundle from the relevant urls.
-    pub fn new(api: String, wss: String, cdn: String) -> Self {
+    pub fn new(root: String, api: String, wss: String, cdn: String) -> Self {
         Self {
+            root: UrlBundle::parse_url(root),
             api: UrlBundle::parse_url(api),
             wss: UrlBundle::parse_url(wss),
             cdn: UrlBundle::parse_url(cdn),
@@ -237,7 +251,12 @@ impl UrlBundle {
             .json::<types::types::domains_configuration::Domains>()
             .await
         {
-            Ok(UrlBundle::new(body.api_endpoint, body.gateway, body.cdn))
+            Ok(UrlBundle::new(
+                url.to_string(),
+                body.api_endpoint,
+                body.gateway,
+                body.cdn,
+            ))
         } else {
             Err(ChorusError::RequestFailed {
                 url: url.to_string(),

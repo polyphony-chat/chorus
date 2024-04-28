@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::types::{Guild, Message, MessageSearchQuery, Snowflake};
@@ -9,7 +13,7 @@ impl Guild {
     /// permission to be present on the current user.
     ///
     /// If the guild/channel you are searching is not yet indexed, the endpoint will return a 202 accepted response.
-    /// In this case, the method will return a [`ChorusError::InvalidResponse`] error.
+    /// In this case, the method will return a [`ChorusError::InvalidResponse`](crate::errors::ChorusError::InvalidResponse) error.
     ///
     /// # Reference:
     /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
