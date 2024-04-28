@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::types::{Snowflake, WebSocketEvent};
+use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
 /// Defines an event which provides ssrcs for voice and video for a user id.
@@ -24,7 +25,7 @@ use serde::{Deserialize, Serialize};
 /// ```json
 /// {"op":12,"d":{"audio_ssrc":2307250864,"video_ssrc":0,"rtx_ssrc":0,"streams":[{"type":"video","rid":"100","ssrc":26595,"active":false,"quality":100,"rtx_ssrc":26596,"max_bitrate":2500000,"max_framerate":30,"max_resolution":{"type":"fixed","width":1280,"height":720}}]}}
 /// ```
-#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, WebSocketEvent)]
 pub struct SsrcDefinition {
     /// The ssrc used for video communications.
     ///
@@ -50,4 +51,3 @@ pub struct SsrcDefinition {
     pub streams: Vec<String>,
 }
 
-impl WebSocketEvent for SsrcDefinition {}

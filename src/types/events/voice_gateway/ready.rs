@@ -5,11 +5,12 @@
 use std::net::Ipv4Addr;
 
 use crate::types::WebSocketEvent;
+use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
 use super::VoiceEncryptionMode;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
 /// The voice gateway's ready event;
 ///
 /// Gives the user info about the UDP connection IP and port, srrc to use,
@@ -43,4 +44,3 @@ impl Default for VoiceReady {
     }
 }
 
-impl WebSocketEvent for VoiceReady {}

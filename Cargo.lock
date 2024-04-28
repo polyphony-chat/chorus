@@ -252,9 +252,9 @@ dependencies = [
 
 [[package]]
 name = "chorus-macros"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a81545a60b926f815517dadbbd40cd502294ae2baea25fa8194d854d607512b0"
+checksum = "de4221700bc486c6e6bc261fdea478936d33067a06325895f5d2a8cde5917272"
 dependencies = [
  "async-trait",
  "quote",

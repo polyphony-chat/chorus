@@ -30,7 +30,7 @@ mod speaking;
 mod ssrc_definition;
 mod voice_backend_version;
 
-#[derive(Debug, Default, Serialize, Clone)]
+#[derive(Debug, Default, Serialize, Clone, WebSocketEvent)]
 /// The payload used for sending events to the voice gateway.
 ///
 /// Similar to [VoiceGatewayReceivePayload], except we send a [Value] for d whilst we receive a [serde_json::value::RawValue]
@@ -41,8 +41,6 @@ pub struct VoiceGatewaySendPayload {
     #[serde(rename = "d")]
     pub data: Value,
 }
-
-impl WebSocketEvent for VoiceGatewaySendPayload {}
 
 #[derive(Debug, Deserialize, Clone)]
 /// The payload used for receiving events from the voice gateway.

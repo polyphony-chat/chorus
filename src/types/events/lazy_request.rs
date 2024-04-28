@@ -7,10 +7,9 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::types::Snowflake;
-
 use super::WebSocketEvent;
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Officially Undocumented
 ///
 /// Sent to the server to signify lazy loading of a guild;
@@ -31,4 +30,3 @@ pub struct LazyRequest {
     pub channels: Option<HashMap<String, Vec<Vec<u64>>>>,
 }
 
-impl WebSocketEvent for LazyRequest {}

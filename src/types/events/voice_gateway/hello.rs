@@ -3,9 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::types::WebSocketEvent;
+use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Copy)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Copy, WebSocketEvent)]
 /// Contains info on how often the client should send heartbeats to the server;
 ///
 /// Differs from the normal hello data in that discord sends heartbeat interval as a float.
@@ -21,4 +22,3 @@ pub struct VoiceHelloData {
     pub heartbeat_interval: f64,
 }
 
-impl WebSocketEvent for VoiceHelloData {}
