@@ -7,7 +7,7 @@ use std::sync::{Arc, RwLock};
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
+use crate::types::Shared;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]

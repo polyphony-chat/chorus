@@ -5,8 +5,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
 use crate::types::{
+    Shared,
     entities::{Guild, User},
     utils::Snowflake,
 };

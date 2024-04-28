@@ -5,8 +5,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
-use crate::types::{Snowflake, WelcomeScreenObject};
+use crate::types::{Snowflake, WelcomeScreenObject, Shared};
 
 use super::guild::GuildScheduledEvent;
 use super::{Application, Channel, GuildMember, NSFWLevel, User};
