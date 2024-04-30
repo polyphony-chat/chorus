@@ -9,7 +9,6 @@ use futures_util::{
 
 use ws_stream_wasm::*;
 
-use crate::errors::GatewayError;
 use crate::gateway::GatewayMessage;
 
 #[derive(Debug, Clone)]
@@ -22,13 +21,8 @@ pub type WasmStream = SplitStream<WsStream>;
 impl WasmBackend {
     pub async fn connect(
         websocket_url: &str,
-    ) -> Result<(WasmSink, WasmStream), crate::errors::GatewayError> {
-        let (_, websocket_stream) = match WsMeta::connect(websocket_url, None).await {
-            Ok(stream) => Ok(stream),
-            Err(e) => Err(GatewayError::CannotConnect {
-                error: e.to_string(),
-            }),
-        }?;
+    ) -> Result<(WasmSink, WasmStream), ws_stream_wasm::WsErr> {
+        let (_, websocket_stream) = WsMeta::connect(websocket_url, None).await?;
 
         Ok(websocket_stream.split())
     }

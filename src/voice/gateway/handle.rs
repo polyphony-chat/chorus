@@ -11,13 +11,16 @@ use futures_util::SinkExt;
 use serde_json::json;
 use tokio::sync::Mutex;
 
-use crate::types::{
-    SelectProtocol, Speaking, SsrcDefinition, VoiceGatewaySendPayload, VoiceIdentify,
-    VOICE_BACKEND_VERSION, VOICE_IDENTIFY, VOICE_SELECT_PROTOCOL, VOICE_SPEAKING,
-    VOICE_SSRC_DEFINITION,
+use crate::{
+    gateway::Sink,
+    types::{
+        SelectProtocol, Speaking, SsrcDefinition, VoiceGatewaySendPayload, VoiceIdentify,
+        VOICE_BACKEND_VERSION, VOICE_IDENTIFY, VOICE_SELECT_PROTOCOL, VOICE_SPEAKING,
+        VOICE_SSRC_DEFINITION,
+    },
 };
 
-use super::{events::VoiceEvents, Sink, VoiceGatewayMessage};
+use super::{events::VoiceEvents, VoiceGatewayMessage};
 
 /// Represents a handle to a Voice Gateway connection.
 /// Using this handle you can send Gateway Events directly.
