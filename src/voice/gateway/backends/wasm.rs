@@ -2,35 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use futures_util::{
-    stream::{SplitSink, SplitStream},
-    StreamExt,
-};
-
-use ws_stream_wasm::*;
-
-use crate::errors::VoiceGatewayError;
+use ws_stream_wasm::WsMessage;
 use crate::voice::gateway::VoiceGatewayMessage;
-
-#[derive(Debug, Clone)]
-pub struct WasmBackend;
-
-// These could be made into inherent associated types when that's stabilized
-pub type WasmSink = SplitSink<WsStream, WsMessage>;
-pub type WasmStream = SplitStream<WsStream>;
-
-impl WasmBackend {
-    pub async fn connect(websocket_url: &str) -> Result<(WasmSink, WasmStream), VoiceGatewayError> {
-        let (_, websocket_stream) = match WsMeta::connect(websocket_url, None).await {
-            Ok(stream) => Ok(stream),
-            Err(e) => Err(VoiceGatewayError::CannotConnect {
-                error: e.to_string(),
-            }),
-        }?;
-
-        Ok(websocket_stream.split())
-    }
-}
 
 impl From<VoiceGatewayMessage> for WsMessage {
     fn from(message: VoiceGatewayMessage) -> Self {

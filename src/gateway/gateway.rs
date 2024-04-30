@@ -35,7 +35,14 @@ impl Gateway {
     #[allow(clippy::new_ret_no_self)]
     pub async fn spawn(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
         let (websocket_send, mut websocket_receive) =
-            WebSocketBackend::connect(&websocket_url).await?;
+            match WebSocketBackend::connect(&websocket_url).await {
+                Ok(streams) => streams,
+                Err(e) => {
+                    return Err(GatewayError::CannotConnect {
+                        error: format!("{:?}", e),
+                    })
+                }
+            };
 
         let shared_websocket_send = Arc::new(Mutex::new(websocket_send));
 

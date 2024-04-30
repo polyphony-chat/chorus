@@ -11,6 +11,9 @@ use tokio::sync::Mutex;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 
+use crate::gateway::Sink;
+use crate::gateway::Stream;
+use crate::gateway::WebSocketBackend;
 use crate::{
     errors::VoiceGatewayError,
     gateway::GatewayEvent,
@@ -21,14 +24,10 @@ use crate::{
         VOICE_READY, VOICE_RESUME, VOICE_SELECT_PROTOCOL, VOICE_SESSION_DESCRIPTION,
         VOICE_SESSION_UPDATE, VOICE_SPEAKING, VOICE_SSRC_DEFINITION,
     },
-    voice::gateway::{
-        heartbeat::VoiceHeartbeatThreadCommunication, VoiceGatewayMessage, WebSocketBackend,
-    },
+    voice::gateway::{heartbeat::VoiceHeartbeatThreadCommunication, VoiceGatewayMessage},
 };
 
-use super::{
-    events::VoiceEvents, heartbeat::VoiceHeartbeatHandler, Sink, Stream, VoiceGatewayHandle,
-};
+use super::{events::VoiceEvents, heartbeat::VoiceHeartbeatHandler, VoiceGatewayHandle};
 
 #[derive(Debug)]
 pub struct VoiceGateway {
@@ -48,7 +47,14 @@ impl VoiceGateway {
         trace!("Created voice socket url: {}", processed_url.clone());
 
         let (websocket_send, mut websocket_receive) =
-            WebSocketBackend::connect(&processed_url).await?;
+            match WebSocketBackend::connect(&processed_url).await {
+                Ok(streams) => streams,
+                Err(e) => {
+                    return Err(VoiceGatewayError::CannotConnect {
+                        error: format!("{:?}", e),
+                    })
+                }
+            };
 
         let shared_websocket_send = Arc::new(Mutex::new(websocket_send));
 
