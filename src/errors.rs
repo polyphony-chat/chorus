@@ -93,7 +93,7 @@ custom_error! {
     DisallowedIntents = "You sent a disallowed intent. You may have tried to specify an intent that you have not enabled or are not approved for",
 
     // Errors when initiating a gateway connection
-    CannotConnect{error: String} = "Cannot connect due to a tungstenite error: {error}",
+    CannotConnect{error: String} = "Cannot connect due to a websocket error: {error}",
     NonHelloOnInitiate{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
 
     // Other misc errors
@@ -124,7 +124,7 @@ custom_error! {
     UnknownEncryptionMode = "Server failed to decrypt data",
 
     // Errors when initiating a gateway connection
-    CannotConnect{error: String} = "Cannot connect due to a tungstenite error: {error}",
+    CannotConnect{error: String} = "Cannot connect due to a websocket error: {error}",
     NonHelloOnInitiate{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
 
     // Other misc errors
