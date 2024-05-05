@@ -11,7 +11,7 @@ use crate::errors::ChorusResult;
 use crate::gateway::Gateway;
 use crate::instance::{ChorusUser, Instance};
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema};
+use crate::types::{GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema, User};
 
 impl Instance {
     /// Logs into an existing account on the spacebar server.
@@ -30,27 +30,22 @@ impl Instance {
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since login is an instance wide limit), which is why we are just cloning the
         // instances' limits to pass them on as user_rate_limits later.
-        let mut shell =
+        let mut user =
             ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None".to_string()).await;
+        
         let login_result = chorus_request
-            .deserialize_response::<LoginResult>(&mut shell)
+            .deserialize_response::<LoginResult>(&mut user)
             .await?;
-        let object = self.get_user(login_result.token.clone(), None).await?;
-        if self.limits_information.is_some() {
-            self.limits_information.as_mut().unwrap().ratelimits = shell.limits.clone().unwrap();
-        }
+        user.set_token(login_result.token);
+        user.settings = login_result.settings;
+
+        let object = User::get(&mut user, None).await?;
+        *user.object.write().unwrap() = object;
+
         let mut identify = GatewayIdentifyPayload::common();
-        let gateway = Gateway::spawn(self.urls.wss.clone()).await.unwrap();
-        identify.token = login_result.token.clone();
-        gateway.send_identify(identify).await;
-        let user = ChorusUser::new(
-            Arc::new(RwLock::new(self.clone())),
-            login_result.token,
-            self.clone_limits_if_some(),
-            login_result.settings,
-            Arc::new(RwLock::new(object)),
-            gateway,
-        );
+        identify.token = user.token();
+        user.gateway.send_identify(identify).await;
+
         Ok(user)
     }
 }
