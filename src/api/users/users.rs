@@ -30,13 +30,9 @@ impl ChorusUser {
     /// Gets the user's settings.
     ///
     /// # Notes
-    /// This functions is a wrapper around [`User::get_settings`].
-    pub async fn get_settings(
-        token: &String,
-        url_api: &String,
-        instance: &mut Instance,
-    ) -> ChorusResult<UserSettings> {
-        User::get_settings(token, url_api, instance).await
+    /// This function is a wrapper around [`User::get_settings`].
+    pub async fn get_settings(&mut self) -> ChorusResult<UserSettings> {
+        User::get_settings(self).await 
     }
 
     /// Modifies the current user's representation. (See [`User`])
@@ -118,56 +114,22 @@ impl User {
     ///
     /// # Reference
     /// See <https://luna.gitlab.io/discord-unofficial-docs/docs/user_settings.html#get-usersmesettings>
-    pub async fn get_settings(
-        token: &String,
-        url_api: &String,
-        instance: &mut Instance,
-    ) -> ChorusResult<UserSettings> {
+    pub async fn get_settings(user: &mut ChorusUser) -> ChorusResult<UserSettings> {
+        let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/@me/settings", url_api))
-            .header("Authorization", token);
-        let mut user =
-            ChorusUser::shell(Arc::new(RwLock::new(instance.clone())), token.clone()).await;
+            .header("Authorization", user.token());
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
         };
-        let result = match chorus_request.send_request(&mut user).await {
-            Ok(result) => Ok(serde_json::from_str(&result.text().await.unwrap()).unwrap()),
+        match chorus_request.send_request(user).await {
+            Ok(result) => {
+                let result_text = result.text().await.unwrap();
+                Ok(serde_json::from_str(&result_text).unwrap())
+            }
             Err(e) => Err(e),
-        };
-        if instance.limits_information.is_some() {
-            instance.limits_information.as_mut().unwrap().ratelimits = user
-                .belongs_to
-                .read()
-                .unwrap()
-                .clone_limits_if_some()
-                .unwrap();
         }
-        result
     }
 }
 
-impl Instance {
-    /// Gets a user by id, or if the id is None, gets the current user.
-    ///
-    /// # Notes
-    /// This function is a wrapper around [`User::get`].
-    ///
-    /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
-    /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
-    pub async fn get_user(&mut self, token: String, id: Option<&String>) -> ChorusResult<User> {
-        let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
-        let result = User::get(&mut user, id).await;
-        if self.limits_information.is_some() {
-            self.limits_information.as_mut().unwrap().ratelimits = user
-                .belongs_to
-                .read()
-                .unwrap()
-                .clone_limits_if_some()
-                .unwrap();
-        }
-        result
-    }
-}
