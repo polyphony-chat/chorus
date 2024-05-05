@@ -138,6 +138,29 @@ bitflags! {
     }
 }
 
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::MySql> for InviteFlags {
+    fn type_info() -> sqlx::mysql::MySqlTypeInfo {
+        u64::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::MySql> for InviteFlags {
+    fn encode_by_ref(&self, buf: &mut <sqlx::MySql as sqlx::database::HasArguments<'q>>::ArgumentBuffer) -> sqlx::encode::IsNull {
+        u64::encode_by_ref(&self.0.0, buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'r> sqlx::Decode<'r, sqlx::MySql> for InviteFlags {
+    fn decode(value: <sqlx::MySql as sqlx::database::HasValueRef<'r>>::ValueRef) -> Result<Self, sqlx::error::BoxDynError> {
+        let raw = u64::decode(value)?;
+
+        Ok(Self::from_bits(raw).unwrap())
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, Default, PartialOrd, Ord, PartialEq, Eq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]

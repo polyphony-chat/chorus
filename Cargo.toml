@@ -84,6 +84,7 @@ wasm-bindgen-futures = "0.4.43"
 wasmtimer = "0.2.0"
 
 [dev-dependencies]
+<<<<<<< HEAD
 lazy_static = "1.5.0"
 wasm-bindgen-test = "0.3.43"
 wasm-bindgen = "0.2.93"
@@ -91,3 +92,8 @@ simple_logger = { version = "5.0.0", default-features = false }
 
 [lints.rust]
 unexpected_cfgs = { level = "allow", check-cfg = ['cfg(tarpaulin_include)'] }
+=======
+lazy_static = "1.4.0"
+wasm-bindgen-test = "0.3.42"
+wasm-bindgen = "0.2.92"
+>>>>>>> 50c5c29 (update dev-dependencies)

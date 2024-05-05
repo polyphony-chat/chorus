@@ -32,7 +32,7 @@ pub struct SecondsStringTimestampVisitor;
 /// assert_eq!(as_string, r#"{"time":"1431684000"}"#);
 /// let my_s: S = serde_json::from_str(&as_string)?;
 /// assert_eq!(my_s.time, time);
-/// # Ok::<(), serde_json::Error>(())
+/// // Ok::<(), serde_json::Error>(())
 /// ```
 
 pub mod ts_seconds_str {
@@ -64,7 +64,7 @@ pub mod ts_seconds_str {
     /// };
     /// let as_string = serde_json::to_string(&my_s)?;
     /// assert_eq!(as_string, r#"{"time":"1431684000"}"#);
-    /// # Ok::<(), serde_json::Error>(())
+    /// // Ok::<(), serde_json::Error>(())
     /// ```
     pub fn serialize<S>(dt: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -91,7 +91,7 @@ pub mod ts_seconds_str {
     ///
     /// let my_s: S = serde_json::from_str(r#"{ "time": "1431684000" }"#)?;
     /// assert_eq!(my_s, S { time: Utc.timestamp_opt(1431684000, 0).unwrap() });
-    /// # Ok::<(), serde_json::Error>(())
+    /// // Ok::<(), serde_json::Error>(())
     /// ```
     pub fn deserialize<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
     where
@@ -145,7 +145,7 @@ pub mod ts_seconds_str {
 /// assert_eq!(as_string, r#"{"time":"1431684000"}"#);
 /// let my_s: S = serde_json::from_str(&as_string)?;
 /// assert_eq!(my_s.time, time);
-/// # Ok::<(), serde_json::Error>(())
+/// // Ok::<(), serde_json::Error>(())
 /// ```
 pub mod ts_seconds_option_str {
     use super::SecondsStringTimestampVisitor;
@@ -174,7 +174,7 @@ pub mod ts_seconds_option_str {
     /// };
     /// let as_string = serde_json::to_string(&my_s)?;
     /// assert_eq!(as_string, r#"{"time":"1431684000"}"#);
-    /// # Ok::<(), serde_json::Error>(())
+    /// // Ok::<(), serde_json::Error>(())
     /// ```
     pub fn serialize<S>(opt: &Option<DateTime<Utc>>, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -204,7 +204,7 @@ pub mod ts_seconds_option_str {
     ///
     /// let my_s: S = serde_json::from_str(r#"{ "time": "1431684000" }"#)?;
     /// assert_eq!(my_s, S { time: Utc.timestamp_opt(1431684000, 0).single() });
-    /// # Ok::<(), serde_json::Error>(())
+    /// // Ok::<(), serde_json::Error>(())
     /// ```
     pub fn deserialize<'de, D>(d: D) -> Result<Option<DateTime<Utc>>, D::Error>
     where

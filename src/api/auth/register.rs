@@ -37,13 +37,23 @@ impl Instance {
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since register is an instance wide limit), which is why we are just cloning
         // the instances' limits to pass them on as user_rate_limits later.
+<<<<<<< HEAD
         let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
 
+=======
+        let mut user =
+            ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None".to_string()).await;
+        
+>>>>>>> 03f1e7d (Refactor / fix login and register (#495))
         let token = chorus_request
             .deserialize_response::<Token>(&mut user)
             .await?
             .token;
+<<<<<<< HEAD
         user.set_token(&token);
+=======
+        user.set_token(token); 
+>>>>>>> 03f1e7d (Refactor / fix login and register (#495))
 
         let object = User::get(&mut user, None).await?;
         let settings = User::get_settings(&mut user).await?;
