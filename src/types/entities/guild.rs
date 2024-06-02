@@ -67,7 +67,7 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub invites: Option<Vec<GuildInvite>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[serde(with = "ts_seconds_option_str")]
+    #[serde(with = "ts_seconds_option_str", default)]
     pub joined_at: Option<DateTime<Utc>>,
     pub large: Option<bool>,
     pub max_members: Option<i32>,
