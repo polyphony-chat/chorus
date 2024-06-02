@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use bitflags::bitflags;
+use serde::{Deserialize, Serialize};
 
 bitflags! {
     /// Rights are instance-wide, per-user permissions for everything you may perform on the instance,
@@ -14,6 +15,7 @@ bitflags! {
     ///
     /// # Reference
     /// See <https://docs.spacebar.chat/setup/server/security/rights/>
+    #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
     pub struct Rights: u64 {
         /// All rights
         const OPERATOR = 1 << 0;
@@ -148,6 +150,12 @@ impl Rights {
         } else {
             Err("You are missing the following rights")
         }
+    }
+}
+
+impl Default for Rights {
+    fn default() -> Self {
+        Self::empty()
     }
 }
 
