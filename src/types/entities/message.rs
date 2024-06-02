@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
@@ -10,7 +11,7 @@ use crate::types::{
         Application, Attachment, Channel, Emoji, GuildMember, PublicUser, RoleSubscriptionData,
         Sticker, StickerItem, User,
     },
-    utils::Snowflake,
+    utils::{Snowflake, serde::*},
 };
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -25,8 +26,10 @@ pub struct Message {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub author: Option<PublicUser>,
     pub content: Option<String>,
-    pub timestamp: String,
-    pub edited_timestamp: Option<String>,
+    #[serde(with = "ts_seconds_str")]
+    pub timestamp: DateTime<Utc>,
+    #[serde(with = "ts_seconds_option_str")]
+    pub edited_timestamp: Option<DateTime<Utc>>,
     pub tts: Option<bool>,
     pub mention_everyone: bool,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]

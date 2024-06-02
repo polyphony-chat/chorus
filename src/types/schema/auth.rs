@@ -2,7 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use crate::types::utils::serde::ts_seconds_option_str;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -13,7 +15,8 @@ pub struct RegisterSchema {
     pub email: Option<String>,
     pub fingerprint: Option<String>,
     pub invite: Option<String>,
-    pub date_of_birth: Option<String>,
+    #[serde(with = "ts_seconds_option_str")]
+    pub date_of_birth: Option<DateTime<Utc>>,
     pub gift_code_sku_id: Option<String>,
     pub captcha_key: Option<String>,
     pub promotional_email_opt_in: Option<bool>,

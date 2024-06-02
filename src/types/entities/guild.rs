@@ -14,7 +14,7 @@ use crate::types::types::guild_configuration::GuildFeaturesList;
 use crate::types::{
     entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
     interfaces::WelcomeScreenObject,
-    utils::Snowflake,
+    utils::{Snowflake, serde::*},
 };
 
 use super::PublicUser;
@@ -67,7 +67,8 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub invites: Option<Vec<GuildInvite>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub joined_at: Option<String>,
+    #[serde(with = "ts_seconds_option_str")]
+    pub joined_at: Option<DateTime<Utc>>,
     pub large: Option<bool>,
     pub max_members: Option<i32>,
     pub max_presences: Option<i32>,
