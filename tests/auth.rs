@@ -2,7 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::str::FromStr;
 use chrono::DateTime;
 use chorus::types::{LoginSchema, RegisterSchema};
 #[cfg(target_arch = "wasm32")]
@@ -18,7 +17,7 @@ async fn test_registration() {
     let mut bundle = common::setup().await;
     let reg = RegisterSchema {
         username: "Hiiii".into(),
-        date_of_birth: Some(DateTime::from_str("2000-01-01").unwrap()),
+        date_of_birth: Some(DateTime::from_timestamp(978325200, 0).unwrap()),
         consent: true,
         ..Default::default()
     };
@@ -34,7 +33,7 @@ async fn test_login() {
         username: "Hiiii".into(),
         email: Some("testuser1@integrationtesting.xyz".into()),
         password: Some("Correct-Horse-Battery-Staple1".into()),
-        date_of_birth: Some(DateTime::from_str("2000-01-01").unwrap()),
+        date_of_birth: Some(DateTime::from_timestamp(978325200, 0).unwrap()),
         consent: true,
         ..Default::default()
     };
@@ -56,7 +55,7 @@ async fn test_wrong_login() {
         username: "Hiiii".into(),
         email: Some("testuser2@integrationtesting.xyz".into()),
         password: Some("Correct-Horse-Battery-Staple1".into()),
-        date_of_birth: Some(DateTime::from_str("2000-01-01").unwrap()),
+        date_of_birth: Some(DateTime::from_timestamp(978325200, 0).unwrap()),
         consent: true,
         ..Default::default()
     };

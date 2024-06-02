@@ -2,7 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::str::FromStr;
 use chrono::DateTime;
 use chorus::gateway::Gateway;
 use chorus::types::IntoShared;
@@ -32,7 +31,7 @@ impl TestBundle {
         let register_schema = RegisterSchema {
             username: username.to_string(),
             consent: true,
-            date_of_birth: Some(DateTime::from_str("2000-01-01").unwrap()),
+            date_of_birth: Some(DateTime::from_timestamp(978325200, 0).unwrap()),
             ..Default::default()
         };
         self.instance
@@ -62,7 +61,7 @@ pub(crate) async fn setup() -> TestBundle {
     let reg = RegisterSchema {
         username: "integrationtestuser".into(),
         consent: true,
-        date_of_birth: Some(DateTime::from_str("2000-01-01").unwrap()),
+        date_of_birth: Some(DateTime::from_timestamp(978325200, 0).unwrap()),
         ..Default::default()
     };
     let guild_create_schema = GuildCreateSchema {
