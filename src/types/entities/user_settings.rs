@@ -83,6 +83,9 @@ pub struct UserSettings {
     #[cfg(not(feature = "sqlx"))]
     pub restricted_guilds: Vec<String>,
     pub show_current_game: bool,
+    #[cfg(feature = "sqlx")]
+    pub status: UserStatus,
+    #[cfg(not(feature = "sqlx"))]
     pub status: Shared<UserStatus>,
     pub stream_notifications_enabled: bool,
     pub theme: UserTheme,
@@ -119,7 +122,7 @@ impl Default for UserSettings {
             render_reactions: true,
             restricted_guilds: Default::default(),
             show_current_game: true,
-            status: Arc::new(RwLock::new(UserStatus::Online)),
+            status: Default::default(),
             stream_notifications_enabled: false,
             theme: UserTheme::Dark,
             timezone_offset: 0,
