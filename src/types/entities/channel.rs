@@ -160,10 +160,10 @@ pub struct PermissionOverwrite {
 pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: i32,
-    pub archive_timestamp: String,
+    pub archive_timestamp: DateTime<Utc>,
     pub locked: bool,
     pub invitable: Option<bool>,
-    pub create_timestamp: Option<String>,
+    pub create_timestamp: Option<DateTime<Utc>>,
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
@@ -172,7 +172,7 @@ pub struct ThreadMetadata {
 pub struct ThreadMember {
     pub id: Option<Snowflake>,
     pub user_id: Option<Snowflake>,
-    pub join_timestamp: Option<String>,
+    pub join_timestamp: Option<DateTime<Utc>>,
     pub flags: Option<u64>,
     pub member: Option<Shared<GuildMember>>,
 }
