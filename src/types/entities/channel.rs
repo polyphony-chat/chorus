@@ -60,7 +60,7 @@ pub struct Channel {
     pub icon: Option<String>,
     pub id: Snowflake,
     pub last_message_id: Option<Snowflake>,
-    #[serde(with = "ts_seconds_option_str")]
+    #[serde(with = "ts_seconds_option_str", default)]
     pub last_pin_timestamp: Option<DateTime<Utc>>,
     pub managed: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
