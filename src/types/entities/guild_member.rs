@@ -10,6 +10,7 @@ use crate::types::{entities::PublicUser, Snowflake};
 use crate::types::utils::serde::*;
 
 #[derive(Debug, Deserialize, Default, Serialize, Clone)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// Represents a participating user in a guild.
 ///
 /// # Reference
