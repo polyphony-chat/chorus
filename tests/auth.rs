@@ -10,7 +10,7 @@ use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test_configure!(run_in_browser);
 
-use chrono::DateTime;
+use chrono::{DateTime, NaiveDate};
 
 mod common;
 
@@ -20,7 +20,7 @@ async fn test_registration() {
     let mut bundle = common::setup().await;
     let reg = RegisterSchema {
         username: "Hiiii".into(),
-        date_of_birth: Some(DateTime::from_str("2000-01-01").unwrap()),
+        date_of_birth: Some(NaiveDate::from_str("2000-01-01").unwrap()),
         consent: true,
         ..Default::default()
     };
@@ -36,7 +36,7 @@ async fn test_login() {
         username: "Hiiii".into(),
         email: Some("testuser1@integrationtesting.xyz".into()),
         password: Some("Correct-Horse-Battery-Staple1".into()),
-        date_of_birth: Some(DateTime::from_str("2000-01-01").unwrap()),
+        date_of_birth: Some(NaiveDate::from_str("2000-01-01").unwrap()),
         consent: true,
         ..Default::default()
     };
@@ -58,7 +58,7 @@ async fn test_wrong_login() {
         username: "Hiiii".into(),
         email: Some("testuser2@integrationtesting.xyz".into()),
         password: Some("Correct-Horse-Battery-Staple1".into()),
-        date_of_birth: Some(DateTime::from_str("2000-01-01").unwrap()),
+        date_of_birth: Some(NaiveDate::from_str("2000-01-01").unwrap()),
         consent: true,
         ..Default::default()
     };
