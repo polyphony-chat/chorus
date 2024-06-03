@@ -96,7 +96,7 @@ pub struct ChannelUnreadUpdate {
 pub struct ChannelUnreadUpdateObject {
     pub id: Snowflake,
     pub last_message_id: Snowflake,
-    pub last_pin_timestamp: Option<String>,
+    pub last_pin_timestamp: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent)]
