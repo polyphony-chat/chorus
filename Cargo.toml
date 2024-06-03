@@ -13,7 +13,7 @@ rust-version = "1.67.1"
 
 [features]
 default = ["client", "rt-multi-thread"]
-backend = ["dep:poem", "dep:sqlx"]
+backend = ["poem", "sqlx"]
 rt-multi-thread = ["tokio/rt-multi-thread"]
 rt = ["tokio/rt"]
 client = []
