@@ -1,7 +1,6 @@
 use core::fmt;
 use chrono::{LocalResult, NaiveDateTime};
 use serde::de;
-use chrono::serde::ts_seconds;
 
 #[doc(hidden)]
 #[derive(Debug)]
@@ -17,7 +16,7 @@ pub struct SecondsStringTimestampVisitor;
 /// ```rust
 /// # use chrono::{TimeZone, DateTime, Utc};
 /// # use serde::{Deserialize, Serialize};
-/// use chrono::serde::ts_seconds;
+/// use chorus::types::serde::ts_seconds_str;
 /// #[derive(Deserialize, Serialize)]
 /// struct S {
 ///     #[serde(with = "ts_seconds_str")]
@@ -33,7 +32,7 @@ pub struct SecondsStringTimestampVisitor;
 /// assert_eq!(as_string, r#"{"time":"1431684000"}"#);
 /// let my_s: S = serde_json::from_str(&as_string)?;
 /// assert_eq!(my_s.time, time);
-/// // Ok::<(), serde_json::Error>(())
+/// # Ok::<(), serde_json::Error>(())
 /// ```
 
 pub mod ts_seconds_str {
@@ -53,10 +52,10 @@ pub mod ts_seconds_str {
     /// ```rust
     /// # use chrono::{TimeZone, DateTime, Utc};
     /// # use serde::Serialize;
-    /// use chrono::serde::ts_seconds::serialize as to_ts;
+    /// use chorus::types::serde::ts_seconds_str::serialize as to_ts;
     /// #[derive(Serialize)]
     /// struct S {
-    ///     #[serde(serialize_with = "ts_seconds_str")]
+    ///     #[serde(serialize_with = "to_ts")]
     ///     time: DateTime<Utc>
     /// }
     ///
@@ -65,7 +64,7 @@ pub mod ts_seconds_str {
     /// };
     /// let as_string = serde_json::to_string(&my_s)?;
     /// assert_eq!(as_string, r#"{"time":"1431684000"}"#);
-    /// // Ok::<(), serde_json::Error>(())
+    /// # Ok::<(), serde_json::Error>(())
     /// ```
     pub fn serialize<S>(dt: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
         where
@@ -83,16 +82,16 @@ pub mod ts_seconds_str {
     /// ```rust
     /// # use chrono::{DateTime, TimeZone, Utc};
     /// # use serde::Deserialize;
-    /// use chrono::serde::ts_seconds::deserialize as from_ts;
+    /// use chorus::types::serde::ts_seconds_str::deserialize as from_ts;
     /// #[derive(Debug, PartialEq, Deserialize)]
     /// struct S {
-    ///     #[serde(deserialize_with = "ts_seconds_str")]
+    ///     #[serde(deserialize_with = "from_ts")]
     ///     time: DateTime<Utc>
     /// }
     ///
     /// let my_s: S = serde_json::from_str(r#"{ "time": "1431684000" }"#)?;
     /// assert_eq!(my_s, S { time: Utc.timestamp_opt(1431684000, 0).unwrap() });
-    /// // Ok::<(), serde_json::Error>(())
+    /// # Ok::<(), serde_json::Error>(())
     /// ```
     pub fn deserialize<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
         where
@@ -127,7 +126,7 @@ pub mod ts_seconds_str {
 /// ```rust
 /// # use chrono::{TimeZone, DateTime, Utc};
 /// # use serde::{Deserialize, Serialize};
-/// use chrono::serde::ts_seconds_option;
+/// use chorus::types::serde::ts_seconds_option_str;
 /// #[derive(Deserialize, Serialize)]
 /// struct S {
 ///     #[serde(with = "ts_seconds_option_str")]
@@ -143,7 +142,7 @@ pub mod ts_seconds_str {
 /// assert_eq!(as_string, r#"{"time":"1431684000"}"#);
 /// let my_s: S = serde_json::from_str(&as_string)?;
 /// assert_eq!(my_s.time, time);
-/// // Ok::<(), serde_json::Error>(())
+/// # Ok::<(), serde_json::Error>(())
 /// ```
 pub mod ts_seconds_option_str {
     use core::fmt;
@@ -160,10 +159,10 @@ pub mod ts_seconds_option_str {
     /// ```rust
     /// # use chrono::{TimeZone, DateTime, Utc};
     /// # use serde::Serialize;
-    /// use chrono::serde::ts_seconds_option::serialize as to_tsopt;
+    /// use chorus::types::serde::ts_seconds_option_str::serialize as from_tsopt;
     /// #[derive(Serialize)]
     /// struct S {
-    ///     #[serde(serialize_with = "ts_seconds_option_str")]
+    ///     #[serde(serialize_with = "from_tsopt")]
     ///     time: Option<DateTime<Utc>>
     /// }
     ///
@@ -172,7 +171,7 @@ pub mod ts_seconds_option_str {
     /// };
     /// let as_string = serde_json::to_string(&my_s)?;
     /// assert_eq!(as_string, r#"{"time":"1431684000"}"#);
-    /// // Ok::<(), serde_json::Error>(())
+    /// # Ok::<(), serde_json::Error>(())
     /// ```
     pub fn serialize<S>(opt: &Option<DateTime<Utc>>, serializer: S) -> Result<S::Ok, S::Error>
         where
@@ -193,16 +192,16 @@ pub mod ts_seconds_option_str {
     /// ```rust
     /// # use chrono::{DateTime, TimeZone, Utc};
     /// # use serde::Deserialize;
-    /// use chrono::serde::ts_seconds_option::deserialize as from_tsopt;
+    /// use chorus::types::serde::ts_seconds_option_str::deserialize as from_tsopt;
     /// #[derive(Debug, PartialEq, Deserialize)]
     /// struct S {
-    ///     #[serde(deserialize_with = "ts_seconds_option_str")]
+    ///     #[serde(deserialize_with = "from_tsopt")]
     ///     time: Option<DateTime<Utc>>
     /// }
     ///
     /// let my_s: S = serde_json::from_str(r#"{ "time": "1431684000" }"#)?;
     /// assert_eq!(my_s, S { time: Utc.timestamp_opt(1431684000, 0).single() });
-    /// // Ok::<(), serde_json::Error>(())
+    /// # Ok::<(), serde_json::Error>(())
     /// ```
     pub fn deserialize<'de, D>(d: D) -> Result<Option<DateTime<Utc>>, D::Error>
         where
