@@ -22,7 +22,7 @@ pub struct GuildMember {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub roles: Vec<Snowflake>,
     pub joined_at: DateTime<Utc>,
-    pub premium_since: Option<String>,
+    pub premium_since: Option<DateTime<Utc>>,
     pub deaf: bool,
     pub mute: bool,
     pub flags: Option<i32>,
