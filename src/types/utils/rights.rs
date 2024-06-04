@@ -4,7 +4,6 @@
 
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
-use tokio::io::AsyncWriteExt;
 
 #[cfg(feature = "sqlx")]
 use sqlx::{{Decode, Encode, MySql}, database::{HasArguments, HasValueRef}, encode::IsNull, error::BoxDynError, mysql::MySqlValueRef};
