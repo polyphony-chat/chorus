@@ -11,7 +11,7 @@ use std::fmt::Debug;
 use crate::types::Shared;
 use crate::types::{
     entities::{GuildMember, User},
-    utils::{Snowflake, serde::*},
+    utils::Snowflake,
 };
 
 #[cfg(feature = "client")]
@@ -60,7 +60,6 @@ pub struct Channel {
     pub icon: Option<String>,
     pub id: Snowflake,
     pub last_message_id: Option<Snowflake>,
-    #[serde(with = "ts_seconds_option_str", default)]
     pub last_pin_timestamp: Option<DateTime<Utc>>,
     pub managed: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
@@ -161,11 +160,9 @@ pub struct PermissionOverwrite {
 pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: i32,
-    #[serde(with = "ts_seconds_str")]
     pub archive_timestamp: DateTime<Utc>,
     pub locked: bool,
     pub invitable: Option<bool>,
-    #[serde(with = "ts_seconds_option_str")]
     pub create_timestamp: Option<DateTime<Utc>>,
 }
 
@@ -175,7 +172,6 @@ pub struct ThreadMetadata {
 pub struct ThreadMember {
     pub id: Option<Snowflake>,
     pub user_id: Option<Snowflake>,
-    #[serde(with = "ts_seconds_option_str")]
     pub join_timestamp: Option<DateTime<Utc>>,
     pub flags: Option<u64>,
     pub member: Option<Shared<GuildMember>>,
