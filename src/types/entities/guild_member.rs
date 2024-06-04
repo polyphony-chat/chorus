@@ -15,9 +15,11 @@ use crate::types::{entities::PublicUser, Snowflake};
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/guild#guild-member-object>
 pub struct GuildMember {
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<Shared<PublicUser>>,
     pub nick: Option<String>,
     pub avatar: Option<String>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub roles: Vec<Snowflake>,
     pub joined_at: DateTime<Utc>,
     pub premium_since: Option<String>,
