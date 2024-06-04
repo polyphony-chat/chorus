@@ -245,7 +245,7 @@ pub mod ts_seconds_option_str {
     }
 }
 
-pub(crate) fn serde_from<T, E, V>(me: LocalResult<T>, ts: &V) -> Result<T, E>
+pub(crate) fn serde_from<T, E, V>(me: LocalResult<T>, _ts: &V) -> Result<T, E>
     where
         E: de::Error,
         V: fmt::Display,
@@ -254,7 +254,7 @@ pub(crate) fn serde_from<T, E, V>(me: LocalResult<T>, ts: &V) -> Result<T, E>
     // TODO: Make actual error type
     match me {
         LocalResult::None => Err(E::custom("value is not a legal timestamp")),
-        LocalResult::Ambiguous(min, max) => {
+        LocalResult::Ambiguous(_min, _max) => {
             Err(E::custom("value is an ambiguous timestamp"))
         }
         LocalResult::Single(val) => Ok(val),

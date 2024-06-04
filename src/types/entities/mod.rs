@@ -28,6 +28,7 @@ pub use voice_state::*;
 pub use webhook::*;
 
 use crate::types::Shared;
+#[cfg(feature = "client")]
 use std::sync::{Arc, RwLock};
 
 #[cfg(feature = "client")]

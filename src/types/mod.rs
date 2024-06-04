@@ -4,6 +4,7 @@
 
 //! All the types, entities, events and interfaces of the Spacebar API.
 
+#[cfg(feature = "client")]
 use std::sync::{Arc, RwLock};
 
 pub use config::*;
