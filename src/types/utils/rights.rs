@@ -3,6 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use bitflags::bitflags;
+use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "sqlx")]
+use sqlx::{{Decode, Encode, MySql}, database::{HasArguments, HasValueRef}, encode::IsNull, error::BoxDynError, mysql::MySqlValueRef};
 
 bitflags! {
     /// Rights are instance-wide, per-user permissions for everything you may perform on the instance,
@@ -14,6 +18,7 @@ bitflags! {
     ///
     /// # Reference
     /// See <https://docs.spacebar.chat/setup/server/security/rights/>
+    #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
     pub struct Rights: u64 {
         /// All rights
         const OPERATOR = 1 << 0;
@@ -127,6 +132,33 @@ bitflags! {
     }
 }
 
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<MySql> for Rights {
+    fn type_info() -> <sqlx::MySql as sqlx::Database>::TypeInfo {
+        u64::type_info()
+    }
+
+    fn compatible(ty: &<sqlx::MySql as sqlx::Database>::TypeInfo) -> bool {
+        u64::compatible(ty)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> Encode<'q, MySql> for Rights {
+    fn encode_by_ref(&self, buf: &mut <MySql as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
+        <u64 as Encode<MySql>>::encode_by_ref(&self.0.0, buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'r> Decode<'r, MySql> for Rights {
+    fn decode(value: <MySql as HasValueRef<'r>>::ValueRef) -> Result<Self, BoxDynError> {
+        let raw = <u64 as Decode<MySql>>::decode(value)?;
+        Ok(Rights::from_bits(raw).unwrap())
+    }
+}
+
+
 impl Rights {
     pub fn any(&self, permission: Rights, check_operator: bool) -> bool {
         (check_operator && self.contains(Rights::OPERATOR)) || self.contains(permission)
@@ -148,6 +180,12 @@ impl Rights {
         } else {
             Err("You are missing the following rights")
         }
+    }
+}
+
+impl Default for Rights {
+    fn default() -> Self {
+        Self::empty()
     }
 }
 

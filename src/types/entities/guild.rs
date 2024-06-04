@@ -57,7 +57,7 @@ pub struct Guild {
     #[cfg_attr(feature = "client", observe_vec)]
     #[serde(default)]
     pub emojis: Vec<Shared<Emoji>>,
-    pub explicit_content_filter: Option<i32>,
+    pub explicit_content_filter: Option<ExplicitContentFilterLevel>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
     pub features: Option<GuildFeaturesList>,
     pub icon: Option<String>,

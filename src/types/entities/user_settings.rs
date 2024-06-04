@@ -2,8 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::sync::{Arc, RwLock};
-
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -119,7 +117,7 @@ impl Default for UserSettings {
             render_reactions: true,
             restricted_guilds: Default::default(),
             show_current_game: true,
-            status: Arc::new(RwLock::new(UserStatus::Online)),
+            status: Default::default(),
             stream_notifications_enabled: false,
             theme: UserTheme::Dark,
             timezone_offset: 0,

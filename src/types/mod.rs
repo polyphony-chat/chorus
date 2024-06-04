@@ -4,6 +4,7 @@
 
 //! All the types, entities, events and interfaces of the Spacebar API.
 
+#[cfg(feature = "client")]
 use std::sync::{Arc, RwLock};
 
 pub use config::*;
@@ -28,4 +29,10 @@ mod utils;
 ///
 /// While `T` does not have to implement `Composite` to be used with `Shared`,
 /// the primary use of `Shared` is with types that implement `Composite`.
+/// 
+/// When the `client` feature is disabled, this does nothing (same as just `T`),
+/// since `Composite` structures are disabled.
+#[cfg(feature = "client")]
 pub type Shared<T> = Arc<RwLock<T>>;
+#[cfg(not(feature = "client"))]
+pub type Shared<T> = T;

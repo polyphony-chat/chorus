@@ -19,7 +19,7 @@ pub struct Claims {
     /// When the token was issued
     pub iat: i64,
     pub email: String,
-    pub id: String,
+    pub id: Snowflake,
 }
 
 impl Claims {
@@ -27,7 +27,7 @@ impl Claims {
         let unix = chrono::Utc::now().timestamp();
         Self {
             exp: unix + (60 * 60 * 24),
-            id: id.to_string(),
+            id: *id,
             iat: unix,
             email: user.to_string(),
         }

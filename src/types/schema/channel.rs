@@ -36,7 +36,7 @@ pub struct ChannelCreateSchema {
 #[serde(rename_all = "snake_case")]
 pub struct ChannelModifySchema {
     pub name: Option<String>,
-    pub channel_type: Option<u8>,
+    pub channel_type: Option<ChannelType>,
     pub topic: Option<String>,
     pub icon: Option<String>,
     pub bitrate: Option<i32>,

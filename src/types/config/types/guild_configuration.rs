@@ -376,6 +376,12 @@ impl FromStr for GuildFeatures {
     }
 }
 
+impl From<Vec<GuildFeatures>> for GuildFeaturesList {
+    fn from(features: Vec<GuildFeatures>) -> GuildFeaturesList {
+        Self(features)
+    }
+}
+
 impl GuildFeatures {
     pub fn to_str(&self) -> &'static str {
         match *self {
