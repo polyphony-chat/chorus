@@ -28,4 +28,7 @@ mod utils;
 ///
 /// While `T` does not have to implement `Composite` to be used with `Shared`,
 /// the primary use of `Shared` is with types that implement `Composite`.
+#[cfg(feature = "client")]
 pub type Shared<T> = Arc<RwLock<T>>;
+#[cfg(not(feature = "client"))]
+pub type Shared<T> = T;

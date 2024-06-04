@@ -134,6 +134,7 @@ pub trait IntoShared {
     fn into_shared(self) -> Shared<Self>;
 }
 
+#[cfg(feature = "client")]
 impl<T: Sized> IntoShared for T {
     fn into_shared(self) -> Shared<Self> {
         Arc::new(RwLock::new(self))
