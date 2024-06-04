@@ -11,7 +11,7 @@ use crate::types::{
         Application, Attachment, Channel, Emoji, GuildMember, PublicUser, RoleSubscriptionData,
         Sticker, StickerItem, User,
     },
-    utils::{Snowflake, serde::*},
+    utils::Snowflake,
 };
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -26,9 +26,7 @@ pub struct Message {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub author: Option<PublicUser>,
     pub content: Option<String>,
-    // #[serde(with = "ts_seconds_str")]
     pub timestamp: DateTime<Utc>,
-    // #[serde(with = "ts_seconds_option_str")]
     pub edited_timestamp: Option<DateTime<Utc>>,
     pub tts: Option<bool>,
     pub mention_everyone: bool,

@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::Shared;
 use crate::types::{entities::PublicUser, Snowflake};
-use crate::types::utils::serde::*;
 
 #[derive(Debug, Deserialize, Default, Serialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -20,7 +19,6 @@ pub struct GuildMember {
     pub nick: Option<String>,
     pub avatar: Option<String>,
     pub roles: Vec<Snowflake>,
-    #[serde(with = "ts_seconds_str")]
     pub joined_at: DateTime<Utc>,
     pub premium_since: Option<String>,
     pub deaf: bool,
@@ -28,6 +26,5 @@ pub struct GuildMember {
     pub flags: Option<i32>,
     pub pending: Option<bool>,
     pub permissions: Option<String>,
-    #[serde(with = "ts_seconds_option_str")]
     pub communication_disabled_until: Option<DateTime<Utc>>,
 }
