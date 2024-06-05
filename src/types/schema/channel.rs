@@ -2,12 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::error::Error as StdError;
-use std::num::ParseIntError;
 use bitflags::bitflags;
-use bitflags::parser::ParseHex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde::de::{DeserializeOwned, Visitor};
+use serde::de::Visitor;
 
 use crate::types::{ChannelType, DefaultReaction, Error};
 use crate::types::{entities::PermissionOverwrite, Snowflake};
