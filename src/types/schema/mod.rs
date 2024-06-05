@@ -10,6 +10,7 @@ pub use message::*;
 pub use relationship::*;
 pub use role::*;
 pub use user::*;
+pub use invites::*;
 
 mod apierror;
 mod auth;
@@ -19,3 +20,4 @@ mod message;
 mod relationship;
 mod role;
 mod user;
+mod invites;
