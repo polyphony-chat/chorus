@@ -5,7 +5,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{Snowflake, WelcomeScreenObject, Shared, InviteFlags, InviteType, InviteTargetType};
+use crate::types::{Snowflake, WelcomeScreenObject, Shared, InviteFlags, InviteType, InviteTargetType, Guild, VerificationLevel};
+use crate::types::types::guild_configuration::GuildFeaturesList;
 
 use super::guild::GuildScheduledEvent;
 use super::{Application, Channel, GuildMember, NSFWLevel, User};
@@ -55,8 +56,8 @@ pub struct InviteGuild {
     pub name: String,
     pub icon: Option<String>,
     pub splash: Option<String>,
-    pub verification_level: i32,
-    pub features: Vec<String>,
+    pub verification_level: VerificationLevel,
+    pub features: GuildFeaturesList,
     pub vanity_url_code: Option<String>,
     pub description: Option<String>,
     pub banner: Option<String>,
