@@ -69,6 +69,26 @@ pub struct InviteGuild {
     pub welcome_screen: Option<WelcomeScreenObject>,
 }
 
+impl From<Guild> for InviteGuild {
+    fn from(value: Guild) -> Self {
+        Self {
+            id: value.id,
+            name: value.name.unwrap_or_default(),
+            icon: value.icon,
+            splash: value.splash,
+            verification_level: value.verification_level.unwrap_or_default(),
+            features: value.features.unwrap_or_default(),
+            vanity_url_code: value.vanity_url_code,
+            description: value.description,
+            banner: value.banner,
+            premium_subscription_count: value.premium_subscription_count,
+            nsfw_deprecated: None,
+            nsfw_level: value.nsfw_level.unwrap_or_default(),
+            welcome_screen: value.welcome_screen.map(|obj| obj.0),
+        }
+    }
+}
+
 /// See <https://discord-userdoccers.vercel.app/resources/invite#invite-stage-instance-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InviteStageInstance {
