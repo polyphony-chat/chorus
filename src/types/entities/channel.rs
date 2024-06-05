@@ -177,7 +177,7 @@ pub struct ThreadMember {
     pub member: Option<Shared<GuildMember>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd)]
 /// Specifies the emoji to use as the default way to react to a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel post.
 ///
 /// # Reference
