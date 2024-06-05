@@ -32,7 +32,7 @@ impl ChorusUser {
     /// # Notes
     /// This function is a wrapper around [`User::get_settings`].
     pub async fn get_settings(&mut self) -> ChorusResult<UserSettings> {
-        User::get_settings(self).await 
+        User::get_settings(self).await
     }
 
     /// Modifies the current user's representation. (See [`User`])
@@ -40,12 +40,18 @@ impl ChorusUser {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/user#modify-current-user>
     pub async fn modify(&mut self, modify_schema: UserModifySchema) -> ChorusResult<User> {
-        if modify_schema.new_password.is_some()
+
+        // See <https://docs.discord.sex/resources/user#json-params>, note 1
+        let requires_current_password = modify_schema.username.is_some()
+            || modify_schema.discriminator.is_some()
             || modify_schema.email.is_some()
-            || modify_schema.code.is_some()
-        {
+            || modify_schema.date_of_birth.is_some()
+            || modify_schema.new_password.is_some();
+
+        if requires_current_password && modify_schema.current_password.is_none() {
             return Err(ChorusError::PasswordRequired);
         }
+
         let request = Client::new()
             .patch(format!(
                 "{}/users/@me",
@@ -132,4 +138,3 @@ impl User {
         }
     }
 }
-
