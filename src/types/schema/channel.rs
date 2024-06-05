@@ -109,7 +109,7 @@ pub struct CreateChannelInviteSchema {
     pub temporary: Option<bool>,
     pub unique: Option<bool>,
     pub validate: Option<String>,
-    pub target_type: Option<InviteType>,
+    pub target_type: Option<InviteTargetType>,
     pub target_user_id: Option<Snowflake>,
     pub target_application_id: Option<Snowflake>,
 }
@@ -138,8 +138,21 @@ bitflags! {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, Default, PartialOrd, Ord, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[repr(u8)]
 pub enum InviteType {
+    #[default]
+    Guild = 0,
+    GroupDm = 1,
+    Friend = 2,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, Default, PartialOrd, Ord, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[repr(u8)]
+pub enum InviteTargetType {
     #[default]
     Stream = 1,
     EmbeddedApplication = 2,
