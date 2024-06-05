@@ -6,8 +6,7 @@ use bitflags::bitflags;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Visitor;
 
-use crate::types::{ChannelType, DefaultReaction, Error};
-use crate::types::{entities::PermissionOverwrite, Snowflake};
+use crate::types::{ChannelType, DefaultReaction, Error, entities::PermissionOverwrite, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
 #[serde(rename_all = "snake_case")]
@@ -135,6 +134,7 @@ bitflags! {
     #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
     pub struct InviteFlags: u64 {
         const GUEST = 1 << 0;
+        const VIEWED = 1 << 1;
     }
 }
 
