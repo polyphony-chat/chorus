@@ -2,10 +2,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::error::Error as StdError;
+use std::num::ParseIntError;
 use bitflags::bitflags;
-use serde::{Deserialize, Serialize};
+use bitflags::parser::ParseHex;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::{DeserializeOwned, Visitor};
 
-use crate::types::{ChannelType, DefaultReaction};
+use crate::types::{ChannelType, DefaultReaction, Error};
 use crate::types::{entities::PermissionOverwrite, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
@@ -131,9 +135,36 @@ impl Default for CreateChannelInviteSchema {
 }
 
 bitflags! {
-    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
     pub struct InviteFlags: u64 {
         const GUEST = 1 << 0;
+    }
+}
+
+impl Serialize for InviteFlags {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.bits().to_string().serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for InviteFlags {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        struct FlagsVisitor;
+
+        impl<'de> Visitor<'de> for FlagsVisitor
+        {
+            type Value = InviteFlags;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("a raw u64 value of flags")
+            }
+
+            fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> where E: serde::de::Error {
+                InviteFlags::from_bits(v).ok_or(serde::de::Error::custom(Error::InvalidFlags(v)))
+            }
+        }
+
+        deserializer.deserialize_u64(FlagsVisitor)
     }
 }
 
