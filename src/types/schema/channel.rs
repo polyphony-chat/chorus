@@ -156,7 +156,7 @@ impl<'de> Deserialize<'de> for InviteFlags {
                 formatter.write_str("a raw u64 value of flags")
             }
 
-            fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> where E: serde::de::Error {
+            fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
                 InviteFlags::from_bits(v).ok_or(serde::de::Error::custom(Error::InvalidFlags(v)))
             }
         }
