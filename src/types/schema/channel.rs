@@ -5,7 +5,7 @@
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 
-use crate::types::ChannelType;
+use crate::types::{ChannelType, DefaultReaction};
 use crate::types::{entities::PermissionOverwrite, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
@@ -48,7 +48,7 @@ pub struct ChannelModifySchema {
     pub nsfw: Option<bool>,
     pub rtc_region: Option<String>,
     pub default_auto_archive_duration: Option<i32>,
-    pub default_reaction_emoji: Option<String>,
+    pub default_reaction_emoji: Option<DefaultReaction>,
     pub flags: Option<i32>,
     pub default_thread_rate_limit_per_user: Option<i32>,
     pub video_quality_mode: Option<i32>,
