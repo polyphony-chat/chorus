@@ -84,7 +84,13 @@ impl From<Guild> for InviteGuild {
             premium_subscription_count: value.premium_subscription_count,
             nsfw_deprecated: None,
             nsfw_level: value.nsfw_level.unwrap_or_default(),
-            welcome_screen: value.welcome_screen.map(|obj| obj.0),
+            welcome_screen: value.welcome_screen.map(|obj| {
+                #[cfg(feature = "sqlx")]
+                    let res = obj.0;
+                #[cfg(not(feature = "sqlx"))]
+                    let res = obj;
+                res
+            }),
         }
     }
 }
