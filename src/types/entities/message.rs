@@ -39,7 +39,7 @@ pub struct Message {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub attachments: Option<Vec<Attachment>>,
     #[cfg(feature = "sqlx")]
-    pub embeds: Vec<sqlx::types::Json<Embed>>,
+    pub embeds: sqlx::types::Json<Vec<Embed>>,
     #[cfg(not(feature = "sqlx"))]
     pub embeds: Option<Vec<Embed>>,
     #[cfg(feature = "sqlx")]
