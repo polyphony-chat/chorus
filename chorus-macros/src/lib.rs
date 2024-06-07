@@ -163,23 +163,20 @@ pub fn sqlx_bitflag_derive(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
 
     quote!{
-        #[cfg(feature = "sqlx")]
         impl sqlx::Type<sqlx::MySql> for #name {
             fn type_info() -> sqlx::mysql::MySqlTypeInfo {
                 u64::type_info()
             }
         }
 
-        #[cfg(feature = "sqlx")]
         impl<'q> sqlx::Encode<'q, sqlx::MySql> for #name {
-            fn encode_by_ref(&self, buf: &mut <MySql as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
+            fn encode_by_ref(&self, buf: &mut <sqlx::MySql as sqlx::database::HasArguments<'q>>::ArgumentBuffer) -> sqlx::encode::IsNull {
                 u64::encode_by_ref(&self.bits(), buf)
             }
         }
 
-        #[cfg(feature = "sqlx")]
         impl<'q> sqlx::Decode<'q, sqlx::MySql> for #name {
-            fn decode(value: <MySql as HasValueRef<'q>>::ValueRef) -> Result<Self, BoxDynError> {
+            fn decode(value: <sqlx::MySql as sqlx::database::HasValueRef<'q>>::ValueRef) -> Result<Self, sqlx::error::BoxDynError> {
                 u64::decode(value).map(|d| #name::from_bits(d).unwrap())
             }
         }
