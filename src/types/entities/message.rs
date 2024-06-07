@@ -5,6 +5,11 @@
 use bitflags::bitflags;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
+use sqlx::database::{HasArguments, HasValueRef};
+use sqlx::encode::IsNull;
+use sqlx::error::BoxDynError;
+use sqlx::{Encode, MySql};
 
 use crate::types::{
     Shared,
@@ -51,7 +56,7 @@ pub struct Message {
     pub pinned: bool,
     pub webhook_id: Option<Snowflake>,
     #[serde(rename = "type")]
-    pub message_type: i32,
+    pub message_type: MessageType,
     #[cfg(feature = "sqlx")]
     pub activity: Option<sqlx::types::Json<MessageActivity>>,
     #[cfg(not(feature = "sqlx"))]
@@ -235,10 +240,15 @@ pub struct EmbedField {
 pub struct Reaction {
     pub count: u32,
     pub burst_count: u32,
+    #[serde(default)]
     pub me: bool,
+    #[serde(default)]
     pub burst_me: bool,
     pub burst_colors: Vec<String>,
     pub emoji: Emoji,
+    #[cfg(feature = "sqlx")]
+    #[serde(skip)]
+    pub user_ids: Vec<Snowflake>
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
@@ -260,6 +270,105 @@ pub struct MessageActivity {
     #[serde(rename = "type")]
     pub activity_type: i64,
     pub party_id: Option<String>,
+}
+
+#[derive(Debug, Default, PartialEq, Clone, Copy, Serialize_repr, Deserialize_repr, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[repr(u8)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+/// # Reference
+/// See <https://docs.discord.sex/resources/message#message-type>
+pub enum MessageType {
+    /// A default message
+    #[default]
+    Default = 0,
+    /// A message sent when a user is added to a group DM or thread
+    RecipientAdd = 1,
+    ///	A message sent when a user is removed from a group DM or thread
+    RecipientRemove = 2,
+    /// A message sent when a user creates a call in a private channel
+    Call = 3,
+    /// A message sent when a group DM or thread's name is changed
+    ChannelNameChange = 4,
+    /// A message sent when a group DM's icon is changed
+    ChannelIconChange = 5,
+    /// A message sent when a message is pinned in a channel
+    ChannelPinnedMessage = 6,
+    /// A message sent when a user joins a guild
+    GuildMemberJoin = 7,
+    /// A message sent when a user subscribes to (boosts) a guild
+    UserPremiumGuildSubscription = 8,
+    /// A message sent when a user subscribes to (boosts) a guild to tier 1
+    UserPremiumGuildSubscriptionTier1 = 9,
+    /// A message sent when a user subscribes to (boosts) a guild to tier 2
+    UserPremiumGuildSubscriptionTier2 = 10,
+    /// A message sent when a user subscribes to (boosts) a guild to tier 3
+    UserPremiumGuildSubscriptionTier3 = 11,
+    /// A message sent when a news channel is followed
+    ChannelFollowAdd = 12,
+    /// A message sent when a user starts streaming in a guild (deprecated)
+    #[deprecated]
+    GuildStream = 13,
+    /// A message sent when a guild is disqualified from discovery
+    GuildDiscoveryDisqualified = 14,
+    /// A message sent when a guild requalifies for discovery
+    GuildDiscoveryRequalified = 15,
+    /// A message sent when a guild has failed discovery requirements for a week
+    GuildDiscoveryGracePeriodInitial = 16,
+    /// A message sent when a guild has failed discovery requirements for 3 weeks
+    GuildDiscoveryGracePeriodFinal = 17,
+    /// A message sent when a thread is created
+    ThreadCreated = 18,
+    /// A message sent when a user replies to a message
+    Reply = 19,
+    /// A message sent when a user uses a slash command
+    #[serde(rename = "CHAT_INPUT_COMMAND")]
+    ApplicationCommand = 20,
+    /// A message sent when a thread starter message is added to a thread
+    ThreadStarterMessage = 21,
+    /// A message sent to remind users to invite friends to a guild
+    GuildInviteReminder = 22,
+    ///	A message sent when a user uses a context menu command
+    ContextMenuCommand = 23,
+    /// A message sent when auto moderation takes an action
+    AutoModerationAction = 24,
+    /// A message sent when a user purchases or renews a role subscription
+    RoleSubscriptionPurchase = 25,
+    /// A message sent when a user is upsold to a premium interaction
+    InteractionPremiumUpsell = 26,
+    /// A message sent when a stage channel starts
+    StageStart = 27,
+    /// A message sent when a stage channel ends
+    StageEnd = 28,
+    /// A message sent when a user starts speaking in a stage channel
+    StageSpeaker = 29,
+    /// A message sent when a user raises their hand in a stage channel
+    StageRaiseHand = 30,
+    /// A message sent when a stage channel's topic is changed
+    StageTopic = 31,
+    /// A message sent when a user purchases an application premium subscription
+    GuildApplicationPremiumSubscription = 32,
+    /// A message sent when a user adds an application to group DM
+    PrivateChannelIntegrationAdded = 33,
+    /// A message sent when a user removed an application from a group DM
+    PrivateChannelIntegrationRemoved = 34,
+    /// A message sent when a user gifts a premium (Nitro) referral
+    PremiumReferral = 35,
+    /// A message sent when a user enabled lockdown for the guild
+    GuildIncidentAlertModeEnabled = 36,
+    /// A message sent when a user disables lockdown for the guild
+    GuildIncidentAlertModeDisabled = 37,
+    /// A message sent when a user reports a raid for the guild
+    GuildIncidentReportRaid = 38,
+    /// A message sent when a user reports a false alarm for the guild
+    GuildIncidentReportFalseAlarm = 39,
+    /// A message sent when no one sends a message in the current channel for 1 hour
+    GuildDeadchatRevivePrompt = 40,
+    /// A message sent when a user buys another user a gift
+    CustomGift = 41,
+    GuildGamingStatsPrompt = 42,
+    /// A message sent when a user purchases a guild product
+    PurchaseNotification = 44
 }
 
 bitflags! {
