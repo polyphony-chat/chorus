@@ -5,7 +5,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{Snowflake, WelcomeScreenObject, Shared, InviteFlags, InviteType, InviteTargetType};
+use crate::types::{Snowflake, WelcomeScreenObject, Shared, InviteFlags, InviteType, InviteTargetType, Guild, VerificationLevel};
+use crate::types::types::guild_configuration::GuildFeaturesList;
 
 use super::guild::GuildScheduledEvent;
 use super::{Application, Channel, GuildMember, NSFWLevel, User};
@@ -55,8 +56,8 @@ pub struct InviteGuild {
     pub name: String,
     pub icon: Option<String>,
     pub splash: Option<String>,
-    pub verification_level: i32,
-    pub features: Vec<String>,
+    pub verification_level: VerificationLevel,
+    pub features: GuildFeaturesList,
     pub vanity_url_code: Option<String>,
     pub description: Option<String>,
     pub banner: Option<String>,
@@ -66,6 +67,32 @@ pub struct InviteGuild {
     pub nsfw_deprecated: Option<bool>,
     pub nsfw_level: NSFWLevel,
     pub welcome_screen: Option<WelcomeScreenObject>,
+}
+
+impl From<Guild> for InviteGuild {
+    fn from(value: Guild) -> Self {
+        Self {
+            id: value.id,
+            name: value.name.unwrap_or_default(),
+            icon: value.icon,
+            splash: value.splash,
+            verification_level: value.verification_level.unwrap_or_default(),
+            features: value.features.unwrap_or_default(),
+            vanity_url_code: value.vanity_url_code,
+            description: value.description,
+            banner: value.banner,
+            premium_subscription_count: value.premium_subscription_count,
+            nsfw_deprecated: None,
+            nsfw_level: value.nsfw_level.unwrap_or_default(),
+            welcome_screen: value.welcome_screen.map(|obj| {
+                #[cfg(feature = "sqlx")]
+                    let res = obj.0;
+                #[cfg(not(feature = "sqlx"))]
+                    let res = obj;
+                res
+            }),
+        }
+    }
 }
 
 /// See <https://discord-userdoccers.vercel.app/resources/invite#invite-stage-instance-object>
