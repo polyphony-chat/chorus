@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use bitflags::bitflags;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -62,7 +63,7 @@ pub struct Message {
     pub message_reference: Option<sqlx::types::Json<MessageReference>>,
     #[cfg(not(feature = "sqlx"))]
     pub message_reference: Option<MessageReference>,
-    pub flags: Option<u64>,
+    pub flags: Option<MessageFlags>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub referenced_message: Option<Box<Message>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
@@ -259,4 +260,39 @@ pub struct MessageActivity {
     #[serde(rename = "type")]
     pub activity_type: i64,
     pub party_id: Option<String>,
+}
+
+bitflags! {
+    #[derive(Debug, Clone, Copy,  Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/message#message-type>
+    pub struct MessageFlags: u64 {
+        /// This message has been published to subscribed channels (via Channel Following)
+        const CROSSPOSTED = 1 << 0;
+        ///	This message originated from a message in another channel (via Channel Following)
+        const IS_CROSSPOST = 1 << 1;
+        /// Embeds will not be included when serializing this message
+        const SUPPRESS_EMBEDS = 1 << 2;
+        /// The source message for this crosspost has been deleted (via Channel Following)
+        const SOURCE_MESSAGE_DELETED = 1 << 3;
+        /// This message came from the urgent message system
+        const URGENT = 1 << 4;
+        /// This message has an associated thread, with the same ID as the message
+        const HAS_THREAD = 1 << 5;
+        /// This message is only visible to the user who invoked the interaction
+        const EPHEMERAL = 1 << 6;
+        /// This message is an interaction response and the bot is "thinking"
+        const LOADING = 1 << 7;
+        /// Some roles were not mentioned and added to the thread
+        const FAILED_TO_MENTION_SOME_ROLES_IN_THREAD = 1 << 8;
+        /// This message contains a link that impersonates Discord
+        const SHOULD_SHOW_LINK_NOT_DISCORD_WARNING = 1 << 10;
+        /// This message will not trigger push and desktop notifications
+        const SUPPRESS_NOTIFICATIONS = 1 << 12;
+        /// This message's audio attachments are rendered as voice messages
+        const VOICE_MESSAGE = 1 << 13;
+        /// This message has a forwarded message snapshot attached
+        const HAS_SNAPSHOT = 1 << 14;
+    }
 }

@@ -99,7 +99,7 @@ pub struct Guild {
     pub splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub stickers: Option<Vec<Sticker>>,
-    pub system_channel_flags: Option<u64>,
+    pub system_channel_flags: Option<SystemChannelFlags>,
     pub system_channel_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub vanity_url_code: Option<String>,
@@ -423,6 +423,7 @@ pub enum PremiumTier {
 
 bitflags! {
     #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#system-channel-flags>
     pub struct SystemChannelFlags: u64 {

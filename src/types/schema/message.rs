@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{
     AllowedMention, Component, Embed, MessageReference, PartialDiscordFileAttachment,
 };
-use crate::types::{Attachment, Snowflake};
+use crate::types::{Attachment, MessageFlags, Snowflake};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -123,7 +123,7 @@ pub struct MessageModifySchema {
     embed: Option<Embed>,
     allowed_mentions: Option<AllowedMention>,
     components: Option<Vec<Component>>,
-    flags: Option<i32>,
+    flags: Option<MessageFlags>,
     files: Option<Vec<u8>>,
     payload_json: Option<String>,
     attachments: Option<Vec<Attachment>>,

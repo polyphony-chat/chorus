@@ -72,6 +72,7 @@ pub struct RoleTags {
 
 bitflags! {
     #[derive(Debug, Default, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// Permissions limit what users of certain roles can do on a Guild to Guild basis.
     ///
     /// # Reference:
