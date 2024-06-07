@@ -63,13 +63,20 @@ pub struct Message {
     #[cfg(not(feature = "sqlx"))]
     pub message_reference: Option<MessageReference>,
     pub flags: Option<u64>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub referenced_message: Option<Box<Message>>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub interaction: Option<MessageInteraction>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub thread: Option<Channel>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub components: Option<Vec<Component>>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub sticker_items: Option<Vec<StickerItem>>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub stickers: Option<Vec<Sticker>>,
     pub position: Option<i32>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub role_subscription_data: Option<RoleSubscriptionData>,
 }
 
