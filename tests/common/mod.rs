@@ -4,7 +4,7 @@
 
 use std::str::FromStr;
 
-use chorus::gateway::Gateway;
+use chorus::gateway::{Gateway, GatewayOptions};
 use chorus::types::IntoShared;
 use chorus::{
     instance::{ChorusUser, Instance},
@@ -50,7 +50,7 @@ impl TestBundle {
             limits: self.user.limits.clone(),
             settings: self.user.settings.clone(),
             object: self.user.object.clone(),
-            gateway: Gateway::spawn(self.instance.urls.wss.clone())
+            gateway: Gateway::spawn(self.instance.urls.wss.clone(), GatewayOptions::default())
                 .await
                 .unwrap(),
         }
@@ -119,7 +119,7 @@ pub(crate) async fn setup() -> TestBundle {
     let urls = UrlBundle::new(
         "http://localhost:3001/api".to_string(),
         "http://localhost:3001/api".to_string(),
-        "ws://localhost:3001".to_string(),
+        "ws://localhost:3001/".to_string(),
         "http://localhost:3001".to_string(),
     );
     TestBundle {

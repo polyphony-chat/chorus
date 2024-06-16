@@ -3,6 +3,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // This example showcase how to properly use gateway observers.
+// (This assumes you have a manually created gateway, if you created
+// a ChorusUser by e.g. logging in, you can access the gateway with user.gateway)
 //
 // To properly run it, you will need to change the token below.
 
@@ -12,7 +14,7 @@ const TOKEN: &str = "";
 const GATEWAY_URL: &str = "wss://gateway.old.server.spacebar.chat/";
 
 use async_trait::async_trait;
-use chorus::gateway::Gateway;
+use chorus::gateway::{Gateway, GatewayOptions};
 use chorus::{
     self,
     gateway::Observer,
@@ -47,8 +49,14 @@ impl Observer<GatewayReady> for ExampleObserver {
 async fn main() {
     let gateway_websocket_url = GATEWAY_URL.to_string();
 
+    // These options specify the encoding format, compression, etc
+    //
+    // For most cases the defaults should work, though some implementations
+    // might only support some formats or not support compression
+    let options = GatewayOptions::default();
+
     // Initiate the gateway connection
-    let gateway = Gateway::spawn(gateway_websocket_url).await.unwrap();
+    let gateway = Gateway::spawn(gateway_websocket_url, options).await.unwrap();
 
     // Create an instance of our observer
     let observer = ExampleObserver {};

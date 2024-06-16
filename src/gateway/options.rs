@@ -41,6 +41,15 @@ impl GatewayOptions {
 
         let already_has_parameters = url.contains("?") && url.contains("=");
 
+        if !already_has_parameters {
+            // Insure it ends in a /, so we don't get a 400 error
+            if !url.ends_with('/') {
+                url.push('/');
+            }
+
+            // Lets hope that if it already has parameters the person knew to add '/'
+        }
+
         for index in 0..parameters.len() {
             if index == 0 && !already_has_parameters {
                 url = format!("{}?{}", url, parameters[index]);
