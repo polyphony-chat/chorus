@@ -13,7 +13,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::ChorusResult;
-use crate::gateway::{Gateway, GatewayHandle};
+use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
@@ -31,6 +31,8 @@ pub struct Instance {
     pub limits_information: Option<LimitsInformation>,
     #[serde(skip)]
     pub client: Client,
+    #[serde(skip)]
+    pub gateway_options: GatewayOptions,
 }
 
 impl PartialEq for Instance {
@@ -104,6 +106,7 @@ impl Instance {
             instance_info: GeneralConfiguration::default(),
             limits_information: limit_information,
             client: Client::new(),
+            gateway_options: GatewayOptions::default(),
         };
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
@@ -138,6 +141,13 @@ impl Instance {
             Ok(limits) => Ok(Some(limits)),
             Err(_) => Ok(None),
         }
+    }
+
+    /// Sets the [`GatewayOptions`] the instance will use when spawning new connections.
+    ///
+    /// These options are used on the gateways created when logging in and registering.
+    pub fn set_gateway_options(&mut self, options: GatewayOptions) {
+        self.gateway_options = options;
     }
 }
 
@@ -215,7 +225,9 @@ impl ChorusUser {
         let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
-        let gateway = Gateway::spawn(wss_url).await.unwrap();
+        let gateway = Gateway::spawn(wss_url, GatewayOptions::default())
+            .await
+            .unwrap();
         ChorusUser {
             token,
             belongs_to: instance.clone(),
