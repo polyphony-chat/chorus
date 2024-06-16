@@ -20,7 +20,9 @@ pub struct UpdatePresence {
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, WebSocketEvent)]
 /// Received to tell the client that a user updated their presence / status
+///
 /// See <https://discord.com/developers/docs/topics/gateway-events#presence-update-presence-update-event-fields>
+/// (Same structure as <https://docs.discord.sex/resources/presence#presence-object>)
 pub struct PresenceUpdate {
     pub user: PublicUser,
     #[serde(default)]
