@@ -59,7 +59,7 @@ pub struct Guild {
     pub emojis: Vec<Shared<Emoji>>,
     pub explicit_content_filter: Option<ExplicitContentFilterLevel>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
-    pub features: Option<GuildFeaturesList>,
+    pub features: GuildFeaturesList,
     pub icon: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub icon_hash: Option<String>,
@@ -111,7 +111,7 @@ pub struct Guild {
     #[cfg_attr(feature = "client", observe_option_vec)]
     pub webhooks: Option<Vec<Shared<Webhook>>>,
     #[cfg(feature = "sqlx")]
-    pub welcome_screen: Option<sqlx::types::Json<WelcomeScreenObject>>,
+    pub welcome_screen: sqlx::types::Json<Option<WelcomeScreenObject>>,
     #[cfg(not(feature = "sqlx"))]
     pub welcome_screen: Option<WelcomeScreenObject>,
     pub widget_channel_id: Option<Snowflake>,

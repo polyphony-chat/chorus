@@ -64,7 +64,9 @@ pub struct Channel {
     pub managed: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member: Option<ThreadMember>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member_count: Option<i32>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub message_count: Option<i32>,
     pub name: Option<String>,
     pub nsfw: Option<bool>,
@@ -75,6 +77,7 @@ pub struct Channel {
     #[cfg(not(feature = "sqlx"))]
     #[cfg_attr(feature = "client", observe_option_vec)]
     pub permission_overwrites: Option<Vec<Shared<PermissionOverwrite>>>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub permissions: Option<String>,
     pub position: Option<i32>,
     pub rate_limit_per_user: Option<i32>,
@@ -85,6 +88,7 @@ pub struct Channel {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub thread_metadata: Option<ThreadMetadata>,
     pub topic: Option<String>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub total_message_sent: Option<i32>,
     pub user_limit: Option<i32>,
     pub video_quality_mode: Option<i32>,

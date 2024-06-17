@@ -75,13 +75,14 @@ pub struct Message {
     pub interaction: Option<MessageInteraction>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub thread: Option<Channel>,
-    #[cfg_attr(feature = "sqlx", sqlx(skip))]
+    #[cfg(feature = "sqlx")]
+    pub components: Option<sqlx::types::Json<Vec<Component>>>,
+    #[cfg(not(feature = "sqlx"))]
     pub components: Option<Vec<Component>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub sticker_items: Option<Vec<StickerItem>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub stickers: Option<Vec<Sticker>>,
-    pub position: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub role_subscription_data: Option<RoleSubscriptionData>,
 }
@@ -116,7 +117,7 @@ impl PartialEq for Message {
             && self.thread == other.thread
             && self.components == other.components
             && self.sticker_items == other.sticker_items
-            && self.position == other.position
+            // && self.position == other.position
             && self.role_subscription_data == other.role_subscription_data
     }
 }
@@ -125,10 +126,20 @@ impl PartialEq for Message {
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
 pub struct MessageReference {
+    #[serde(rename = "type")]
+    pub reference_type: MessageReferenceType,
     pub message_id: Snowflake,
     pub channel_id: Snowflake,
     pub guild_id: Option<Snowflake>,
     pub fail_if_not_exists: Option<bool>,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd)]
+pub enum MessageReferenceType {
+    /// A standard reference used by replies and system messages
+    Default = 0,
+    /// A reference used to point to a message at a point in time
+    Forward = 1,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -404,4 +415,22 @@ bitflags! {
         /// This message has a forwarded message snapshot attached
         const HAS_SNAPSHOT = 1 << 14;
     }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct PartialEmoji {
+    #[serde(default)]
+    pub id: Option<Snowflake>,
+    pub name: String,
+    #[serde(default)]
+    pub animated: bool
+}
+
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, PartialOrd)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[repr(u8)]
+pub enum ReactionType {
+    Normal = 0,
+    Burst = 1, // The dreaded super reactions
 }

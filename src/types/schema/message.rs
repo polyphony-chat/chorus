@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{
     AllowedMention, Component, Embed, MessageReference, PartialDiscordFileAttachment,
 };
-use crate::types::{Attachment, MessageFlags, MessageType, Snowflake};
+use crate::types::{Attachment, MessageFlags, MessageType, ReactionType, Snowflake};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -118,13 +118,21 @@ pub struct MessageAck {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
 pub struct MessageModifySchema {
-    content: Option<String>,
-    embeds: Option<Vec<Embed>>,
-    embed: Option<Embed>,
-    allowed_mentions: Option<AllowedMention>,
-    components: Option<Vec<Component>>,
-    flags: Option<MessageFlags>,
-    files: Option<Vec<u8>>,
-    payload_json: Option<String>,
-    attachments: Option<Vec<Attachment>>,
+    pub content: Option<String>,
+    pub embeds: Option<Vec<Embed>>,
+    pub embed: Option<Embed>,
+    pub allowed_mentions: Option<AllowedMention>,
+    pub components: Option<Vec<Component>>,
+    pub flags: Option<MessageFlags>,
+    pub files: Option<Vec<u8>>,
+    pub payload_json: Option<String>,
+    pub attachments: Option<Vec<Attachment>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
+pub struct ReactionQuerySchema {
+    pub after: Option<Snowflake>,
+    pub limit: Option<u32>,
+    #[serde(rename = "type")]
+    pub reaction_type: Option<ReactionType>
 }

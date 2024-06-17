@@ -59,7 +59,7 @@ pub struct GetChannelMessagesSchema {
     /// Between 1 and 100, defaults to 50.
     pub limit: Option<i32>,
     #[serde(flatten)]
-    pub anchor: ChannelMessagesAnchor,
+    pub anchor: Option<ChannelMessagesAnchor>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
@@ -74,21 +74,21 @@ impl GetChannelMessagesSchema {
     pub fn before(anchor: Snowflake) -> Self {
         Self {
             limit: None,
-            anchor: ChannelMessagesAnchor::Before(anchor),
+            anchor: Some(ChannelMessagesAnchor::Before(anchor)),
         }
     }
 
     pub fn around(anchor: Snowflake) -> Self {
         Self {
             limit: None,
-            anchor: ChannelMessagesAnchor::Around(anchor),
+            anchor: Some(ChannelMessagesAnchor::Around(anchor)),
         }
     }
 
     pub fn after(anchor: Snowflake) -> Self {
         Self {
             limit: None,
-            anchor: ChannelMessagesAnchor::After(anchor),
+            anchor: Some(ChannelMessagesAnchor::After(anchor)),
         }
     }
 

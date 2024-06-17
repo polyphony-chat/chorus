@@ -2,11 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::num::ParseIntError;
+use std::str::FromStr;
 use bitflags::bitflags;
-use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "sqlx")]
-use sqlx::{{Decode, Encode, MySql}, database::{HasArguments, HasValueRef}, encode::IsNull, error::BoxDynError, mysql::MySqlValueRef};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use crate::types::UserFlags;
 
 bitflags! {
     /// Rights are instance-wide, per-user permissions for everything you may perform on the instance,
@@ -18,7 +18,7 @@ bitflags! {
     ///
     /// # Reference
     /// See <https://docs.spacebar.chat/setup/server/security/rights/>
-    #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Copy, Eq, PartialEq, chorus_macros::SqlxBitFlags)]
     pub struct Rights: u64 {
         /// All rights
         const OPERATOR = 1 << 0;
@@ -132,32 +132,27 @@ bitflags! {
     }
 }
 
-#[cfg(feature = "sqlx")]
-impl sqlx::Type<MySql> for Rights {
-    fn type_info() -> <sqlx::MySql as sqlx::Database>::TypeInfo {
-        u64::type_info()
-    }
+impl FromStr for Rights {
+    type Err = ParseIntError;
 
-    fn compatible(ty: &<sqlx::MySql as sqlx::Database>::TypeInfo) -> bool {
-        u64::compatible(ty)
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse::<u64>().map(Rights::from_bits).map(|f| f.unwrap_or(Rights::empty()))
     }
 }
 
-#[cfg(feature = "sqlx")]
-impl<'q> Encode<'q, MySql> for Rights {
-    fn encode_by_ref(&self, buf: &mut <MySql as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
-        <u64 as Encode<MySql>>::encode_by_ref(&self.0.0, buf)
+impl Serialize for Rights {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&self.bits().to_string())
     }
 }
 
-#[cfg(feature = "sqlx")]
-impl<'r> Decode<'r, MySql> for Rights {
-    fn decode(value: <MySql as HasValueRef<'r>>::ValueRef) -> Result<Self, BoxDynError> {
-        let raw = <u64 as Decode<MySql>>::decode(value)?;
-        Ok(Rights::from_bits(raw).unwrap())
+impl<'de> Deserialize<'de> for Rights {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        let s = String::deserialize(deserializer)?.parse::<u64>().map_err(serde::de::Error::custom)?;
+
+        Ok(Rights::from_bits(s).unwrap())
     }
 }
-
 
 impl Rights {
     pub fn any(&self, permission: Rights, check_operator: bool) -> bool {
