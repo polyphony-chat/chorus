@@ -8,11 +8,6 @@ use std::{
 };
 
 use chrono::{DateTime, TimeZone, Utc};
-use sqlx::{MySql, TypeInfo};
-use sqlx::database::HasArguments;
-use sqlx::encode::IsNull;
-#[cfg(feature = "sqlx")]
-use sqlx::Type;
 
 /// 2015-01-01
 const EPOCH: i64 = 1420070400000;
