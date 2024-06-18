@@ -43,7 +43,7 @@ thiserror = "1.0.56"
 jsonwebtoken = "8.3.0"
 log = "0.4.20"
 async-trait = "0.1.77"
-chorus-macros = "0.3.0"
+chorus-macros = { path = "./chorus-macros" }
 sqlx = { version = "0.7.3", features = [
     "mysql",
     "sqlite",
