@@ -16,7 +16,9 @@ use super::{Application, Channel, GuildMember, NSFWLevel, User};
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Invite {
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub approximate_member_count: Option<i32>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub approximate_presence_count: Option<i32>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub channel: Option<Channel>,
@@ -45,7 +47,7 @@ pub struct Invite {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub target_user: Option<User>,
     pub temporary: Option<bool>,
-    pub uses: Option<i32>,
+    pub uses: Option<u32>,
 }
 
 /// The guild an invite is for.
@@ -77,20 +79,17 @@ impl From<Guild> for InviteGuild {
             icon: value.icon,
             splash: value.splash,
             verification_level: value.verification_level.unwrap_or_default(),
-            features: value.features.unwrap_or_default(),
+            features: value.features,
             vanity_url_code: value.vanity_url_code,
             description: value.description,
             banner: value.banner,
             premium_subscription_count: value.premium_subscription_count,
             nsfw_deprecated: None,
             nsfw_level: value.nsfw_level.unwrap_or_default(),
-            welcome_screen: value.welcome_screen.map(|obj| {
-                #[cfg(feature = "sqlx")]
-                    let res = obj.0;
-                #[cfg(not(feature = "sqlx"))]
-                    let res = obj;
-                res
-            }),
+            #[cfg(feature = "sqlx")]
+            welcome_screen: value.welcome_screen.0,
+            #[cfg(not(feature = "sqlx"))]
+            welcome_screen: value.welcome_screen,
         }
     }
 }

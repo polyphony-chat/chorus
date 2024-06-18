@@ -59,7 +59,7 @@ pub struct GetChannelMessagesSchema {
     /// Between 1 and 100, defaults to 50.
     pub limit: Option<i32>,
     #[serde(flatten)]
-    pub anchor: ChannelMessagesAnchor,
+    pub anchor: Option<ChannelMessagesAnchor>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
@@ -74,21 +74,21 @@ impl GetChannelMessagesSchema {
     pub fn before(anchor: Snowflake) -> Self {
         Self {
             limit: None,
-            anchor: ChannelMessagesAnchor::Before(anchor),
+            anchor: Some(ChannelMessagesAnchor::Before(anchor)),
         }
     }
 
     pub fn around(anchor: Snowflake) -> Self {
         Self {
             limit: None,
-            anchor: ChannelMessagesAnchor::Around(anchor),
+            anchor: Some(ChannelMessagesAnchor::Around(anchor)),
         }
     }
 
     pub fn after(anchor: Snowflake) -> Self {
         Self {
             limit: None,
-            anchor: ChannelMessagesAnchor::After(anchor),
+            anchor: Some(ChannelMessagesAnchor::After(anchor)),
         }
     }
 
@@ -131,60 +131,11 @@ impl Default for CreateChannelInviteSchema {
 }
 
 bitflags! {
-    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, chorus_macros::SerdeBitFlags)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     pub struct InviteFlags: u64 {
         const GUEST = 1 << 0;
         const VIEWED = 1 << 1;
-    }
-}
-
-impl Serialize for InviteFlags {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.bits().to_string().serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for InviteFlags {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-        struct FlagsVisitor;
-
-        impl<'de> Visitor<'de> for FlagsVisitor
-        {
-            type Value = InviteFlags;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("a raw u64 value of flags")
-            }
-
-            fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
-                InviteFlags::from_bits(v).ok_or(serde::de::Error::custom(Error::InvalidFlags(v)))
-            }
-        }
-
-        deserializer.deserialize_u64(FlagsVisitor)
-    }
-}
-
-#[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::MySql> for InviteFlags {
-    fn type_info() -> sqlx::mysql::MySqlTypeInfo {
-        u64::type_info()
-    }
-}
-
-#[cfg(feature = "sqlx")]
-impl<'q> sqlx::Encode<'q, sqlx::MySql> for InviteFlags {
-    fn encode_by_ref(&self, buf: &mut <sqlx::MySql as sqlx::database::HasArguments<'q>>::ArgumentBuffer) -> sqlx::encode::IsNull {
-        u64::encode_by_ref(&self.0.0, buf)
-    }
-}
-
-#[cfg(feature = "sqlx")]
-impl<'r> sqlx::Decode<'r, sqlx::MySql> for InviteFlags {
-    fn decode(value: <sqlx::MySql as sqlx::database::HasValueRef<'r>>::ValueRef) -> Result<Self, sqlx::error::BoxDynError> {
-        let raw = u64::decode(value)?;
-
-        Ok(Self::from_bits(raw).unwrap())
     }
 }
 

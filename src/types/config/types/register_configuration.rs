@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use serde::{Deserialize, Serialize};
+use serde_aux::prelude::deserialize_number_from_string;
 
 use crate::types::{config::types::subconfigs::register::{
     DateOfBirthConfiguration, PasswordConfiguration, RegistrationEmailConfiguration,
@@ -22,6 +23,7 @@ pub struct RegisterConfiguration {
     pub allow_multiple_accounts: bool,
     pub block_proxies: bool,
     pub incrementing_discriminators: bool,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub default_rights: Rights,
 }
 

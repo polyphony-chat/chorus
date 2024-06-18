@@ -59,7 +59,8 @@ pub struct Guild {
     pub emojis: Vec<Shared<Emoji>>,
     pub explicit_content_filter: Option<ExplicitContentFilterLevel>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
-    pub features: Option<GuildFeaturesList>,
+    #[serde(default)]
+    pub features: GuildFeaturesList,
     pub icon: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub icon_hash: Option<String>,
@@ -99,7 +100,7 @@ pub struct Guild {
     pub splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub stickers: Option<Vec<Sticker>>,
-    pub system_channel_flags: Option<u64>,
+    pub system_channel_flags: Option<SystemChannelFlags>,
     pub system_channel_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub vanity_url_code: Option<String>,
@@ -111,7 +112,7 @@ pub struct Guild {
     #[cfg_attr(feature = "client", observe_option_vec)]
     pub webhooks: Option<Vec<Shared<Webhook>>>,
     #[cfg(feature = "sqlx")]
-    pub welcome_screen: Option<sqlx::types::Json<WelcomeScreenObject>>,
+    pub welcome_screen: sqlx::types::Json<Option<WelcomeScreenObject>>,
     #[cfg(not(feature = "sqlx"))]
     pub welcome_screen: Option<WelcomeScreenObject>,
     pub widget_channel_id: Option<Snowflake>,
@@ -422,7 +423,8 @@ pub enum PremiumTier {
 }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#system-channel-flags>
     pub struct SystemChannelFlags: u64 {

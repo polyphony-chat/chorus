@@ -31,7 +31,7 @@ pub struct Application {
     pub verify_key: String,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub owner: Shared<User>,
-    pub flags: u64,
+    pub flags: ApplicationFlags,
     #[cfg(feature = "sqlx")]
     pub redirect_uris: Option<sqlx::types::Json<Vec<String>>>,
     #[cfg(not(feature = "sqlx"))]
@@ -73,7 +73,7 @@ impl Default for Application {
             bot_require_code_grant: false,
             verify_key: "".to_string(),
             owner: Default::default(),
-            flags: 0,
+            flags: ApplicationFlags::empty(),
             redirect_uris: None,
             rpc_application_state: 0,
             store_application_state: 1,
@@ -93,12 +93,6 @@ impl Default for Application {
     }
 }
 
-impl Application {
-    pub fn flags(&self) -> ApplicationFlags {
-        ApplicationFlags::from_bits(self.flags.to_owned()).unwrap()
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// # Reference
 /// See <https://discord.com/developers/docs/resources/application#install-params-object>
@@ -108,7 +102,8 @@ pub struct InstallParams {
 }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy,  Serialize, Deserialize, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
     /// See <https://discord.com/developers/docs/resources/application#application-object-application-flags>
     pub struct ApplicationFlags: u64 {

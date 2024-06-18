@@ -8,8 +8,6 @@ use std::{
 };
 
 use chrono::{DateTime, TimeZone, Utc};
-#[cfg(feature = "sqlx")]
-use sqlx::Type;
 
 /// 2015-01-01
 const EPOCH: i64 = 1420070400000;
@@ -19,8 +17,6 @@ const EPOCH: i64 = 1420070400000;
 /// # Reference
 /// See <https://discord.com/developers/docs/reference#snowflakes>
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-#[cfg_attr(feature = "sqlx", derive(Type))]
-#[cfg_attr(feature = "sqlx", sqlx(transparent))]
 pub struct Snowflake(pub u64);
 
 impl Snowflake {
@@ -99,6 +95,27 @@ impl<'de> serde::Deserialize<'de> for Snowflake {
             }
         }
         deserializer.deserialize_str(SnowflakeVisitor)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::MySql> for Snowflake {
+    fn type_info() -> <sqlx::MySql as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::MySql>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::MySql> for Snowflake {
+    fn encode_by_ref(&self, buf: &mut <sqlx::MySql as sqlx::database::HasArguments<'q>>::ArgumentBuffer) -> sqlx::encode::IsNull {
+        <String as sqlx::Encode<'q, sqlx::MySql>>::encode_by_ref(&self.0.to_string(), buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'d> sqlx::Decode<'d, sqlx::MySql> for Snowflake {
+    fn decode(value: <sqlx::MySql as sqlx::database::HasValueRef<'d>>::ValueRef) -> Result<Self, sqlx::error::BoxDynError> {
+        <String as sqlx::Decode<'d, sqlx::MySql>>::decode(value).map(|s| s.parse::<u64>().map(Snowflake).unwrap())
     }
 }
 
