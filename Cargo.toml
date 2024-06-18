@@ -43,7 +43,7 @@ thiserror = "1.0.56"
 jsonwebtoken = "8.3.0"
 log = "0.4.20"
 async-trait = "0.1.77"
-chorus-macros = { path = "./chorus-macros" }
+chorus-macros = { path = "./chorus-macros", version = "0.4.0" } # Note: version here is used when releasing. Make sure to update and republish when code in macros is changed!
 sqlx = { version = "0.7.3", features = [
     "mysql",
     "sqlite",
