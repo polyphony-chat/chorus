@@ -103,18 +103,21 @@ impl<'de> serde::Deserialize<'de> for Snowflake {
     }
 }
 
+#[cfg(feature = "sqlx")]
 impl sqlx::Type<sqlx::MySql> for Snowflake {
     fn type_info() -> <sqlx::MySql as sqlx::Database>::TypeInfo {
         <String as sqlx::Type<sqlx::MySql>>::type_info()
     }
 }
 
+#[cfg(feature = "sqlx")]
 impl<'q> sqlx::Encode<'q, sqlx::MySql> for Snowflake {
     fn encode_by_ref(&self, buf: &mut <sqlx::MySql as sqlx::database::HasArguments<'q>>::ArgumentBuffer) -> sqlx::encode::IsNull {
         <String as sqlx::Encode<'q, sqlx::MySql>>::encode_by_ref(&self.0.to_string(), buf)
     }
 }
 
+#[cfg(feature = "sqlx")]
 impl<'d> sqlx::Decode<'d, sqlx::MySql> for Snowflake {
     fn decode(value: <sqlx::MySql as sqlx::database::HasValueRef<'d>>::ValueRef) -> Result<Self, sqlx::error::BoxDynError> {
         <String as sqlx::Decode<'d, sqlx::MySql>>::decode(value).map(|s| s.parse::<u64>().map(Snowflake).unwrap())
