@@ -1,6 +1,7 @@
 use core::fmt;
 use chrono::{LocalResult, NaiveDateTime};
-use serde::de;
+use serde::{de, Deserialize, Deserializer};
+use serde::de::Error;
 
 #[doc(hidden)]
 #[derive(Debug)]
@@ -258,5 +259,20 @@ pub(crate) fn serde_from<T, E, V>(me: LocalResult<T>, _ts: &V) -> Result<T, E>
             Err(E::custom("value is an ambiguous timestamp"))
         }
         LocalResult::Single(val) => Ok(val),
+    }
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+enum StringOrU64 {
+    String(String),
+    U64(u64),
+}
+
+pub fn string_or_u64<'de, D>(d: D) -> Result<u64, D::Error>
+where D: Deserializer<'de> {
+    match StringOrU64::deserialize(d)? {
+        StringOrU64::String(s) => s.parse::<u64>().map_err(D::Error::custom),
+        StringOrU64::U64(u) => Ok(u)
     }
 }

@@ -155,8 +155,9 @@ impl Serialize for UserFlags {
 
 impl<'de> Deserialize<'de> for UserFlags {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-        let s = String::deserialize(deserializer)?.parse::<u64>().map_err(serde::de::Error::custom)?;
-
+        // let s = String::deserialize(deserializer)?.parse::<u64>().map_err(serde::de::Error::custom)?;
+        let s = crate::types::serde::string_or_u64(deserializer)?;
+        
         Ok(UserFlags::from_bits(s).unwrap())
     }
 }
