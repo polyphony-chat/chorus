@@ -131,38 +131,11 @@ impl Default for CreateChannelInviteSchema {
 }
 
 bitflags! {
-    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     pub struct InviteFlags: u64 {
         const GUEST = 1 << 0;
         const VIEWED = 1 << 1;
-    }
-}
-
-impl Serialize for InviteFlags {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.bits().to_string().serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for InviteFlags {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-        struct FlagsVisitor;
-
-        impl<'de> Visitor<'de> for FlagsVisitor
-        {
-            type Value = InviteFlags;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("a raw u64 value of flags")
-            }
-
-            fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
-                InviteFlags::from_bits(v).ok_or(serde::de::Error::custom(Error::InvalidFlags(v)))
-            }
-        }
-
-        deserializer.deserialize_u64(FlagsVisitor)
     }
 }
 

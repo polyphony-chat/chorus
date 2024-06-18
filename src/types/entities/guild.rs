@@ -422,7 +422,7 @@ pub enum PremiumTier {
 }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#system-channel-flags>

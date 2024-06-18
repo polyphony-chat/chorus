@@ -113,7 +113,7 @@ impl From<User> for PublicUser {
 const CUSTOM_USER_FLAG_OFFSET: u64 = 1 << 32;
 
 bitflags::bitflags! {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     pub struct UserFlags: u64 {
         const DISCORD_EMPLOYEE = 1 << 0;
@@ -136,29 +136,6 @@ bitflags::bitflags! {
         const EARLY_VERIFIED_BOT_DEVELOPER = 1 << 17;
         const CERTIFIED_MODERATOR = 1 << 18;
         const BOT_HTTP_INTERACTIONS = 1 << 19;
-    }
-}
-
-impl FromStr for UserFlags {
-    type Err = ParseIntError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse::<u64>().map(UserFlags::from_bits).map(|f| f.unwrap_or(UserFlags::empty()))
-    }
-}
-
-impl Serialize for UserFlags {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_str(&self.bits().to_string())
-    }
-}
-
-impl<'de> Deserialize<'de> for UserFlags {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-        // let s = String::deserialize(deserializer)?.parse::<u64>().map_err(serde::de::Error::custom)?;
-        let s = crate::types::serde::string_or_u64(deserializer)?;
-        
-        Ok(UserFlags::from_bits(s).unwrap())
     }
 }
 

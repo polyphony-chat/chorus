@@ -379,7 +379,7 @@ pub enum MessageType {
 }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy,  Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd)]
+    #[derive(Debug, Clone, Copy,  PartialEq, Eq, Hash, PartialOrd, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
     /// See <https://docs.discord.sex/resources/message#message-type>

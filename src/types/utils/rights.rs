@@ -18,7 +18,7 @@ bitflags! {
     ///
     /// # Reference
     /// See <https://docs.spacebar.chat/setup/server/security/rights/>
-    #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+    #[derive(Debug, Clone, Copy, Eq, PartialEq, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     pub struct Rights: u64 {
         /// All rights
@@ -130,28 +130,6 @@ bitflags! {
         const VIEW_SERVER_STATS = 1 << 48;
         /// Can resend verification emails using /auth/verify/resend
         const RESEND_VERIFICATION_EMAIL = 1 << 49;
-    }
-}
-
-impl FromStr for Rights {
-    type Err = ParseIntError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse::<u64>().map(Rights::from_bits).map(|f| f.unwrap_or(Rights::empty()))
-    }
-}
-
-impl Serialize for Rights {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_str(&self.bits().to_string())
-    }
-}
-
-impl<'de> Deserialize<'de> for Rights {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-        let s = String::deserialize(deserializer)?.parse::<u64>().map_err(serde::de::Error::custom)?;
-
-        Ok(Rights::from_bits(s).unwrap())
     }
 }
 
