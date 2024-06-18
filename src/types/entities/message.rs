@@ -6,10 +6,6 @@ use bitflags::bitflags;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use sqlx::database::{HasArguments, HasValueRef};
-use sqlx::encode::IsNull;
-use sqlx::error::BoxDynError;
-use sqlx::{Encode, MySql};
 
 use crate::types::{
     Shared,
