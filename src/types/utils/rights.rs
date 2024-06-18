@@ -18,7 +18,8 @@ bitflags! {
     ///
     /// # Reference
     /// See <https://docs.spacebar.chat/setup/server/security/rights/>
-    #[derive(Debug, Clone, Copy, Eq, PartialEq, chorus_macros::SqlxBitFlags)]
+    #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     pub struct Rights: u64 {
         /// All rights
         const OPERATOR = 1 << 0;
