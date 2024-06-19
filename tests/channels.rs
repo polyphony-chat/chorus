@@ -2,10 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use chorus::types::{
-    self, Channel, GetChannelMessagesSchema, MessageSendSchema, PermissionFlags,
-    PermissionOverwrite, PrivateChannelCreateSchema, RelationshipType, Snowflake,
-};
+use chorus::types::{self, Channel, GetChannelMessagesSchema, MessageSendSchema, PermissionFlags, PermissionOverwrite, PermissionOverwriteType, PrivateChannelCreateSchema, RelationshipType, Snowflake};
 
 mod common;
 
@@ -69,16 +66,13 @@ async fn modify_channel() {
         .unwrap();
     assert_eq!(modified_channel.name, Some(CHANNEL_NAME.to_string()));
 
-    let permission_override = PermissionFlags::from_vec(Vec::from([
-        PermissionFlags::MANAGE_CHANNELS,
-        PermissionFlags::MANAGE_MESSAGES,
-    ]));
+    let permission_override = PermissionFlags::MANAGE_CHANNELS | PermissionFlags::MANAGE_MESSAGES);
     let user_id: types::Snowflake = bundle.user.object.read().unwrap().id;
     let permission_override = PermissionOverwrite {
         id: user_id,
-        overwrite_type: "1".to_string(),
+        overwrite_type: PermissionOverwriteType::Role,
         allow: permission_override,
-        deny: "0".to_string(),
+        deny: PermissionFlags::empty(),
     };
     let channel_id: Snowflake = bundle.channel.read().unwrap().id;
     Channel::modify_permissions(
