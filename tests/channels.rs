@@ -66,7 +66,7 @@ async fn modify_channel() {
         .unwrap();
     assert_eq!(modified_channel.name, Some(CHANNEL_NAME.to_string()));
 
-    let permission_override = PermissionFlags::MANAGE_CHANNELS | PermissionFlags::MANAGE_MESSAGES);
+    let permission_override = PermissionFlags::MANAGE_CHANNELS | PermissionFlags::MANAGE_MESSAGES;
     let user_id: types::Snowflake = bundle.user.object.read().unwrap().id;
     let permission_override = PermissionOverwrite {
         id: user_id,
