@@ -177,3 +177,15 @@ pub struct ModifyChannelPositionsSchema {
     pub lock_permissions: Option<bool>,
     pub parent_id: Option<Snowflake>,
 }
+
+/// See <https://docs.discord.sex/resources/channel#follow-channel>
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
+pub struct AddFollowingChannelSchema {
+    pub webhook_channel_id: Snowflake,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
+pub struct CreateWebhookSchema {
+    pub name: String,
+    pub avatar: Option<String>,
+}
