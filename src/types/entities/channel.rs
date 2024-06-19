@@ -156,7 +156,7 @@ pub struct PermissionOverwrite {
 }
 
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, Clone, PartialEq, Eq, PartialOrd)]
 #[repr(u8)]
 /// # Reference
 pub enum PermissionOverwriteType {
