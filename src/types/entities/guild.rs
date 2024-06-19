@@ -59,6 +59,7 @@ pub struct Guild {
     pub emojis: Vec<Shared<Emoji>>,
     pub explicit_content_filter: Option<ExplicitContentFilterLevel>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
+    #[serde(default)]
     pub features: GuildFeaturesList,
     pub icon: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
