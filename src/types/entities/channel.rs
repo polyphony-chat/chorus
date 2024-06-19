@@ -8,8 +8,8 @@ use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::Debug;
 
-use crate::types::Shared;
 use crate::types::{
+    PermissionFlags, Shared,
     entities::{GuildMember, User},
     utils::Snowflake,
 };
@@ -148,14 +148,20 @@ pub struct Tag {
 pub struct PermissionOverwrite {
     pub id: Snowflake,
     #[serde(rename = "type")]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub overwrite_type: String,
+    pub overwrite_type: PermissionOverwriteType,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub allow: String,
+    pub allow: PermissionFlags,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub deny: String,
+    pub deny: PermissionFlags,
+}
+
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd)]
+#[repr(u8)]
+/// # Reference
+pub enum PermissionOverwriteType {
+    Role = 0,
+    Member = 1,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -259,4 +265,13 @@ pub enum ChannelType {
     CustomStart = 64,
     // TODO: Couldn't find reference
     Unhandled = 255,
+}
+
+
+/// # Reference
+/// See <https://docs.discord.sex/resources/message#followed-channel-object>
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+pub struct FollowedChannel {
+    pub channel_id: Snowflake,
+    pub webhook_id: Snowflake
 }
