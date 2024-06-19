@@ -70,7 +70,7 @@ async fn modify_channel() {
     let user_id: types::Snowflake = bundle.user.object.read().unwrap().id;
     let permission_override = PermissionOverwrite {
         id: user_id,
-        overwrite_type: PermissionOverwriteType::Role,
+        overwrite_type: PermissionOverwriteType::Member,
         allow: permission_override,
         deny: PermissionFlags::empty(),
     };
