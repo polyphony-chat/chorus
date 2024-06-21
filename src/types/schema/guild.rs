@@ -264,3 +264,23 @@ pub struct EmojiModifySchema {
     pub name: Option<String>,
     pub roles: Option<Vec<Snowflake>>
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild#get-guild-prune>
+pub struct GuildPruneQuerySchema {
+    pub days: u8,
+    /// Only used on POST
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compute_prune_count: Option<bool>,
+    #[serde(default)]
+    pub include_roles: Vec<Snowflake>
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild#get-guild-prune>
+pub struct GuildPruneResult {
+    /// Null if compute_prune_count is false
+    pub pruned: Option<usize>,
+}
