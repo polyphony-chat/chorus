@@ -226,6 +226,7 @@ impl std::cmp::PartialEq for Guild {
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildBan {
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: PublicUser,
     pub reason: Option<String>,
 }

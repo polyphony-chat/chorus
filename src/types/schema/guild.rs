@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::collections::HashMap;
 use bitflags::bitflags;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -32,7 +33,17 @@ pub struct GuildCreateSchema {
 /// Represents the schema which needs to be sent to create a Guild Ban.
 /// See: <https://discord-userdoccers.vercel.app/resources/guild#create-guild-ban>
 pub struct GuildBanCreateSchema {
+    /// Deprecated
     pub delete_message_days: Option<u8>,
+    pub delete_message_seconds: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+/// Represents the schema which needs to be sent to create a Guild Ban.
+/// See: <https://discord-userdoccers.vercel.app/resources/guild#create-guild-ban>
+pub struct GuildBanBulkCreateSchema {
+    pub user_ids: Vec<Snowflake>,
     pub delete_message_seconds: Option<u32>,
 }
 
@@ -173,4 +184,83 @@ pub struct GuildBansQuery {
     pub before: Option<Snowflake>,
     pub after: Option<Snowflake>,
     pub limit: Option<u16>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// Max query length is 32 characters.
+/// The limit argument is a number between 1 and 10, defaults to 10.
+pub struct GuildBansSearchQuery {
+    pub query: String,
+    pub limit: Option<u16>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+///  A guild's progress on meeting the requirements of joining discovery.
+///
+///  Certain guilds, such as those that are verified, are exempt from discovery requirements. These guilds will not have a fully populated discovery requirements object, and are guaranteed to receive only sufficient and sufficient_without_grace_period.
+///
+/// # Reference:
+/// See <https://docs.discord.sex/resources/discovery#discovery-requirements-object>
+pub struct GuildDiscoveryRequirements {
+    pub guild_id: Option<Snowflake>,
+    pub safe_environment: Option<bool>,
+    pub healthy: Option<bool>,
+    pub health_score_pending: Option<bool>,
+    pub size: Option<bool>,
+    pub nsfw_properties: Option<GuildDiscoveryNsfwProperties>,
+    pub protected: Option<bool>,
+    pub sufficient: Option<bool>,
+    pub sufficient_without_grace_period: Option<bool>,
+    pub valid_rules_channel: Option<bool>,
+    pub retention_healthy: Option<bool>,
+    pub engagement_healthy: Option<bool>,
+    pub age: Option<bool>,
+    pub minimum_age: Option<u16>,
+    pub health_score: Option<GuildDiscoveryHealthScore>,
+    pub minimum_size: Option<u64>,
+    pub grace_period_end_date: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/discovery#discovery-nsfw-properties-structure>
+pub struct GuildDiscoveryNsfwProperties {
+    pub channels: Vec<Snowflake>,
+    pub channel_banned_keywords: HashMap<Snowflake, Vec<String>>,
+    pub name: Option<String>,
+    pub name_banned_keywords: Vec<String>,
+    pub description: Option<String>,
+    pub description_banned_keywords: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// Activity metrics are recalculated weekly, as an 8-week rolling average. If they are not yet eligible to be calculated, all fields will be null.
+///
+/// # Reference:
+/// See <https://docs.discord.sex/resources/discovery#discovery-health-score-structure>
+pub struct GuildDiscoveryHealthScore {
+    pub avg_nonnew_communicators: u64,
+    pub avg_nonnew_participators: u64,
+    pub num_intentful_joiners: u64,
+    pub perc_ret_w1_intentful: f64,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/emoji#create-guild-emoji>
+pub struct EmojiCreateSchema {
+    pub name: Option<String>,
+    /// # Reference:
+    /// See <https://docs.discord.sex/reference#cdn-data>
+    pub image: String,
+    #[serde(default)]
+    pub roles: Vec<Snowflake>
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/emoji#modify-guild-emoji>
+pub struct EmojiModifySchema {
+    pub name: Option<String>,
+    pub roles: Option<Vec<Snowflake>>
 }
