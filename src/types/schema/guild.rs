@@ -5,14 +5,12 @@
 use std::collections::HashMap;
 use bitflags::bitflags;
 use chrono::{DateTime, Utc};
+use poem::http::StatusCode;
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
-use crate::types::{
-    Emoji, ExplicitContentFilterLevel, MessageNotificationLevel, Snowflake, Sticker,
-    SystemChannelFlags, VerificationLevel,
-};
+use crate::types::{Emoji, ExplicitContentFilterLevel, MessageNotificationLevel, Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -283,4 +281,81 @@ pub struct GuildPruneQuerySchema {
 pub struct GuildPruneResult {
     /// Null if compute_prune_count is false
     pub pruned: Option<usize>,
+}
+
+#[derive(Default, Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/sticker#create-guild-sticker>
+pub struct GuildCreateStickerSchema {
+    pub name: String,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: Option<String>,
+    pub file_data: Vec<u8>,
+    #[serde(skip)]
+    pub sticker_format_type: StickerFormatType
+}
+
+impl GuildCreateStickerSchema {
+    #[cfg(feature = "poem")]
+    pub async fn from_multipart(mut multipart: poem::web::Multipart) -> Result<Self, poem::Error> {
+        let mut _self = GuildCreateStickerSchema::default();
+        while let Some(field) = multipart.next_field().await? {
+            let name = field.name().ok_or(poem::Error::from_string("All fields must be named", StatusCode::BAD_REQUEST))?;
+            match name {
+                "name" => {
+                    _self.name = field.text().await?;
+                }
+                "description" => {
+                    _self.description = Some(field.text().await?);
+                }
+                "tags" => {
+                    _self.tags = Some(field.text().await?);
+                }
+                "file_data" => {
+                    if _self.name.is_empty() {
+                        _self.name = field.file_name().map(String::from).ok_or(poem::Error::from_string("File name must be set", StatusCode::BAD_REQUEST))?;
+                    }
+                    _self.sticker_format_type = StickerFormatType::from_mime(field.content_type().ok_or(poem::Error::from_string("Content type must be set", StatusCode::BAD_REQUEST))?).ok_or(poem::Error::from_string("Unknown sticker format", StatusCode::BAD_REQUEST))?;
+                    _self.file_data = field.bytes().await?;
+                }
+                _ => {}
+            }
+
+        }
+        if _self.name.is_empty() || _self.file_data.is_empty() {
+            return Err(poem::Error::from_string("At least the name and file_data are required", StatusCode::BAD_REQUEST));
+        }
+
+        Ok(_self)
+    }
+
+    // #[cfg(feature = "client")]
+    pub fn to_multipart(&self) -> reqwest::multipart::Form {
+        let mut form = reqwest::multipart::Form::new()
+            .text("name", self.name.clone())
+            .part("file_data", reqwest::multipart::Part::bytes(self.file_data.clone()).mime_str(self.sticker_format_type.to_mime()).unwrap());
+
+        if let Some(description) = &self.description {
+            form = form.text("description", description.to_owned());
+        }
+
+        if let Some(tags) = &self.tags {
+            form = form.text("tags", tags.to_owned())
+        }
+        form
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/sticker#modify-guild-sticker>
+pub struct GuildModifyStickerSchema {
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: Option<String>
 }
