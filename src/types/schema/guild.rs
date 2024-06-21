@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
-use crate::types::{Emoji, ExplicitContentFilterLevel, MessageNotificationLevel, Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel};
+use crate::types::{Emoji, ExplicitContentFilterLevel, MessageNotificationLevel, Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel, WelcomeScreenChannel};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -358,4 +358,14 @@ pub struct GuildModifyStickerSchema {
     pub description: Option<String>,
     #[serde(default)]
     pub tags: Option<String>
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
+pub struct GuildModifyWelcomeScreenSchema {
+    pub enabled: Option<bool>,
+    pub description: Option<String>,
+    /// Max of 5
+    pub welcome_channels: Option<Vec<WelcomeScreenChannel>>,
 }
