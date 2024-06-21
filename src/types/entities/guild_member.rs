@@ -5,7 +5,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{GuildMemberFlags, Shared};
+use crate::types::{GuildMemberFlags, PermissionFlags, Shared};
 use crate::types::{entities::PublicUser, Snowflake};
 
 #[derive(Debug, Deserialize, Default, Serialize, Clone)]
@@ -27,6 +27,7 @@ pub struct GuildMember {
     pub mute: bool,
     pub flags: Option<GuildMemberFlags>,
     pub pending: Option<bool>,
-    pub permissions: Option<String>,
+    #[serde(default)]
+    pub permissions: PermissionFlags,
     pub communication_disabled_until: Option<DateTime<Utc>>,
 }
