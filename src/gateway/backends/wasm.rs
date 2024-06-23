@@ -50,8 +50,8 @@ impl From<WsMessage> for GatewayMessage {
 impl From<RawGatewayMessage> for WsMessage {
     fn from(message: RawGatewayMessage) -> Self {
         match message {
-            RawGatewayMessage::Text(text) => tungstenite::Message::Text(text),
-            RawGatewayMessage::Bytes(bytes) => tungstenite::Message::Binary(bytes),
+            RawGatewayMessage::Text(text) => WsMessage::Text(text),
+            RawGatewayMessage::Bytes(bytes) => WsMessage::Binary(bytes),
         }
     }
 }
