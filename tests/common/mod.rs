@@ -59,6 +59,10 @@ impl TestBundle {
 
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 pub(crate) async fn setup() -> TestBundle {
+
+    // So we can get logs when tests fail
+    let _ = simple_logger::SimpleLogger::with_level(simple_logger::SimpleLogger::new(), log::LevelFilter::Debug).init();
+
     let instance = Instance::new("http://localhost:3001/api").await.unwrap();
     // Requires the existence of the below user.
     let reg = RegisterSchema {
