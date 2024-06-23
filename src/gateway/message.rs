@@ -90,7 +90,9 @@ impl GatewayMessage {
         bytes: &[u8],
         inflate: &mut flate2::Decompress,
     ) -> Result<GatewayMessage, std::io::Error> {
-        let mut output = Vec::with_capacity(bytes.len() * 10);
+
+        // Note: is there a better way to handle the size of this output buffer?
+        let mut output = Vec::with_capacity(bytes.len() * 32);
         let _status = inflate.decompress_vec(bytes, &mut output, flate2::FlushDecompress::Sync)?;
 
         output.shrink_to_fit();
