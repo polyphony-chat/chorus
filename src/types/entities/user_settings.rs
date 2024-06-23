@@ -5,7 +5,7 @@
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::Shared;
+use crate::types::{Shared, Snowflake};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
@@ -37,7 +37,7 @@ pub enum UserTheme {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserSettings {
-    pub afk_timeout: u16,
+    pub afk_timeout: Option<u16>,
     pub allow_accessibility_detection: bool,
     pub animate_emoji: bool,
     pub animate_stickers: u8,
@@ -90,7 +90,7 @@ pub struct UserSettings {
 impl Default for UserSettings {
     fn default() -> Self {
         Self {
-            afk_timeout: 3600,
+            afk_timeout: Some(3600),
             allow_accessibility_detection: true,
             animate_emoji: true,
             animate_stickers: 0,
@@ -148,10 +148,10 @@ impl Default for FriendSourceFlags {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuildFolder {
-    pub color: u32,
+    pub color: Option<u32>,
     pub guild_ids: Vec<String>,
-    pub id: u16,
-    pub name: String,
+    pub id: Option<Snowflake>,
+    pub name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
