@@ -4,6 +4,7 @@
 
 use std::time::Duration;
 
+use flate2::Decompress;
 use futures_util::{SinkExt, StreamExt};
 use log::*;
 #[cfg(not(target_arch = "wasm32"))]
@@ -19,6 +20,9 @@ use crate::types::{
     WebSocketEvent,
 };
 
+/// Tells us we have received enough of the buffer to decompress it
+const ZLIB_SUFFIX: [u8; 4] = [0, 0, 255, 255];
+
 #[derive(Debug)]
 pub struct Gateway {
     events: Arc<Mutex<Events>>,
@@ -28,21 +32,36 @@ pub struct Gateway {
     kill_send: tokio::sync::broadcast::Sender<()>,
     kill_receive: tokio::sync::broadcast::Receiver<()>,
     store: Arc<Mutex<HashMap<Snowflake, Arc<RwLock<ObservableObject>>>>>,
+    /// Url which was used to initialize the gateway
     url: String,
+    /// Options which were used to initialize the gateway
+    options: GatewayOptions,
+    zlib_inflate: Option<flate2::Decompress>,
+    zlib_buffer: Option<Vec<u8>>,
 }
 
 impl Gateway {
     #[allow(clippy::new_ret_no_self)]
-    pub async fn spawn(websocket_url: String) -> Result<GatewayHandle, GatewayError> {
-        let (websocket_send, mut websocket_receive) =
-            match WebSocketBackend::connect(&websocket_url).await {
-                Ok(streams) => streams,
-                Err(e) => {
-                    return Err(GatewayError::CannotConnect {
-                        error: format!("{:?}", e),
-                    })
-                }
-            };
+    /// Creates / opens a new gateway connection.
+    ///
+    /// # Note
+    /// The websocket url should begin with the prefix wss:// or ws:// (for unsecure connections)
+    pub async fn spawn(
+        websocket_url: String,
+        options: GatewayOptions,
+    ) -> Result<GatewayHandle, GatewayError> {
+        let url = options.add_to_url(websocket_url);
+
+        debug!("GW: Connecting to {}", url);
+
+        let (websocket_send, mut websocket_receive) = match WebSocketBackend::connect(&url).await {
+            Ok(streams) => streams,
+            Err(e) => {
+                return Err(GatewayError::CannotConnect {
+                    error: format!("{:?}", e),
+                });
+            }
+        };
 
         let shared_websocket_send = Arc::new(Mutex::new(websocket_send));
 
@@ -52,10 +71,32 @@ impl Gateway {
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
         #[cfg(not(target_arch = "wasm32"))]
-        let msg: GatewayMessage = websocket_receive.next().await.unwrap().unwrap().into();
+        let received: RawGatewayMessage = websocket_receive.next().await.unwrap().unwrap().into();
         #[cfg(target_arch = "wasm32")]
-        let msg: GatewayMessage = websocket_receive.next().await.unwrap().into();
-        let gateway_payload: types::GatewayReceivePayload = serde_json::from_str(&msg.0).unwrap();
+        let received: RawGatewayMessage = websocket_receive.next().await.unwrap().into();
+
+        let message: GatewayMessage;
+
+        let zlib_buffer;
+        let zlib_inflate;
+
+        match options.transport_compression {
+            GatewayTransportCompression::None => {
+                zlib_buffer = None;
+                zlib_inflate = None;
+                message = GatewayMessage::from_raw_json_message(received).unwrap();
+            }
+            GatewayTransportCompression::ZLibStream => {
+                zlib_buffer = Some(Vec::new());
+                let mut inflate = Decompress::new(true);
+
+                message = GatewayMessage::from_zlib_stream_json_message(received, &mut inflate).unwrap();
+
+                zlib_inflate = Some(inflate);
+            }
+        }
+
+        let gateway_payload: types::GatewayReceivePayload = serde_json::from_str(&message.0).unwrap();
 
         if gateway_payload.op_code != GATEWAY_HELLO {
             return Err(GatewayError::NonHelloOnInitiate {
@@ -85,7 +126,10 @@ impl Gateway {
             kill_send: kill_send.clone(),
             kill_receive: kill_send.subscribe(),
             store: store.clone(),
-            url: websocket_url.clone(),
+            url: url.clone(),
+            options,
+            zlib_inflate,
+            zlib_buffer,
         };
 
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
@@ -99,7 +143,7 @@ impl Gateway {
         });
 
         Ok(GatewayHandle {
-            url: websocket_url.clone(),
+            url: url.clone(),
             events: shared_events,
             websocket_send: shared_websocket_send.clone(),
             kill_send: kill_send.clone(),
@@ -108,7 +152,7 @@ impl Gateway {
     }
 
     /// The main gateway listener task;
-    pub async fn gateway_listen_task(&mut self) {
+    async fn gateway_listen_task(&mut self) {
         loop {
             let msg;
 
@@ -125,12 +169,12 @@ impl Gateway {
             // PRETTYFYME: Remove inline conditional compiling
             #[cfg(not(target_arch = "wasm32"))]
             if let Some(Ok(message)) = msg {
-                self.handle_message(message.into()).await;
+                self.handle_raw_message(message.into()).await;
                 continue;
             }
             #[cfg(target_arch = "wasm32")]
             if let Some(message) = msg {
-                self.handle_message(message.into()).await;
+                self.handle_raw_message(message.into()).await;
                 continue;
             }
 
@@ -163,8 +207,41 @@ impl Gateway {
         Ok(())
     }
 
+    /// Takes a [RawGatewayMessage], converts it to [GatewayMessage] based
+    /// of connection options and calls handle_message
+    async fn handle_raw_message(&mut self, raw_message: RawGatewayMessage) {
+        let message;
+
+        match self.options.transport_compression {
+            GatewayTransportCompression::None => {
+                message = GatewayMessage::from_raw_json_message(raw_message).unwrap()
+            }
+            GatewayTransportCompression::ZLibStream => {
+                let message_bytes = raw_message.into_bytes();
+
+                let can_decompress = message_bytes.len() > 4
+                    && message_bytes[message_bytes.len() - 4..] == ZLIB_SUFFIX;
+
+                let zlib_buffer = self.zlib_buffer.as_mut().unwrap();
+                zlib_buffer.extend(message_bytes.clone());
+
+                if !can_decompress {
+                    return;
+                }
+
+                let zlib_buffer = self.zlib_buffer.as_ref().unwrap();
+                let inflate = self.zlib_inflate.as_mut().unwrap();
+
+                message = GatewayMessage::from_zlib_stream_json_bytes(zlib_buffer, inflate).unwrap();
+                self.zlib_buffer = Some(Vec::new());
+            }
+        };
+
+        self.handle_message(message).await;
+    }
+
     /// This handles a message as a websocket event and updates its events along with the events' observers
-    pub async fn handle_message(&mut self, msg: GatewayMessage) {
+    async fn handle_message(&mut self, msg: GatewayMessage) {
         if msg.0.is_empty() {
             return;
         }

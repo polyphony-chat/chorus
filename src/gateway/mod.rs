@@ -10,12 +10,14 @@ pub mod gateway;
 pub mod handle;
 pub mod heartbeat;
 pub mod message;
+pub mod options;
 
 pub use backends::*;
 pub use gateway::*;
 pub use handle::*;
 use heartbeat::*;
 pub use message::*;
+pub use options::*;
 
 use crate::errors::GatewayError;
 use crate::types::{Snowflake, WebSocketEvent};

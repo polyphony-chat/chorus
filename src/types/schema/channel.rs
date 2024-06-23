@@ -3,10 +3,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use bitflags::bitflags;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde::de::Visitor;
+use serde::{Deserialize, Serialize};
 
-use crate::types::{ChannelType, DefaultReaction, Error, entities::PermissionOverwrite, Snowflake};
+use crate::types::{ChannelType, DefaultReaction, entities::PermissionOverwrite, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
 #[serde(rename_all = "snake_case")]
