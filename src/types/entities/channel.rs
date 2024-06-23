@@ -8,8 +8,8 @@ use serde_aux::prelude::deserialize_string_from_number;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::Debug;
 
-use crate::types::Shared;
 use crate::types::{
+    PermissionFlags, Shared,
     entities::{GuildMember, User},
     utils::Snowflake,
 };
@@ -64,7 +64,9 @@ pub struct Channel {
     pub managed: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member: Option<ThreadMember>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member_count: Option<i32>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub message_count: Option<i32>,
     pub name: Option<String>,
     pub nsfw: Option<bool>,
@@ -75,6 +77,7 @@ pub struct Channel {
     #[cfg(not(feature = "sqlx"))]
     #[cfg_attr(feature = "client", observe_option_vec)]
     pub permission_overwrites: Option<Vec<Shared<PermissionOverwrite>>>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub permissions: Option<String>,
     pub position: Option<i32>,
     pub rate_limit_per_user: Option<i32>,
@@ -85,6 +88,7 @@ pub struct Channel {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub thread_metadata: Option<ThreadMetadata>,
     pub topic: Option<String>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub total_message_sent: Option<i32>,
     pub user_limit: Option<i32>,
     pub video_quality_mode: Option<i32>,
@@ -144,14 +148,20 @@ pub struct Tag {
 pub struct PermissionOverwrite {
     pub id: Snowflake,
     #[serde(rename = "type")]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub overwrite_type: String,
+    pub overwrite_type: PermissionOverwriteType,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub allow: String,
+    pub allow: PermissionFlags,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub deny: String,
+    pub deny: PermissionFlags,
+}
+
+
+#[derive(Debug, Serialize_repr, Deserialize_repr, Clone, PartialEq, Eq, PartialOrd)]
+#[repr(u8)]
+/// # Reference
+pub enum PermissionOverwriteType {
+    Role = 0,
+    Member = 1,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -255,4 +265,13 @@ pub enum ChannelType {
     CustomStart = 64,
     // TODO: Couldn't find reference
     Unhandled = 255,
+}
+
+
+/// # Reference
+/// See <https://docs.discord.sex/resources/message#followed-channel-object>
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+pub struct FollowedChannel {
+    pub channel_id: Snowflake,
+    pub webhook_id: Snowflake
 }

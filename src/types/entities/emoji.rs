@@ -6,7 +6,7 @@ use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
 
-use crate::types::Shared;
+use crate::types::{PartialEmoji, Shared};
 use crate::types::entities::User;
 use crate::types::Snowflake;
 
@@ -64,5 +64,20 @@ impl PartialEq for Emoji {
             || self.managed != other.managed
             || self.animated != other.animated
             || self.available != other.available)
+    }
+}
+
+impl From<PartialEmoji> for Emoji {
+    fn from(value: PartialEmoji) -> Self {
+        Self {
+            id: value.id.unwrap_or_default(), // TODO: this should be handled differently
+            name: Some(value.name),
+            roles: None,
+            user: None,
+            require_colons: Some(value.animated),
+            managed: None,
+            animated: Some(value.animated),
+            available: None,
+        }
     }
 }

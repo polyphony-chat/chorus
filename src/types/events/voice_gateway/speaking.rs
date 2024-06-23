@@ -32,8 +32,8 @@ bitflags! {
     /// Bitflags of speaking types;
     ///
     /// See <https://discord.com/developers/docs/topics/voice-connections#speaking>
-    #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
-    pub struct SpeakingBitflags: u8 {
+    #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, chorus_macros::SerdeBitFlags)]
+    pub struct SpeakingBitflags: u64 {
         /// Whether we'll be transmitting normal voice audio
         const MICROPHONE = 1 << 0;
         /// Whether we'll be transmitting context audio for video, no speaking indicator

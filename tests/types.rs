@@ -920,7 +920,7 @@ mod entities {
                 .clone()
         );
         let flags = ApplicationFlags::from_bits(0).unwrap();
-        assert!(application.flags() == flags);
+        assert!(application.flags == flags);
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
