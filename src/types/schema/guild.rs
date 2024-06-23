@@ -157,6 +157,7 @@ pub struct ModifyGuildMemberSchema {
 
 bitflags! {
     #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// Represents the flags of a Guild Member.
     ///
     /// # Reference:

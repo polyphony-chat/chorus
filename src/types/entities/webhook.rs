@@ -32,13 +32,13 @@ use crate::types::{
 pub struct Webhook {
     pub id: Snowflake,
     #[serde(rename = "type")]
-    pub webhook_type: i32,
+    pub webhook_type: WebhookType,
     pub name: String,
     pub avatar: String,
     pub token: String,
-    pub guild_id: Snowflake,
+    pub guild_id: Snowflake, 
     pub channel_id: Snowflake,
-    pub application_id: Snowflake,
+    pub application_id: Option<Snowflake>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<Shared<User>>,
@@ -47,4 +47,14 @@ pub struct Webhook {
     pub source_guild: Option<Shared<Guild>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy)]
+#[repr(u8)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+pub enum WebhookType {
+    #[default]
+    Incoming = 1,
+    ChannelFollower = 2,
+    Application = 3,
 }

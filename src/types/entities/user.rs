@@ -4,9 +4,11 @@
 
 use crate::types::utils::Snowflake;
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_aux::prelude::deserialize_option_number_from_string;
 use std::fmt::Debug;
+use std::num::ParseIntError;
+use std::str::FromStr;
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
@@ -54,7 +56,7 @@ pub struct User {
     /// So we need to account for that
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    pub flags: Option<i32>,
+    pub flags: Option<UserFlags>,
     pub premium_since: Option<DateTime<Utc>>,
     pub premium_type: Option<u8>,
     pub pronouns: Option<String>,
@@ -111,8 +113,8 @@ impl From<User> for PublicUser {
 const CUSTOM_USER_FLAG_OFFSET: u64 = 1 << 32;
 
 bitflags::bitflags! {
-    #[derive(Debug, Clone, Copy,  Serialize, Deserialize, PartialEq, Eq, Hash)]
-    #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     pub struct UserFlags: u64 {
         const DISCORD_EMPLOYEE = 1 << 0;
         const PARTNERED_SERVER_OWNER = 1 << 1;
