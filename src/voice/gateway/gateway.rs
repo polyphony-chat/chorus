@@ -44,7 +44,7 @@ impl VoiceGateway {
     pub async fn spawn(websocket_url: String) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
         // Append the needed things to the websocket url
         let processed_url = format!("wss://{}/?v=7", websocket_url);
-        trace!("Created voice socket url: {}", processed_url.clone());
+        trace!("VGW: Connecting to {}", processed_url.clone());
 
         let (websocket_send, mut websocket_receive) =
             match WebSocketBackend::connect(&processed_url).await {

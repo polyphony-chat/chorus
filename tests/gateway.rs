@@ -30,7 +30,7 @@ use wasmtimer::tokio::sleep;
 async fn test_gateway_establish() {
     let bundle = common::setup().await;
 
-    let _: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
+    let _: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone(), GatewayOptions::default()).await.unwrap();
     common::teardown(bundle).await
 }
 
@@ -52,7 +52,7 @@ impl Observer<GatewayReady> for GatewayReadyObserver {
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
-    let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
+    let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone(), GatewayOptions::default()).await.unwrap();
 
     let (ready_send, mut ready_receive) = tokio::sync::mpsc::channel(1);
 
@@ -79,7 +79,7 @@ async fn test_gateway_authenticate() {
             println!("Timed out waiting for event, failing..");
             assert!(false);
         }
-        // Sucess, we have received it
+        // Success, we have received it
         Some(_) = ready_receive.recv() => {}
     };
 
