@@ -217,7 +217,7 @@ impl Gateway {
                 message = GatewayMessage::from_raw_json_message(raw_message).unwrap()
             }
             GatewayTransportCompression::ZLibStream => {
-                let message_bytes = raw_message.to_bytes();
+                let message_bytes = raw_message.into_bytes();
 
                 let can_decompress = message_bytes.len() > 4
                     && message_bytes[message_bytes.len() - 4..] == ZLIB_SUFFIX;

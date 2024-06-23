@@ -19,7 +19,7 @@ pub(crate) enum RawGatewayMessage {
 
 impl RawGatewayMessage {
     /// Attempt to consume the message into a String, will try to convert binary to utf8
-    pub fn to_text(self) -> Result<String, FromUtf8Error> {
+    pub fn into_text(self) -> Result<String, FromUtf8Error> {
         match self {
             RawGatewayMessage::Text(text) => Ok(text),
             RawGatewayMessage::Bytes(bytes) => String::from_utf8(bytes),
@@ -27,7 +27,7 @@ impl RawGatewayMessage {
     }
 
     /// Consume the message into bytes, will convert text to binary
-    pub fn to_bytes(self) -> Vec<u8> {
+    pub fn into_bytes(self) -> Vec<u8> {
         match self {
             RawGatewayMessage::Text(text) => text.as_bytes().to_vec(),
             RawGatewayMessage::Bytes(bytes) => bytes,
@@ -79,7 +79,7 @@ impl GatewayMessage {
     pub(crate) fn from_raw_json_message(
         message: RawGatewayMessage,
     ) -> Result<GatewayMessage, FromUtf8Error> {
-        let text = message.to_text()?;
+        let text = message.into_text()?;
         Ok(GatewayMessage(text))
     }
 
@@ -105,6 +105,6 @@ impl GatewayMessage {
         message: RawGatewayMessage,
         inflate: &mut flate2::Decompress,
     ) -> Result<GatewayMessage, std::io::Error> {
-        Self::from_zlib_stream_json_bytes(&message.to_bytes(), inflate)
+        Self::from_zlib_stream_json_bytes(&message.into_bytes(), inflate)
     }
 }

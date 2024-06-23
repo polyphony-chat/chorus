@@ -24,20 +24,3 @@ impl From<WsMessage> for VoiceGatewayMessage {
     }
 }
 
-impl From<RawGatewayMessage> for WsMessage {
-    fn from(message: RawGatewayMessage) -> Self {
-        match message {
-            RawGatewayMessage::Text(text) => tungstenite::Message::Text(text),
-            RawGatewayMessage::Bytes(bytes) => tungstenite::Message::Binary(bytes),
-        }
-    }
-}
-
-impl From<WsMessage> for RawGatewayMessage {
-    fn from(value: WsMessage) -> Self {
-        match value {
-            WsMessage::Binary(bytes) => RawGatewayMessage::Bytes(bytes),
-            WsMessage::Text(text) => RawGatewayMessage::Text(text),
-        }
-    }
-}

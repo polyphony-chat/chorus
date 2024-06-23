@@ -39,9 +39,9 @@ impl GatewayOptions {
             parameters.push(some_compression);
         }
 
-        let already_has_parameters = url.contains("?") && url.contains("=");
+        let mut has_parameters = url.contains('?') && url.contains('=');
 
-        if !already_has_parameters {
+        if !has_parameters {
             // Insure it ends in a /, so we don't get a 400 error
             if !url.ends_with('/') {
                 url.push('/');
@@ -50,12 +50,13 @@ impl GatewayOptions {
             // Lets hope that if it already has parameters the person knew to add '/'
         }
 
-        for index in 0..parameters.len() {
-            if index == 0 && !already_has_parameters {
-                url = format!("{}?{}", url, parameters[index]);
+        for parameter in parameters {
+            if !has_parameters {
+                url = format!("{}?{}", url, parameter);
+                has_parameters = true;
             }
             else {
-                url = format!("{}&{}", url, parameters[index]);
+                url = format!("{}&{}", url, parameter);
             }
         }
 
@@ -81,7 +82,7 @@ impl GatewayTransportCompression {
     /// If set to [GatewayTransportCompression::None] returns [None].
     ///
     /// If set to anything else, returns a string like "compress=zlib-stream"
-    pub(crate) fn to_url_parameter(&self) -> Option<String> {
+    pub(crate) fn to_url_parameter(self) -> Option<String> {
        match self {
             Self::None =>  None,
             Self::ZLibStream => Some(String::from("compress=zlib-stream"))
@@ -108,7 +109,7 @@ impl GatewayEncoding {
     /// Returns the option as a url parameter.
     /// 
     /// Returns a string like "encoding=json"
-    pub(crate) fn to_url_parameter(&self) -> String {
+    pub(crate) fn to_url_parameter(self) -> String {
        match self {
            Self::Json => String::from("encoding=json"),
            Self::ETF => String::from("encoding=etf")

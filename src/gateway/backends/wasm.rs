@@ -9,7 +9,7 @@ use futures_util::{
 
 use ws_stream_wasm::*;
 
-use crate::gateway::GatewayMessage;
+use crate::gateway::{GatewayMessage, RawGatewayMessage};
 
 #[derive(Debug, Clone)]
 pub struct WasmBackend;
@@ -43,6 +43,24 @@ impl From<WsMessage> for GatewayMessage {
                 let _ = bin.iter().map(|v| text.push_str(&v.to_string()));
                 Self(text)
             }
+        }
+    }
+}
+
+impl From<RawGatewayMessage> for WsMessage {
+    fn from(message: RawGatewayMessage) -> Self {
+        match message {
+            RawGatewayMessage::Text(text) => tungstenite::Message::Text(text),
+            RawGatewayMessage::Bytes(bytes) => tungstenite::Message::Binary(bytes),
+        }
+    }
+}
+
+impl From<WsMessage> for RawGatewayMessage {
+    fn from(value: WsMessage) -> Self {
+        match value {
+            WsMessage::Binary(bytes) => RawGatewayMessage::Bytes(bytes),
+            WsMessage::Text(text) => RawGatewayMessage::Text(text),
         }
     }
 }
