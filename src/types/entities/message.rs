@@ -177,7 +177,7 @@ pub struct ChannelMention {
 pub struct Embed {
     title: Option<String>,
     #[serde(rename = "type")]
-    embed_type: Option<String>,
+    embed_type: Option<EmbedType>,
     description: Option<String>,
     url: Option<String>,
     timestamp: Option<String>,
@@ -189,6 +189,24 @@ pub struct Embed {
     provider: Option<EmbedProvider>,
     author: Option<EmbedAuthor>,
     fields: Option<Vec<EmbedField>>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "snake_case")]
+pub enum EmbedType {
+    #[deprecated]
+    ApplicationNews,
+    Article,
+    AutoModerationMessage,
+    AutoModerationNotification,
+    Gift,
+    #[serde(rename = "gifv")]
+    GifVideo,
+    Image,
+    Link,
+    PostPreview,
+    Rich,
+    Video
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
