@@ -34,8 +34,7 @@ pub struct RoleObject {
     pub unicode_emoji: Option<String>,
     pub position: u16,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub permissions: String,
+    pub permissions: PermissionFlags,
     pub managed: bool,
     pub mentionable: bool,
     #[cfg(feature = "sqlx")]
