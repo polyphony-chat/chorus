@@ -214,15 +214,9 @@ impl UpdateMessage<Guild> for GuildRoleCreate {
 
     fn update(&mut self, object_to_update: Shared<Guild>) {
         let mut object_to_update = object_to_update.write().unwrap();
-        if object_to_update.roles.is_some() {
-            object_to_update
-                .roles
-                .as_mut()
-                .unwrap()
-                .push(self.role.clone().into_shared());
-        } else {
-            object_to_update.roles = Some(Vec::from([self.role.clone().into_shared()]));
-        }
+        object_to_update
+            .roles
+            .push(self.role.clone().into_shared());
     }
 }
 

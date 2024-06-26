@@ -110,12 +110,14 @@ pub struct Guild {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub vanity_url_code: Option<String>,
     pub verification_level: Option<VerificationLevel>,
+    #[serde(default)]
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[cfg_attr(feature = "client", observe_vec)]
-    pub voice_states: Option<Vec<Shared<VoiceState>>>,
+    pub voice_states: Vec<Shared<VoiceState>>,
+    #[serde(default)]
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[cfg_attr(feature = "client", observe_option_vec)]
-    pub webhooks: Option<Vec<Shared<Webhook>>>,
+    #[cfg_attr(feature = "client", observe_vec)]
+    pub webhooks: Vec<Shared<Webhook>>,
     #[cfg(feature = "sqlx")]
     pub welcome_screen: sqlx::types::Json<Option<WelcomeScreenObject>>,
     #[cfg(not(feature = "sqlx"))]
