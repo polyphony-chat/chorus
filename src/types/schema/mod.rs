@@ -11,6 +11,7 @@ pub use relationship::*;
 pub use role::*;
 pub use user::*;
 pub use invites::*;
+pub use voice_state::*;
 
 mod apierror;
 mod auth;
@@ -21,6 +22,7 @@ mod relationship;
 mod role;
 mod user;
 mod invites;
+mod voice_state;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct GenericSearchQueryWithLimit {
