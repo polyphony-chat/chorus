@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
-use crate::types::{Emoji, ExplicitContentFilterLevel, MessageNotificationLevel, Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel, WelcomeScreenChannel};
+use crate::types::{Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, MessageNotificationLevel, Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel, WelcomeScreenChannel};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -129,6 +129,12 @@ impl Default for GuildMemberSearchSchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub struct GuildGetMembersQuery {
+    pub limit: Option<u16>,
+    pub after: Option<Snowflake>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct ModifyGuildMemberSchema {
     pub nick: Option<String>,
     pub roles: Option<Vec<Snowflake>>,
@@ -184,13 +190,14 @@ pub struct GuildBansQuery {
     pub limit: Option<u16>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+
 /// Max query length is 32 characters.
 /// The limit argument is a number between 1 and 10, defaults to 10.
-pub struct GuildBansSearchQuery {
-    pub query: String,
-    pub limit: Option<u16>,
-}
+pub type GuildBansSearchQuery = GenericSearchQueryWithLimit;
+
+/// Query is partial or full, username or nickname.
+/// Limit argument is a number between 1 and 1000, defaults to 1.
+pub type GuildMembersSearchQuery = GenericSearchQueryWithLimit;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 ///  A guild's progress on meeting the requirements of joining discovery.
@@ -368,4 +375,14 @@ pub struct GuildModifyWelcomeScreenSchema {
     pub description: Option<String>,
     /// Max of 5
     pub welcome_channels: Option<Vec<WelcomeScreenChannel>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild-template#create-guild-template>
+pub struct GuildTemplateCreateSchema {
+    /// Name of the template (1-100 characters)
+    pub name: String,
+    /// Description of the template (max 120 characters)
+    pub description: Option<String>
 }
