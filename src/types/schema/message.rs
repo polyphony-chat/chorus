@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{
     AllowedMention, Component, Embed, MessageReference, PartialDiscordFileAttachment,
 };
-use crate::types::{Attachment, MessageFlags, MessageType, ReactionType, Snowflake};
+use crate::types::{Attachment, EmbedType, Message, MessageFlags, MessageType, ReactionType, Snowflake};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -54,13 +54,13 @@ pub struct MessageSearchQuery {
     pub attachment_extension: Option<Vec<String>>,
     pub attachment_filename: Option<Vec<String>>,
     pub author_id: Option<Vec<Snowflake>>,
-    pub author_type: Option<Vec<String>>,
+    pub author_type: Option<Vec<AuthorType>>,
     pub channel_id: Option<Vec<Snowflake>>,
     pub command_id: Option<Vec<Snowflake>>,
     pub content: Option<String>,
     pub embed_provider: Option<Vec<String>>,
-    pub embed_type: Option<Vec<String>>,
-    pub has: Option<Vec<String>>,
+    pub embed_type: Option<Vec<EmbedType>>,
+    pub has: Option<Vec<HasType>>,
     pub include_nsfw: Option<bool>,
     pub limit: Option<i32>,
     pub link_hostname: Option<Vec<String>>,
@@ -70,8 +70,8 @@ pub struct MessageSearchQuery {
     pub min_id: Option<String>,
     pub offset: Option<i32>,
     pub pinned: Option<bool>,
-    pub sort_by: Option<String>,
-    pub sort_order: Option<String>,
+    pub sort_by: Option<SortType>,
+    pub sort_order: Option<SortOrder>,
 }
 
 impl std::default::Default for MessageSearchQuery {
@@ -100,6 +100,75 @@ impl std::default::Default for MessageSearchQuery {
             sort_order: Default::default(),
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "snake_case")]
+pub enum AuthorType {
+    User,
+    #[serde(rename = "-user")]
+    NotUser,
+    Bot,
+    #[serde(rename = "-bot")]
+    NotBot,
+    Webhook,
+    #[serde(rename = "-webhook")]
+    NotWebhook,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "snake_case")]
+pub enum HasType {
+    Image,
+    #[serde(rename = "-image")]
+    NotImage,
+    Sound,
+    #[serde(rename = "-sound")]
+    NotSound,
+    Video,
+    #[serde(rename = "-video")]
+    NotVideo,
+    File,
+    #[serde(rename = "-file")]
+    NotFile,
+    Sticker,
+    #[serde(rename = "-sticker")]
+    NotSticker,
+    Embed,
+    #[serde(rename = "-embed")]
+    NotEmbed,
+    Link,
+    #[serde(rename = "-link")]
+    NotLink,
+    Poll,
+    #[serde(rename = "-poll")]
+    NotPoll,
+    Snapshot,
+    #[serde(rename = "-snapshot")]
+    NotSnapshot,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "snake_case")]
+pub enum SortType {
+    #[default]
+    Timestamp,
+    Relevance
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SortOrder {
+    #[default]
+    #[serde(rename = "desc")]
+    Descending,
+    #[serde(rename = "asc")]
+    Ascending,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
+pub struct MessageSearchResponse {
+    pub messages: Vec<Message>,
+    pub total_results: u64,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]

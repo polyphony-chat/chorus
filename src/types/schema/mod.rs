@@ -21,3 +21,9 @@ mod relationship;
 mod role;
 mod user;
 mod invites;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub struct GenericSearchQueryWithLimit {
+    pub query: String,
+    pub limit: Option<u16>,
+}
