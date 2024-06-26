@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
-use crate::types::{Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, MessageNotificationLevel, Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel, WelcomeScreenChannel};
+use crate::types::{AuditLogActionType, Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, MessageNotificationLevel, Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel, WelcomeScreenChannel};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
