@@ -46,10 +46,12 @@ pub struct Guild {
     pub approximate_presence_count: Option<i32>,
     pub banner: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub bans: Option<Vec<GuildBan>>,
+    #[serde(default)]
+    pub bans: Vec<GuildBan>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[cfg_attr(feature = "client", observe_option_vec)]
-    pub channels: Option<Vec<Shared<Channel>>>,
+    #[cfg_attr(feature = "client", observe_vec)]
+    #[serde(default)]
+    pub channels: Vec<Shared<Channel>>,
     pub default_message_notifications: Option<MessageNotificationLevel>,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
@@ -66,7 +68,8 @@ pub struct Guild {
     pub icon_hash: Option<String>,
     pub id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub invites: Option<Vec<GuildInvite>>,
+    #[serde(default)]
+    pub invites: Vec<GuildInvite>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub joined_at: Option<DateTime<Utc>>,
     pub large: Option<bool>,
@@ -92,21 +95,23 @@ pub struct Guild {
     pub public_updates_channel_id: Option<Snowflake>,
     pub region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[cfg_attr(feature = "client", observe_option_vec)]
-    pub roles: Option<Vec<Shared<RoleObject>>>,
+    #[cfg_attr(feature = "client", observe_vec)]
+    #[serde(default)]
+    pub roles: Vec<Shared<RoleObject>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub rules_channel: Option<String>,
     pub rules_channel_id: Option<Snowflake>,
     pub splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub stickers: Option<Vec<Sticker>>,
+    #[serde(default)]
+    pub stickers: Vec<Sticker>,
     pub system_channel_flags: Option<SystemChannelFlags>,
     pub system_channel_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub vanity_url_code: Option<String>,
     pub verification_level: Option<VerificationLevel>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[cfg_attr(feature = "client", observe_option_vec)]
+    #[cfg_attr(feature = "client", observe_vec)]
     pub voice_states: Option<Vec<Shared<VoiceState>>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     #[cfg_attr(feature = "client", observe_option_vec)]
