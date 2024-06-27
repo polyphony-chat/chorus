@@ -157,7 +157,10 @@ pub struct PermissionOverwrite {
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, Clone, PartialEq, Eq, PartialOrd)]
 #[repr(u8)]
+// Note: gateway sends this is as "role" or "member", causing deserialization errors
 /// # Reference
+///
+/// See <https://docs.discord.sex/resources/channel#permission-overwrite-type>
 pub enum PermissionOverwriteType {
     Role = 0,
     Member = 1,
