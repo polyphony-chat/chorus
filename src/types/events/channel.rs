@@ -49,11 +49,7 @@ impl UpdateMessage<Guild> for ChannelCreate {
     fn update(&mut self, object_to_update: Shared<Guild>) {
         let mut write = object_to_update.write().unwrap();
         let update = self.channel.clone().into_shared();
-        if write.channels.is_some() {
-            write.channels.as_mut().unwrap().push(update);
-        } else {
-            write.channels = Some(Vec::from([update]));
-        }
+        write.channels.push(update);
     }
 }
 
@@ -122,12 +118,12 @@ impl UpdateMessage<Guild> for ChannelDelete {
             return;
         }
         let mut write = object_to_update.write().unwrap();
-        if write.channels.is_none() {
+        if write.channels.is_empty() {
             return;
         }
-        for (iteration, item) in (0_u32..).zip(write.channels.as_mut().unwrap().iter()) {
+        for (iteration, item) in (0_u32..).zip(write.channels.iter()) {
             if item.read().unwrap().id == self.id().unwrap() {
-                write.channels.as_mut().unwrap().remove(iteration as usize);
+                write.channels.remove(iteration as usize);
                 return;
             }
         }

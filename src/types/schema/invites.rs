@@ -8,3 +8,19 @@ use serde::{Deserialize, Serialize};
 pub struct GetInvitesSchema {
     pub with_counts: Option<bool>,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild#get-guild-vanity-invite>
+pub struct GuildVanityInviteResponse {
+    pub code: String,
+    #[serde(default)]
+    pub uses: Option<u32>
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild#modify-guild-vanity-invite>
+pub struct GuildCreateVanitySchema {
+    pub code: String,
+}

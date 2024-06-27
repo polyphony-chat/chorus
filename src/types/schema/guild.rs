@@ -2,16 +2,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::collections::HashMap;
 use bitflags::bitflags;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
-use crate::types::{
-    Emoji, ExplicitContentFilterLevel, MessageNotificationLevel, Snowflake, Sticker,
-    SystemChannelFlags, VerificationLevel,
-};
+use crate::types::{Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, MessageNotificationLevel, Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel, WelcomeScreenChannel};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -32,7 +30,17 @@ pub struct GuildCreateSchema {
 /// Represents the schema which needs to be sent to create a Guild Ban.
 /// See: <https://discord-userdoccers.vercel.app/resources/guild#create-guild-ban>
 pub struct GuildBanCreateSchema {
+    /// Deprecated
     pub delete_message_days: Option<u8>,
+    pub delete_message_seconds: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+/// Represents the schema which needs to be sent to create a Guild Ban.
+/// See: <https://discord-userdoccers.vercel.app/resources/guild#create-guild-ban>
+pub struct GuildBanBulkCreateSchema {
+    pub user_ids: Vec<Snowflake>,
     pub delete_message_seconds: Option<u32>,
 }
 
@@ -145,6 +153,12 @@ impl Default for GuildMemberSearchSchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub struct GuildGetMembersQuery {
+    pub limit: Option<u16>,
+    pub after: Option<Snowflake>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct ModifyGuildMemberSchema {
     pub nick: Option<String>,
     pub roles: Option<Vec<Snowflake>>,
@@ -198,4 +212,201 @@ pub struct GuildBansQuery {
     pub before: Option<Snowflake>,
     pub after: Option<Snowflake>,
     pub limit: Option<u16>,
+}
+
+
+/// Max query length is 32 characters.
+/// The limit argument is a number between 1 and 10, defaults to 10.
+pub type GuildBansSearchQuery = GenericSearchQueryWithLimit;
+
+/// Query is partial or full, username or nickname.
+/// Limit argument is a number between 1 and 1000, defaults to 1.
+pub type GuildMembersSearchQuery = GenericSearchQueryWithLimit;
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+///  A guild's progress on meeting the requirements of joining discovery.
+///
+///  Certain guilds, such as those that are verified, are exempt from discovery requirements. These guilds will not have a fully populated discovery requirements object, and are guaranteed to receive only sufficient and sufficient_without_grace_period.
+///
+/// # Reference:
+/// See <https://docs.discord.sex/resources/discovery#discovery-requirements-object>
+pub struct GuildDiscoveryRequirements {
+    pub guild_id: Option<Snowflake>,
+    pub safe_environment: Option<bool>,
+    pub healthy: Option<bool>,
+    pub health_score_pending: Option<bool>,
+    pub size: Option<bool>,
+    pub nsfw_properties: Option<GuildDiscoveryNsfwProperties>,
+    pub protected: Option<bool>,
+    pub sufficient: Option<bool>,
+    pub sufficient_without_grace_period: Option<bool>,
+    pub valid_rules_channel: Option<bool>,
+    pub retention_healthy: Option<bool>,
+    pub engagement_healthy: Option<bool>,
+    pub age: Option<bool>,
+    pub minimum_age: Option<u16>,
+    pub health_score: Option<GuildDiscoveryHealthScore>,
+    pub minimum_size: Option<u64>,
+    pub grace_period_end_date: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/discovery#discovery-nsfw-properties-structure>
+pub struct GuildDiscoveryNsfwProperties {
+    pub channels: Vec<Snowflake>,
+    pub channel_banned_keywords: HashMap<Snowflake, Vec<String>>,
+    pub name: Option<String>,
+    pub name_banned_keywords: Vec<String>,
+    pub description: Option<String>,
+    pub description_banned_keywords: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// Activity metrics are recalculated weekly, as an 8-week rolling average. If they are not yet eligible to be calculated, all fields will be null.
+///
+/// # Reference:
+/// See <https://docs.discord.sex/resources/discovery#discovery-health-score-structure>
+pub struct GuildDiscoveryHealthScore {
+    pub avg_nonnew_communicators: u64,
+    pub avg_nonnew_participators: u64,
+    pub num_intentful_joiners: u64,
+    pub perc_ret_w1_intentful: f64,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/emoji#create-guild-emoji>
+pub struct EmojiCreateSchema {
+    pub name: Option<String>,
+    /// # Reference:
+    /// See <https://docs.discord.sex/reference#cdn-data>
+    pub image: String,
+    #[serde(default)]
+    pub roles: Vec<Snowflake>
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/emoji#modify-guild-emoji>
+pub struct EmojiModifySchema {
+    pub name: Option<String>,
+    pub roles: Option<Vec<Snowflake>>
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild#get-guild-prune>
+pub struct GuildPruneQuerySchema {
+    pub days: u8,
+    /// Only used on POST
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compute_prune_count: Option<bool>,
+    #[serde(default)]
+    pub include_roles: Vec<Snowflake>
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild#get-guild-prune>
+pub struct GuildPruneResult {
+    /// Null if compute_prune_count is false
+    pub pruned: Option<usize>,
+}
+
+#[derive(Default, Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/sticker#create-guild-sticker>
+pub struct GuildCreateStickerSchema {
+    pub name: String,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: Option<String>,
+    pub file_data: Vec<u8>,
+    #[serde(skip)]
+    pub sticker_format_type: StickerFormatType
+}
+
+impl GuildCreateStickerSchema {
+    #[cfg(feature = "poem")]
+    pub async fn from_multipart(mut multipart: poem::web::Multipart) -> Result<Self, poem::Error> {
+        let mut _self = GuildCreateStickerSchema::default();
+        while let Some(field) = multipart.next_field().await? {
+            let name = field.name().ok_or(poem::Error::from_string("All fields must be named", poem::http::StatusCode::BAD_REQUEST))?;
+            match name {
+                "name" => {
+                    _self.name = field.text().await?;
+                }
+                "description" => {
+                    _self.description = Some(field.text().await?);
+                }
+                "tags" => {
+                    _self.tags = Some(field.text().await?);
+                }
+                "file_data" => {
+                    if _self.name.is_empty() {
+                        _self.name = field.file_name().map(String::from).ok_or(poem::Error::from_string("File name must be set", poem::http::StatusCode::BAD_REQUEST))?;
+                    }
+                    _self.sticker_format_type = StickerFormatType::from_mime(field.content_type().ok_or(poem::Error::from_string("Content type must be set", poem::http::StatusCode::BAD_REQUEST))?).ok_or(poem::Error::from_string("Unknown sticker format", poem::http::StatusCode::BAD_REQUEST))?;
+                    _self.file_data = field.bytes().await?;
+                }
+                _ => {}
+            }
+
+        }
+        if _self.name.is_empty() || _self.file_data.is_empty() {
+            return Err(poem::Error::from_string("At least the name and file_data are required", poem::http::StatusCode::BAD_REQUEST));
+        }
+
+        Ok(_self)
+    }
+
+    // #[cfg(feature = "client")]
+    pub fn to_multipart(&self) -> reqwest::multipart::Form {
+        let mut form = reqwest::multipart::Form::new()
+            .text("name", self.name.clone())
+            .part("file_data", reqwest::multipart::Part::bytes(self.file_data.clone()).mime_str(self.sticker_format_type.to_mime()).unwrap());
+
+        if let Some(description) = &self.description {
+            form = form.text("description", description.to_owned());
+        }
+
+        if let Some(tags) = &self.tags {
+            form = form.text("tags", tags.to_owned())
+        }
+        form
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/sticker#modify-guild-sticker>
+pub struct GuildModifyStickerSchema {
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: Option<String>
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
+pub struct GuildModifyWelcomeScreenSchema {
+    pub enabled: Option<bool>,
+    pub description: Option<String>,
+    /// Max of 5
+    pub welcome_channels: Option<Vec<WelcomeScreenChannel>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// # Reference:
+/// See <https://docs.discord.sex/resources/guild-template#create-guild-template>
+pub struct GuildTemplateCreateSchema {
+    /// Name of the template (1-100 characters)
+    pub name: String,
+    /// Description of the template (max 120 characters)
+    pub description: Option<String>
 }

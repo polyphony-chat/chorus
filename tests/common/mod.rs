@@ -5,7 +5,7 @@
 use std::str::FromStr;
 
 use chorus::gateway::{Gateway, GatewayOptions};
-use chorus::types::IntoShared;
+use chorus::types::{IntoShared, PermissionFlags};
 use chorus::{
     instance::{ChorusUser, Instance},
     types::{
@@ -108,7 +108,7 @@ pub(crate) async fn setup() -> TestBundle {
 
     let role_create_schema: chorus::types::RoleCreateModifySchema = RoleCreateModifySchema {
         name: Some("Bundle role".to_string()),
-        permissions: Some("8".to_string()), // Administrator permissions
+        permissions: PermissionFlags::from_bits(8), // Administrator permissions
         hoist: Some(true),
         icon: None,
         unicode_emoji: Some("".to_string()),
