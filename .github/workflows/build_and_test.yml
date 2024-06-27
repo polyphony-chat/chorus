@@ -97,6 +97,7 @@ jobs:
         with:
           cache-all-crates: "true"
           prefix-key: "macos"
+      - uses: taiki-e/install-action@nextest
       - name: Run WASM tests with Safari, Firefox, Chrome
         run: |
           rustup target add wasm32-unknown-unknown
@@ -126,6 +127,7 @@ jobs:
         with:
           cache-all-crates: "true"
           prefix-key: "macos"
+      - uses: taiki-e/install-action@nextest
       - name: Run WASM tests with Safari, Firefox, Chrome
         run: |
           rustup target add wasm32-unknown-unknown

@@ -23,9 +23,15 @@ voice_gateway = []
 sqlx-pg-uint = ["dep:sqlx-pg-uint", "sqlx-pg-uint/serde"]
 
 [dependencies]
+<<<<<<< HEAD
 tokio = { version = "1.39.3", features = ["macros", "sync"] }
 serde = { version = "1.0.209", features = ["derive", "rc"] }
 serde_json = { version = "1.0.127", features = ["raw_value"] }
+=======
+tokio = { version = "1.38.1", features = ["macros", "sync"] }
+serde = { version = "1.0.204", features = ["derive", "rc"] }
+serde_json = { version = "1.0.120", features = ["raw_value"] }
+>>>>>>> f2f45b4 (bump versions of packages to latest compatible versions)
 serde-aux = "4.5.0"
 serde_with = "3.9.0"
 serde_repr = "0.1.19"
@@ -36,7 +42,11 @@ reqwest = { features = [
 ], version = "=0.11.26", default-features = false }
 url = "2.5.2"
 chrono = { version = "0.4.38", features = ["serde"] }
+<<<<<<< HEAD
 regex = "1.10.6"
+=======
+regex = "1.10.5"
+>>>>>>> f2f45b4 (bump versions of packages to latest compatible versions)
 custom_error = "1.9.2"
 futures-util = "0.3.30"
 http = "0.2.12"
@@ -49,7 +59,13 @@ jsonwebtoken = "8.3.0"
 log = "0.4.22"
 async-trait = "0.1.81"
 chorus-macros = { path = "./chorus-macros", version = "0" } # Note: version here is used when releasing. This will use the latest release. Make sure to republish the crate when code in macros is changed!
+<<<<<<< HEAD
 sqlx = { version = "0.8.1", features = [
+=======
+sqlx = { version = "0.7.4", features = [
+    "mysql",
+    "sqlite",
+>>>>>>> f2f45b4 (bump versions of packages to latest compatible versions)
     "json",
     "chrono",
     "ipnetwork",
@@ -67,7 +83,10 @@ rand = "0.8.5"
 flate2 = { version = "1.0.33", optional = true }
 webpki-roots = "0.26.3"
 pubserve = { version = "1.1.0", features = ["async", "send"] }
+<<<<<<< HEAD
 sqlx-pg-uint = { version = "0.5.0", features = ["serde"], optional = true }
+=======
+>>>>>>> f2f45b4 (bump versions of packages to latest compatible versions)
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rustls = "0.21.12"
@@ -80,6 +99,7 @@ getrandom = { version = "0.2.15" }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.15", features = ["js"] }
 ws_stream_wasm = "0.7.4"
+<<<<<<< HEAD
 wasm-bindgen-futures = "0.4.43"
 wasmtimer = "0.2.0"
 
@@ -94,6 +114,13 @@ simple_logger = { version = "5.0.0", default-features = false }
 unexpected_cfgs = { level = "allow", check-cfg = ['cfg(tarpaulin_include)'] }
 =======
 lazy_static = "1.4.0"
+=======
+wasm-bindgen-futures = "0.4.42"
+wasmtimer = "0.2.0"
+
+[dev-dependencies]
+lazy_static = "1.5.0"
+>>>>>>> f2f45b4 (bump versions of packages to latest compatible versions)
 wasm-bindgen-test = "0.3.42"
 wasm-bindgen = "0.2.92"
 >>>>>>> 50c5c29 (update dev-dependencies)

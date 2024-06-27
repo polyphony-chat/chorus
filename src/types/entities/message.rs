@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
-    Shared,
     entities::{
         Application, Attachment, Channel, Emoji, GuildMember, PublicUser, RoleSubscriptionData,
         Sticker, StickerItem, User,
@@ -17,6 +16,8 @@ use crate::types::{
     Shared,
 };
 use crate::{UInt32, UInt8};
+
+use super::option_arc_rwlock_ptr_eq;
 
 use super::option_arc_rwlock_ptr_eq;
 

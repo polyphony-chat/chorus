@@ -6,7 +6,6 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    Shared,
     entities::{Application, User},
     utils::Snowflake,
     Shared,
