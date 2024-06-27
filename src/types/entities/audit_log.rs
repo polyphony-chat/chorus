@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::types::{AutoModerationRuleTriggerType, Integration, IntegrationType, PermissionOverwriteType, Shared, VoiceState};
+use crate::types::{AutoModerationRuleTriggerType, IntegrationType, PermissionOverwriteType, Shared};
 use crate::types::utils::Snowflake;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -43,7 +43,7 @@ pub struct AuditLogChange {
 /// See <https://docs.discord.sex/resources/audit-log#audit-log-events>
 pub enum AuditLogActionType {
     #[default]
-    ///	Guild settings were updated
+    /// Guild settings were updated
     GuildUpdate = 1,
     /// Channel was created
     ChannelCreate = 10,

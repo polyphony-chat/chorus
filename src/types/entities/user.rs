@@ -4,11 +4,9 @@
 
 use crate::types::utils::Snowflake;
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
 use std::fmt::Debug;
-use std::num::ParseIntError;
-use std::str::FromStr;
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;

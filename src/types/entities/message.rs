@@ -309,7 +309,7 @@ pub enum MessageType {
     Default = 0,
     /// A message sent when a user is added to a group DM or thread
     RecipientAdd = 1,
-    ///	A message sent when a user is removed from a group DM or thread
+    /// A message sent when a user is removed from a group DM or thread
     RecipientRemove = 2,
     /// A message sent when a user creates a call in a private channel
     Call = 3,
@@ -353,7 +353,7 @@ pub enum MessageType {
     ThreadStarterMessage = 21,
     /// A message sent to remind users to invite friends to a guild
     GuildInviteReminder = 22,
-    ///	A message sent when a user uses a context menu command
+    /// A message sent when a user uses a context menu command
     ContextMenuCommand = 23,
     /// A message sent when auto moderation takes an action
     AutoModerationAction = 24,

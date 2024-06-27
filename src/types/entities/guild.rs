@@ -23,7 +23,7 @@ use super::PublicUser;
 use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
-use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};
+use chorus_macros::{observe_vec, Composite, Updateable};
 
 #[cfg(feature = "client")]
 use crate::types::Composite;

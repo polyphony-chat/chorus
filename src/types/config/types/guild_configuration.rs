@@ -3,8 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt::{Display, Formatter};
-#[cfg(feature = "sqlx")]
-use std::io::Write;
 use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 
