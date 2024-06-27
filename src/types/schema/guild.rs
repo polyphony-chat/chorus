@@ -5,7 +5,6 @@
 use std::collections::HashMap;
 use bitflags::bitflags;
 use chrono::{DateTime, Utc};
-use poem::http::StatusCode;
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::Channel;
@@ -309,7 +308,7 @@ impl GuildCreateStickerSchema {
     pub async fn from_multipart(mut multipart: poem::web::Multipart) -> Result<Self, poem::Error> {
         let mut _self = GuildCreateStickerSchema::default();
         while let Some(field) = multipart.next_field().await? {
-            let name = field.name().ok_or(poem::Error::from_string("All fields must be named", StatusCode::BAD_REQUEST))?;
+            let name = field.name().ok_or(poem::Error::from_string("All fields must be named", poem::http::StatusCode::BAD_REQUEST))?;
             match name {
                 "name" => {
                     _self.name = field.text().await?;
@@ -322,9 +321,9 @@ impl GuildCreateStickerSchema {
                 }
                 "file_data" => {
                     if _self.name.is_empty() {
-                        _self.name = field.file_name().map(String::from).ok_or(poem::Error::from_string("File name must be set", StatusCode::BAD_REQUEST))?;
+                        _self.name = field.file_name().map(String::from).ok_or(poem::Error::from_string("File name must be set", poem::http::StatusCode::BAD_REQUEST))?;
                     }
-                    _self.sticker_format_type = StickerFormatType::from_mime(field.content_type().ok_or(poem::Error::from_string("Content type must be set", StatusCode::BAD_REQUEST))?).ok_or(poem::Error::from_string("Unknown sticker format", StatusCode::BAD_REQUEST))?;
+                    _self.sticker_format_type = StickerFormatType::from_mime(field.content_type().ok_or(poem::Error::from_string("Content type must be set", poem::http::StatusCode::BAD_REQUEST))?).ok_or(poem::Error::from_string("Unknown sticker format", poem::http::StatusCode::BAD_REQUEST))?;
                     _self.file_data = field.bytes().await?;
                 }
                 _ => {}
@@ -332,7 +331,7 @@ impl GuildCreateStickerSchema {
 
         }
         if _self.name.is_empty() || _self.file_data.is_empty() {
-            return Err(poem::Error::from_string("At least the name and file_data are required", StatusCode::BAD_REQUEST));
+            return Err(poem::Error::from_string("At least the name and file_data are required", poem::http::StatusCode::BAD_REQUEST));
         }
 
         Ok(_self)

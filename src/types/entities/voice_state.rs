@@ -34,11 +34,11 @@ use crate::types::{
 #[cfg_attr(feature = "client", derive(Composite))]
 pub struct VoiceState {
     pub guild_id: Option<Snowflake>,
-    #[sqlx(skip)]
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub guild: Option<Guild>,
     pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
-    #[sqlx(skip)]
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member: Option<Shared<GuildMember>>,
     /// Includes alphanumeric characters, not a snowflake
     pub session_id: String,
