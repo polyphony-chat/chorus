@@ -12,7 +12,7 @@ use tokio_tungstenite::{
     connect_async_tls_with_config, tungstenite, Connector, MaybeTlsStream, WebSocketStream,
 };
 
-use crate::gateway::GatewayMessage;
+use crate::gateway::{GatewayMessage, RawGatewayMessage};
 
 #[derive(Debug, Clone)]
 pub struct TungsteniteBackend;
@@ -78,5 +78,24 @@ impl From<GatewayMessage> for tungstenite::Message {
 impl From<tungstenite::Message> for GatewayMessage {
     fn from(value: tungstenite::Message) -> Self {
         Self(value.to_string())
+    }
+}
+
+impl From<RawGatewayMessage> for tungstenite::Message {
+    fn from(message: RawGatewayMessage) -> Self {
+        match message {
+            RawGatewayMessage::Text(text) => tungstenite::Message::Text(text),
+            RawGatewayMessage::Bytes(bytes) => tungstenite::Message::Binary(bytes),
+        }
+    }
+}
+
+impl From<tungstenite::Message> for RawGatewayMessage {
+    fn from(value: tungstenite::Message) -> Self {
+        match value {
+            tungstenite::Message::Binary(bytes) => RawGatewayMessage::Bytes(bytes),
+            tungstenite::Message::Text(text) => RawGatewayMessage::Text(text),
+            _ => RawGatewayMessage::Text(value.to_string()),
+        }
     }
 }

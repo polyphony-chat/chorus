@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use bitflags::bitflags;
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 use crate::types::{ChannelType, DefaultReaction, entities::PermissionOverwrite, Snowflake};
 
