@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{entities::User, utils::Snowflake, Shared};
 
@@ -18,15 +19,17 @@ pub struct Sticker {
     pub pack_id: Option<Snowflake>,
     pub name: String,
     pub description: Option<String>,
-    pub tags: String,
+    pub tags: Option<String>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub asset: Option<String>,
     #[serde(rename = "type")]
-    pub sticker_type: u8,
-    pub format_type: u8,
+    pub sticker_type: StickerType,
+    pub format_type: StickerFormatType,
     pub available: Option<bool>,
     pub guild_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<Shared<User>>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub sort_value: Option<u8>,
 }
 
@@ -108,6 +111,18 @@ impl PartialOrd for Sticker {
     }
 }
 
+impl Sticker {
+    pub fn tags(&self) -> Vec<String> {
+        self.tags
+            .as_ref()
+            .map_or(vec![], |s|
+                s.split(',')
+                    .map(|tag| tag.trim().to_string())
+                    .collect()
+            )
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 /// A partial sticker object.
 ///
@@ -118,5 +133,61 @@ impl PartialOrd for Sticker {
 pub struct StickerItem {
     pub id: Snowflake,
     pub name: String,
-    pub format_type: u8,
+    pub format_type: StickerFormatType,
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[serde(rename = "SCREAMING_SNAKE_CASE")]
+/// # Reference
+/// See <https://docs.discord.sex/resources/sticker#sticker-types>
+pub enum StickerType {
+    /// An official sticker in a current or legacy purchasable pack
+    Standard = 1,
+    #[default]
+    /// A sticker uploaded to a guild for the guild's members
+    Guild = 2,
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+/// # Reference
+/// See <https://docs.discord.sex/resources/sticker#sticker-format-types>
+pub enum StickerFormatType {
+    #[default]
+    /// A PNG image
+    PNG = 1,
+    /// An animated PNG image, using the APNG format - uses CDN
+    APNG = 2,
+    /// A lottie animation; requires the VERIFIED and/or PARTNERED guild feature - uses CDN
+    LOTTIE = 3,
+    /// An animated GIF image - does not use CDN
+    GIF = 4,
+}
+
+impl StickerFormatType {
+    pub fn is_animated(&self) -> bool {
+        matches!(self, StickerFormatType::APNG | StickerFormatType::LOTTIE | StickerFormatType::GIF)
+    }
+
+    pub const fn to_mime(&self) -> &'static str {
+        match self {
+            StickerFormatType::PNG => "image/png",
+            StickerFormatType::APNG => "image/apng",
+            StickerFormatType::LOTTIE => "application/json",
+            StickerFormatType::GIF => "image/gif",
+        }
+    }
+
+    pub fn from_mime(mime: &str) -> Option<Self> {
+        match mime {
+            "image/png" => Some(StickerFormatType::PNG),
+            "image/apng" => Some(StickerFormatType::APNG),
+            "application/json" => Some(StickerFormatType::LOTTIE),
+            "image/gif" => Some(StickerFormatType::GIF),
+            _ => None,
+        }
+    }
 }

@@ -13,7 +13,7 @@ use super::{Application, Channel, GuildMember, NSFWLevel, User};
 
 /// Represents a code that when used, adds a user to a guild or group DM channel, or creates a relationship between two users.
 /// See <https://discord-userdoccers.vercel.app/resources/invite#invite-object>
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Invite {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]

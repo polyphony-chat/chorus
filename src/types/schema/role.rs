@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use serde::{Deserialize, Serialize};
+use crate::types::{PermissionFlags, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "snake_case")]
@@ -10,8 +11,8 @@ use serde::{Deserialize, Serialize};
 /// See: [https://docs.spacebar.chat/routes/#cmp--schemas-rolemodifyschema](https://docs.spacebar.chat/routes/#cmp--schemas-rolemodifyschema)
 pub struct RoleCreateModifySchema {
     pub name: Option<String>,
-    pub permissions: Option<String>,
-    pub color: Option<u32>,
+    pub permissions: Option<PermissionFlags>,
+    pub color: Option<f64>,
     pub hoist: Option<bool>,
     pub icon: Option<Vec<u8>>,
     pub unicode_emoji: Option<String>,
@@ -24,6 +25,6 @@ pub struct RoleCreateModifySchema {
 /// Represents the schema which needs to be sent to update a roles' position.
 /// See: [https://docs.spacebar.chat/routes/#cmp--schemas-rolepositionupdateschema](https://docs.spacebar.chat/routes/#cmp--schemas-rolepositionupdateschema)
 pub struct RolePositionUpdateSchema {
-    pub id: String,
+    pub id: Snowflake,
     pub position: u16,
 }

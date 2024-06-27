@@ -18,7 +18,7 @@ pub struct Integration {
     pub id: Snowflake,
     pub name: String,
     #[serde(rename = "type")]
-    pub integration_type: String,
+    pub integration_type: IntegrationType,
     pub enabled: bool,
     pub syncing: Option<bool>,
     pub role_id: Option<String>,
@@ -42,4 +42,16 @@ pub struct Integration {
 pub struct IntegrationAccount {
     pub id: String,
     pub name: String,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(rename_all = "snake_case"))]
+pub enum IntegrationType {
+    #[default]
+    Twitch,
+    Youtube,
+    Discord,
+    GuildSubscription,
 }

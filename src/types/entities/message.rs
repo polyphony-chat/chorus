@@ -177,7 +177,7 @@ pub struct ChannelMention {
 pub struct Embed {
     title: Option<String>,
     #[serde(rename = "type")]
-    embed_type: Option<String>,
+    embed_type: Option<EmbedType>,
     description: Option<String>,
     url: Option<String>,
     timestamp: Option<String>,
@@ -189,6 +189,24 @@ pub struct Embed {
     provider: Option<EmbedProvider>,
     author: Option<EmbedAuthor>,
     fields: Option<Vec<EmbedField>>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "snake_case")]
+pub enum EmbedType {
+    #[deprecated]
+    ApplicationNews,
+    Article,
+    AutoModerationMessage,
+    AutoModerationNotification,
+    Gift,
+    #[serde(rename = "gifv")]
+    GifVideo,
+    Image,
+    Link,
+    PostPreview,
+    Rich,
+    Video
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
@@ -291,7 +309,7 @@ pub enum MessageType {
     Default = 0,
     /// A message sent when a user is added to a group DM or thread
     RecipientAdd = 1,
-    ///	A message sent when a user is removed from a group DM or thread
+    /// A message sent when a user is removed from a group DM or thread
     RecipientRemove = 2,
     /// A message sent when a user creates a call in a private channel
     Call = 3,
@@ -335,7 +353,7 @@ pub enum MessageType {
     ThreadStarterMessage = 21,
     /// A message sent to remind users to invite friends to a guild
     GuildInviteReminder = 22,
-    ///	A message sent when a user uses a context menu command
+    /// A message sent when a user uses a context menu command
     ContextMenuCommand = 23,
     /// A message sent when auto moderation takes an action
     AutoModerationAction = 24,
