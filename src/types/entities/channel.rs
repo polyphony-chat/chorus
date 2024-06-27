@@ -3,9 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::fmt::Debug;
+use std::fmt::{Debug, Formatter};
+use std::str::FromStr;
 
 use crate::types::{
     PermissionFlags, Shared,
@@ -24,6 +25,8 @@ use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, Composite, Updateable};
+use serde::de::{Error, Visitor};
+use crate::types::serde::string_or_u64;
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -155,12 +158,38 @@ pub struct PermissionOverwrite {
 }
 
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Serialize_repr, Clone, PartialEq, Eq, PartialOrd)]
 #[repr(u8)]
 /// # Reference
 pub enum PermissionOverwriteType {
     Role = 0,
     Member = 1,
+}
+
+impl From<u8> for PermissionOverwriteType {
+    fn from(v: u8) -> Self {
+        match v {
+            0 => PermissionOverwriteType::Role,
+            1 => PermissionOverwriteType::Member,
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl FromStr for PermissionOverwriteType {
+    type Err = std::num::ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse::<u8>().map(PermissionOverwriteType::from)
+    }
+}
+
+impl<'de> Deserialize<'de> for PermissionOverwriteType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        let raw = string_or_u64(deserializer)?;
+
+        Ok(PermissionOverwriteType::from(raw as u8))
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
