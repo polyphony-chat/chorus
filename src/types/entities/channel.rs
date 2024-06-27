@@ -5,13 +5,14 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 use std::str::FromStr;
 
 use crate::types::{
     PermissionFlags, Shared,
     entities::{GuildMember, User},
     utils::Snowflake,
+    serde::string_or_u64
 };
 
 #[cfg(feature = "client")]
@@ -25,8 +26,7 @@ use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, Composite, Updateable};
-use serde::de::{Error, Visitor};
-use crate::types::serde::string_or_u64;
+
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
