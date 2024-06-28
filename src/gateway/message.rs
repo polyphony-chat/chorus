@@ -94,7 +94,14 @@ impl GatewayMessage {
         // Note: is there a better way to handle the size of this output buffer?
         //
         // This used to be 10, I measured it at 11.5, so a safe bet feels like 20
-        let mut output = Vec::with_capacity(bytes.len() * 20);
+        //
+        // ^ - This dude is naive. apparently not even 20x is okay. Measured at 47.9x!!!!
+        // If it is >100x ever, I will literally explode
+        //
+        // About an hour later, you ^ will literally explode.
+        // 133 vs 13994 -- 105.21805x ratio
+        // Let's hope it doesn't go above 200??
+        let mut output = Vec::with_capacity(bytes.len() * 200);
         let _status = inflate.decompress_vec(bytes, &mut output, flate2::FlushDecompress::Sync)?;
 
         output.shrink_to_fit();

@@ -85,6 +85,31 @@ pub struct GetUserGuildSchema {
     pub with_counts: Option<bool>,
 }
 
+impl GetUserGuildSchema {
+    /// Converts self to query string parameters
+    pub fn to_query(self) -> Vec<(&'static str, String)> {
+        let mut query = Vec::with_capacity(4);
+
+        if let Some(before) = self.before {
+            query.push(("before", before.to_string()));
+        }
+
+        if let Some(after) = self.after {
+            query.push(("after", after.to_string()));
+        }
+
+        if let Some(limit) = self.limit {
+            query.push(("limit", limit.to_string()));
+        }
+
+        if let Some(with_counts) = self.with_counts {
+            query.push(("with_counts", with_counts.to_string()));
+        }
+
+        query
+    }
+}
+
 impl std::default::Default for GetUserGuildSchema {
     fn default() -> Self {
         Self {
@@ -145,7 +170,7 @@ pub struct ModifyGuildMemberSchema {
 }
 
 bitflags! {
-    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// Represents the flags of a Guild Member.
     ///

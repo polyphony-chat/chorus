@@ -214,7 +214,9 @@ pub fn serde_bitflag_derive(input: TokenStream) -> TokenStream {
                 // let s = String::deserialize(deserializer)?.parse::<u64>().map_err(serde::de::Error::custom)?;
                 let s = crate::types::serde::string_or_u64(deserializer)?;
 
-                Ok(Self::from_bits(s).unwrap())
+                // Note: while truncating may not be ideal, it's better than a panic if there are
+                // extra flags
+                Ok(Self::from_bits_truncate(s))
             }
         }
     }

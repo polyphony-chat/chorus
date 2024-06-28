@@ -12,9 +12,12 @@ use crate::types::{GuildMember, Snowflake, VoiceState};
 ///
 /// Seems to be passively set to update the client on guild details (though, why not just send the update events?)
 pub struct PassiveUpdateV1 {
+    #[serde(default)]
     pub voice_states: Vec<VoiceState>,
-    pub members: Option<Vec<GuildMember>>,
+    #[serde(default)]
+    pub members: Vec<GuildMember>,
     pub guild_id: Snowflake,
+    #[serde(default)]
     pub channels: Vec<ChannelUnreadUpdateObject>,
 }
 
