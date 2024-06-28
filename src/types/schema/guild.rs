@@ -85,7 +85,7 @@ pub struct GetUserGuildSchema {
     pub with_counts: Option<bool>,
 }
 
-impl<'a> GetUserGuildSchema {
+impl GetUserGuildSchema {
     /// Converts self to query string parameters
     pub fn to_query(self) -> Vec<(&'static str, String)> {
         let mut query = Vec::with_capacity(4);
