@@ -90,13 +90,15 @@ impl Gateway {
                 zlib_buffer = Some(Vec::new());
                 let mut inflate = Decompress::new(true);
 
-                message = GatewayMessage::from_zlib_stream_json_message(received, &mut inflate).unwrap();
+                message =
+                    GatewayMessage::from_zlib_stream_json_message(received, &mut inflate).unwrap();
 
                 zlib_inflate = Some(inflate);
             }
         }
 
-        let gateway_payload: types::GatewayReceivePayload = serde_json::from_str(&message.0).unwrap();
+        let gateway_payload: types::GatewayReceivePayload =
+            serde_json::from_str(&message.0).unwrap();
 
         if gateway_payload.op_code != GATEWAY_HELLO {
             return Err(GatewayError::NonHelloOnInitiate {
@@ -232,7 +234,8 @@ impl Gateway {
                 let zlib_buffer = self.zlib_buffer.as_ref().unwrap();
                 let inflate = self.zlib_inflate.as_mut().unwrap();
 
-                message = GatewayMessage::from_zlib_stream_json_bytes(zlib_buffer, inflate).unwrap();
+                message =
+                    GatewayMessage::from_zlib_stream_json_bytes(zlib_buffer, inflate).unwrap();
                 self.zlib_buffer = Some(Vec::new());
             }
         };
@@ -278,7 +281,10 @@ impl Gateway {
                                 let event = &mut self.events.lock().await.$($path).+;
                                 let json = gateway_payload.event_data.unwrap().get();
                                 match serde_json::from_str(json) {
-                                    Err(err) => warn!("Failed to parse gateway event {event_name} ({err})"),
+                                    Err(err) => {
+                                        warn!("Failed to parse gateway event {event_name} ({err})");
+                                        trace!("Event data: {json}");
+                                    },
                                     Ok(message) => {
                                         $(
                                             let mut message: $message_type = message;
@@ -314,15 +320,12 @@ impl Gateway {
                             },)*
                             "RESUMED" => (),
                             "SESSIONS_REPLACE" => {
-                                let result: Result<Vec<types::Session>, serde_json::Error> =
-                                    serde_json::from_str(gateway_payload.event_data.unwrap().get());
+                                let json = gateway_payload.event_data.unwrap().get();
+                                let result: Result<Vec<types::Session>, serde_json::Error> = serde_json::from_str(json);
                                 match result {
                                     Err(err) => {
-                                        warn!(
-                                            "Failed to parse gateway event {} ({})",
-                                            event_name,
-                                            err
-                                        );
+                                        warn!("Failed to parse gateway event {event_name} ({err})");
+                                        trace!("Event data: {json}");
                                         return;
                                     }
                                     Ok(sessions) => {
@@ -334,6 +337,7 @@ impl Gateway {
                             },
                             _ => {
                                 warn!("Received unrecognized gateway event ({event_name})! Please open an issue on the chorus github so we can implement it");
+                                trace!("Event data: {}", gateway_payload.event_data.unwrap().get());
                             }
                         }
                     };
