@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use custom_error::custom_error;
 use futures_util::{
     stream::{SplitSink, SplitStream},
     StreamExt,
@@ -11,8 +12,7 @@ use tokio_tungstenite::{
     connect_async_tls_with_config, tungstenite, Connector, MaybeTlsStream, WebSocketStream,
 };
 
-use crate::errors::GatewayError;
-use crate::gateway::GatewayMessage;
+use crate::gateway::{GatewayMessage, RawGatewayMessage};
 
 #[derive(Debug, Clone)]
 pub struct TungsteniteBackend;
@@ -22,18 +22,22 @@ pub type TungsteniteSink =
     SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tungstenite::Message>;
 pub type TungsteniteStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
 
+custom_error! {
+    pub TungsteniteBackendError
+    FailedToLoadCerts{error: std::io::Error} = "failed to load platform native certs: {error}",
+    TungsteniteError{error: tungstenite::error::Error} = "encountered a tungstenite error: {error}",
+}
+
 impl TungsteniteBackend {
     pub async fn connect(
         websocket_url: &str,
-    ) -> Result<(TungsteniteSink, TungsteniteStream), crate::errors::GatewayError> {
+    ) -> Result<(TungsteniteSink, TungsteniteStream), TungsteniteBackendError> {
         let mut roots = rustls::RootCertStore::empty();
         let certs = rustls_native_certs::load_native_certs();
 
         if let Err(e) = certs {
             log::error!("Failed to load platform native certs! {:?}", e);
-            return Err(GatewayError::CannotConnect {
-                error: format!("{:?}", e),
-            });
+            return Err(TungsteniteBackendError::FailedToLoadCerts { error: e });
         }
 
         for cert in certs.unwrap() {
@@ -55,8 +59,8 @@ impl TungsteniteBackend {
         {
             Ok(websocket_stream) => websocket_stream,
             Err(e) => {
-                return Err(GatewayError::CannotConnect {
-                    error: e.to_string(),
+                return Err(TungsteniteBackendError::TungsteniteError {
+                    error: e,
                 })
             }
         };
@@ -74,5 +78,24 @@ impl From<GatewayMessage> for tungstenite::Message {
 impl From<tungstenite::Message> for GatewayMessage {
     fn from(value: tungstenite::Message) -> Self {
         Self(value.to_string())
+    }
+}
+
+impl From<RawGatewayMessage> for tungstenite::Message {
+    fn from(message: RawGatewayMessage) -> Self {
+        match message {
+            RawGatewayMessage::Text(text) => tungstenite::Message::Text(text),
+            RawGatewayMessage::Bytes(bytes) => tungstenite::Message::Binary(bytes),
+        }
+    }
+}
+
+impl From<tungstenite::Message> for RawGatewayMessage {
+    fn from(value: tungstenite::Message) -> Self {
+        match value {
+            tungstenite::Message::Binary(bytes) => RawGatewayMessage::Bytes(bytes),
+            tungstenite::Message::Text(text) => RawGatewayMessage::Text(text),
+            _ => RawGatewayMessage::Text(value.to_string()),
+        }
     }
 }

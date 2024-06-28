@@ -3,10 +3,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use serde::{Deserialize, Serialize};
+use serde_aux::prelude::deserialize_number_from_string;
 
-use crate::types::config::types::subconfigs::register::{
+use crate::types::{config::types::subconfigs::register::{
     DateOfBirthConfiguration, PasswordConfiguration, RegistrationEmailConfiguration,
-};
+}, Rights};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -22,7 +23,8 @@ pub struct RegisterConfiguration {
     pub allow_multiple_accounts: bool,
     pub block_proxies: bool,
     pub incrementing_discriminators: bool,
-    pub default_rights: String,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    pub default_rights: Rights,
 }
 
 impl Default for RegisterConfiguration {
@@ -39,7 +41,7 @@ impl Default for RegisterConfiguration {
             allow_multiple_accounts: true,
             block_proxies: true,
             incrementing_discriminators: false,
-            default_rights: String::from("875069521787904"),
+            default_rights: Rights::from_bits(648540060672).expect("failed to parse default_rights"),
         }
     }
 }

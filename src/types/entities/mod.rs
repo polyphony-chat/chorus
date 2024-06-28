@@ -27,7 +27,10 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 
-use crate::gateway::Shared;
+use crate::types::Shared;
+#[cfg(feature = "client")]
+use std::sync::{Arc, RwLock};
+
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
 
@@ -39,8 +42,6 @@ use async_trait::async_trait;
 
 #[cfg(feature = "client")]
 use std::fmt::Debug;
-#[cfg(feature = "client")]
-use std::sync::{Arc, RwLock};
 
 mod application;
 mod attachment;
@@ -134,6 +135,7 @@ pub trait IntoShared {
     fn into_shared(self) -> Shared<Self>;
 }
 
+#[cfg(feature = "client")]
 impl<T: Sized> IntoShared for T {
     fn into_shared(self) -> Shared<Self> {
         Arc::new(RwLock::new(self))

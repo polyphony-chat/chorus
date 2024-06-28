@@ -26,12 +26,10 @@ use tokio::sync::{
 use tokio::task;
 
 use crate::{
-    gateway::heartbeat::HEARTBEAT_ACK_TIMEOUT,
+    gateway::{heartbeat::HEARTBEAT_ACK_TIMEOUT, Sink},
     types::{VoiceGatewaySendPayload, VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK},
     voice::gateway::VoiceGatewayMessage,
 };
-
-use super::Sink;
 
 /// Handles sending heartbeats to the voice gateway in another thread
 #[allow(dead_code)] // FIXME: Remove this, once all fields of VoiceHeartbeatHandler are used

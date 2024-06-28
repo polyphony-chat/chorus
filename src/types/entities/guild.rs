@@ -9,7 +9,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::gateway::Shared;
+use crate::types::Shared;
 use crate::types::types::guild_configuration::GuildFeaturesList;
 use crate::types::{
     entities::{Channel, Emoji, RoleObject, Sticker, User, VoiceState, Webhook},
@@ -23,7 +23,7 @@ use super::PublicUser;
 use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
-use chorus_macros::{observe_option_vec, observe_vec, Composite, Updateable};
+use chorus_macros::{observe_vec, Composite, Updateable};
 
 #[cfg(feature = "client")]
 use crate::types::Composite;
@@ -46,10 +46,12 @@ pub struct Guild {
     pub approximate_presence_count: Option<i32>,
     pub banner: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub bans: Option<Vec<GuildBan>>,
+    #[serde(default)]
+    pub bans: Vec<GuildBan>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[cfg_attr(feature = "client", observe_option_vec)]
-    pub channels: Option<Vec<Shared<Channel>>>,
+    #[cfg_attr(feature = "client", observe_vec)]
+    #[serde(default)]
+    pub channels: Vec<Shared<Channel>>,
     pub default_message_notifications: Option<MessageNotificationLevel>,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
@@ -57,17 +59,19 @@ pub struct Guild {
     #[cfg_attr(feature = "client", observe_vec)]
     #[serde(default)]
     pub emojis: Vec<Shared<Emoji>>,
-    pub explicit_content_filter: Option<i32>,
+    pub explicit_content_filter: Option<ExplicitContentFilterLevel>,
     //#[cfg_attr(feature = "sqlx", sqlx(try_from = "String"))]
-    pub features: Option<GuildFeaturesList>,
+    #[serde(default)]
+    pub features: GuildFeaturesList,
     pub icon: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub icon_hash: Option<String>,
     pub id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub invites: Option<Vec<GuildInvite>>,
+    #[serde(default)]
+    pub invites: Vec<GuildInvite>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub joined_at: Option<String>,
+    pub joined_at: Option<DateTime<Utc>>,
     pub large: Option<bool>,
     pub max_members: Option<i32>,
     pub max_presences: Option<i32>,
@@ -91,27 +95,31 @@ pub struct Guild {
     pub public_updates_channel_id: Option<Snowflake>,
     pub region: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[cfg_attr(feature = "client", observe_option_vec)]
-    pub roles: Option<Vec<Shared<RoleObject>>>,
+    #[cfg_attr(feature = "client", observe_vec)]
+    #[serde(default)]
+    pub roles: Vec<Shared<RoleObject>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub rules_channel: Option<String>,
     pub rules_channel_id: Option<Snowflake>,
     pub splash: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    pub stickers: Option<Vec<Sticker>>,
-    pub system_channel_flags: Option<u64>,
+    #[serde(default)]
+    pub stickers: Vec<Sticker>,
+    pub system_channel_flags: Option<SystemChannelFlags>,
     pub system_channel_id: Option<Snowflake>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub vanity_url_code: Option<String>,
     pub verification_level: Option<VerificationLevel>,
+    #[serde(default)]
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[cfg_attr(feature = "client", observe_option_vec)]
-    pub voice_states: Option<Vec<Shared<VoiceState>>>,
+    #[cfg_attr(feature = "client", observe_vec)]
+    pub voice_states: Vec<Shared<VoiceState>>,
+    #[serde(default)]
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
-    #[cfg_attr(feature = "client", observe_option_vec)]
-    pub webhooks: Option<Vec<Shared<Webhook>>>,
+    #[cfg_attr(feature = "client", observe_vec)]
+    pub webhooks: Vec<Shared<Webhook>>,
     #[cfg(feature = "sqlx")]
-    pub welcome_screen: Option<sqlx::types::Json<WelcomeScreenObject>>,
+    pub welcome_screen: sqlx::types::Json<Option<WelcomeScreenObject>>,
     #[cfg(not(feature = "sqlx"))]
     pub welcome_screen: Option<WelcomeScreenObject>,
     pub widget_channel_id: Option<Snowflake>,
@@ -225,6 +233,7 @@ impl std::cmp::PartialEq for Guild {
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildBan {
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: PublicUser,
     pub reason: Option<String>,
 }
@@ -422,7 +431,8 @@ pub enum PremiumTier {
 }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#system-channel-flags>
     pub struct SystemChannelFlags: u64 {

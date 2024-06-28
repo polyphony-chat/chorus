@@ -3,15 +3,16 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use serde_aux::prelude::deserialize_string_from_number;
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::fmt::Debug;
+use std::fmt::{Debug, Formatter};
+use std::str::FromStr;
 
-use crate::gateway::Shared;
 use crate::types::{
+    PermissionFlags, Shared,
     entities::{GuildMember, User},
     utils::Snowflake,
+    serde::string_or_u64
 };
 
 #[cfg(feature = "client")]
@@ -25,6 +26,8 @@ use crate::gateway::Updateable;
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, Composite, Updateable};
+use serde::de::{Error, Visitor};
+
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -64,7 +67,9 @@ pub struct Channel {
     pub managed: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member: Option<ThreadMember>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member_count: Option<i32>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub message_count: Option<i32>,
     pub name: Option<String>,
     pub nsfw: Option<bool>,
@@ -75,6 +80,7 @@ pub struct Channel {
     #[cfg(not(feature = "sqlx"))]
     #[cfg_attr(feature = "client", observe_option_vec)]
     pub permission_overwrites: Option<Vec<Shared<PermissionOverwrite>>>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub permissions: Option<String>,
     pub position: Option<i32>,
     pub rate_limit_per_user: Option<i32>,
@@ -85,6 +91,7 @@ pub struct Channel {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub thread_metadata: Option<ThreadMetadata>,
     pub topic: Option<String>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub total_message_sent: Option<i32>,
     pub user_limit: Option<i32>,
     pub video_quality_mode: Option<i32>,
@@ -144,14 +151,79 @@ pub struct Tag {
 pub struct PermissionOverwrite {
     pub id: Snowflake,
     #[serde(rename = "type")]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub overwrite_type: String,
+    pub overwrite_type: PermissionOverwriteType,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub allow: String,
+    pub allow: PermissionFlags,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub deny: String,
+    pub deny: PermissionFlags,
+}
+
+
+#[derive(Debug, Serialize_repr, Clone, PartialEq, Eq, PartialOrd)]
+#[repr(u8)]
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/channel#permission-overwrite-type>
+pub enum PermissionOverwriteType {
+    Role = 0,
+    Member = 1,
+}
+
+impl From<u8> for PermissionOverwriteType {
+    fn from(v: u8) -> Self {
+        match v {
+            0 => PermissionOverwriteType::Role,
+            1 => PermissionOverwriteType::Member,
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl FromStr for PermissionOverwriteType {
+    type Err = serde::de::value::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "role" => Ok(PermissionOverwriteType::Role),
+            "member" => Ok(PermissionOverwriteType::Member),
+            _ => Err(Self::Err::custom("invalid permission overwrite type")),
+        }
+    }
+}
+
+struct PermissionOverwriteTypeVisitor;
+
+impl<'de> Visitor<'de> for PermissionOverwriteTypeVisitor {
+    type Value = PermissionOverwriteType;
+
+    fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+        formatter.write_str("a valid permission overwrite type")
+    }
+
+    fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E> where E: Error {
+        Ok(PermissionOverwriteType::from(v))
+    }
+
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E> where E: Error {
+        self.visit_u8(v as u8)
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: Error {
+        PermissionOverwriteType::from_str(v)
+            .map_err(E::custom)
+    }
+
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: Error {
+        self.visit_str(v.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for PermissionOverwriteType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        let val = deserializer.deserialize_any(PermissionOverwriteTypeVisitor)?;
+
+        Ok(val)
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -160,10 +232,10 @@ pub struct PermissionOverwrite {
 pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: i32,
-    pub archive_timestamp: String,
+    pub archive_timestamp: DateTime<Utc>,
     pub locked: bool,
     pub invitable: Option<bool>,
-    pub create_timestamp: Option<String>,
+    pub create_timestamp: Option<DateTime<Utc>>,
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
@@ -172,12 +244,12 @@ pub struct ThreadMetadata {
 pub struct ThreadMember {
     pub id: Option<Snowflake>,
     pub user_id: Option<Snowflake>,
-    pub join_timestamp: Option<String>,
+    pub join_timestamp: Option<DateTime<Utc>>,
     pub flags: Option<u64>,
     pub member: Option<Shared<GuildMember>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd)]
 /// Specifies the emoji to use as the default way to react to a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel post.
 ///
 /// # Reference
@@ -255,4 +327,13 @@ pub enum ChannelType {
     CustomStart = 64,
     // TODO: Couldn't find reference
     Unhandled = 255,
+}
+
+
+/// # Reference
+/// See <https://docs.discord.sex/resources/message#followed-channel-object>
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+pub struct FollowedChannel {
+    pub channel_id: Snowflake,
+    pub webhook_id: Snowflake
 }

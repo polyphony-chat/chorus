@@ -3,9 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::types::WebSocketEvent;
+use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, WebSocketEvent)]
 /// Received from the voice gateway server to describe the backend version.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#voice-backend-version>
@@ -18,4 +19,3 @@ pub struct VoiceBackendVersion {
     pub rtc_worker_version: String,
 }
 
-impl WebSocketEvent for VoiceBackendVersion {}

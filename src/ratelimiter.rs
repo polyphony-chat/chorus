@@ -88,7 +88,7 @@ impl ChorusRequest {
         let client = user.belongs_to.read().unwrap().client.clone();
         let result = match client.execute(self.request.build().unwrap()).await {
             Ok(result) => {
-                debug!("Request successful: {:?}", result);
+                log::trace!("Request successful: {:?}", result);
                 result
             }
             Err(error) => {
@@ -494,7 +494,7 @@ impl ChorusRequest {
         user: &mut ChorusUser,
     ) -> ChorusResult<T> {
         let response = self.send_request(user).await?;
-        debug!("Got response: {:?}", response);
+        log::trace!("Got response: {:?}", response);
         let response_text = match response.text().await {
             Ok(string) => string,
             Err(e) => {

@@ -11,3 +11,5 @@ pub mod jwt;
 mod regexes;
 mod rights;
 mod snowflake;
+pub mod serde;
+

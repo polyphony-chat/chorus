@@ -21,6 +21,9 @@ pub enum Error {
 
     #[error(transparent)]
     Guild(#[from] GuildError),
+    
+    #[error("Invalid flags value: {0}")]
+    InvalidFlags(u64)
 }
 
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]

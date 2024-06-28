@@ -2,7 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::num::ParseIntError;
+use std::str::FromStr;
 use bitflags::bitflags;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use crate::types::UserFlags;
 
 bitflags! {
     /// Rights are instance-wide, per-user permissions for everything you may perform on the instance,
@@ -14,6 +18,8 @@ bitflags! {
     ///
     /// # Reference
     /// See <https://docs.spacebar.chat/setup/server/security/rights/>
+    #[derive(Debug, Clone, Copy, Eq, PartialEq, chorus_macros::SerdeBitFlags)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     pub struct Rights: u64 {
         /// All rights
         const OPERATOR = 1 << 0;
@@ -148,6 +154,12 @@ impl Rights {
         } else {
             Err("You are missing the following rights")
         }
+    }
+}
+
+impl Default for Rights {
+    fn default() -> Self {
+        Self::empty()
     }
 }
 

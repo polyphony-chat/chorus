@@ -5,7 +5,8 @@
 #[cfg(feature = "client")]
 use chorus_macros::Composite;
 
-use crate::gateway::Shared;
+use crate::types::Shared;
+
 #[cfg(feature = "client")]
 use crate::types::Composite;
 
@@ -33,9 +34,11 @@ use crate::types::{
 #[cfg_attr(feature = "client", derive(Composite))]
 pub struct VoiceState {
     pub guild_id: Option<Snowflake>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub guild: Option<Guild>,
     pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member: Option<Shared<GuildMember>>,
     /// Includes alphanumeric characters, not a snowflake
     pub session_id: String,
@@ -51,6 +54,7 @@ pub struct VoiceState {
     pub id: Option<Snowflake>, // Only exists on Spacebar
 }
 
+#[cfg(feature = "client")]
 impl Updateable for VoiceState {
     #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Snowflake {

@@ -6,6 +6,18 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput, Field, Fields, FieldsNamed};
 
+#[proc_macro_derive(WebSocketEvent)]
+pub fn websocket_event_macro_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+
+    let name = &ast.ident;
+
+    quote! {
+        impl WebSocketEvent for #name {}
+    }
+    .into()
+}
+
 #[proc_macro_derive(Updateable)]
 pub fn updateable_macro_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
@@ -142,4 +154,71 @@ pub fn composite_derive(input: TokenStream) -> TokenStream {
         },
         _ => panic!("Composite derive macro only supports structs"),
     }
+}
+
+
+#[proc_macro_derive(SqlxBitFlags)]
+pub fn sqlx_bitflag_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+
+    let name = &ast.ident;
+
+    quote!{
+        #[cfg(feature = "sqlx")]
+        impl sqlx::Type<sqlx::MySql> for #name {
+            fn type_info() -> sqlx::mysql::MySqlTypeInfo {
+                u64::type_info()
+            }
+        }
+
+        #[cfg(feature = "sqlx")]
+        impl<'q> sqlx::Encode<'q, sqlx::MySql> for #name {
+            fn encode_by_ref(&self, buf: &mut <sqlx::MySql as sqlx::database::HasArguments<'q>>::ArgumentBuffer) -> sqlx::encode::IsNull {
+                u64::encode_by_ref(&self.bits(), buf)
+            }
+        }
+
+        #[cfg(feature = "sqlx")]
+        impl<'q> sqlx::Decode<'q, sqlx::MySql> for #name {
+            fn decode(value: <sqlx::MySql as sqlx::database::HasValueRef<'q>>::ValueRef) -> Result<Self, sqlx::error::BoxDynError> {
+                u64::decode(value).map(|d| #name::from_bits(d).unwrap())
+            }
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(SerdeBitFlags)]
+pub fn serde_bitflag_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+
+    let name = &ast.ident;
+
+    quote! {
+        impl std::str::FromStr for #name {
+            type Err = std::num::ParseIntError;
+
+            fn from_str(s: &str) -> Result<#name, Self::Err> {
+                s.parse::<u64>().map(#name::from_bits).map(|f| f.unwrap_or(#name::empty()))
+            }
+        }
+
+        impl serde::Serialize for #name {
+            fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                serializer.serialize_str(&self.bits().to_string())
+            }
+        }
+
+        impl<'de> serde::Deserialize<'de> for #name {
+            fn deserialize<D>(deserializer: D) -> Result<#name, D::Error> where D: serde::de::Deserializer<'de> + Sized {
+                // let s = String::deserialize(deserializer)?.parse::<u64>().map_err(serde::de::Error::custom)?;
+                let s = crate::types::serde::string_or_u64(deserializer)?;
+
+                // Note: while truncating may not be ideal, it's better than a panic if there are
+                // extra flags
+                Ok(Self::from_bits_truncate(s))
+            }
+        }
+    }
+    .into()
 }

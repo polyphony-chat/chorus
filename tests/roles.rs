@@ -15,10 +15,9 @@ mod common;
 async fn create_and_get_roles() {
     let mut bundle = common::setup().await;
     let permissions = types::PermissionFlags::CONNECT | types::PermissionFlags::MANAGE_EVENTS;
-    let permissions = Some(permissions.to_string());
     let role_create_schema: types::RoleCreateModifySchema = RoleCreateModifySchema {
         name: Some("cool person".to_string()),
-        permissions,
+        permissions: Some(permissions),
         hoist: Some(true),
         icon: None,
         unicode_emoji: Some("".to_string()),
