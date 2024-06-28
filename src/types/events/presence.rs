@@ -28,6 +28,7 @@ pub struct PresenceUpdate {
     #[serde(default)]
     pub guild_id: Option<Snowflake>,
     pub status: UserStatus,
+    #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatusObject,
 }

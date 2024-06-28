@@ -121,8 +121,8 @@ pub struct MessageReactionRemoveEmoji {
 ///
 /// {"t":"MESSAGE_ACK","s":3,"op":0,"d":{"version":52,"message_id":"1107236673638633472","last_viewed":null,"flags":null,"channel_id":"967363950217936897"}}
 pub struct MessageACK {
-    /// ?
-    pub version: u16,
+    // No ideas. See 206933
+    pub version: u32,
     pub message_id: Snowflake,
     /// This is an integer???
     /// Not even unix, see '3070'???
