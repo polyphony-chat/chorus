@@ -5,7 +5,8 @@
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{Shared, Snowflake};
+use crate::types::Shared;
+use serde_aux::field_attributes::deserialize_option_number_from_string;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
@@ -150,7 +151,14 @@ impl Default for FriendSourceFlags {
 pub struct GuildFolder {
     pub color: Option<u32>,
     pub guild_ids: Vec<String>,
-    pub id: Option<Snowflake>,
+    // FIXME: What is this thing?
+    // It's not a snowflake, and it's sometimes a string and sometimes an integer.
+    //
+    // Ex: 1249181105
+    //
+    // It can also be negative somehow? Ex: -1176643795
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    pub id: Option<i64>,
     pub name: Option<String>,
 }
 
