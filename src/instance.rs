@@ -8,16 +8,18 @@ use std::collections::HashMap;
 use std::fmt;
 
 use std::sync::{Arc, RwLock};
+use std::time::Duration;
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use chrono::Utc; 
 
 use crate::errors::ChorusResult;
 use crate::gateway::{Gateway, GatewayHandle};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
-    GeneralConfiguration, Limit, LimitType, LimitsConfiguration, Shared, User, UserSettings,
+    GeneralConfiguration, Limit, LimitType, LimitsConfiguration, MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings, MfaToken
 };
 use crate::UrlBundle;
 
@@ -231,5 +233,36 @@ impl ChorusUser {
             object: None,
             gateway,
         }
+    }
+
+    /// Sends a request to complete an MFA challenge.
+    /// # Reference
+    /// See <https://docs.discord.sex/authentication#verify-mfa>
+    ///
+    /// If successful, the MFA verification JWT returned is set on the current [ChorusUser] executing the
+    /// request. 
+    ///
+    /// The JWT token expires after 5 minutes.
+    pub async fn complete_mfa_challenge(&mut self, mfa_verify_schema: MfaVerifySchema) -> ChorusResult<()> {
+        let endpoint_url = "/mfa/finish";
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(endpoint_url)
+                .json(&mfa_verify_schema),
+            limit_type: match self.object.is_some() {
+                true => LimitType::Global,
+                false => LimitType::Ip,
+            },
+        };
+
+        let mfa_token_schema = chorus_request
+            .deserialize_response::<MfaTokenSchema>(self).await?;
+
+        self.mfa_token = Some(MfaToken {
+            token: mfa_token_schema.token,
+            expires_at: Utc::now() + Duration::from_secs(60 * 5),
+        });
+
+        Ok(())
     }
 }
