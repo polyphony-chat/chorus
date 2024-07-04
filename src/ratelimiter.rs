@@ -14,7 +14,7 @@ use serde_json::from_str;
 use crate::{
     errors::{ChorusError, ChorusResult},
     instance::ChorusUser,
-    types::{types::subconfigs::limits::rates::RateLimits, Limit, LimitType, LimitsConfiguration},
+    types::{types::subconfigs::limits::rates::RateLimits, Limit, LimitType, LimitsConfiguration, MfaRequiredSchema},
 };
 
 /// Chorus' request struct. This struct is used to send rate-limited requests to the Spacebar server.
@@ -266,7 +266,14 @@ impl ChorusRequest {
 
     async fn interpret_error(response: reqwest::Response) -> ChorusError {
         match response.status().as_u16() {
-            401..=403 | 407 => ChorusError::NoPermission,
+            401 => {
+                let response = response.text().await.unwrap();
+                match serde_json::from_str::<MfaRequiredSchema>(&response) {
+                    Ok(response) => ChorusError::MfaRequired { error: response },
+                    Err(_) => ChorusError::NoPermission,
+                }
+            }
+            402..=403 | 407 => ChorusError::NoPermission,
             404 => ChorusError::NotFound {
                 error: response.text().await.unwrap(),
             },
