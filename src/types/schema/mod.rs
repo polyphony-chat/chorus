@@ -4,6 +4,7 @@
 
 pub use apierror::*;
 pub use auth::*;
+pub use mfa::*;
 pub use channel::*;
 pub use guild::*;
 pub use message::*;
@@ -14,6 +15,7 @@ pub use invites::*;
 
 mod apierror;
 mod auth;
+mod mfa;
 mod channel;
 mod guild;
 mod message;
