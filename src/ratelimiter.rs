@@ -35,13 +35,12 @@ impl ChorusRequest {
     ///     * [`http::Method::DELETE`]
     ///     * [`http::Method::PATCH`]
     ///     * [`http::Method::HEAD`]
-    #[allow(unused_variables)] // TODO: Add mfa_token to request, once we figure out *how* to do so correctly
+    #[allow(unused_variables)] 
     pub fn new(
         method: http::Method,
         url: &str,
         body: Option<String>,
         audit_log_reason: Option<&str>,
-        mfa_token: Option<&str>,
         chorus_user: Option<&mut ChorusUser>,
         limit_type: LimitType,
     ) -> ChorusRequest {
