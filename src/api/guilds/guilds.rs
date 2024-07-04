@@ -220,7 +220,6 @@ impl Guild {
             .as_str(),
             None,
             None,
-            None,
             Some(user),
             LimitType::Guild(guild_id),
         );
@@ -244,7 +243,6 @@ impl Guild {
                 guild_id,
             )
             .as_str(),
-            None,
             None,
             None,
             Some(user),
@@ -279,7 +277,6 @@ impl Guild {
             .as_str(),
             None,
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Guild(guild_id),
         );
@@ -309,7 +306,6 @@ impl Guild {
             .as_str(),
             Some(to_string(&schema).unwrap()),
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Guild(guild_id),
         );
@@ -336,7 +332,6 @@ impl Guild {
             .as_str(),
             Some(to_string(&schema).unwrap()),
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Guild(guild_id),
         );
@@ -361,7 +356,6 @@ impl Guild {
             )
             .as_str(),
             Some(to_string(&schema).unwrap()),
-            None,
             None,
             Some(user),
             LimitType::Guild(guild_id),
@@ -391,7 +385,6 @@ impl Guild {
         let mut request = ChorusRequest::new(
             http::Method::GET,
             &url,
-            None,
             None,
             None,
             Some(user),
@@ -426,7 +419,6 @@ impl Guild {
             &url,
             None,
             None,
-            None,
             Some(user),
             LimitType::Guild(guild_id),
         );
@@ -456,7 +448,6 @@ impl Guild {
             .as_str(),
             Some(to_string(&schema).unwrap()),
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Guild(guild_id),
         );
@@ -487,7 +478,6 @@ impl Guild {
             &url,
             None,
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Guild(guild_id),
         );

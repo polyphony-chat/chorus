@@ -36,7 +36,6 @@ impl ReactionMeta {
             &url,
             None,
             None,
-            None,
             Some(user),
             LimitType::Channel(self.channel_id),
         );
@@ -63,7 +62,6 @@ impl ReactionMeta {
         let request = ChorusRequest::new(
             http::Method::GET,
             &url,
-            None,
             None,
             None,
             Some(user),
@@ -94,7 +92,6 @@ impl ReactionMeta {
         let request = ChorusRequest::new(
             http::Method::DELETE,
             &url,
-            None,
             None,
             None,
             Some(user),
@@ -130,7 +127,6 @@ impl ReactionMeta {
             &url,
             None,
             None,
-            None,
             Some(user),
             LimitType::Channel(self.channel_id),
         );
@@ -157,7 +153,6 @@ impl ReactionMeta {
         let request = ChorusRequest::new(
             http::Method::DELETE,
             &url,
-            None,
             None,
             None,
             Some(user),
@@ -194,7 +189,6 @@ impl ReactionMeta {
         let request = ChorusRequest::new(
             http::Method::DELETE,
             &url,
-            None,
             None,
             None,
             Some(user),
