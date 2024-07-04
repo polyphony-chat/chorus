@@ -159,9 +159,10 @@ impl fmt::Display for Token {
 pub struct ChorusUser {
     pub belongs_to: Shared<Instance>,
     pub token: String,
+    pub mfa_token: Option<MfaToken>,
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: Shared<UserSettings>,
-    pub object: Shared<User>,
+    pub object: Option<Shared<User>>,
     pub gateway: GatewayHandle,
 }
 
@@ -192,12 +193,13 @@ impl ChorusUser {
         token: String,
         limits: Option<HashMap<LimitType, Limit>>,
         settings: Shared<UserSettings>,
-        object: Shared<User>,
+        object: Option<Shared<User>>,
         gateway: GatewayHandle,
     ) -> ChorusUser {
         ChorusUser {
             belongs_to,
             token,
+            mfa_token: None,
             limits,
             settings,
             object,
@@ -212,12 +214,12 @@ impl ChorusUser {
     /// first.
     pub(crate) async fn shell(instance: Shared<Instance>, token: String) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
-        let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
         let gateway = Gateway::spawn(wss_url).await.unwrap();
         ChorusUser {
             token,
+            mfa_token: None,
             belongs_to: instance.clone(),
             limits: instance
                 .read()
@@ -226,7 +228,7 @@ impl ChorusUser {
                 .as_ref()
                 .map(|info| info.ratelimits.clone()),
             settings,
-            object,
+            object: None,
             gateway,
         }
     }
