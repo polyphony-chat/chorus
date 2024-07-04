@@ -35,12 +35,3 @@ pub struct LoginSchema {
     pub login_source: Option<String>,
     pub gift_code_sku_id: Option<String>,
 }
-
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub struct TotpSchema {
-    code: String,
-    ticket: String,
-    gift_code_sku_id: Option<String>,
-    login_source: Option<String>,
-}
