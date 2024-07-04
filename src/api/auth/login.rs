@@ -40,7 +40,7 @@ impl Instance {
         user.settings = login_result.settings;
 
         let object = User::get(&mut user, None).await?;
-        *user.object.write().unwrap() = object;
+        user.object = Some(Arc::new(RwLock::new(object)));
 
         let mut identify = GatewayIdentifyPayload::common();
         identify.token = user.token();
