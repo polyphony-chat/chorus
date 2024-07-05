@@ -48,7 +48,7 @@ custom_error! {
     /// Invalid, insufficient or too many arguments provided.
     InvalidArguments{error: String} = "Invalid arguments were provided. Error: {error}",
     /// The request requires MFA verification
-    MfaRequired {error: MfaRequiredSchema} = "Mfa verification required to perform this action"
+    MfaRequired {error: MfaRequiredSchema} = "Mfa verification is required to perform this action"
 }
 
 impl From<reqwest::Error> for ChorusError {
