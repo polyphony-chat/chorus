@@ -16,9 +16,10 @@ async fn test_get_mutual_relationships() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
-    let username = user.object.read().unwrap().username.clone();
-    let discriminator = user.object.read().unwrap().discriminator.clone();
-    let other_user_id: types::Snowflake = other_user.object.read().unwrap().id;
+
+    let username = user.object.as_ref().unwrap().read().unwrap().username.clone();
+    let discriminator = user.object.as_ref().unwrap().read().unwrap().discriminator.clone();
+    let other_user_id: types::Snowflake = other_user.object.as_ref().unwrap().read().unwrap().id;
     let friend_request_schema = types::FriendRequestSendSchema {
         username,
         discriminator: Some(discriminator),
@@ -38,8 +39,8 @@ async fn test_get_relationships() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
-    let username = user.object.read().unwrap().username.clone();
-    let discriminator = user.object.read().unwrap().discriminator.clone();
+    let username = user.object.as_ref().unwrap().read().unwrap().username.clone();
+    let discriminator = user.object.as_ref().unwrap().read().unwrap().discriminator.clone();
     let friend_request_schema = types::FriendRequestSendSchema {
         username,
         discriminator: Some(discriminator),
@@ -51,7 +52,7 @@ async fn test_get_relationships() {
     let relationships = user.get_relationships().await.unwrap();
     assert_eq!(
         relationships.get(0).unwrap().id,
-        other_user.object.read().unwrap().id
+        other_user.object.unwrap().read().unwrap().id
     );
     common::teardown(bundle).await
 }
@@ -62,8 +63,8 @@ async fn test_modify_relationship_friends() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
-    let user_id: types::Snowflake = user.object.read().unwrap().id;
-    let other_user_id: types::Snowflake = other_user.object.read().unwrap().id;
+    let user_id: types::Snowflake = user.object.as_ref().unwrap().read().unwrap().id;
+    let other_user_id: types::Snowflake = other_user.object.as_ref().unwrap().read().unwrap().id;
 
     other_user
         .modify_user_relationship(user_id, types::RelationshipType::Friends)
@@ -72,7 +73,7 @@ async fn test_modify_relationship_friends() {
     let relationships = user.get_relationships().await.unwrap();
     assert_eq!(
         relationships.get(0).unwrap().id,
-        other_user.object.read().unwrap().id
+        other_user.object.as_ref().unwrap().read().unwrap().id
     );
     assert_eq!(
         relationships.get(0).unwrap().relationship_type,
@@ -81,7 +82,7 @@ async fn test_modify_relationship_friends() {
     let relationships = other_user.get_relationships().await.unwrap();
     assert_eq!(
         relationships.get(0).unwrap().id,
-        user.object.read().unwrap().id
+        user.object.as_ref().unwrap().read().unwrap().id
     );
     assert_eq!(
         relationships.get(0).unwrap().relationship_type,
@@ -114,7 +115,7 @@ async fn test_modify_relationship_block() {
     let mut bundle = common::setup().await;
     let mut other_user = bundle.create_user("integrationtestuser2").await;
     let user = &mut bundle.user;
-    let user_id: types::Snowflake = user.object.read().unwrap().id;
+    let user_id: types::Snowflake = user.object.as_ref().unwrap().read().unwrap().id;
 
     other_user
         .modify_user_relationship(user_id, types::RelationshipType::Blocked)
@@ -125,7 +126,7 @@ async fn test_modify_relationship_block() {
     let relationships = other_user.get_relationships().await.unwrap();
     assert_eq!(
         relationships.get(0).unwrap().id,
-        user.object.read().unwrap().id
+        user.object.as_ref().unwrap().read().unwrap().id
     );
     assert_eq!(
         relationships.get(0).unwrap().relationship_type,

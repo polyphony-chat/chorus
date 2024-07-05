@@ -47,6 +47,7 @@ impl TestBundle {
         ChorusUser {
             belongs_to: self.user.belongs_to.clone(),
             token: self.user.token.clone(),
+            mfa_token: None,
             limits: self.user.limits.clone(),
             settings: self.user.settings.clone(),
             object: self.user.object.clone(),

@@ -85,8 +85,10 @@ async fn test_login_with_token() {
         .await
         .unwrap();
     assert_eq!(
-        bundle.user.object.read().unwrap().id,
-        other_user.object.read().unwrap().id
+        bundle.user.object.as_ref().unwrap()
+        .read().unwrap()
+        .id,
+        other_user.object.unwrap().read().unwrap().id
     );
     assert_eq!(bundle.user.token, other_user.token);
 

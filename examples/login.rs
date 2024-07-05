@@ -24,5 +24,5 @@ async fn main() {
         .await
         .expect("An error occurred during the login process");
     dbg!(user.belongs_to);
-    dbg!(&user.object.read().unwrap().username);
+    dbg!(&user.object.unwrap().as_ref().read().unwrap().username);
 }
