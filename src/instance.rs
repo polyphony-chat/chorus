@@ -244,10 +244,11 @@ impl ChorusUser {
     ///
     /// The JWT token expires after 5 minutes.
     pub async fn complete_mfa_challenge(&mut self, mfa_verify_schema: MfaVerifySchema) -> ChorusResult<()> {
-        let endpoint_url = "/mfa/finish";
+        let endpoint_url = self.belongs_to.read().unwrap().urls.api.clone() + "/mfa/finish";
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(endpoint_url)
+                .header("Authorization", self.token())
                 .json(&mfa_verify_schema),
             limit_type: match self.object.is_some() {
                 true => LimitType::Global,
