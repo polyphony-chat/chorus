@@ -32,17 +32,19 @@ impl TungsteniteBackend {
     pub async fn connect(
         websocket_url: &str,
     ) -> Result<(TungsteniteSink, TungsteniteStream), TungsteniteBackendError> {
-        let mut roots = rustls::RootCertStore::empty();
-        let certs = rustls_native_certs::load_native_certs();
-
-        if let Err(e) = certs {
-            log::error!("Failed to load platform native certs! {:?}", e);
-            return Err(TungsteniteBackendError::FailedToLoadCerts { error: e });
-        }
-
-        for cert in certs.unwrap() {
-            roots.add(&rustls::Certificate(cert.0)).unwrap();
-        }
+        let certs = webpki_roots::TLS_SERVER_ROOTS;
+        let roots = rustls::RootCertStore {
+            roots: certs
+                .iter()
+                .map(|cert| {
+                    rustls::OwnedTrustAnchor::from_subject_spki_name_constraints(
+                        cert.subject.to_vec(),
+                        cert.subject_public_key_info.to_vec(),
+                        cert.name_constraints.as_ref().map(|der| der.to_vec()),
+                    )
+                })
+                .collect(),
+        };
         let (websocket_stream, _) = match connect_async_tls_with_config(
             websocket_url,
             None,
@@ -58,11 +60,7 @@ impl TungsteniteBackend {
         .await
         {
             Ok(websocket_stream) => websocket_stream,
-            Err(e) => {
-                return Err(TungsteniteBackendError::TungsteniteError {
-                    error: e,
-                })
-            }
+            Err(e) => return Err(TungsteniteBackendError::TungsteniteError { error: e }),
         };
 
         Ok(websocket_stream.split())
