@@ -97,7 +97,25 @@ All major desktop operating systems (Windows, macOS (aarch64/x86_64), Linux (aar
 `wasm32-unknown-unknown` is a supported compilation target on versions `0.12.0` and up. This allows you to use
 Chorus in your browser, or in any other environment that supports WebAssembly.
 
-We recommend checking out the examples directory, as well as the documentation for more information.
+To compile for `wasm32-unknown-unknown`, execute the following command:
+
+```sh
+cargo build --target=wasm32-unknown-unknown --no-default-features
+```
+
+The following features are supported on `wasm32-unknown-unknown`:
+
+| Feature           | WASM Support |
+| ----------------- | ------------ |
+| `client`          | ✅            |
+| `rt`              | ✅            |
+| `rt-multi-thread` | ❌            |
+| `backend`         | ❌            |
+| `voice`           | ❌            |
+| `voice_udp`       | ❌            |
+| `voice_gateway`   | ✅            |
+
+We recommend checking out the "examples" directory, as well as the documentation for more information.
 
 ## MSRV (Minimum Supported Rust Version)
 
