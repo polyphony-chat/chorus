@@ -233,6 +233,7 @@ dependencies = [
  "lazy_static",
  "log",
  "poem",
+ "pubserve",
  "rand",
  "regex",
  "reqwest",
@@ -1592,6 +1593,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "pubserve"
+version = "1.1.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1781b2a51798c98a381e839e61bc5ce6426bd89bb9c3f9142de2086a80591cd"
+dependencies = [
+ "async-trait",
 ]
 
 [[package]]

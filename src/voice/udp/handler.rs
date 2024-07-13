@@ -214,7 +214,7 @@ impl UdpHandler {
                     .lock()
                     .await
                     .rtp
-                    .notify(rtp_with_decrypted_data)
+                    .publish(rtp_with_decrypted_data)
                     .await;
             }
             Demuxed::Rtcp(rtcp) => {
@@ -251,7 +251,7 @@ impl UdpHandler {
                     }
                 };
 
-                self.events.lock().await.rtcp.notify(rtcp_data).await;
+                self.events.lock().await.rtcp.publish(rtcp_data).await;
             }
             Demuxed::FailedParse(e) => {
                 trace!("VUDP: Failed to parse packet: {:?}", e);

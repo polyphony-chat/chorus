@@ -17,9 +17,9 @@ use async_trait::async_trait;
 use chorus::gateway::{Gateway, GatewayOptions};
 use chorus::{
     self,
-    gateway::Observer,
     types::{GatewayIdentifyPayload, GatewayReady},
 };
+use pubserve::Subscriber;
 use std::{sync::Arc, time::Duration};
 use tokio::{self};
 
@@ -38,7 +38,7 @@ pub struct ExampleObserver {}
 // The Observer trait can be implemented for a struct for a given websocketevent to handle observing it
 // One struct can be an observer of multiple websocketevents, if needed
 #[async_trait]
-impl Observer<GatewayReady> for ExampleObserver {
+impl Subscriber<GatewayReady> for ExampleObserver {
     // After we subscribe to an event this function is called every time we receive it
     async fn update(&self, _data: &GatewayReady) {
         println!("Observed Ready!");
@@ -56,7 +56,9 @@ async fn main() {
     let options = GatewayOptions::default();
 
     // Initiate the gateway connection
-    let gateway = Gateway::spawn(gateway_websocket_url, options).await.unwrap();
+    let gateway = Gateway::spawn(gateway_websocket_url, options)
+        .await
+        .unwrap();
 
     // Create an instance of our observer
     let observer = ExampleObserver {};

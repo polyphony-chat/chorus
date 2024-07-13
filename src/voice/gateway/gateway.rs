@@ -6,6 +6,7 @@ use std::{sync::Arc, time::Duration};
 
 use log::*;
 
+use pubserve::Publisher;
 use tokio::sync::Mutex;
 
 use futures_util::SinkExt;
@@ -16,7 +17,6 @@ use crate::gateway::Stream;
 use crate::gateway::WebSocketBackend;
 use crate::{
     errors::VoiceGatewayError,
-    gateway::GatewayEvent,
     types::{
         VoiceGatewayReceivePayload, VoiceHelloData, WebSocketEvent, VOICE_BACKEND_VERSION,
         VOICE_CLIENT_CONNECT_FLAGS, VOICE_CLIENT_CONNECT_PLATFORM, VOICE_CLIENT_DISCONNECT,
@@ -160,7 +160,7 @@ impl VoiceGateway {
     /// (Called for every event in handle_message)
     async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
         data: &'a str,
-        event: &mut GatewayEvent<T>,
+        event: &mut Publisher<T>,
     ) -> Result<(), serde_json::Error> {
         let data_deserialize_result: Result<T, serde_json::Error> = serde_json::from_str(data);
 
@@ -168,7 +168,7 @@ impl VoiceGateway {
             return Err(data_deserialize_result.err().unwrap());
         }
 
-        event.notify(data_deserialize_result.unwrap()).await;
+        event.publish(data_deserialize_result.unwrap()).await;
         Ok(())
     }
 
@@ -182,7 +182,7 @@ impl VoiceGateway {
             if let Some(error) = msg.error() {
                 warn!("GW: Received error {:?}, connection will close..", error);
                 self.close().await;
-                self.events.lock().await.error.notify(error).await;
+                self.events.lock().await.error.publish(error).await;
             } else {
                 warn!(
                     "Message unrecognised: {:?}, please open an issue on the chorus github",

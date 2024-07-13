@@ -6,7 +6,6 @@
 
 use std::collections::HashMap;
 
-use log::{self, debug};
 use reqwest::{Client, RequestBuilder, Response};
 use serde::Deserialize;
 use serde_json::from_str;
