@@ -14,6 +14,7 @@ use chorus::types::{
     self, Channel, ChannelCreateSchema, ChannelModifySchema, GatewayReady, IntoShared,
     RoleCreateModifySchema, RoleObject,
 };
+use pubserve::Subscriber;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
@@ -30,7 +31,9 @@ use wasmtimer::tokio::sleep;
 async fn test_gateway_establish() {
     let bundle = common::setup().await;
 
-    let _: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone(), GatewayOptions::default()).await.unwrap();
+    let _: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone(), GatewayOptions::default())
+        .await
+        .unwrap();
     common::teardown(bundle).await
 }
 
@@ -40,7 +43,7 @@ struct GatewayReadyObserver {
 }
 
 #[async_trait]
-impl Observer<GatewayReady> for GatewayReadyObserver {
+impl Subscriber<GatewayReady> for GatewayReadyObserver {
     async fn update(&self, _data: &GatewayReady) {
         self.channel.send(()).await.unwrap();
     }
@@ -52,7 +55,9 @@ impl Observer<GatewayReady> for GatewayReadyObserver {
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
-    let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone(), GatewayOptions::default()).await.unwrap();
+    let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone(), GatewayOptions::default())
+        .await
+        .unwrap();
 
     let (ready_send, mut ready_receive) = tokio::sync::mpsc::channel(1);
 

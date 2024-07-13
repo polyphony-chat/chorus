@@ -7,6 +7,7 @@ use std::time::Duration;
 use flate2::Decompress;
 use futures_util::{SinkExt, StreamExt};
 use log::*;
+use pubserve::Publisher;
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::task;
 
@@ -197,7 +198,7 @@ impl Gateway {
     #[allow(dead_code)] // TODO: Remove this allow annotation
     async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
         data: &'a str,
-        event: &mut GatewayEvent<T>,
+        event: &mut Publisher<T>,
     ) -> Result<(), serde_json::Error> {
         let data_deserialize_result: Result<T, serde_json::Error> = serde_json::from_str(data);
 
@@ -205,7 +206,7 @@ impl Gateway {
             return Err(data_deserialize_result.err().unwrap());
         }
 
-        event.notify(data_deserialize_result.unwrap()).await;
+        event.publish(data_deserialize_result.unwrap()).await;
         Ok(())
     }
 
@@ -253,7 +254,7 @@ impl Gateway {
             if let Some(error) = msg.error() {
                 warn!("GW: Received error {:?}, connection will close..", error);
                 self.close().await;
-                self.events.lock().await.error.notify(error).await;
+                self.events.lock().await.error.publish(error).await;
             } else {
                 warn!(
                     "Message unrecognised: {:?}, please open an issue on the chorus github",
@@ -292,7 +293,7 @@ impl Gateway {
                                             let id = if message.id().is_some() {
                                                 message.id().unwrap()
                                             } else {
-                                                event.notify(message).await;
+                                                event.publish(message).await;
                                                 return;
                                             };
                                             if let Some(to_update) = store.get(&id) {
@@ -314,7 +315,7 @@ impl Gateway {
                                                 }
                                             }
                                         )?
-                                        event.notify(message).await;
+                                        event.publish(message).await;
                                     }
                                 }
                             },)*
@@ -329,7 +330,7 @@ impl Gateway {
                                         return;
                                     }
                                     Ok(sessions) => {
-                                        self.events.lock().await.session.replace.notify(
+                                        self.events.lock().await.session.replace.publish(
                                             types::SessionsReplace {sessions}
                                         ).await;
                                     }
@@ -446,7 +447,7 @@ impl Gateway {
                     .await
                     .session
                     .reconnect
-                    .notify(reconnect)
+                    .publish(reconnect)
                     .await;
             }
             GATEWAY_INVALID_SESSION => {
@@ -471,7 +472,7 @@ impl Gateway {
                     .await
                     .session
                     .invalid
-                    .notify(invalid_session)
+                    .publish(invalid_session)
                     .await;
             }
             // Starts our heartbeat

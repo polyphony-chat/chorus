@@ -11,8 +11,8 @@ impl WebSocketEvent for Rtcp {}
 
 #[derive(Debug)]
 pub struct VoiceUDPEvents {
-    pub rtp: GatewayEvent<Rtp>,
-    pub rtcp: GatewayEvent<Rtcp>,
+    pub rtp: Publisher<Rtp>,
+    pub rtcp: Publisher<Rtcp>,
 }
 
 impl Default for VoiceUDPEvents {
