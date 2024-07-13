@@ -6,6 +6,7 @@ use std::{sync::Arc, time::Duration};
 
 use log::*;
 
+use pubserve::Publisher;
 use tokio::sync::Mutex;
 
 use futures_util::SinkExt;
@@ -16,7 +17,6 @@ use crate::gateway::Stream;
 use crate::gateway::WebSocketBackend;
 use crate::{
     errors::VoiceGatewayError,
-    gateway::GatewayEvent,
     types::{
         VoiceGatewayReceivePayload, VoiceHelloData, WebSocketEvent, VOICE_BACKEND_VERSION,
         VOICE_CLIENT_CONNECT_FLAGS, VOICE_CLIENT_CONNECT_PLATFORM, VOICE_CLIENT_DISCONNECT,

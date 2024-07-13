@@ -3,8 +3,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use discortp::{rtcp::Rtcp, rtp::Rtp};
+use pubserve::Publisher;
 
-use crate::{gateway::GatewayEvent, types::WebSocketEvent};
+use crate::types::WebSocketEvent;
 
 impl WebSocketEvent for Rtp {}
 impl WebSocketEvent for Rtcp {}
@@ -18,8 +19,8 @@ pub struct VoiceUDPEvents {
 impl Default for VoiceUDPEvents {
     fn default() -> Self {
         Self {
-            rtp: GatewayEvent::new(),
-            rtcp: GatewayEvent::new(),
+            rtp: Publisher::new(),
+            rtcp: Publisher::new(),
         }
     }
 }
