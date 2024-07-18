@@ -25,6 +25,8 @@ use crate::types::{
     utils::Snowflake,
 };
 
+use super::option_arc_rwlock_ptr_eq;
+
 /// The VoiceState struct. Note, that Discord does not have an `id` field for this, whereas Spacebar
 /// does.
 ///
@@ -52,6 +54,28 @@ pub struct VoiceState {
     pub suppress: bool,
     pub request_to_speak_timestamp: Option<DateTime<Utc>>,
     pub id: Option<Snowflake>, // Only exists on Spacebar
+}
+
+#[cfg(not(tarpaulin_include))]
+impl PartialEq for VoiceState {
+    fn eq(&self, other: &Self) -> bool {
+        self.guild_id == other.guild_id
+            && self.guild == other.guild
+            && self.channel_id == other.channel_id
+            && self.user_id == other.user_id
+            && option_arc_rwlock_ptr_eq(&self.member, &other.member)
+            && self.session_id == other.session_id
+            && self.token == other.token
+            && self.deaf == other.deaf
+            && self.mute == other.mute
+            && self.self_deaf == other.self_deaf
+            && self.self_mute == other.self_mute
+            && self.self_stream == other.self_stream
+            && self.self_video == other.self_video
+            && self.suppress == other.suppress
+            && self.request_to_speak_timestamp == other.request_to_speak_timestamp
+            && self.id == other.id
+    }
 }
 
 #[cfg(feature = "client")]

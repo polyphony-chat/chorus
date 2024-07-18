@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::{Snowflake, WebSocketEvent};
 use chorus_macros::WebSocketEvent;
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#webhooks-update>
 pub struct WebhooksUpdate {
     pub guild_id: Snowflake,

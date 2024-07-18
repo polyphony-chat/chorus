@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#[derive(Clone, PartialEq, Eq, Ord, PartialOrd, Debug, Default)]
+#[derive(Clone, PartialEq, Eq, Ord, PartialOrd, Debug, Default, Copy)]
 /// Options passed when initializing the gateway connection.
 ///
 /// E.g. compression
@@ -17,8 +17,8 @@
 ///
 /// See <https://docs.discord.sex/topics/gateway#connections>
 pub struct GatewayOptions {
-   pub encoding: GatewayEncoding,
-   pub transport_compression: GatewayTransportCompression,
+    pub encoding: GatewayEncoding,
+    pub transport_compression: GatewayTransportCompression,
 }
 
 impl GatewayOptions {
@@ -26,11 +26,10 @@ impl GatewayOptions {
     ///
     /// Returns the new url
     pub(crate) fn add_to_url(&self, url: String) -> String {
-        
         let mut url = url;
 
         let mut parameters = Vec::with_capacity(2);
-        
+
         let encoding = self.encoding.to_url_parameter();
         parameters.push(encoding);
 
@@ -54,8 +53,7 @@ impl GatewayOptions {
             if !has_parameters {
                 url = format!("{}?{}", url, parameter);
                 has_parameters = true;
-            }
-            else {
+            } else {
                 url = format!("{}&{}", url, parameter);
             }
         }
@@ -78,15 +76,15 @@ pub enum GatewayTransportCompression {
 
 impl GatewayTransportCompression {
     /// Returns the option as a url parameter.
-    /// 
+    ///
     /// If set to [GatewayTransportCompression::None] returns [None].
     ///
     /// If set to anything else, returns a string like "compress=zlib-stream"
     pub(crate) fn to_url_parameter(self) -> Option<String> {
-       match self {
-            Self::None =>  None,
-            Self::ZLibStream => Some(String::from("compress=zlib-stream"))
-       } 
+        match self {
+            Self::None => None,
+            Self::ZLibStream => Some(String::from("compress=zlib-stream")),
+        }
     }
 }
 
@@ -102,17 +100,17 @@ pub enum GatewayEncoding {
     /// Should be lighter and faster than json.
     ///
     /// !! Chorus does not implement ETF yet !!
-    ETF
+    ETF,
 }
 
 impl GatewayEncoding {
     /// Returns the option as a url parameter.
-    /// 
+    ///
     /// Returns a string like "encoding=json"
     pub(crate) fn to_url_parameter(self) -> String {
-       match self {
-           Self::Json => String::from("encoding=json"),
-           Self::ETF => String::from("encoding=etf")
-       } 
+        match self {
+            Self::Json => String::from("encoding=json"),
+            Self::ETF => String::from("encoding=etf"),
+        }
     }
 }

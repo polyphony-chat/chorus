@@ -14,7 +14,7 @@ use tokio_tungstenite::{
 
 use crate::gateway::{GatewayMessage, RawGatewayMessage};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct TungsteniteBackend;
 
 // These could be made into inherent associated types when that's stabilized

@@ -154,7 +154,7 @@ impl GatewayHandle {
 
     /// Sends a call sync to the server
     pub async fn send_call_sync(&self, to_send: types::CallSync) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
+        let to_send_value = serde_json::to_value(to_send).unwrap();
 
         trace!("GW: Sending Call Sync..");
 

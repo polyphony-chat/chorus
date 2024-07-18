@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{ExplicitContentFilterLevel, MessageNotificationLevel};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, Hash, PartialOrd, Ord)]
 #[serde(rename_all = "camelCase")]
 pub struct GuildDefaults {
     pub max_presences: u64,

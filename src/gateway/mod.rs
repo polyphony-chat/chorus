@@ -2,7 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use async_trait::async_trait;
 
 pub mod backends;
 pub mod events;
@@ -20,7 +19,7 @@ pub use message::*;
 pub use options::*;
 
 use crate::errors::GatewayError;
-use crate::types::{Snowflake, WebSocketEvent};
+use crate::types::{Snowflake};
 
 use std::any::Any;
 use std::collections::HashMap;

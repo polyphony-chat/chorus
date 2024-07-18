@@ -8,13 +8,15 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
-    Shared,
     entities::{
         Application, Attachment, Channel, Emoji, GuildMember, PublicUser, RoleSubscriptionData,
         Sticker, StickerItem, User,
     },
     utils::Snowflake,
+    Shared,
 };
+
+use super::option_arc_rwlock_ptr_eq;
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -83,6 +85,7 @@ pub struct Message {
     pub role_subscription_data: Option<RoleSubscriptionData>,
 }
 
+#[cfg(not(tarpaulin_include))]
 impl PartialEq for Message {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
@@ -99,26 +102,31 @@ impl PartialEq for Message {
             && self.attachments == other.attachments
             && self.embeds == other.embeds
             && self.embeds == other.embeds
+            && self.reactions == other.reactions
+            && self.reactions == other.reactions
             && self.nonce == other.nonce
             && self.pinned == other.pinned
             && self.webhook_id == other.webhook_id
             && self.message_type == other.message_type
             && self.activity == other.activity
             && self.activity == other.activity
+            && self.application == other.application
             && self.application_id == other.application_id
             && self.message_reference == other.message_reference
             && self.message_reference == other.message_reference
             && self.flags == other.flags
             && self.referenced_message == other.referenced_message
+            && self.interaction == other.interaction
             && self.thread == other.thread
             && self.components == other.components
+            && self.components == other.components
             && self.sticker_items == other.sticker_items
-            // && self.position == other.position
+            && self.stickers == other.stickers
             && self.role_subscription_data == other.role_subscription_data
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd, Copy)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
 pub struct MessageReference {
@@ -130,7 +138,7 @@ pub struct MessageReference {
     pub fail_if_not_exists: Option<bool>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd, Copy)]
 pub enum MessageReferenceType {
     /// A standard reference used by replies and system messages
     Default = 0,
@@ -148,7 +156,18 @@ pub struct MessageInteraction {
     pub member: Option<Shared<GuildMember>>,
 }
 
-#[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, Eq, PartialOrd, Ord)]
+#[cfg(not(tarpaulin_include))]
+impl PartialEq for MessageInteraction {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+            && self.interaction_type == other.interaction_type
+            && self.name == other.name
+            && self.user == other.user
+            && option_arc_rwlock_ptr_eq(&self.member, &other.member)
+    }
+}
+
+#[derive(Debug, Default, PartialEq, Clone, Serialize, Deserialize, Eq, PartialOrd, Ord, Hash)]
 pub struct AllowedMention {
     parse: Vec<AllowedMentionType>,
     roles: Vec<Snowflake>,
@@ -156,7 +175,7 @@ pub struct AllowedMention {
     replied_user: bool,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum AllowedMentionType {
     Roles,
@@ -173,7 +192,7 @@ pub struct ChannelMention {
     name: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Hash, Ord)]
 pub struct Embed {
     title: Option<String>,
     #[serde(rename = "type")]
@@ -191,7 +210,7 @@ pub struct Embed {
     fields: Option<Vec<EmbedField>>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum EmbedType {
     #[deprecated]
@@ -206,17 +225,17 @@ pub enum EmbedType {
     Link,
     PostPreview,
     Rich,
-    Video
+    Video,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct EmbedFooter {
     text: String,
     icon_url: Option<String>,
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord, Hash)]
 pub struct EmbedImage {
     url: String,
     proxy_url: String,
@@ -224,7 +243,7 @@ pub struct EmbedImage {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord, Hash)]
 pub struct EmbedThumbnail {
     url: String,
     proxy_url: Option<String>,
@@ -232,7 +251,7 @@ pub struct EmbedThumbnail {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord, Hash)]
 struct EmbedVideo {
     url: Option<String>,
     proxy_url: Option<String>,
@@ -240,13 +259,13 @@ struct EmbedVideo {
     width: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord, Hash)]
 pub struct EmbedProvider {
     name: Option<String>,
     url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord, Hash)]
 pub struct EmbedAuthor {
     name: String,
     url: Option<String>,
@@ -254,7 +273,7 @@ pub struct EmbedAuthor {
     proxy_icon_url: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, PartialOrd, Ord, Hash)]
 pub struct EmbedField {
     name: String,
     value: String,
@@ -273,7 +292,7 @@ pub struct Reaction {
     pub emoji: Emoji,
     #[cfg(feature = "sqlx")]
     #[serde(skip)]
-    pub user_ids: Vec<Snowflake>
+    pub user_ids: Vec<Snowflake>,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
@@ -297,7 +316,9 @@ pub struct MessageActivity {
     pub party_id: Option<String>,
 }
 
-#[derive(Debug, Default, PartialEq, Clone, Copy, Serialize_repr, Deserialize_repr, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, Default, PartialEq, Clone, Copy, Serialize_repr, Deserialize_repr, Eq, PartialOrd, Ord,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(u8)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
@@ -393,7 +414,7 @@ pub enum MessageType {
     CustomGift = 41,
     GuildGamingStatsPrompt = 42,
     /// A message sent when a user purchases a guild product
-    PurchaseNotification = 44
+    PurchaseNotification = 44,
 }
 
 bitflags! {
@@ -437,10 +458,10 @@ pub struct PartialEmoji {
     pub id: Option<Snowflake>,
     pub name: String,
     #[serde(default)]
-    pub animated: bool
+    pub animated: bool,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, PartialOrd)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord, Eq, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[repr(u8)]

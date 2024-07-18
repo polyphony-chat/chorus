@@ -2,11 +2,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::types::{AutoModerationRuleTriggerType, IntegrationType, PermissionOverwriteType, Shared};
 use crate::types::utils::Snowflake;
+use crate::types::{
+    AutoModerationRuleTriggerType, IntegrationType, PermissionOverwriteType, Shared,
+};
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -27,6 +31,38 @@ pub struct AuditLogEntry {
     pub reason: Option<String>,
 }
 
+#[cfg(not(tarpaulin_include))]
+impl PartialEq for AuditLogEntry {
+    fn eq(&self, other: &Self) -> bool {
+        let everything_else = self.target_id == other.target_id
+            && self.user_id == other.user_id
+            && self.id == other.id
+            && self.action_type == other.action_type
+            && self.options == other.options
+            && self.reason == other.reason;
+        // Compare the Vec<Shared<AuditLogChange>> separately, since Shared<T> doesn't implement PartialEq
+        match (&self.changes, &other.changes) {
+            // If both are Some, compare the contents
+            (Some(self_changes), Some(other_changes)) => {
+                let mut changes_equal = true;
+                // Iterate over both Vecs and compare the Arc pointers. If any are different, the
+                // Vecs are not equal
+                for (self_change, other_change) in self_changes.iter().zip(other_changes.iter()) {
+                    if !Arc::ptr_eq(self_change, other_change) {
+                        changes_equal = false;
+                        break;
+                    }
+                }
+                everything_else && changes_equal
+            }
+            // If both are None, they're equal
+            (None, None) => everything_else,
+            // If one is Some and the other is None, they're not equal
+            _ => false,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 /// See <https://discord.com/developers/docs/resources/audit-log#audit-log-change-object>
 pub struct AuditLogChange {
@@ -35,8 +71,19 @@ pub struct AuditLogChange {
     pub key: String,
 }
 
-
-#[derive(Default, Serialize_repr, Deserialize_repr, Debug, Clone, Copy)]
+#[derive(
+    Default,
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 #[repr(u8)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference:
@@ -170,10 +217,10 @@ pub enum AuditLogActionType {
     /// Voice channel status was updated
     VoiceChannelStatusUpdate = 192,
     /// Voice channel status was deleted
-    VoiceChannelStatusDelete = 193
+    VoiceChannelStatusDelete = 193,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct AuditEntryInfo {
     pub application_id: Option<Snowflake>,
     pub auto_moderation_rule_name: Option<String>,
@@ -193,5 +240,5 @@ pub struct AuditEntryInfo {
     pub role_name: Option<String>,
     #[serde(rename = "type")]
     pub overwrite_type: Option<PermissionOverwriteType>,
-    pub status: Option<String>
+    pub status: Option<String>,
 }

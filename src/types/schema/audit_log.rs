@@ -1,5 +1,8 @@
+use crate::types::{
+    ApplicationCommand, AuditLogActionType, AuditLogEntry, AutoModerationRule, Channel,
+    GuildScheduledEvent, Integration, Snowflake, User, Webhook,
+};
 use serde::{Deserialize, Serialize};
-use crate::types::{ApplicationCommand, AuditLogActionType, AuditLogEntry, AutoModerationRule, Channel, GuildScheduledEvent, Integration, Snowflake, User, Webhook};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AuditLogObject {
@@ -13,11 +16,13 @@ pub struct AuditLogObject {
     pub webhooks: Vec<Webhook>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(
+    Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Default,
+)]
 pub struct GetAuditLogsQuery {
     pub before: Option<Snowflake>,
     pub after: Option<Snowflake>,
     pub limit: Option<u8>,
     pub user_id: Option<Snowflake>,
-    pub action_type: Option<AuditLogActionType>
+    pub action_type: Option<AuditLogActionType>,
 }

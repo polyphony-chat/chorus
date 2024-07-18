@@ -13,7 +13,7 @@ pub struct RelationshipAdd {
     pub should_notify: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent, PartialEq, Eq, Hash, PartialOrd, Ord, Copy)]
 /// See <https://github.com/spacebarchat/server/issues/203>
 pub struct RelationshipRemove {
     pub id: Snowflake,

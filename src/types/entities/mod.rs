@@ -141,3 +141,42 @@ impl<T: Sized> IntoShared for T {
         Arc::new(RwLock::new(self))
     }
 }
+
+/// Internal function to compare two `Arc<RwLock<T>>`s by comparing their pointers.
+pub(crate) fn arc_rwlock_ptr_eq<T>(a: &Arc<RwLock<T>>, b: &Arc<RwLock<T>>) -> bool {
+    Arc::ptr_eq(a, b)
+}
+
+/// Internal function to compare two `Vec<Arc<RwLock<T>>>`s by comparing their pointers.
+pub(crate) fn vec_arc_rwlock_ptr_eq<T>(a: &Vec<Arc<RwLock<T>>>, b: &Vec<Arc<RwLock<T>>>) -> bool {
+    for (a, b) in a.iter().zip(b.iter()) {
+        if !arc_rwlock_ptr_eq(a, b) {
+            return false;
+        }
+    }
+    true
+}
+
+/// Internal function to compare two `Option<Arc<RwLock<T>>>`s by comparing their pointers.
+pub(crate) fn option_arc_rwlock_ptr_eq<T>(
+    a: &Option<Arc<RwLock<T>>>,
+    b: &Option<Arc<RwLock<T>>>,
+) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => arc_rwlock_ptr_eq(a, b),
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+/// Internal function to compare two `Option<Vec<Arc<RwLock<T>>>>`s by comparing their pointers.
+pub(crate) fn option_vec_arc_rwlock_ptr_eq<T>(
+    a: &Option<Vec<Arc<RwLock<T>>>>,
+    b: &Option<Vec<Arc<RwLock<T>>>>,
+) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => vec_arc_rwlock_ptr_eq(a, b),
+        (None, None) => true,
+        _ => false,
+    }
+}

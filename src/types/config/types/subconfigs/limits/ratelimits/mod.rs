@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 pub mod auth;
 pub mod route;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord, Copy)]
 #[serde(rename_all = "camelCase")]
 pub struct RateLimitOptions {
     pub bot: Option<u64>,

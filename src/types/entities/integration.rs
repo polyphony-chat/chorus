@@ -6,9 +6,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    Shared,
     entities::{Application, User},
     utils::Snowflake,
+    Shared,
 };
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
@@ -44,7 +44,9 @@ pub struct IntegrationAccount {
     pub name: String,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(
+    Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord, Copy, Hash,
+)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(rename_all = "snake_case"))]

@@ -1,8 +1,8 @@
+use crate::types::Snowflake;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use crate::types::Snowflake;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Copy)]
 /// # Reference:
 /// See <https://docs.discord.sex/resources/voice#json-params>
 pub struct VoiceStateUpdateSchema {

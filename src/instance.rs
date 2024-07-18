@@ -35,24 +35,6 @@ pub struct Instance {
     pub gateway_options: GatewayOptions,
 }
 
-impl PartialEq for Instance {
-    fn eq(&self, other: &Self) -> bool {
-        self.urls == other.urls
-            && self.instance_info == other.instance_info
-            && self.limits_information == other.limits_information
-    }
-}
-
-impl std::hash::Hash for Instance {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.urls.hash(state);
-        self.instance_info.hash(state);
-        if let Some(inf) = &self.limits_information {
-            inf.hash(state);
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Eq)]
 pub struct LimitsInformation {
     pub ratelimits: HashMap<LimitType, Limit>,
@@ -69,6 +51,7 @@ impl std::hash::Hash for LimitsInformation {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 impl PartialEq for LimitsInformation {
     fn eq(&self, other: &Self) -> bool {
         self.ratelimits.iter().eq(other.ratelimits.iter())
@@ -173,14 +156,6 @@ pub struct ChorusUser {
     pub settings: Shared<UserSettings>,
     pub object: Shared<User>,
     pub gateway: GatewayHandle,
-}
-
-impl PartialEq for ChorusUser {
-    fn eq(&self, other: &Self) -> bool {
-        self.token == other.token
-            && self.limits == other.limits
-            && self.gateway.url == other.gateway.url
-    }
 }
 
 impl ChorusUser {

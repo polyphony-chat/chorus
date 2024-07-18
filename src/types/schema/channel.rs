@@ -169,7 +169,7 @@ pub struct AddChannelRecipientSchema {
 }
 
 /// See <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
-#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq, Copy, Hash)]
 pub struct ModifyChannelPositionsSchema {
     pub id: Snowflake,
     pub position: Option<u32>,
@@ -178,7 +178,7 @@ pub struct ModifyChannelPositionsSchema {
 }
 
 /// See <https://docs.discord.sex/resources/channel#follow-channel>
-#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq, Copy, Hash)]
 pub struct AddFollowingChannelSchema {
     pub webhook_channel_id: Snowflake,
 }

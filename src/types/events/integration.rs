@@ -23,7 +23,7 @@ pub struct IntegrationUpdate {
     pub guild_id: Snowflake,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, WebSocketEvent)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, WebSocketEvent, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#integration-delete>
 pub struct IntegrationDelete {
     pub id: Snowflake,

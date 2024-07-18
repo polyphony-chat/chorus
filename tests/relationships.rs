@@ -50,7 +50,7 @@ async fn test_get_relationships() {
         .unwrap();
     let relationships = user.get_relationships().await.unwrap();
     assert_eq!(
-        relationships.get(0).unwrap().id,
+        relationships.first().unwrap().id,
         other_user.object.read().unwrap().id
     );
     common::teardown(bundle).await
@@ -71,20 +71,20 @@ async fn test_modify_relationship_friends() {
         .unwrap();
     let relationships = user.get_relationships().await.unwrap();
     assert_eq!(
-        relationships.get(0).unwrap().id,
+        relationships.first().unwrap().id,
         other_user.object.read().unwrap().id
     );
     assert_eq!(
-        relationships.get(0).unwrap().relationship_type,
+        relationships.first().unwrap().relationship_type,
         RelationshipType::Incoming
     );
     let relationships = other_user.get_relationships().await.unwrap();
     assert_eq!(
-        relationships.get(0).unwrap().id,
+        relationships.first().unwrap().id,
         user.object.read().unwrap().id
     );
     assert_eq!(
-        relationships.get(0).unwrap().relationship_type,
+        relationships.first().unwrap().relationship_type,
         RelationshipType::Outgoing
     );
     let _ = user
@@ -95,7 +95,7 @@ async fn test_modify_relationship_friends() {
             .get_relationships()
             .await
             .unwrap()
-            .get(0)
+            .first()
             .unwrap()
             .relationship_type,
         RelationshipType::Friends
@@ -124,11 +124,11 @@ async fn test_modify_relationship_block() {
     assert_eq!(relationships, Vec::<Relationship>::new());
     let relationships = other_user.get_relationships().await.unwrap();
     assert_eq!(
-        relationships.get(0).unwrap().id,
+        relationships.first().unwrap().id,
         user.object.read().unwrap().id
     );
     assert_eq!(
-        relationships.get(0).unwrap().relationship_type,
+        relationships.first().unwrap().relationship_type,
         RelationshipType::Blocked
     );
     other_user.remove_relationship(user_id).await.unwrap();
