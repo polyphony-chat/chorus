@@ -5,6 +5,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use sqlx::types::Json;
 use std::fmt::{Debug, Formatter};
 use std::str::FromStr;
 
@@ -98,6 +99,7 @@ pub struct Channel {
 }
 
 #[cfg(not(tarpaulin_include))]
+#[allow(clippy::nonminimal_bool)]
 impl PartialEq for Channel {
     fn eq(&self, other: &Self) -> bool {
         self.application_id == other.application_id
@@ -128,7 +130,7 @@ impl PartialEq for Channel {
             && self.nsfw == other.nsfw
             && self.owner_id == other.owner_id
             && self.parent_id == other.parent_id
-            && option_vec_arc_rwlock_ptr_eq(
+            && compare_permission_overwrites(
                 &self.permission_overwrites,
                 &other.permission_overwrites,
             )
@@ -143,6 +145,28 @@ impl PartialEq for Channel {
             && self.user_limit == other.user_limit
             && self.video_quality_mode == other.video_quality_mode
     }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+fn compare_permission_overwrites(
+    a: &Option<Json<Vec<PermissionOverwrite>>>,
+    b: &Option<Json<Vec<PermissionOverwrite>>>,
+) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => a.encode_to_string() == b.encode_to_string(),
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
+fn compare_permission_overrides(
+    a: &Option<Vec<Shared<PermissionOverwrite>>>,
+    b: &Option<Vec<Shared<PermissionOverwrite>>>,
+) -> bool {
+    option_vec_arc_rwlock_ptr_eq(a, b)
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]

@@ -11,6 +11,7 @@ use crate::types::utils::Snowflake;
 use crate::types::Shared;
 use crate::types::{Team, User};
 
+#[allow(unused_imports)]
 use super::{arc_rwlock_ptr_eq, option_arc_rwlock_ptr_eq};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -87,11 +88,33 @@ impl PartialEq for Application {
             && self.discovery_eligibility_flags == other.discovery_eligibility_flags
             && self.tags == other.tags
             && self.cover_image == other.cover_image
-            && option_arc_rwlock_ptr_eq(&self.install_params, &other.install_params)
+            && compare_install_params(&self.install_params, &other.install_params)
             && self.terms_of_service_url == other.terms_of_service_url
             && self.privacy_policy_url == other.privacy_policy_url
             && self.team == other.team
     }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+fn compare_install_params(
+    a: &Option<sqlx::types::Json<InstallParams>>,
+    b: &Option<sqlx::types::Json<InstallParams>>,
+) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => a.encode_to_string() == b.encode_to_string(),
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
+fn compare_install_params(
+    a: &Option<Shared<InstallParams>>,
+    b: &Option<Shared<InstallParams>>,
+) -> bool {
+    option_arc_rwlock_ptr_eq(a, b)
 }
 
 impl Default for Application {

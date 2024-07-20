@@ -45,6 +45,7 @@ pub struct Emoji {
 }
 
 #[cfg(not(tarpaulin_include))]
+#[allow(clippy::nonminimal_bool)]
 impl PartialEq for Emoji {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
@@ -62,7 +63,7 @@ impl PartialEq for Emoji {
 impl From<PartialEmoji> for Emoji {
     fn from(value: PartialEmoji) -> Self {
         Self {
-            id: value.id.unwrap_or_default(), // TODO: this should be handled differently
+            id: value.id.unwrap_or_default(), // TODO: Make this method an impl to TryFrom<> instead
             name: Some(value.name),
             roles: None,
             user: None,

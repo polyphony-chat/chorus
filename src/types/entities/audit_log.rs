@@ -2,7 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::sync::Arc;
+#[allow(unused_imports)]
+use super::option_vec_arc_rwlock_ptr_eq;
 
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -30,37 +31,53 @@ pub struct AuditLogEntry {
     pub options: Option<AuditEntryInfo>,
     pub reason: Option<String>,
 }
-
-#[cfg(not(tarpaulin_include))]
 impl PartialEq for AuditLogEntry {
     fn eq(&self, other: &Self) -> bool {
-        let everything_else = self.target_id == other.target_id
+        self.target_id == other.target_id
             && self.user_id == other.user_id
             && self.id == other.id
             && self.action_type == other.action_type
-            && self.options == other.options
-            && self.reason == other.reason;
-        // Compare the Vec<Shared<AuditLogChange>> separately, since Shared<T> doesn't implement PartialEq
-        match (&self.changes, &other.changes) {
-            // If both are Some, compare the contents
-            (Some(self_changes), Some(other_changes)) => {
-                let mut changes_equal = true;
-                // Iterate over both Vecs and compare the Arc pointers. If any are different, the
-                // Vecs are not equal
-                for (self_change, other_change) in self_changes.iter().zip(other_changes.iter()) {
-                    if !Arc::ptr_eq(self_change, other_change) {
-                        changes_equal = false;
-                        break;
-                    }
-                }
-                everything_else && changes_equal
-            }
-            // If both are None, they're equal
-            (None, None) => everything_else,
-            // If one is Some and the other is None, they're not equal
-            _ => false,
-        }
+            && compare_options(&self.options, &other.options)
+            && self.reason == other.reason
+            && compare_changes(&self.changes, &other.changes)
     }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+fn compare_options(
+    a: &Option<sqlx::types::Json<AuditEntryInfo>>,
+    b: &Option<sqlx::types::Json<AuditEntryInfo>>,
+) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => a.encode_to_string() == b.encode_to_string(),
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
+fn compare_options(a: &Option<AuditEntryInfo>, b: &Option<AuditEntryInfo>) -> bool {
+    a == b
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+fn compare_changes(
+    a: &sqlx::types::Json<Option<Vec<Shared<AuditLogChange>>>>,
+    b: &sqlx::types::Json<Option<Vec<Shared<AuditLogChange>>>>,
+) -> bool {
+    a.encode_to_string() == b.encode_to_string()
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
+fn compare_changes(
+    a: &Option<Vec<Shared<AuditLogChange>>>,
+    b: &Option<Vec<Shared<AuditLogChange>>>,
+) -> bool {
+    option_vec_arc_rwlock_ptr_eq(a, b)
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
