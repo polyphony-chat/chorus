@@ -168,8 +168,7 @@ async fn create_dm() {
         dm_channel
             .recipients
             .as_ref()
-            .unwrap()
-            .get(0)
+            .unwrap().first()
             .unwrap()
             .read()
             .unwrap()
@@ -242,8 +241,7 @@ async fn remove_add_person_from_to_dm() {
         dm_channel
             .recipients
             .as_ref()
-            .unwrap()
-            .get(0)
+            .unwrap().first()
             .unwrap()
             .read()
             .unwrap()

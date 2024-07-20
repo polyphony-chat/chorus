@@ -98,7 +98,6 @@ This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read
 )]
 #![allow(clippy::module_inception)]
 #![deny(
-    missing_debug_implementations,
     clippy::extra_unused_lifetimes,
     clippy::from_over_into,
     clippy::needless_borrow,
@@ -110,7 +109,9 @@ This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read
     clippy::unimplemented,
     clippy::dbg_macro,
     clippy::print_stdout,
-    clippy::print_stderr
+    clippy::print_stderr,
+    missing_debug_implementations,
+    missing_copy_implementations
 )]
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");

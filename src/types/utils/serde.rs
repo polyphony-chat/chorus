@@ -1,12 +1,11 @@
-use core::fmt;
 use chrono::{LocalResult, NaiveDateTime};
-use serde::{de, Deserialize, Deserializer};
+use core::fmt;
 use serde::de::Error;
+use serde::{de, Deserialize, Deserializer};
 
 #[doc(hidden)]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct SecondsStringTimestampVisitor;
-
 
 /// Ser/de to/from timestamps in seconds
 ///
@@ -37,12 +36,12 @@ pub struct SecondsStringTimestampVisitor;
 /// ```
 
 pub mod ts_seconds_str {
-    use core::fmt;
-    use chrono::{DateTime, LocalResult, Utc};
-    use super::SecondsStringTimestampVisitor;
-    use serde::{de, ser};
-    use chrono::TimeZone;
     use super::serde_from;
+    use super::SecondsStringTimestampVisitor;
+    use chrono::TimeZone;
+    use chrono::{DateTime, LocalResult, Utc};
+    use core::fmt;
+    use serde::{de, ser};
 
     /// Serialize a UTC datetime into an integer number of seconds since the epoch
     ///
@@ -68,8 +67,8 @@ pub mod ts_seconds_str {
     /// # Ok::<(), serde_json::Error>(())
     /// ```
     pub fn serialize<S>(dt: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: ser::Serializer,
+    where
+        S: ser::Serializer,
     {
         serializer.serialize_str(&format!("{}", dt.timestamp()))
     }
@@ -95,8 +94,8 @@ pub mod ts_seconds_str {
     /// # Ok::<(), serde_json::Error>(())
     /// ```
     pub fn deserialize<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
-        where
-            D: de::Deserializer<'de>,
+    where
+        D: de::Deserializer<'de>,
     {
         d.deserialize_str(SecondsStringTimestampVisitor)
     }
@@ -110,10 +109,13 @@ pub mod ts_seconds_str {
 
         /// Deserialize a timestamp in seconds since the epoch
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: de::Error,
+        where
+            E: de::Error,
         {
-            serde_from(Utc.timestamp_opt(value.parse::<i64>().map_err(|e| E::custom(e))?, 0), &value)
+            serde_from(
+                Utc.timestamp_opt(value.parse::<i64>().map_err(|e| E::custom(e))?, 0),
+                &value,
+            )
         }
     }
 }
@@ -146,10 +148,10 @@ pub mod ts_seconds_str {
 /// # Ok::<(), serde_json::Error>(())
 /// ```
 pub mod ts_seconds_option_str {
-    use core::fmt;
-    use chrono::{DateTime, Utc};
-    use serde::{de, ser};
     use super::SecondsStringTimestampVisitor;
+    use chrono::{DateTime, Utc};
+    use core::fmt;
+    use serde::{de, ser};
 
     /// Serialize a UTC datetime into an integer number of seconds since the epoch or none
     ///
@@ -175,8 +177,8 @@ pub mod ts_seconds_option_str {
     /// # Ok::<(), serde_json::Error>(())
     /// ```
     pub fn serialize<S>(opt: &Option<DateTime<Utc>>, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: ser::Serializer,
+    where
+        S: ser::Serializer,
     {
         match *opt {
             Some(ref dt) => serializer.serialize_some(&dt.timestamp().to_string()),
@@ -205,8 +207,8 @@ pub mod ts_seconds_option_str {
     /// # Ok::<(), serde_json::Error>(())
     /// ```
     pub fn deserialize<'de, D>(d: D) -> Result<Option<DateTime<Utc>>, D::Error>
-        where
-            D: de::Deserializer<'de>,
+    where
+        D: de::Deserializer<'de>,
     {
         d.deserialize_option(OptionSecondsTimestampVisitor)
     }
@@ -222,24 +224,24 @@ pub mod ts_seconds_option_str {
 
         /// Deserialize a timestamp in seconds since the epoch
         fn visit_some<D>(self, d: D) -> Result<Self::Value, D::Error>
-            where
-                D: de::Deserializer<'de>,
+        where
+            D: de::Deserializer<'de>,
         {
             d.deserialize_str(SecondsStringTimestampVisitor).map(Some)
         }
 
         /// Deserialize a timestamp in seconds since the epoch
         fn visit_none<E>(self) -> Result<Self::Value, E>
-            where
-                E: de::Error,
+        where
+            E: de::Error,
         {
             Ok(None)
         }
 
         /// Deserialize a timestamp in seconds since the epoch
         fn visit_unit<E>(self) -> Result<Self::Value, E>
-            where
-                E: de::Error,
+        where
+            E: de::Error,
         {
             Ok(None)
         }
@@ -247,17 +249,15 @@ pub mod ts_seconds_option_str {
 }
 
 pub(crate) fn serde_from<T, E, V>(me: LocalResult<T>, _ts: &V) -> Result<T, E>
-    where
-        E: de::Error,
-        V: fmt::Display,
-        T: fmt::Display,
+where
+    E: de::Error,
+    V: fmt::Display,
+    T: fmt::Display,
 {
     // TODO: Make actual error type
     match me {
         LocalResult::None => Err(E::custom("value is not a legal timestamp")),
-        LocalResult::Ambiguous(_min, _max) => {
-            Err(E::custom("value is an ambiguous timestamp"))
-        }
+        LocalResult::Ambiguous(_min, _max) => Err(E::custom("value is an ambiguous timestamp")),
         LocalResult::Single(val) => Ok(val),
     }
 }
@@ -270,9 +270,11 @@ enum StringOrU64 {
 }
 
 pub fn string_or_u64<'de, D>(d: D) -> Result<u64, D::Error>
-where D: Deserializer<'de> {
+where
+    D: Deserializer<'de>,
+{
     match StringOrU64::deserialize(d)? {
         StringOrU64::String(s) => s.parse::<u64>().map_err(D::Error::custom),
-        StringOrU64::U64(u) => Ok(u)
+        StringOrU64::U64(u) => Ok(u),
     }
 }

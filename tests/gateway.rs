@@ -206,7 +206,7 @@ async fn test_recursive_self_updating_structs() {
     let guild = bundle.user.gateway.observe(bundle.guild.clone()).await;
     let inner_guild = guild.read().unwrap().clone();
     let guild_roles = inner_guild.roles;
-    let guild_role_inner = guild_roles.get(0).unwrap().read().unwrap().clone();
+    let guild_role_inner = guild_roles.first().unwrap().read().unwrap().clone();
     assert_eq!(guild_role_inner.name, "yippieee".to_string());
     common::teardown(bundle).await;
 }

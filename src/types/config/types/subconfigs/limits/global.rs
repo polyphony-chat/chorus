@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash)]
 pub struct GlobalRateLimit {
     pub limit: u16,
     pub window: u64,
@@ -21,7 +21,7 @@ impl Default for GlobalRateLimit {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct GlobalRateLimits {
     pub register: GlobalRateLimit,

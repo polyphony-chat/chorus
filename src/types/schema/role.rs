@@ -2,10 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use serde::{Deserialize, Serialize};
 use crate::types::{PermissionFlags, Snowflake};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 /// Represents the schema which needs to be sent to create or modify a Role.
 /// See: [https://docs.spacebar.chat/routes/#cmp--schemas-rolemodifyschema](https://docs.spacebar.chat/routes/#cmp--schemas-rolemodifyschema)
@@ -20,7 +20,7 @@ pub struct RoleCreateModifySchema {
     pub position: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[serde(rename_all = "snake_case")]
 /// Represents the schema which needs to be sent to update a roles' position.
 /// See: [https://docs.spacebar.chat/routes/#cmp--schemas-rolepositionupdateschema](https://docs.spacebar.chat/routes/#cmp--schemas-rolepositionupdateschema)

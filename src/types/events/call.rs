@@ -39,7 +39,19 @@ pub struct CallUpdate {
     pub channel_id: Snowflake,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, WebSocketEvent)]
+#[derive(
+    Debug,
+    Deserialize,
+    Serialize,
+    Default,
+    Clone,
+    PartialEq,
+    Eq,
+    WebSocketEvent,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
 /// Officially Undocumented;
 /// Deletes a ringing call;
 /// Ex: {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
@@ -47,7 +59,19 @@ pub struct CallDelete {
     pub channel_id: Snowflake,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, WebSocketEvent)]
+#[derive(
+    Debug,
+    Deserialize,
+    Serialize,
+    Default,
+    Clone,
+    PartialEq,
+    Eq,
+    WebSocketEvent,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
 /// Officially Undocumented;
 /// See <https://unofficial-discord-docs.vercel.app/gateway/op13>;
 ///
@@ -55,4 +79,3 @@ pub struct CallDelete {
 pub struct CallSync {
     pub channel_id: Snowflake,
 }
-

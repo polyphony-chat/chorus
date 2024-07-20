@@ -2,9 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::types::Shared;
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
+use crate::types::Shared;
 
 #[cfg(feature = "client")]
 use chorus_macros::Updateable;
@@ -31,7 +31,7 @@ pub struct AutoModerationRule {
     pub exempt_channels: Vec<Snowflake>,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default, Copy)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-event-types>
@@ -40,7 +40,9 @@ pub enum AutoModerationRuleEventType {
     MessageSend = 1,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
+#[derive(
+    Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy,
+)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-types>
@@ -52,7 +54,7 @@ pub enum AutoModerationRuleTriggerType {
     MentionSpam = 5,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(untagged)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata>
 pub enum AutoModerationRuleTriggerMetadata {
@@ -63,7 +65,7 @@ pub enum AutoModerationRuleTriggerMetadata {
     None,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata>
 pub struct AutoModerationRuleTriggerMetadataForKeyword {
     pub keyword_filter: Vec<String>,
@@ -71,14 +73,14 @@ pub struct AutoModerationRuleTriggerMetadataForKeyword {
     pub allow_list: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata>
 pub struct AutoModerationRuleTriggerMetadataForKeywordPreset {
     pub presets: Vec<AutoModerationRuleKeywordPresetType>,
     pub allow_list: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata>
 pub struct AutoModerationRuleTriggerMetadataForMentionSpam {
     /// Max 50
@@ -86,7 +88,9 @@ pub struct AutoModerationRuleTriggerMetadataForMentionSpam {
     pub mention_raid_protection_enabled: bool,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
+#[derive(
+    Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy,
+)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-preset-types>
@@ -105,7 +109,9 @@ pub struct AutoModerationAction {
     pub metadata: Option<Shared<AutoModerationActionMetadata>>,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
+#[derive(
+    Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy, Hash
+)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-types>
@@ -116,7 +122,7 @@ pub enum AutoModerationActionType {
     Timeout = 3,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(untagged)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-metadata>
 pub enum AutoModerationActionMetadata {
@@ -127,19 +133,19 @@ pub enum AutoModerationActionMetadata {
     None,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-metadata>
 pub struct AutoModerationActionMetadataForBlockMessage {
     pub custom_message: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-metadata>
 pub struct AutoModerationActionMetadataForSendAlertMessage {
     pub channel_id: Snowflake,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-metadata>
 pub struct AutoModerationActionMetadataForTimeout {
     /// Max 2419200

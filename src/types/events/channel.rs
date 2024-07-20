@@ -20,7 +20,7 @@ use crate::types::IntoShared;
 #[cfg(feature = "client")]
 use crate::types::Guild;
 
-#[derive(Debug, Default, Deserialize, Serialize, WebSocketEvent)]
+#[derive(Debug, Default, Deserialize, Serialize, WebSocketEvent, Copy, PartialEq, Clone, Eq, Hash, PartialOrd, Ord)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-pins-update>
 pub struct ChannelPinsUpdate {
     pub guild_id: Option<Snowflake>,
@@ -86,7 +86,7 @@ pub struct ChannelUnreadUpdate {
     pub guild_id: Snowflake,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// Contains very few fields from [Channel]
 /// See also [ChannelUnreadUpdate]
 pub struct ChannelUnreadUpdateObject {

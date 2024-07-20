@@ -7,6 +7,8 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{entities::User, utils::Snowflake, Shared};
 
+use super::option_arc_rwlock_ptr_eq;
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// Represents a sticker that can be sent in messages.
@@ -33,22 +35,7 @@ pub struct Sticker {
     pub sort_value: Option<u8>,
 }
 
-impl std::hash::Hash for Sticker {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-        self.pack_id.hash(state);
-        self.name.hash(state);
-        self.description.hash(state);
-        self.tags.hash(state);
-        self.asset.hash(state);
-        self.sticker_type.hash(state);
-        self.format_type.hash(state);
-        self.available.hash(state);
-        self.guild_id.hash(state);
-        self.sort_value.hash(state);
-    }
-}
-
+#[cfg(not(tarpaulin_include))]
 impl PartialEq for Sticker {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
@@ -61,65 +48,16 @@ impl PartialEq for Sticker {
             && self.format_type == other.format_type
             && self.available == other.available
             && self.guild_id == other.guild_id
+            && option_arc_rwlock_ptr_eq(&self.user, &other.user)
             && self.sort_value == other.sort_value
-    }
-}
-
-impl PartialOrd for Sticker {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match self.id.partial_cmp(&other.id) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.pack_id.partial_cmp(&other.pack_id) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.name.partial_cmp(&other.name) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.description.partial_cmp(&other.description) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.tags.partial_cmp(&other.tags) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.asset.partial_cmp(&other.asset) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.sticker_type.partial_cmp(&other.sticker_type) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.format_type.partial_cmp(&other.format_type) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.available.partial_cmp(&other.available) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.guild_id.partial_cmp(&other.guild_id) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        self.sort_value.partial_cmp(&other.sort_value)
     }
 }
 
 impl Sticker {
     pub fn tags(&self) -> Vec<String> {
-        self.tags
-            .as_ref()
-            .map_or(vec![], |s|
-                s.split(',')
-                    .map(|tag| tag.trim().to_string())
-                    .collect()
-            )
+        self.tags.as_ref().map_or(vec![], |s| {
+            s.split(',').map(|tag| tag.trim().to_string()).collect()
+        })
     }
 }
 
@@ -136,7 +74,9 @@ pub struct StickerItem {
     pub format_type: StickerFormatType,
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Serialize_repr, Deserialize_repr)]
+#[derive(
+    Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
+)]
 #[repr(u8)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename = "SCREAMING_SNAKE_CASE")]
@@ -150,7 +90,9 @@ pub enum StickerType {
     Guild = 2,
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Serialize_repr, Deserialize_repr)]
+#[derive(
+    Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
+)]
 #[repr(u8)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
@@ -169,7 +111,10 @@ pub enum StickerFormatType {
 
 impl StickerFormatType {
     pub fn is_animated(&self) -> bool {
-        matches!(self, StickerFormatType::APNG | StickerFormatType::LOTTIE | StickerFormatType::GIF)
+        matches!(
+            self,
+            StickerFormatType::APNG | StickerFormatType::LOTTIE | StickerFormatType::GIF
+        )
     }
 
     pub const fn to_mime(&self) -> &'static str {

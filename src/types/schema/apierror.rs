@@ -6,7 +6,7 @@
 use poem::{http::StatusCode, IntoResponse, Response};
 use serde_json::{json, Value};
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum APIError {
     #[error(transparent)]
     Auth(#[from] AuthError),
@@ -20,7 +20,7 @@ impl APIError {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AuthError {
     #[error("INVALID_LOGIN")]
     InvalidLogin,

@@ -51,7 +51,7 @@ pub struct RoleSubscriptionData {
     pub is_renewal: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash, Copy, PartialOrd, Ord)]
 /// See <https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure>
 pub struct RoleTags {
     #[serde(default)]

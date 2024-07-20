@@ -7,7 +7,9 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{
     AllowedMention, Component, Embed, MessageReference, PartialDiscordFileAttachment,
 };
-use crate::types::{Attachment, EmbedType, Message, MessageFlags, MessageType, ReactionType, Snowflake};
+use crate::types::{
+    Attachment, EmbedType, Message, MessageFlags, MessageType, ReactionType, Snowflake,
+};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -25,7 +27,7 @@ pub struct MessageSendSchema {
     pub attachments: Option<Vec<PartialDiscordFileAttachment>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MessageSearchEndpoint {
     GuildChannel(Snowflake),
     Channel(Snowflake),
@@ -102,7 +104,7 @@ impl std::default::Default for MessageSearchQuery {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum AuthorType {
     User,
@@ -116,7 +118,7 @@ pub enum AuthorType {
     NotWebhook,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum HasType {
     Image,
@@ -148,15 +150,19 @@ pub enum HasType {
     NotSnapshot,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Copy, Hash,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum SortType {
     #[default]
     Timestamp,
-    Relevance
+    Relevance,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Copy, Hash,
+)]
 pub enum SortOrder {
     #[default]
     #[serde(rename = "desc")]
@@ -198,10 +204,10 @@ pub struct MessageModifySchema {
     pub attachments: Option<Vec<Attachment>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Copy, Eq, Hash, Ord)]
 pub struct ReactionQuerySchema {
     pub after: Option<Snowflake>,
     pub limit: Option<u32>,
     #[serde(rename = "type")]
-    pub reaction_type: Option<ReactionType>
+    pub reaction_type: Option<ReactionType>,
 }

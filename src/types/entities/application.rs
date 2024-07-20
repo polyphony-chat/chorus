@@ -7,9 +7,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::types::Shared;
 use crate::types::utils::Snowflake;
+use crate::types::Shared;
 use crate::types::{Team, User};
+
+#[allow(unused_imports)]
+use super::{arc_rwlock_ptr_eq, option_arc_rwlock_ptr_eq};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -57,6 +60,61 @@ pub struct Application {
     pub privacy_policy_url: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub team: Option<Team>,
+}
+
+#[cfg(not(tarpaulin_include))]
+impl PartialEq for Application {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+            && self.name == other.name
+            && self.icon == other.icon
+            && self.description == other.description
+            && self.summary == other.summary
+            && self.r#type == other.r#type
+            && self.hook == other.hook
+            && self.bot_public == other.bot_public
+            && self.bot_require_code_grant == other.bot_require_code_grant
+            && self.verify_key == other.verify_key
+            && arc_rwlock_ptr_eq(&self.owner, &other.owner)
+            && self.flags == other.flags
+            && self.redirect_uris == other.redirect_uris
+            && self.rpc_application_state == other.rpc_application_state
+            && self.store_application_state == other.store_application_state
+            && self.verification_state == other.verification_state
+            && self.interactions_endpoint_url == other.interactions_endpoint_url
+            && self.integration_public == other.integration_public
+            && self.integration_require_code_grant == other.integration_require_code_grant
+            && self.discoverability_state == other.discoverability_state
+            && self.discovery_eligibility_flags == other.discovery_eligibility_flags
+            && self.tags == other.tags
+            && self.cover_image == other.cover_image
+            && compare_install_params(&self.install_params, &other.install_params)
+            && self.terms_of_service_url == other.terms_of_service_url
+            && self.privacy_policy_url == other.privacy_policy_url
+            && self.team == other.team
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+fn compare_install_params(
+    a: &Option<sqlx::types::Json<InstallParams>>,
+    b: &Option<sqlx::types::Json<InstallParams>>,
+) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => a.encode_to_string() == b.encode_to_string(),
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
+fn compare_install_params(
+    a: &Option<Shared<InstallParams>>,
+    b: &Option<Shared<InstallParams>>,
+) -> bool {
+    option_arc_rwlock_ptr_eq(a, b)
 }
 
 impl Default for Application {
@@ -207,7 +265,9 @@ pub struct GuildApplicationCommandPermissions {
     pub permissions: Vec<Shared<ApplicationCommandPermission>>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Serialize, Deserialize, Copy, Eq, Hash, PartialOrd, Ord,
+)]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure>
 pub struct ApplicationCommandPermission {
     pub id: Snowflake,
@@ -217,7 +277,19 @@ pub struct ApplicationCommandPermission {
     pub permission: bool,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Default,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(u8)]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type>

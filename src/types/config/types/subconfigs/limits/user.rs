@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord, Copy, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct UserLimits {
     pub max_guilds: u64,

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::WebSocketEvent;
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent, PartialEq, Eq, Hash, PartialOrd, Ord, Copy)]
 /// Your session is now invalid.
 ///
 /// Either reauthenticate and reidentify or resume if possible.

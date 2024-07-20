@@ -21,18 +21,18 @@ pub enum Error {
 
     #[error(transparent)]
     Guild(#[from] GuildError),
-    
+
     #[error("Invalid flags value: {0}")]
-    InvalidFlags(u64)
+    InvalidFlags(u64),
 }
 
-#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+#[derive(Debug, PartialEq, Eq, thiserror::Error, Copy, Clone)]
 pub enum GuildError {
     #[error("Invalid Guild Feature")]
     InvalidGuildFeature,
 }
 
-#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+#[derive(Debug, PartialEq, Eq, thiserror::Error, Copy, Clone)]
 pub enum FieldFormatError {
     #[error("Password must be between 1 and 72 characters.")]
     PasswordError,

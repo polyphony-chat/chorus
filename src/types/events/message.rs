@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{
     entities::{Emoji, GuildMember, Message, PublicUser},
-    Snowflake, WebSocketEvent
+    Snowflake, WebSocketEvent,
 };
 
 use chorus_macros::WebSocketEvent;
@@ -51,7 +51,20 @@ pub struct MessageUpdate {
     pub mentions: Option<Vec<MessageCreateUser>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Default,
+    Clone,
+    WebSocketEvent,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-delete>
 pub struct MessageDelete {
@@ -60,7 +73,19 @@ pub struct MessageDelete {
     pub guild_id: Option<Snowflake>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Default,
+    Clone,
+    WebSocketEvent,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-delete-bulk>
 pub struct MessageDeleteBulk {
@@ -92,7 +117,20 @@ pub struct MessageReactionRemove {
     pub emoji: Emoji,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Default,
+    Clone,
+    WebSocketEvent,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 /// # Reference
 /// See <https://discord.com/developers/docs/topics/gateway-events#message-reaction-remove-all>
 pub struct MessageReactionRemoveAll {
@@ -131,4 +169,3 @@ pub struct MessageACK {
     pub flags: Option<serde_json::Value>,
     pub channel_id: Snowflake,
 }
-

@@ -2,16 +2,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashMap;
 use bitflags::bitflags;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
-use crate::types::{Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, MessageNotificationLevel, Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel, WelcomeScreenChannel};
+use crate::types::{
+    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, MessageNotificationLevel,
+    Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel,
+    WelcomeScreenChannel,
+};
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "snake_case")]
 /// Represents the schema which needs to be sent to create a Guild.
 /// See: <https://docs.spacebar.chat/routes/#cmp--schemas-guildcreateschema>
@@ -23,6 +27,19 @@ pub struct GuildCreateSchema {
     pub guild_template_code: Option<String>,
     pub system_channel_id: Option<String>,
     pub rules_channel_id: Option<String>,
+}
+
+#[cfg(not(tarpaulin_include))]
+impl PartialEq for GuildCreateSchema {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.region == other.region
+            && self.icon == other.icon
+            && self.channels == other.channels
+            && self.guild_template_code == other.guild_template_code
+            && self.system_channel_id == other.system_channel_id
+            && self.rules_channel_id == other.rules_channel_id
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Copy, Eq, PartialEq)]
@@ -77,7 +94,7 @@ pub struct GuildModifySchema {
     pub premium_progress_bar_enabled: Option<bool>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
 pub struct GetUserGuildSchema {
     pub before: Option<Snowflake>,
     pub after: Option<Snowflake>,
@@ -152,7 +169,7 @@ impl Default for GuildMemberSearchSchema {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Copy, Hash)]
 pub struct GuildGetMembersQuery {
     pub limit: Option<u16>,
     pub after: Option<Snowflake>,
@@ -206,14 +223,13 @@ pub struct ModifyGuildMemberProfileSchema {
     pub emoji_id: Option<Snowflake>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Copy, Hash)]
 /// The limit argument is a number between 1 and 1000.
 pub struct GuildBansQuery {
     pub before: Option<Snowflake>,
     pub after: Option<Snowflake>,
     pub limit: Option<u16>,
 }
-
 
 /// Max query length is 32 characters.
 /// The limit argument is a number between 1 and 10, defaults to 10.
@@ -262,7 +278,7 @@ pub struct GuildDiscoveryNsfwProperties {
     pub description_banned_keywords: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Copy)]
 /// Activity metrics are recalculated weekly, as an 8-week rolling average. If they are not yet eligible to be calculated, all fields will be null.
 ///
 /// # Reference:
@@ -283,7 +299,7 @@ pub struct EmojiCreateSchema {
     /// See <https://docs.discord.sex/reference#cdn-data>
     pub image: String,
     #[serde(default)]
-    pub roles: Vec<Snowflake>
+    pub roles: Vec<Snowflake>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
@@ -291,7 +307,7 @@ pub struct EmojiCreateSchema {
 /// See <https://docs.discord.sex/resources/emoji#modify-guild-emoji>
 pub struct EmojiModifySchema {
     pub name: Option<String>,
-    pub roles: Option<Vec<Snowflake>>
+    pub roles: Option<Vec<Snowflake>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
@@ -303,10 +319,10 @@ pub struct GuildPruneQuerySchema {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub compute_prune_count: Option<bool>,
     #[serde(default)]
-    pub include_roles: Vec<Snowflake>
+    pub include_roles: Vec<Snowflake>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Copy)]
 /// # Reference:
 /// See <https://docs.discord.sex/resources/guild#get-guild-prune>
 pub struct GuildPruneResult {
@@ -325,7 +341,7 @@ pub struct GuildCreateStickerSchema {
     pub tags: Option<String>,
     pub file_data: Vec<u8>,
     #[serde(skip)]
-    pub sticker_format_type: StickerFormatType
+    pub sticker_format_type: StickerFormatType,
 }
 
 impl GuildCreateStickerSchema {
@@ -333,7 +349,10 @@ impl GuildCreateStickerSchema {
     pub async fn from_multipart(mut multipart: poem::web::Multipart) -> Result<Self, poem::Error> {
         let mut _self = GuildCreateStickerSchema::default();
         while let Some(field) = multipart.next_field().await? {
-            let name = field.name().ok_or(poem::Error::from_string("All fields must be named", poem::http::StatusCode::BAD_REQUEST))?;
+            let name = field.name().ok_or(poem::Error::from_string(
+                "All fields must be named",
+                poem::http::StatusCode::BAD_REQUEST,
+            ))?;
             match name {
                 "name" => {
                     _self.name = field.text().await?;
@@ -346,17 +365,35 @@ impl GuildCreateStickerSchema {
                 }
                 "file_data" => {
                     if _self.name.is_empty() {
-                        _self.name = field.file_name().map(String::from).ok_or(poem::Error::from_string("File name must be set", poem::http::StatusCode::BAD_REQUEST))?;
+                        _self.name =
+                            field
+                                .file_name()
+                                .map(String::from)
+                                .ok_or(poem::Error::from_string(
+                                    "File name must be set",
+                                    poem::http::StatusCode::BAD_REQUEST,
+                                ))?;
                     }
-                    _self.sticker_format_type = StickerFormatType::from_mime(field.content_type().ok_or(poem::Error::from_string("Content type must be set", poem::http::StatusCode::BAD_REQUEST))?).ok_or(poem::Error::from_string("Unknown sticker format", poem::http::StatusCode::BAD_REQUEST))?;
+                    _self.sticker_format_type = StickerFormatType::from_mime(
+                        field.content_type().ok_or(poem::Error::from_string(
+                            "Content type must be set",
+                            poem::http::StatusCode::BAD_REQUEST,
+                        ))?,
+                    )
+                    .ok_or(poem::Error::from_string(
+                        "Unknown sticker format",
+                        poem::http::StatusCode::BAD_REQUEST,
+                    ))?;
                     _self.file_data = field.bytes().await?;
                 }
                 _ => {}
             }
-
         }
         if _self.name.is_empty() || _self.file_data.is_empty() {
-            return Err(poem::Error::from_string("At least the name and file_data are required", poem::http::StatusCode::BAD_REQUEST));
+            return Err(poem::Error::from_string(
+                "At least the name and file_data are required",
+                poem::http::StatusCode::BAD_REQUEST,
+            ));
         }
 
         Ok(_self)
@@ -366,7 +403,12 @@ impl GuildCreateStickerSchema {
     pub fn to_multipart(&self) -> reqwest::multipart::Form {
         let mut form = reqwest::multipart::Form::new()
             .text("name", self.name.clone())
-            .part("file_data", reqwest::multipart::Part::bytes(self.file_data.clone()).mime_str(self.sticker_format_type.to_mime()).unwrap());
+            .part(
+                "file_data",
+                reqwest::multipart::Part::bytes(self.file_data.clone())
+                    .mime_str(self.sticker_format_type.to_mime())
+                    .unwrap(),
+            );
 
         if let Some(description) = &self.description {
             form = form.text("description", description.to_owned());
@@ -388,7 +430,7 @@ pub struct GuildModifyStickerSchema {
     #[serde(default)]
     pub description: Option<String>,
     #[serde(default)]
-    pub tags: Option<String>
+    pub tags: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
@@ -408,5 +450,5 @@ pub struct GuildTemplateCreateSchema {
     /// Name of the template (1-100 characters)
     pub name: String,
     /// Description of the template (max 120 characters)
-    pub description: Option<String>
+    pub description: Option<String>,
 }

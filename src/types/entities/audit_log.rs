@@ -2,11 +2,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#[allow(unused_imports)]
+use super::option_vec_arc_rwlock_ptr_eq;
+
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::types::{AutoModerationRuleTriggerType, IntegrationType, PermissionOverwriteType, Shared};
 use crate::types::utils::Snowflake;
+use crate::types::{
+    AutoModerationRuleTriggerType, IntegrationType, PermissionOverwriteType, Shared,
+};
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -27,6 +32,55 @@ pub struct AuditLogEntry {
     pub reason: Option<String>,
 }
 
+impl PartialEq for AuditLogEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.target_id == other.target_id
+            && self.user_id == other.user_id
+            && self.id == other.id
+            && self.action_type == other.action_type
+            && compare_options(&self.options, &other.options)
+            && self.reason == other.reason
+            && compare_changes(&self.changes, &other.changes)
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+fn compare_options(
+    a: &Option<sqlx::types::Json<AuditEntryInfo>>,
+    b: &Option<sqlx::types::Json<AuditEntryInfo>>,
+) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => a.encode_to_string() == b.encode_to_string(),
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
+fn compare_options(a: &Option<AuditEntryInfo>, b: &Option<AuditEntryInfo>) -> bool {
+    a == b
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+fn compare_changes(
+    a: &sqlx::types::Json<Option<Vec<Shared<AuditLogChange>>>>,
+    b: &sqlx::types::Json<Option<Vec<Shared<AuditLogChange>>>>,
+) -> bool {
+    a.encode_to_string() == b.encode_to_string()
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
+fn compare_changes(
+    a: &Option<Vec<Shared<AuditLogChange>>>,
+    b: &Option<Vec<Shared<AuditLogChange>>>,
+) -> bool {
+    option_vec_arc_rwlock_ptr_eq(a, b)
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 /// See <https://discord.com/developers/docs/resources/audit-log#audit-log-change-object>
 pub struct AuditLogChange {
@@ -35,8 +89,19 @@ pub struct AuditLogChange {
     pub key: String,
 }
 
-
-#[derive(Default, Serialize_repr, Deserialize_repr, Debug, Clone, Copy)]
+#[derive(
+    Default,
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 #[repr(u8)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference:
@@ -170,10 +235,10 @@ pub enum AuditLogActionType {
     /// Voice channel status was updated
     VoiceChannelStatusUpdate = 192,
     /// Voice channel status was deleted
-    VoiceChannelStatusDelete = 193
+    VoiceChannelStatusDelete = 193,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct AuditEntryInfo {
     pub application_id: Option<Snowflake>,
     pub auto_moderation_rule_name: Option<String>,
@@ -193,5 +258,5 @@ pub struct AuditEntryInfo {
     pub role_name: Option<String>,
     #[serde(rename = "type")]
     pub overwrite_type: Option<PermissionOverwriteType>,
-    pub status: Option<String>
+    pub status: Option<String>,
 }

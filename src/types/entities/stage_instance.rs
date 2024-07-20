@@ -21,7 +21,7 @@ pub struct StageInstance {
     pub guild_scheduled_event_id: Option<Snowflake>,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level>
