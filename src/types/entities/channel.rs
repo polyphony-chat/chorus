@@ -162,7 +162,7 @@ fn compare_permission_overwrites(
 
 #[cfg(not(tarpaulin_include))]
 #[cfg(not(feature = "sqlx"))]
-fn compare_permission_overrides(
+fn compare_permission_overwrites(
     a: &Option<Vec<Shared<PermissionOverwrite>>>,
     b: &Option<Vec<Shared<PermissionOverwrite>>>,
 ) -> bool {
