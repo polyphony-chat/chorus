@@ -5,7 +5,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use sqlx::types::Json;
 use std::fmt::{Debug, Formatter};
 use std::str::FromStr;
 
@@ -27,6 +26,9 @@ use crate::gateway::Updateable;
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, Composite, Updateable};
 use serde::de::{Error, Visitor};
+
+#[cfg(feature = "sqlx")]
+use sqlx::types::Json;
 
 use super::{option_arc_rwlock_ptr_eq, option_vec_arc_rwlock_ptr_eq};
 
