@@ -31,6 +31,7 @@ pub struct AuditLogEntry {
     pub options: Option<AuditEntryInfo>,
     pub reason: Option<String>,
 }
+
 impl PartialEq for AuditLogEntry {
     fn eq(&self, other: &Self) -> bool {
         self.target_id == other.target_id
