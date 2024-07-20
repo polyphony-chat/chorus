@@ -142,13 +142,21 @@ impl<T: Sized> IntoShared for T {
     }
 }
 
-/// Internal function to compare two `Arc<RwLock<T>>`s by comparing their pointers.
-pub(crate) fn arc_rwlock_ptr_eq<T>(a: &Arc<RwLock<T>>, b: &Arc<RwLock<T>>) -> bool {
-    Arc::ptr_eq(a, b)
+/// Internal function to compare two `Shared<T>`s by comparing their pointers.
+#[cfg_attr(not(feature = "client"), allow(unused_variables))]
+pub(crate) fn arc_rwlock_ptr_eq<T>(a: &Shared<T>, b: &Shared<T>) -> bool {
+    #[cfg(feature = "client")]
+    {
+        Shared::ptr_eq(a, b)
+    }
+    #[cfg(not(feature = "client"))]
+    {
+        true
+    }
 }
 
-/// Internal function to compare two `Vec<Arc<RwLock<T>>>`s by comparing their pointers.
-pub(crate) fn vec_arc_rwlock_ptr_eq<T>(a: &Vec<Arc<RwLock<T>>>, b: &Vec<Arc<RwLock<T>>>) -> bool {
+/// Internal function to compare two `Vec<Shared<T>>`s by comparing their pointers.
+pub(crate) fn vec_arc_rwlock_ptr_eq<T>(a: &[Shared<T>], b: &[Shared<T>]) -> bool {
     for (a, b) in a.iter().zip(b.iter()) {
         if !arc_rwlock_ptr_eq(a, b) {
             return false;
@@ -157,11 +165,8 @@ pub(crate) fn vec_arc_rwlock_ptr_eq<T>(a: &Vec<Arc<RwLock<T>>>, b: &Vec<Arc<RwLo
     true
 }
 
-/// Internal function to compare two `Option<Arc<RwLock<T>>>`s by comparing their pointers.
-pub(crate) fn option_arc_rwlock_ptr_eq<T>(
-    a: &Option<Arc<RwLock<T>>>,
-    b: &Option<Arc<RwLock<T>>>,
-) -> bool {
+/// Internal function to compare two `Option<Shared<T>>`s by comparing their pointers.
+pub(crate) fn option_arc_rwlock_ptr_eq<T>(a: &Option<Shared<T>>, b: &Option<Shared<T>>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => arc_rwlock_ptr_eq(a, b),
         (None, None) => true,
@@ -169,10 +174,10 @@ pub(crate) fn option_arc_rwlock_ptr_eq<T>(
     }
 }
 
-/// Internal function to compare two `Option<Vec<Arc<RwLock<T>>>>`s by comparing their pointers.
+/// Internal function to compare two `Option<Vec<Shared<T>>>`s by comparing their pointers.
 pub(crate) fn option_vec_arc_rwlock_ptr_eq<T>(
-    a: &Option<Vec<Arc<RwLock<T>>>>,
-    b: &Option<Vec<Arc<RwLock<T>>>>,
+    a: &Option<Vec<Shared<T>>>,
+    b: &Option<Vec<Shared<T>>>,
 ) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => vec_arc_rwlock_ptr_eq(a, b),
