@@ -98,6 +98,7 @@ pub struct Channel {
 }
 
 #[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
 impl PartialEq for Channel {
     fn eq(&self, other: &Self) -> bool {
         self.application_id == other.application_id
@@ -132,6 +133,53 @@ impl PartialEq for Channel {
                 &self.permission_overwrites,
                 &other.permission_overwrites,
             )
+            && self.permissions == other.permissions
+            && self.position == other.position
+            && self.rate_limit_per_user == other.rate_limit_per_user
+            && option_vec_arc_rwlock_ptr_eq(&self.recipients, &other.recipients)
+            && self.rtc_region == other.rtc_region
+            && self.thread_metadata == other.thread_metadata
+            && self.topic == other.topic
+            && self.total_message_sent == other.total_message_sent
+            && self.user_limit == other.user_limit
+            && self.video_quality_mode == other.video_quality_mode
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+impl PartialEq for Channel {
+    #[allow(clippy::nonminimal_bool)]
+    fn eq(&self, other: &Self) -> bool {
+        self.application_id == other.application_id
+            && self.applied_tags == other.applied_tags
+            && self.applied_tags == other.applied_tags
+            && self.available_tags == other.available_tags
+            && self.available_tags == other.available_tags
+            && self.bitrate == other.bitrate
+            && self.channel_type == other.channel_type
+            && self.created_at == other.created_at
+            && self.default_auto_archive_duration == other.default_auto_archive_duration
+            && self.default_forum_layout == other.default_forum_layout
+            && self.default_reaction_emoji == other.default_reaction_emoji
+            && self.default_reaction_emoji == other.default_reaction_emoji
+            && self.default_sort_order == other.default_sort_order
+            && self.default_thread_rate_limit_per_user == other.default_thread_rate_limit_per_user
+            && self.flags == other.flags
+            && self.guild_id == other.guild_id
+            && self.icon == other.icon
+            && self.id == other.id
+            && self.last_message_id == other.last_message_id
+            && self.last_pin_timestamp == other.last_pin_timestamp
+            && self.managed == other.managed
+            && self.member == other.member
+            && self.member_count == other.member_count
+            && self.message_count == other.message_count
+            && self.name == other.name
+            && self.nsfw == other.nsfw
+            && self.owner_id == other.owner_id
+            && self.parent_id == other.parent_id
+            && self.permission_overwrites == other.permission_overwrites
             && self.permissions == other.permissions
             && self.position == other.position
             && self.rate_limit_per_user == other.rate_limit_per_user

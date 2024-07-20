@@ -32,6 +32,7 @@ pub struct AuditLogEntry {
 }
 
 #[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
 impl PartialEq for AuditLogEntry {
     fn eq(&self, other: &Self) -> bool {
         let everything_else = self.target_id == other.target_id
@@ -60,6 +61,22 @@ impl PartialEq for AuditLogEntry {
             // If one is Some and the other is None, they're not equal
             _ => false,
         }
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+impl PartialEq for AuditLogEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.target_id == other.target_id
+            // Serialize the `Vec<Shared<AuditLogChange>>` to a string and compare them
+            && self.changes.encode_to_string() == other.changes.encode_to_string()
+            && self.user_id == other.user_id
+            && self.id == other.id
+            && self.action_type == other.action_type
+            && self.options == other.options
+            && self.options == other.options
+            && self.reason == other.reason
     }
 }
 
