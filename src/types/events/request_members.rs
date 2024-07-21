@@ -5,7 +5,7 @@
 use crate::types::{events::WebSocketEvent, Snowflake};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default, WebSocketEvent)]
+#[derive(Debug, Deserialize, Serialize, Default, WebSocketEvent, Clone)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#request-guild-members-request-guild-members-structure>
 pub struct GatewayRequestGuildMembers {
     pub guild_id: Snowflake,
@@ -16,4 +16,3 @@ pub struct GatewayRequestGuildMembers {
     pub user_ids: Option<Snowflake>,
     pub nonce: Option<String>,
 }
-
