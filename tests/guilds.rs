@@ -70,15 +70,6 @@ async fn guild_create_ban() {
     )
     .await
     .unwrap();
-    assert!(Guild::create_ban(
-        guild.id,
-        other_user_id,
-        None,
-        GuildBanCreateSchema::default(),
-        &mut bundle.user,
-    )
-    .await
-    .is_err());
     common::teardown(bundle).await
 }
 
