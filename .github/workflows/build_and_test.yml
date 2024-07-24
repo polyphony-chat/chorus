@@ -43,12 +43,10 @@ jobs:
               cargo tarpaulin --all-features --avoid-cfg-tarpaulin --tests --verbose --skip-clean --coveralls ${{ secrets.COVERALLS_REPO_TOKEN }} --timeout 120
             else
               echo "Code Coverage step is skipped on non-main PRs and PRs from forks."
-              cargo build --verbose --all-features
               cargo nextest run --verbose --all-features
             fi
           else
             echo "Code Coverage step is skipped on non-main PRs and PRs from forks."
-            cargo build --verbose --all-features
             cargo nextest run --verbose --all-features
           fi
       - name: Check common non-default feature configurations
