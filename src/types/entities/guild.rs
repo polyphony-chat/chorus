@@ -240,13 +240,18 @@ impl PartialEq for GuildInvite {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Hash, Eq, PartialOrd, Ord, Copy)]
+#[derive(
+    Serialize, Deserialize, Debug, Default, Clone, PartialEq, Hash, Eq, PartialOrd, Ord, Copy,
+)]
 pub struct UnavailableGuild {
     pub id: Snowflake,
-    pub unavailable: bool,
+    pub unavailable: Option<bool>,
+    pub geo_restricted: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Copy)]
+#[derive(
+    Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
+)]
 pub struct GuildCreateResponse {
     pub id: Snowflake,
 }
