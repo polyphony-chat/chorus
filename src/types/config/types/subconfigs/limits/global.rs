@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash)]
 pub struct GlobalRateLimit {
-    pub limit: u16,
+    pub limit: u64,
     pub window: u64,
     pub enabled: bool,
 }
