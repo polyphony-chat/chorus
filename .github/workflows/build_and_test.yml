@@ -49,6 +49,11 @@ jobs:
             echo "Code Coverage step is skipped on non-main PRs and PRs from forks."
             cargo nextest run --verbose --all-features
           fi
+  linux-non-default-features:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
       - name: Check common non-default feature configurations
         run: |
           echo "No features:"
@@ -97,7 +102,7 @@ jobs:
           rustup target add wasm32-unknown-unknown
           curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
           cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.92" --force
-          GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt, voice_gateway"
+          GECKODRIVER=$(which geckodriver) cargo nextest run --target wasm32-unknown-unknown --no-default-features --features="client, rt, voice_gateway"
   wasm-chrome:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -126,4 +131,4 @@ jobs:
           rustup target add wasm32-unknown-unknown
           curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
           cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.92" --force
-          CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt, voice_gateway"
+          CHROMEDRIVER=$(which chromedriver) cargo nextest run --target wasm32-unknown-unknown --no-default-features --features="client, rt, voice_gateway"
