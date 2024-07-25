@@ -19,7 +19,7 @@ pub use message::*;
 pub use options::*;
 
 use crate::errors::GatewayError;
-use crate::types::{Snowflake};
+use crate::types::Snowflake;
 
 use std::any::Any;
 use std::collections::HashMap;
@@ -76,6 +76,10 @@ const GATEWAY_CALL_SYNC: u8 = 13;
 const GATEWAY_LAZY_REQUEST: u8 = 14;
 
 pub type ObservableObject = dyn Send + Sync + Any;
+
+/// Note: this is a reexport of [pubserve::Subscriber],
+/// exported not to break the public api and make development easier
+pub use pubserve::Subscriber as Observer;
 
 /// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.
 pub trait Updateable: 'static + Send + Sync {
