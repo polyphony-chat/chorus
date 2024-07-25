@@ -48,7 +48,9 @@ custom_error! {
     /// Invalid, insufficient or too many arguments provided.
     InvalidArguments{error: String} = "Invalid arguments were provided. Error: {error}",
     /// The request requires MFA verification
-    MfaRequired {error: MfaRequiredSchema} = "Mfa verification is required to perform this action"
+    MfaRequired {error: MfaRequiredSchema} = "Mfa verification is required to perform this action",
+    /// The user's account is suspended
+    SuspendUser { token: String }  = "Your account has been suspended"
 }
 
 impl From<reqwest::Error> for ChorusError {
@@ -153,4 +155,3 @@ custom_error! {
     CannotBind{error: String} = "Cannot bind socket due to a UDP error: {error}",
     CannotConnect{error: String} = "Cannot connect due to a UDP error: {error}",
 }
-
