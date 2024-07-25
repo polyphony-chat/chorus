@@ -34,8 +34,13 @@ use wasmtimer::tokio::sleep;
 #[derive(Debug)]
 pub struct ExampleObserver {}
 
-// This struct can observe GatewayReady events when subscribed, because it implements the trait Observer<GatewayReady>.
-// The Observer trait can be implemented for a struct for a given websocketevent to handle observing it
+// This struct can observe GatewayReady events when subscribed, because it implements the trait Subscriber<GatewayReady>.
+// The Subscriber trait can be implemented for a struct for a given websocketevent to handle observing it
+//
+// Note that this trait is quite generic and can be use to observe any type.
+//
+// It is just used for WebSocketEvents in chorus.
+//
 // One struct can be an observer of multiple websocketevents, if needed
 #[async_trait]
 impl Subscriber<GatewayReady> for ExampleObserver {

@@ -22,11 +22,9 @@ use simplelog::{TermLogger, Config, WriteLogger};
 use std::{net::SocketAddrV4, sync::Arc, fs::File, time::Duration};
 
 use chorus::{
-    gateway::{Observer, Gateway},
+    gateway::{Gateway, GatewayOptions, Observer},
     types::{
-        GatewayReady, SelectProtocol, SelectProtocolData, SessionDescription, Snowflake, Speaking,
-        SpeakingBitflags, SsrcDefinition, VoiceEncryptionMode, VoiceIdentify, VoiceProtocol,
-        VoiceReady, VoiceServerUpdate, GatewayIdentifyPayload, UpdateVoiceState,
+        GatewayIdentifyPayload, GatewayReady, SelectProtocol, SelectProtocolData, SessionDescription, Snowflake, Speaking, SpeakingBitflags, SsrcDefinition, UpdateVoiceState, VoiceEncryptionMode, VoiceIdentify, VoiceProtocol, VoiceReady, VoiceServerUpdate
     },
     voice::{
         gateway::{VoiceGateway, VoiceGatewayHandle},
@@ -219,7 +217,7 @@ impl Observer<Speaking> for VoiceHandler {
         println!(
             "Received Speaking! (SRRC: {}, flags: {:?})",
             data.ssrc,
-            SpeakingBitflags::from_bits(data.speaking).unwrap()
+            SpeakingBitflags::from_bits(data.speaking.into()).unwrap()
         );
     }
 }
@@ -253,7 +251,7 @@ async fn main() {
     ])
     .unwrap();
 
-    let gateway = Gateway::spawn(GATEWAY_URL.to_string())
+    let gateway = Gateway::spawn(GATEWAY_URL.to_string(), GatewayOptions::default())
         .await
         .unwrap();
 
@@ -281,7 +279,7 @@ async fn main() {
         .session
         .ready
         .subscribe(voice_handler.clone());
-    
+
     // Data which channel to update the local user to be joined into.
     //
     // guild_id and channel_id can be some to join guild voice channels
