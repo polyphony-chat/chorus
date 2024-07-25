@@ -236,13 +236,14 @@ impl ChorusUser {
     }
 
     /// Sends a request to complete an MFA challenge.
-    /// # Reference
-    /// See <https://docs.discord.sex/authentication#verify-mfa>
     ///
     /// If successful, the MFA verification JWT returned is set on the current [ChorusUser] executing the
     /// request. 
     ///
     /// The JWT token expires after 5 minutes.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/authentication#verify-mfa>
     pub async fn complete_mfa_challenge(&mut self, mfa_verify_schema: MfaVerifySchema) -> ChorusResult<()> {
         let endpoint_url = self.belongs_to.read().unwrap().urls.api.clone() + "/mfa/finish";
         let chorus_request = ChorusRequest {
