@@ -2,10 +2,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::errors::ChorusError;
 use crate::types::utils::Snowflake;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
+use std::array::TryFromSliceError;
 use std::fmt::Debug;
 
 #[cfg(feature = "client")]
@@ -61,13 +63,79 @@ pub struct User {
     pub public_flags: Option<UserFlags>,
     pub banner: Option<String>,
     pub bio: Option<String>,
-    pub theme_colors: Option<Vec<u32>>,
+    pub theme_colors: Option<ThemeColors>,
     pub phone: Option<String>,
     pub nsfw_allowed: Option<bool>,
     pub premium: Option<bool>,
     pub purchased_flags: Option<i32>,
     pub premium_usage_flags: Option<i32>,
     pub disabled: Option<bool>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Copy)]
+pub struct ThemeColors {
+    #[serde(flatten)]
+    inner: (u32, u32),
+}
+
+impl TryFrom<Vec<u8>> for ThemeColors {
+    type Error = ChorusError;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        if value.len() % 4 != 0 || value.len() > 8 {
+            return Err(ChorusError::InvalidArguments {
+                error: "Value has incorrect length to be decodeable from Vec<u8>".to_string(),
+            });
+        }
+        let first: Result<[u8; 4], TryFromSliceError> = value[0..3].try_into();
+        let second: Result<[u8; 4], TryFromSliceError> = {
+            if value.len() == 8 {
+                value[0..3].try_into()
+            } else {
+                [0; 4][0..3].try_into()
+            }
+        };
+
+        match (first, second) {
+            (Ok(first), Ok(second)) => Ok(Self {
+                inner: (u32::from_be_bytes(first), u32::from_be_bytes(second)),
+            }),
+            _ => Err(ChorusError::InvalidArguments {
+                error: "ThemeColors cannot be built from this Vec<u8>".to_string(),
+            }),
+        }
+    }
+}
+
+#[cfg(feature = "sqlx")]
+// TODO: Add tests for Encode and Decode.
+impl<'q> sqlx::Encode<'q, sqlx::MySql> for ThemeColors {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::MySql as sqlx::database::HasArguments<'q>>::ArgumentBuffer,
+    ) -> sqlx::encode::IsNull {
+        let mut vec_u8 = Vec::new();
+        vec_u8.extend_from_slice(&self.inner.0.to_be_bytes());
+        vec_u8.extend_from_slice(&self.inner.1.to_be_bytes());
+        <Vec<u8> as sqlx::Encode<'q, sqlx::MySql>>::encode_by_ref(&vec_u8, buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'d> sqlx::Decode<'d, sqlx::MySql> for ThemeColors {
+    fn decode(
+        value: <sqlx::MySql as sqlx::database::HasValueRef<'d>>::ValueRef,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        let value_vec = <Vec<u8> as sqlx::Decode<'d, sqlx::MySql>>::decode(value)?;
+        value_vec.try_into().map_err(|e: ChorusError| e.into())
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::MySql> for ThemeColors {
+    fn type_info() -> <sqlx::MySql as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::MySql>>::type_info()
+    }
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
@@ -78,7 +146,7 @@ pub struct PublicUser {
     pub avatar: Option<String>,
     pub accent_color: Option<u32>,
     pub banner: Option<String>,
-    pub theme_colors: Option<Vec<u32>>,
+    pub theme_colors: Option<ThemeColors>,
     pub pronouns: Option<String>,
     pub bot: Option<bool>,
     pub bio: Option<String>,
@@ -144,7 +212,7 @@ pub struct UserProfileMetadata {
     pub bio: Option<String>,
     pub banner: Option<String>,
     pub accent_color: Option<i32>,
-    pub theme_colors: Option<Vec<i32>>,
+    pub theme_colors: Option<ThemeColors>,
     pub popout_animation_particle_type: Option<Snowflake>,
     pub emoji: Option<Emoji>,
 }
