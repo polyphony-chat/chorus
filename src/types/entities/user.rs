@@ -131,6 +131,13 @@ impl<'d> sqlx::Decode<'d, sqlx::MySql> for ThemeColors {
     }
 }
 
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::MySql> for ThemeColors {
+    fn type_info() -> <sqlx::MySql as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::MySql>>::type_info()
+    }
+}
+
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct PublicUser {
     pub id: Snowflake,
