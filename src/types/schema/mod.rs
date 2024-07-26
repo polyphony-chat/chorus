@@ -5,6 +5,7 @@
 pub use apierror::*;
 pub use audit_log::*;
 pub use auth::*;
+pub use mfa::*;
 pub use channel::*;
 pub use guild::*;
 pub use message::*;
@@ -17,6 +18,7 @@ pub use voice_state::*;
 mod apierror;
 mod audit_log;
 mod auth;
+mod mfa;
 mod channel;
 mod guild;
 mod message;

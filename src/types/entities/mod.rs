@@ -26,6 +26,7 @@ pub use user::*;
 pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
+pub use mfa_token::*;
 
 use crate::types::Shared;
 #[cfg(feature = "client")]
@@ -67,6 +68,7 @@ mod user;
 mod user_settings;
 mod voice_state;
 mod webhook;
+mod mfa_token;
 
 #[cfg(feature = "client")]
 #[async_trait(?Send)]

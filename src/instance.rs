@@ -8,16 +8,18 @@ use std::collections::HashMap;
 use std::fmt;
 
 use std::sync::{Arc, RwLock};
+use std::time::Duration;
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use chrono::Utc; 
 
 use crate::errors::ChorusResult;
 use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
-    GeneralConfiguration, Limit, LimitType, LimitsConfiguration, Shared, User, UserSettings,
+    GeneralConfiguration, Limit, LimitType, LimitsConfiguration, MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings, MfaToken
 };
 use crate::UrlBundle;
 
@@ -152,9 +154,10 @@ impl fmt::Display for Token {
 pub struct ChorusUser {
     pub belongs_to: Shared<Instance>,
     pub token: String,
+    pub mfa_token: Option<MfaToken>,
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: Shared<UserSettings>,
-    pub object: Shared<User>,
+    pub object: Option<Shared<User>>,
     pub gateway: GatewayHandle,
 }
 
@@ -177,12 +180,13 @@ impl ChorusUser {
         token: String,
         limits: Option<HashMap<LimitType, Limit>>,
         settings: Shared<UserSettings>,
-        object: Shared<User>,
+        object: Option<Shared<User>>,
         gateway: GatewayHandle,
     ) -> ChorusUser {
         ChorusUser {
             belongs_to,
             token,
+            mfa_token: None,
             limits,
             settings,
             object,
@@ -197,7 +201,6 @@ impl ChorusUser {
     /// first.
     pub(crate) async fn shell(instance: Shared<Instance>, token: String) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
-        let object = Arc::new(RwLock::new(User::default()));
         let wss_url = instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
         let gateway = Gateway::spawn(wss_url, GatewayOptions::default())
@@ -205,6 +208,7 @@ impl ChorusUser {
             .unwrap();
         ChorusUser {
             token,
+            mfa_token: None,
             belongs_to: instance.clone(),
             limits: instance
                 .read()
@@ -213,8 +217,41 @@ impl ChorusUser {
                 .as_ref()
                 .map(|info| info.ratelimits.clone()),
             settings,
-            object,
+            object: None,
             gateway,
         }
+    }
+
+    /// Sends a request to complete an MFA challenge.
+    ///
+    /// If successful, the MFA verification JWT returned is set on the current [ChorusUser] executing the
+    /// request. 
+    ///
+    /// The JWT token expires after 5 minutes.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/authentication#verify-mfa>
+    pub async fn complete_mfa_challenge(&mut self, mfa_verify_schema: MfaVerifySchema) -> ChorusResult<()> {
+        let endpoint_url = self.belongs_to.read().unwrap().urls.api.clone() + "/mfa/finish";
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(endpoint_url)
+                .header("Authorization", self.token())
+                .json(&mfa_verify_schema),
+            limit_type: match self.object.is_some() {
+                true => LimitType::Global,
+                false => LimitType::Ip,
+            },
+        };
+
+        let mfa_token_schema = chorus_request
+            .deserialize_response::<MfaTokenSchema>(self).await?;
+
+        self.mfa_token = Some(MfaToken {
+            token: mfa_token_schema.token,
+            expires_at: Utc::now() + Duration::from_secs(60 * 5),
+        });
+
+        Ok(())
     }
 }

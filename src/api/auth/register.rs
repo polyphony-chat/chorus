@@ -49,7 +49,7 @@ impl Instance {
         let object = User::get(&mut user, None).await?;
         let settings = User::get_settings(&mut user).await?;
 
-        *user.object.write().unwrap() = object;
+        user.object = Some(Arc::new(RwLock::new(object)));
         *user.settings.write().unwrap() = settings;
 
         let mut identify = GatewayIdentifyPayload::common();

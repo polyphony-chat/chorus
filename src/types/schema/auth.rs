@@ -36,11 +36,25 @@ pub struct LoginSchema {
     pub gift_code_sku_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub struct TotpSchema {
-    code: String,
-    ticket: String,
-    gift_code_sku_id: Option<String>,
-    login_source: Option<String>,
+pub struct VerifyMFALoginSchema {
+    pub ticket: String,
+    pub code: String,
+    pub login_source: Option<String>,
+    pub gift_code_sku_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VerifyMFALoginResponse {
+    Success { token: String, user_settings: LoginSettings },
+    UserSuspended { suspended_user_token: String }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct LoginSettings {
+    pub locale: String,
+    pub theme: String,
 }
