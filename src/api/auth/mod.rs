@@ -26,7 +26,7 @@ impl Instance {
         let mut user =
             ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
 
-        let object = User::get(&mut user, None).await?;
+        let object = User::get_current(&mut user).await?;
         let settings = User::get_settings(&mut user).await?;
 
         *user.object.write().unwrap() = object;

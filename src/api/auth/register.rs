@@ -39,14 +39,14 @@ impl Instance {
         // the instances' limits to pass them on as user_rate_limits later.
         let mut user =
             ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None".to_string()).await;
-        
+
         let token = chorus_request
             .deserialize_response::<Token>(&mut user)
             .await?
             .token;
-        user.set_token(token); 
+        user.set_token(token);
 
-        let object = User::get(&mut user, None).await?;
+        let object = User::get_current(&mut user).await?;
         let settings = User::get_settings(&mut user).await?;
 
         *user.object.write().unwrap() = object;

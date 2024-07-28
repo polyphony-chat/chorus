@@ -11,20 +11,50 @@ use crate::{
     errors::{ChorusError, ChorusResult},
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
-    types::{LimitType, User, UserModifySchema, UserSettings},
+    types::{LimitType, PublicUser, Snowflake, User, UserModifySchema, UserProfile, UserSettings},
 };
 
 impl ChorusUser {
-    /// Gets a user by id, or if the id is None, gets the current user.
+    /// Gets the local / current user.
+    ///
+    /// # Notes
+    /// This function is a wrapper around [`User::get_current`].
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-current-user>
+    pub async fn get_current_user(&mut self) -> ChorusResult<User> {
+        User::get_current(self).await
+    }
+
+    /// Gets a non-local user by their id
     ///
     /// # Notes
     /// This function is a wrapper around [`User::get`].
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
-    /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
-    pub async fn get_user(&mut self, id: Option<&String>) -> ChorusResult<User> {
+    /// See <https://docs.discord.sex/resources/user#get-user>
+    pub async fn get_user(&mut self, id: Snowflake) -> ChorusResult<PublicUser> {
         User::get(self, id).await
+    }
+
+    /// Gets a non-local user by their unique username.
+    ///
+    /// As of 2024/07/28, Spacebar does not yet implement this endpoint.
+    ///
+    /// Note:
+    ///
+    /// "Unless the target user is a bot, you must be able to add
+    /// the user as a friend to resolve them by username.
+    ///
+    /// Due to this restriction, you are not able to resolve your own username."
+    ///
+    /// # Notes
+    /// This function is a wrapper around [`User::get_by_username`].
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-user-by-username>
+    pub async fn get_user_by_username(&mut self, username: &String) -> ChorusResult<PublicUser> {
+        User::get_by_username(self, username).await
     }
 
     /// Gets the user's settings.
@@ -40,7 +70,6 @@ impl ChorusUser {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/user#modify-current-user>
     pub async fn modify(&mut self, modify_schema: UserModifySchema) -> ChorusResult<User> {
-
         // See <https://docs.discord.sex/resources/user#json-params>, note 1
         let requires_current_password = modify_schema.username.is_some()
             || modify_schema.discriminator.is_some()
@@ -85,21 +114,35 @@ impl ChorusUser {
         };
         chorus_request.handle_request_as_result(&mut self).await
     }
+
+    /// Gets a user's profile object by their id.
+    ///
+    /// This endpoint requires one of the following:
+    ///
+    /// - The other user is a bot
+    /// - The other user shares a mutual guild with the current user
+    /// - The other user is a friend of the current user
+    /// - The other user is a friend suggestion of the current user
+    /// - The other user has an outgoing friend request to the current user
+    ///
+    /// # Notes
+    /// This function is a wrapper around [`User::get_profile`].
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-user-profile>
+    pub async fn get_user_profile(&mut self, id: Snowflake) -> ChorusResult<UserProfile> {
+        User::get_profile(self, id).await
+    }
 }
 
 impl User {
-    /// Gets a user by id, or if the id is None, gets the current user.
+    /// Gets the local / current user.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user> and
-    /// <https://discord-userdoccers.vercel.app/resources/user#get-current-user>
-    pub async fn get(user: &mut ChorusUser, id: Option<&String>) -> ChorusResult<User> {
+    /// See <https://docs.discord.sex/resources/user#get-current-user>
+    pub async fn get_current(user: &mut ChorusUser) -> ChorusResult<User> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
-        let url = if id.is_none() {
-            format!("{}/users/@me", url_api)
-        } else {
-            format!("{}/users/{}", url_api, id.unwrap())
-        };
+        let url = format!("{}/users/@me", url_api);
         let request = reqwest::Client::new()
             .get(url)
             .header("Authorization", user.token());
@@ -107,16 +150,60 @@ impl User {
             request,
             limit_type: LimitType::Global,
         };
-        match chorus_request.send_request(user).await {
-            Ok(result) => {
-                let result_text = result.text().await.unwrap();
-                Ok(serde_json::from_str::<User>(&result_text).unwrap())
-            }
-            Err(e) => Err(e),
-        }
+        chorus_request.deserialize_response::<User>(user).await
     }
 
-    /// Gets the user's settings.
+    /// Gets a non-local user by their id
+    ///
+    /// # Reference
+    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user>
+    pub async fn get(user: &mut ChorusUser, id: Snowflake) -> ChorusResult<PublicUser> {
+        let url_api = user.belongs_to.read().unwrap().urls.api.clone();
+        let url = format!("{}/users/{}", url_api, id);
+        let request = reqwest::Client::new()
+            .get(url)
+            .header("Authorization", user.token());
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::Global,
+        };
+        chorus_request
+            .deserialize_response::<PublicUser>(user)
+            .await
+    }
+
+    /// Gets a user by their unique username.
+    ///
+    /// As of 2024/07/28, Spacebar does not yet implement this endpoint.
+    ///
+    /// Note:
+    ///
+    /// "Unless the target user is a bot, you must be able to add
+    /// the user as a friend to resolve them by username.
+    ///
+    /// Due to this restriction, you are not able to resolve your own username."
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-user-by-username>
+    pub async fn get_by_username(
+        user: &mut ChorusUser,
+        username: &String,
+    ) -> ChorusResult<PublicUser> {
+        let url_api = user.belongs_to.read().unwrap().urls.api.clone();
+        let url = format!("{}/users/username/{username}", url_api);
+        let request = reqwest::Client::new()
+            .get(url)
+            .header("Authorization", user.token());
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::Global,
+        };
+        chorus_request
+            .deserialize_response::<PublicUser>(user)
+            .await
+    }
+
+    /// Gets the current user's settings.
     ///
     /// # Reference
     /// See <https://luna.gitlab.io/discord-unofficial-docs/docs/user_settings.html#get-usersmesettings>
@@ -129,12 +216,35 @@ impl User {
             request,
             limit_type: LimitType::Global,
         };
-        match chorus_request.send_request(user).await {
-            Ok(result) => {
-                let result_text = result.text().await.unwrap();
-                Ok(serde_json::from_str(&result_text).unwrap())
-            }
-            Err(e) => Err(e),
-        }
+        chorus_request
+            .deserialize_response::<UserSettings>(user)
+            .await
+    }
+
+    /// Gets a user's profile object by their id.
+    ///
+    /// This endpoint requires one of the following:
+    ///
+    /// - The other user is a bot
+    /// - The other user shares a mutual guild with the current user
+    /// - The other user is a friend of the current user
+    /// - The other user is a friend suggestion of the current user
+    /// - The other user has an outgoing friend request to the current user
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-user-profile>
+    // TODO: Implement query string parameters for this endpoint
+    pub async fn get_profile(user: &mut ChorusUser, id: Snowflake) -> ChorusResult<UserProfile> {
+        let url_api = user.belongs_to.read().unwrap().urls.api.clone();
+        let request: reqwest::RequestBuilder = Client::new()
+            .get(format!("{}/users/{}/profile", url_api, id))
+            .header("Authorization", user.token());
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::Global,
+        };
+        chorus_request
+            .deserialize_response::<UserProfile>(user)
+            .await
     }
 }

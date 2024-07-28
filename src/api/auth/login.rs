@@ -32,14 +32,14 @@ impl Instance {
         // instances' limits to pass them on as user_rate_limits later.
         let mut user =
             ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None".to_string()).await;
-        
+
         let login_result = chorus_request
             .deserialize_response::<LoginResult>(&mut user)
             .await?;
         user.set_token(login_result.token);
         user.settings = login_result.settings;
 
-        let object = User::get(&mut user, None).await?;
+        let object = User::get_current(&mut user).await?;
         *user.object.write().unwrap() = object;
 
         let mut identify = GatewayIdentifyPayload::common();
