@@ -12,7 +12,8 @@ use crate::{
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
     types::{
-        DeleteDisableUserSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema, UserModifySchema, UserProfile, UserProfileMetadata, UserSettings
+        DeleteDisableUserSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema,
+        UserModifySchema, UserProfile, UserProfileMetadata, UserSettings, VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
     },
 };
 
@@ -98,14 +99,14 @@ impl ChorusUser {
         chorus_request.deserialize_response::<User>(self).await
     }
 
-	 /// Disables the current user's account.
-	 ///
-	 /// Invalidates all active tokens.
-	 ///
-	 /// Requires the user's current password (if any)
-	 ///
-	 /// # Notes
-	 /// Requires MFA
+    /// Disables the current user's account.
+    ///
+    /// Invalidates all active tokens.
+    ///
+    /// Requires the user's current password (if any)
+    ///
+    /// # Notes
+    /// Requires MFA
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#disable-user>
@@ -116,7 +117,7 @@ impl ChorusUser {
                 self.belongs_to.read().unwrap().urls.api
             ))
             .header("Authorization", self.token())
-				.json(&schema);
+            .json(&schema);
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
@@ -125,11 +126,11 @@ impl ChorusUser {
     }
 
     /// Deletes the current user from the Instance.
-	 ///
-	 /// Requires the user's current password (if any)
-	 ///
-	 /// # Notes
-	 /// Requires MFA
+    ///
+    /// Requires the user's current password (if any)
+    ///
+    /// # Notes
+    /// Requires MFA
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#delete-user>
@@ -140,7 +141,7 @@ impl ChorusUser {
                 self.belongs_to.read().unwrap().urls.api
             ))
             .header("Authorization", self.token())
-				.json(&schema);
+            .json(&schema);
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
@@ -181,6 +182,52 @@ impl ChorusUser {
         schema: UserModifyProfileSchema,
     ) -> ChorusResult<UserProfileMetadata> {
         User::modify_profile(self, schema).await
+    }
+
+    /// Initiates the email change process.
+    ///
+    /// Sends a verification code to the current user's email.
+	 ///
+	 /// Should be followed up with [Self::verify_email_change]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#modify-user-email>
+    pub async fn initiate_email_change(&mut self) -> ChorusResult<()> {
+        let request = Client::new()
+            .put(format!(
+                "{}/users/@me/email",
+                self.belongs_to.read().unwrap().urls.api
+            ))
+            .header("Authorization", self.token());
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+        chorus_request.handle_request_as_result(self).await
+    }
+
+	 /// Verifies a code sent to change the current user's email.
+    ///
+	 /// Should be the follow-up to [Self::initiate_email_change]
+	 ///
+	 /// This endpoint returns a token which can be used with [Self::modify]
+	 /// to set a new email address (email_token).
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#modify-user-email>
+    pub async fn verify_email_change(&mut self, schema: VerifyUserEmailChangeSchema) -> ChorusResult<VerifyUserEmailChangeResponse> {
+        let request = Client::new()
+            .post(format!(
+                "{}/users/@me/email/verify-code",
+                self.belongs_to.read().unwrap().urls.api
+            ))
+            .header("Authorization", self.token())
+				.json(&schema);
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+        chorus_request.deserialize_response::<VerifyUserEmailChangeResponse>(self).await
     }
 }
 

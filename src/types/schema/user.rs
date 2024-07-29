@@ -41,7 +41,12 @@ pub struct UserModifySchema {
     pub email: Option<String>,
     /// The user's email token from their previous email, required if a new email is set.
     ///
-    /// See <https://docs.discord.sex/resources/user#modify-user-email> and <https://docs.discord.sex/resources/user#verify-user-email-change>
+    /// See:
+    ///
+    /// - the endpoints <https://docs.discord.sex/resources/user#modify-user-email> and <https://docs.discord.sex/resources/user#verify-user-email-change>
+    ///
+    /// - the relevant methods [`ChorusUser::initiate_email_change`](crate::instance::ChorusUser::initiate_email_change) and [`ChorusUser::verify_email_change`](crate::instance::ChorusUser::verify_email_change)
+    ///
     /// for changing the user's email.
     ///
     /// # Note
@@ -156,4 +161,23 @@ pub struct UserModifyProfileSchema {
 pub struct DeleteDisableUserSchema {
     /// The user's current password, if any
     pub password: Option<String>,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A schema used for [ChorusUser::verify_email_change](crate::instance::ChorusUser::verify_email_change)
+///
+/// See <https://docs.discord.sex/resources/user#verify-user-email-change>
+pub struct VerifyUserEmailChangeSchema {
+    /// The verification code sent to the user's email
+    pub code: String,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// The return type of [ChorusUser::verify_email_change](crate::instance::ChorusUser::verify_email_change)
+///
+/// See <https://docs.discord.sex/resources/user#verify-user-email-change>
+pub struct VerifyUserEmailChangeResponse {
+    /// The email_token to be used in [ChorusUser::modify](crate::instance::ChorusUser::modify)
+    #[serde(rename = "token")]
+    pub email_token: String,
 }
