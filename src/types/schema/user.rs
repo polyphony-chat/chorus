@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-use crate::types::Snowflake;
+use crate::types::{Snowflake, ThemeColors};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -31,7 +31,7 @@ pub struct UserModifySchema {
     // TODO: Add a CDN data type
     pub avatar: Option<String>,
     /// Note: This is not yet implemented on Spacebar
-    pub avatar_decoration_id: Option<Snowflake>, 
+    pub avatar_decoration_id: Option<Snowflake>,
     /// Note: This is not yet implemented on Spacebar
     pub avatar_decoration_sku_id: Option<Snowflake>,
     /// The user's email address; if changing from a verified email, email_token must be provided
@@ -105,4 +105,45 @@ pub struct PrivateChannelCreateSchema {
     pub recipients: Option<Vec<Snowflake>>,
     pub access_tokens: Option<Vec<String>>,
     pub nicks: Option<HashMap<Snowflake, String>>,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A schema used to modify the current user's profile.
+///
+/// Similar to [crate::types::UserProfileMetadata]
+///
+/// See <https://docs.discord.sex/resources/user#modify-user-profile>
+pub struct UserModifyProfileSchema {
+    // Note: one of these causes a 500 if it is sent
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The user's new pronouns (max 40 characters)
+    pub pronouns: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The user's new bio (max 190 characters)
+    pub bio: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    // TODO: Add banner -- do we have an image data struct
+    /// The user's new accent color encoded as an i32 representation of a hex color code
+    pub accent_color: Option<i32>,
+
+    // Note: without the skip serializing this currently (2024/07/28) causes a 500!
+    //
+    // Which in turns locks the user's account, requiring phone number verification
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The user's new [ThemeColors]
+    pub theme_colors: Option<ThemeColors>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The user's new profile popup animation particle type
+    pub popout_animation_particle_type: Option<Snowflake>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The user's new profile emoji id
+    pub emoji_id: Option<Snowflake>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The user's new profile ffect id
+    pub profile_effect_id: Option<Snowflake>,
 }

@@ -11,7 +11,10 @@ use crate::{
     errors::{ChorusError, ChorusResult},
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
-    types::{LimitType, PublicUser, Snowflake, User, UserModifySchema, UserProfile, UserSettings},
+    types::{
+        LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema, UserModifySchema,
+        UserProfile, UserProfileMetadata, UserSettings,
+    },
 };
 
 impl ChorusUser {
@@ -133,6 +136,22 @@ impl ChorusUser {
     pub async fn get_user_profile(&mut self, id: Snowflake) -> ChorusResult<UserProfile> {
         User::get_profile(self, id).await
     }
+
+    /// Modifies the current user's profile.
+    ///
+    /// Returns the updated [UserProfileMetadata].
+    ///
+    /// # Notes
+    /// This function is a wrapper around [`User::modify_profile`].
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#modify-user-profile>
+    pub async fn modify_profile(
+        &mut self,
+        schema: UserModifyProfileSchema,
+    ) -> ChorusResult<UserProfileMetadata> {
+        User::modify_profile(self, schema).await
+    }
 }
 
 impl User {
@@ -245,6 +264,30 @@ impl User {
         };
         chorus_request
             .deserialize_response::<UserProfile>(user)
+            .await
+    }
+
+    /// Modifies the current user's profile.
+    ///
+    /// Returns the updated [UserProfileMetadata].
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#modify-user-profile>
+    pub async fn modify_profile(
+        user: &mut ChorusUser,
+        schema: UserModifyProfileSchema,
+    ) -> ChorusResult<UserProfileMetadata> {
+        let url_api = user.belongs_to.read().unwrap().urls.api.clone();
+        let request: reqwest::RequestBuilder = Client::new()
+            .patch(format!("{}/users/@me/profile", url_api))
+            .header("Authorization", user.token())
+            .json(&schema);
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::Global,
+        };
+        chorus_request
+            .deserialize_response::<UserProfileMetadata>(user)
             .await
     }
 }
