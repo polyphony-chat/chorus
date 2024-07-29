@@ -12,8 +12,7 @@ use crate::{
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
     types::{
-        LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema, UserModifySchema,
-        UserProfile, UserProfileMetadata, UserSettings,
+        DeleteDisableUserSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema, UserModifySchema, UserProfile, UserProfileMetadata, UserSettings
     },
 };
 
@@ -99,23 +98,54 @@ impl ChorusUser {
         chorus_request.deserialize_response::<User>(self).await
     }
 
-    /// Deletes the user from the Instance.
+	 /// Disables the current user's account.
+	 ///
+	 /// Invalidates all active tokens.
+	 ///
+	 /// Requires the user's current password (if any)
+	 ///
+	 /// # Notes
+	 /// Requires MFA
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/user#disable-user>
-    pub async fn delete(mut self) -> ChorusResult<()> {
+    /// See <https://docs.discord.sex/resources/user#disable-user>
+    pub async fn disable(&mut self, schema: DeleteDisableUserSchema) -> ChorusResult<()> {
+        let request = Client::new()
+            .post(format!(
+                "{}/users/@me/disable",
+                self.belongs_to.read().unwrap().urls.api
+            ))
+            .header("Authorization", self.token())
+				.json(&schema);
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+        chorus_request.handle_request_as_result(self).await
+    }
+
+    /// Deletes the current user from the Instance.
+	 ///
+	 /// Requires the user's current password (if any)
+	 ///
+	 /// # Notes
+	 /// Requires MFA
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#delete-user>
+    pub async fn delete(&mut self, schema: DeleteDisableUserSchema) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
                 "{}/users/@me/delete",
                 self.belongs_to.read().unwrap().urls.api
             ))
             .header("Authorization", self.token())
-            .header("Content-Type", "application/json");
+				.json(&schema);
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         };
-        chorus_request.handle_request_as_result(&mut self).await
+        chorus_request.handle_request_as_result(self).await
     }
 
     /// Gets a user's profile object by their id.

@@ -5,12 +5,12 @@
 use std::str::FromStr;
 
 use chorus::gateway::{Gateway, GatewayOptions};
-use chorus::types::{IntoShared, PermissionFlags};
+use chorus::types::{DeleteDisableUserSchema, IntoShared, PermissionFlags};
 use chorus::{
     instance::{ChorusUser, Instance},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
-        RoleCreateModifySchema, RoleObject, Shared
+        RoleCreateModifySchema, RoleObject, Shared,
     },
     UrlBundle,
 };
@@ -59,9 +59,12 @@ impl TestBundle {
 
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 pub(crate) async fn setup() -> TestBundle {
-
     // So we can get logs when tests fail
-    let _ = simple_logger::SimpleLogger::with_level(simple_logger::SimpleLogger::new(), log::LevelFilter::Debug).init();
+    let _ = simple_logger::SimpleLogger::with_level(
+        simple_logger::SimpleLogger::new(),
+        log::LevelFilter::Debug,
+    )
+    .init();
 
     let instance = Instance::new("http://localhost:3001/api").await.unwrap();
     // Requires the existence of the below user.
@@ -141,5 +144,9 @@ pub(crate) async fn setup() -> TestBundle {
 pub(crate) async fn teardown(mut bundle: TestBundle) {
     let id = bundle.guild.read().unwrap().id;
     Guild::delete(&mut bundle.user, id).await.unwrap();
-    bundle.user.delete().await.unwrap()
+    bundle
+        .user
+        .delete(DeleteDisableUserSchema { password: None })
+        .await
+        .unwrap()
 }

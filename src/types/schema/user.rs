@@ -147,3 +147,13 @@ pub struct UserModifyProfileSchema {
     /// The user's new profile ffect id
     pub profile_effect_id: Option<Snowflake>,
 }
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A schema used to delete or disable the current user's profile.
+///
+/// See <https://docs.discord.sex/resources/user#disable-user> and
+/// <https://docs.discord.sex/resources/user#delete-user>
+pub struct DeleteDisableUserSchema {
+    /// The user's current password, if any
+    pub password: Option<String>,
+}
