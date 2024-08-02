@@ -119,7 +119,7 @@ We recommend checking out the "examples" directory, as well as the documentation
 
 ## MSRV (Minimum Supported Rust Version)
 
-Rust **1.67.1**. This number might change at any point while Chorus is not yet at version 1.0.0.
+Rust **1.70.0**. This number might change at any point while Chorus is not yet at version 1.0.0.
 
 ## Development Setup
 
