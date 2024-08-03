@@ -196,13 +196,13 @@ impl<'q> sqlx::Encode<'q, sqlx::Any> for GuildFeaturesList {
 }
 
 #[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::MySql> for GuildFeaturesList {
-    fn type_info() -> sqlx::mysql::MySqlTypeInfo {
-        <String as sqlx::Type<sqlx::MySql>>::type_info()
+impl sqlx::Type<sqlx::Any> for GuildFeaturesList {
+    fn type_info() -> sqlx::any::AnyTypeInfo {
+        <String as sqlx::Type<sqlx::Any>>::type_info()
     }
 
-    fn compatible(ty: &sqlx::mysql::MySqlTypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::MySql>>::compatible(ty)
+    fn compatible(ty: &sqlx::any::AnyTypeInfo) -> bool {
+        <String as sqlx::Type<sqlx::Any>>::compatible(ty)
     }
 }
 

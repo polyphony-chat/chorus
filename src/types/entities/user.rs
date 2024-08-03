@@ -132,9 +132,9 @@ impl<'d> sqlx::Decode<'d, sqlx::Any> for ThemeColors {
 }
 
 #[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::MySql> for ThemeColors {
-    fn type_info() -> <sqlx::MySql as sqlx::Database>::TypeInfo {
-        <String as sqlx::Type<sqlx::MySql>>::type_info()
+impl sqlx::Type<sqlx::Any> for ThemeColors {
+    fn type_info() -> <sqlx::Any as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::Any>>::type_info()
     }
 }
 
