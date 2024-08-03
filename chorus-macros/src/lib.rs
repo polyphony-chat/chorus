@@ -166,21 +166,21 @@ pub fn sqlx_bitflag_derive(input: TokenStream) -> TokenStream {
         #[cfg(feature = "sqlx")]
         impl sqlx::Type<sqlx::Any> for #name {
             fn type_info() -> sqlx::any::AnyTypeInfo {
-                u64::type_info()
+                <u64 as sqlx::Type<sqlx::Any>>::type_info()
             }
         }
 
         #[cfg(feature = "sqlx")]
         impl<'q> sqlx::Encode<'q, sqlx::Any> for #name {
             fn encode_by_ref(&self, buf: &mut <sqlx::Any as sqlx::Database>::ArgumentBuffer<'q>) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-                u64::encode_by_ref(&self.bits(), buf)
+                <u64 as sqlx::Encode<sqlx::Any>>::encode_by_ref(&self.bits(), buf)
             }
         }
 
         #[cfg(feature = "sqlx")]
         impl<'q> sqlx::Decode<'q, sqlx::Any> for #name {
             fn decode(value: <sqlx::Any as sqlx::Database>::ValueRef<'q>) -> Result<Self, sqlx::error::BoxDynError> {
-                u64::decode(value).map(|d| #name::from_bits(d).unwrap())
+                <u64 as sqlx::Decode<sqlx::Any>>::decode(value).map(|d| #name::from_bits(d).unwrap())
             }
         }
     }
