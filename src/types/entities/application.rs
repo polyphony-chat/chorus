@@ -102,7 +102,10 @@ fn compare_install_params(
     b: &Option<sqlx::types::Json<InstallParams>>,
 ) -> bool {
     match (a, b) {
-        (Some(a), Some(b)) => a.encode_to_string() == b.encode_to_string(),
+        (Some(a), Some(b)) => match (a.encode_to_string(), b.encode_to_string()) {
+            (Ok(a), Ok(b)) => a == b,
+            _ => false,
+        },
         (None, None) => true,
         _ => false,
     }
