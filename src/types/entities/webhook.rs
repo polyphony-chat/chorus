@@ -71,7 +71,7 @@ impl PartialEq for Webhook {
 #[derive(
     Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
-#[repr(i8)]
+#[repr(i16)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum WebhookType {
     #[default]
