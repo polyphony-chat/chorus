@@ -166,22 +166,43 @@ pub fn sqlx_bitflag_derive(input: TokenStream) -> TokenStream {
         #[cfg(feature = "sqlx")]
         impl sqlx::Type<sqlx::Any> for #name {
             fn type_info() -> sqlx::any::AnyTypeInfo {
-                <u64 as sqlx::Type<sqlx::Any>>::type_info()
+                <Vec<u8> as sqlx::Type<sqlx::Any>>::type_info()
             }
         }
 
         #[cfg(feature = "sqlx")]
         impl<'q> sqlx::Encode<'q, sqlx::Any> for #name {
             fn encode_by_ref(&self, buf: &mut <sqlx::Any as sqlx::Database>::ArgumentBuffer<'q>) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-                <u64 as sqlx::Encode<sqlx::Any>>::encode_by_ref(&self.bits(), buf)
+                <Vec<u8> as sqlx::Encode<sqlx::Any>>::encode_by_ref(&self.bits().to_be_bytes().into(), buf)
             }
         }
 
         #[cfg(feature = "sqlx")]
         impl<'q> sqlx::Decode<'q, sqlx::Any> for #name {
             fn decode(value: <sqlx::Any as sqlx::Database>::ValueRef<'q>) -> Result<Self, sqlx::error::BoxDynError> {
-                <u64 as sqlx::Decode<sqlx::Any>>::decode(value).map(|d| #name::from_bits(d).unwrap())
+                let vec = <Vec<u8> as sqlx::Decode<sqlx::Any>>::decode(value)?;
+                Ok(Self::from_bits(vec_u8_to_u64(vec)).unwrap())
             }
+        }
+
+        /// Converts a [Vec<u8>] to an unsigned, 64 bit integer. The [u64] is created using [u64::from_be_bytes].
+        ///
+        /// Empty vectors will result in an output of `0_u64`. Only the first 8 values from the vector are
+        /// being processed. Any additional values will be skipped.
+        ///
+        /// Vectors holding less than 8 values will be treated as a vector holding 8 values, where the
+        /// missing values are padded with `0_u8`.
+        fn vec_u8_to_u64(vec: Vec<u8>) -> u64 {
+            let mut buf: [u8; 8] = [0; 8];
+            let mut position = 0;
+            for read in vec.iter() {
+                buf[position] = *read;
+                position += 1;
+                if position > 7 {
+                    break;
+                }
+            }
+            u64::from_be_bytes(buf)
         }
     }
     .into()
