@@ -25,8 +25,7 @@ jobs:
         run: cargo install clippy-sarif sarif-fmt
 
       - name: Run cargo doc
-        run:
-          cargo doc --no-deps --all-features --locked --message-format=json | clippy-sarif | tee cargo-doc-results.sarif | sarif-fmt
+        run: cargo doc --no-deps --all-features --locked --message-format=json | clippy-sarif | sed 's/rust-lang.github.io\/rust-clippy/doc.rust-lang.org\/rustdoc\/lints.html/g' | sed 's/clippy/rustdoc/g' | tee cargo-doc-results.sarif | sarif-fmt
         continue-on-error: true
 
       - name: Upload analysis results to GitHub
