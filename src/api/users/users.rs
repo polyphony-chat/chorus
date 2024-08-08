@@ -12,7 +12,10 @@ use crate::{
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
     types::{
-        DeleteDisableUserSchema, GetPomeloEligibilityReturn, GetPomeloSuggestionsReturn, GetUserProfileSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema, UserModifySchema, UserProfile, UserProfileMetadata, UserSettings, VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema
+        DeleteDisableUserSchema, GetPomeloEligibilityReturn, GetPomeloSuggestionsReturn,
+        GetUserProfileSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema,
+        UserModifySchema, UserProfile, UserProfileMetadata, UserSettings,
+        VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
     },
 };
 
@@ -225,6 +228,9 @@ impl ChorusUser {
     /// This endpoint returns a token which can be used with [Self::modify]
     /// to set a new email address (email_token).
     ///
+    /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
+    // FIXME: Does this mean PUT users/@me/email is different?
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#modify-user-email>
     pub async fn verify_email_change(
@@ -254,9 +260,11 @@ impl ChorusUser {
     /// "This endpoint is used during the pomelo migration flow.
     ///
     /// The user must be in the rollout to use this endpoint."
-	 ///
-	 /// If a user has already migrated, this endpoint will likely return a 401 Unauthorized
-	 /// ([ChorusError::NoPermission])
+    ///
+    /// If a user has already migrated, this endpoint will likely return a 401 Unauthorized
+    /// ([ChorusError::NoPermission])
+    ///
+    /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
     ///
     /// See <https://docs.discord.sex/resources/user#get-pomelo-suggestions>
     pub async fn get_pomelo_suggestions(&mut self) -> ChorusResult<String> {
@@ -274,12 +282,14 @@ impl ChorusUser {
         chorus_request
             .deserialize_response::<GetPomeloSuggestionsReturn>(self)
             .await
-				.map(|returned| returned.username)
+            .map(|returned| returned.username)
     }
 
-	 /// Checks whether a unique username is available.
-	 ///
-	 /// Returns whether the username is not taken yet.
+    /// Checks whether a unique username is available.
+    ///
+    /// Returns whether the username is not taken yet.
+    ///
+    /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
     ///
     /// See <https://docs.discord.sex/resources/user#get-pomelo-eligibility>
     pub async fn get_pomelo_eligibility(&mut self, username: &String) -> ChorusResult<bool> {
@@ -289,8 +299,8 @@ impl ChorusUser {
                 self.belongs_to.read().unwrap().urls.api
             ))
             .header("Authorization", self.token())
-				// FIXME: should we create a type for this?
-				.body(format!(r#"{{ "username": {:?} }}"#, username))
+            // FIXME: should we create a type for this?
+            .body(format!(r#"{{ "username": {:?} }}"#, username))
             .header("Content-Type", "application/json");
 
         let chorus_request = ChorusRequest {
@@ -300,7 +310,53 @@ impl ChorusUser {
         chorus_request
             .deserialize_response::<GetPomeloEligibilityReturn>(self)
             .await
-				.map(|returned| !returned.taken)
+            .map(|returned| !returned.taken)
+    }
+
+    /// Migrates the user from the username#discriminator to the unique username system.
+    ///
+    /// Fires a [UserUpdate](crate::types::UserUpdate) gateway event.
+    ///
+    /// Updates [Self::object] to an updated representation returned by the server.
+    // FIXME: Is this appropriate behaviour?
+    ///
+    /// Note:
+    ///
+    /// "This endpoint is used during the pomelo migration flow.
+    ///
+    /// The user must be in the rollout to use this endpoint."
+    ///
+    /// If a user has already migrated, this endpoint will likely return a 401 Unauthorized
+    /// ([ChorusError::NoPermission])
+    //
+    /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
+    ///
+    /// See <https://docs.discord.sex/resources/user#create-pomelo-migration>
+    pub async fn create_pomelo_migration(&mut self, username: &String) -> ChorusResult<()> {
+        let request = Client::new()
+            .post(format!(
+                "{}/users/@me/pomelo",
+                self.belongs_to.read().unwrap().urls.api
+            ))
+            .header("Authorization", self.token())
+            // FIXME: should we create a type for this?
+            .body(format!(r#"{{ "username": {:?} }}"#, username))
+            .header("Content-Type", "application/json");
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        let result = chorus_request.deserialize_response::<User>(self).await;
+
+        // FIXME: Does UserUpdate do this automatically? or would a user need to manually observe ChorusUser::object
+        if let Ok(new_object) = result {
+            *self.object.write().unwrap() = new_object;
+            return ChorusResult::Ok(());
+        }
+
+        ChorusResult::Err(result.err().unwrap())
     }
 }
 
