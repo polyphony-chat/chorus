@@ -12,7 +12,7 @@ use crate::{
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
     types::{
-        DeleteDisableUserSchema, GetUserProfileSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema, UserModifySchema, UserProfile, UserProfileMetadata, UserSettings, VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema
+        DeleteDisableUserSchema, GetPomeloEligibilityReturn, GetPomeloSuggestionsReturn, GetUserProfileSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema, UserModifySchema, UserProfile, UserProfileMetadata, UserSettings, VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema
     },
 };
 
@@ -172,7 +172,11 @@ impl ChorusUser {
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-profile>
-    pub async fn get_user_profile(&mut self, id: Snowflake, query_parameters: GetUserProfileSchema) -> ChorusResult<UserProfile> {
+    pub async fn get_user_profile(
+        &mut self,
+        id: Snowflake,
+        query_parameters: GetUserProfileSchema,
+    ) -> ChorusResult<UserProfile> {
         User::get_profile(self, id, query_parameters).await
     }
 
@@ -241,6 +245,62 @@ impl ChorusUser {
         chorus_request
             .deserialize_response::<VerifyUserEmailChangeResponse>(self)
             .await
+    }
+
+    /// Returns a suggested unique username based on the current user's username.
+    ///
+    /// Note:
+    ///
+    /// "This endpoint is used during the pomelo migration flow.
+    ///
+    /// The user must be in the rollout to use this endpoint."
+	 ///
+	 /// If a user has already migrated, this endpoint will likely return a 401 Unauthorized
+	 /// ([ChorusError::NoPermission])
+    ///
+    /// See <https://docs.discord.sex/resources/user#get-pomelo-suggestions>
+    pub async fn get_pomelo_suggestions(&mut self) -> ChorusResult<String> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/pomelo-suggestions",
+                self.belongs_to.read().unwrap().urls.api
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+        chorus_request
+            .deserialize_response::<GetPomeloSuggestionsReturn>(self)
+            .await
+				.map(|returned| returned.username)
+    }
+
+	 /// Checks whether a unique username is available.
+	 ///
+	 /// Returns whether the username is not taken yet.
+    ///
+    /// See <https://docs.discord.sex/resources/user#get-pomelo-eligibility>
+    pub async fn get_pomelo_eligibility(&mut self, username: &String) -> ChorusResult<bool> {
+        let request = Client::new()
+            .post(format!(
+                "{}/users/@me/pomelo-attempt",
+                self.belongs_to.read().unwrap().urls.api
+            ))
+            .header("Authorization", self.token())
+				// FIXME: should we create a type for this?
+				.body(format!(r#"{{ "username": {:?} }}"#, username))
+            .header("Content-Type", "application/json");
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+        chorus_request
+            .deserialize_response::<GetPomeloEligibilityReturn>(self)
+            .await
+				.map(|returned| !returned.taken)
     }
 }
 
@@ -353,12 +413,16 @@ impl User {
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-profile>
-    pub async fn get_profile(user: &mut ChorusUser, id: Snowflake, query_parameters: GetUserProfileSchema) -> ChorusResult<UserProfile> {
+    pub async fn get_profile(
+        user: &mut ChorusUser,
+        id: Snowflake,
+        query_parameters: GetUserProfileSchema,
+    ) -> ChorusResult<UserProfile> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/{}/profile", url_api, id))
             .header("Authorization", user.token())
-				.query(&query_parameters);
+            .query(&query_parameters);
 
         let chorus_request = ChorusRequest {
             request,

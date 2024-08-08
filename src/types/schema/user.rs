@@ -213,3 +213,18 @@ pub struct GetUserProfileSchema {
     pub connections_role_id: Option<Snowflake>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Internal type for the [crate::instance::ChorusUser::get_pomelo_suggestions] endpoint.
+///
+/// See <https://docs.discord.sex/resources/user#get-pomelo-suggestions>
+pub(crate) struct GetPomeloSuggestionsReturn {
+	pub username: String
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Internal type for the [crate::instance::ChorusUser::get_pomelo_eligibility] endpoint.
+///
+/// See <https://docs.discord.sex/resources/user#get-pomelo-eligibility>
+pub(crate) struct GetPomeloEligibilityReturn {
+	pub taken: bool
+}
