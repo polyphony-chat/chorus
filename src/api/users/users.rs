@@ -13,7 +13,8 @@ use crate::{
     ratelimiter::ChorusRequest,
     types::{
         DeleteDisableUserSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema,
-        UserModifySchema, UserProfile, UserProfileMetadata, UserSettings, VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
+        UserModifySchema, UserProfile, UserProfileMetadata, UserSettings,
+        VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
     },
 };
 
@@ -44,6 +45,11 @@ impl ChorusUser {
     ///
     /// As of 2024/07/28, Spacebar does not yet implement this endpoint.
     ///
+    /// If fetching with a pomelo username, discriminator should be set to None.
+    ///
+    /// This route also permits fetching users with their old pre-pomelo username#discriminator
+    /// combo.
+    ///
     /// Note:
     ///
     /// "Unless the target user is a bot, you must be able to add
@@ -56,8 +62,12 @@ impl ChorusUser {
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-by-username>
-    pub async fn get_user_by_username(&mut self, username: &String) -> ChorusResult<PublicUser> {
-        User::get_by_username(self, username).await
+    pub async fn get_user_by_username(
+        &mut self,
+        username: &String,
+        discriminator: Option<&String>,
+    ) -> ChorusResult<PublicUser> {
+        User::get_by_username(self, username, discriminator).await
     }
 
     /// Gets the user's settings.
@@ -187,8 +197,8 @@ impl ChorusUser {
     /// Initiates the email change process.
     ///
     /// Sends a verification code to the current user's email.
-	 ///
-	 /// Should be followed up with [Self::verify_email_change]
+    ///
+    /// Should be followed up with [Self::verify_email_change]
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#modify-user-email>
@@ -206,28 +216,33 @@ impl ChorusUser {
         chorus_request.handle_request_as_result(self).await
     }
 
-	 /// Verifies a code sent to change the current user's email.
+    /// Verifies a code sent to change the current user's email.
     ///
-	 /// Should be the follow-up to [Self::initiate_email_change]
-	 ///
-	 /// This endpoint returns a token which can be used with [Self::modify]
-	 /// to set a new email address (email_token).
+    /// Should be the follow-up to [Self::initiate_email_change]
+    ///
+    /// This endpoint returns a token which can be used with [Self::modify]
+    /// to set a new email address (email_token).
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#modify-user-email>
-    pub async fn verify_email_change(&mut self, schema: VerifyUserEmailChangeSchema) -> ChorusResult<VerifyUserEmailChangeResponse> {
+    pub async fn verify_email_change(
+        &mut self,
+        schema: VerifyUserEmailChangeSchema,
+    ) -> ChorusResult<VerifyUserEmailChangeResponse> {
         let request = Client::new()
             .post(format!(
                 "{}/users/@me/email/verify-code",
                 self.belongs_to.read().unwrap().urls.api
             ))
             .header("Authorization", self.token())
-				.json(&schema);
+            .json(&schema);
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         };
-        chorus_request.deserialize_response::<VerifyUserEmailChangeResponse>(self).await
+        chorus_request
+            .deserialize_response::<VerifyUserEmailChangeResponse>(self)
+            .await
     }
 }
 
@@ -272,6 +287,11 @@ impl User {
     ///
     /// As of 2024/07/28, Spacebar does not yet implement this endpoint.
     ///
+    /// If fetching with a pomelo username, discriminator should be set to None.
+    ///
+    /// This route also permits fetching users with their old pre-pomelo username#discriminator
+    /// combo.
+    ///
     /// Note:
     ///
     /// "Unless the target user is a bot, you must be able to add
@@ -284,12 +304,18 @@ impl User {
     pub async fn get_by_username(
         user: &mut ChorusUser,
         username: &String,
+        discriminator: Option<&String>,
     ) -> ChorusResult<PublicUser> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let url = format!("{}/users/username/{username}", url_api);
-        let request = reqwest::Client::new()
+        let mut request = reqwest::Client::new()
             .get(url)
             .header("Authorization", user.token());
+
+        if let Some(some_discriminator) = discriminator {
+            request = request.query(&[("discriminator", some_discriminator)]);
+        }
+
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
