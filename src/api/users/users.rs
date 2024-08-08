@@ -12,9 +12,7 @@ use crate::{
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
     types::{
-        DeleteDisableUserSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema,
-        UserModifySchema, UserProfile, UserProfileMetadata, UserSettings,
-        VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
+        DeleteDisableUserSchema, GetUserProfileSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema, UserModifySchema, UserProfile, UserProfileMetadata, UserSettings, VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema
     },
 };
 
@@ -174,8 +172,8 @@ impl ChorusUser {
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-profile>
-    pub async fn get_user_profile(&mut self, id: Snowflake) -> ChorusResult<UserProfile> {
-        User::get_profile(self, id).await
+    pub async fn get_user_profile(&mut self, id: Snowflake, query_parameters: GetUserProfileSchema) -> ChorusResult<UserProfile> {
+        User::get_profile(self, id, query_parameters).await
     }
 
     /// Modifies the current user's profile.
@@ -355,12 +353,13 @@ impl User {
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-profile>
-    // TODO: Implement query string parameters for this endpoint
-    pub async fn get_profile(user: &mut ChorusUser, id: Snowflake) -> ChorusResult<UserProfile> {
+    pub async fn get_profile(user: &mut ChorusUser, id: Snowflake, query_parameters: GetUserProfileSchema) -> ChorusResult<UserProfile> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/{}/profile", url_api, id))
-            .header("Authorization", user.token());
+            .header("Authorization", user.token())
+				.query(&query_parameters);
+
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,

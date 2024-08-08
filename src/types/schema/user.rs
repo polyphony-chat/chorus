@@ -181,3 +181,35 @@ pub struct VerifyUserEmailChangeResponse {
     #[serde(rename = "token")]
     pub email_token: String,
 }
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+/// Query string parameters for the route GET /users/{user.id}/profile
+/// ([crate::types::User::get_profile])
+///
+/// See <https://docs.discord.sex/resources/user#get-user-profile>
+pub struct GetUserProfileSchema {
+    /// Whether to include the mutual guilds between the current user.
+    ///
+    /// If unset it will default to true
+    pub with_mutual_guilds: Option<bool>,
+    /// Whether to include the mutual friends between the current user.
+    ///
+    /// If unset it will default to false
+    pub with_mutual_friends: Option<bool>,
+    /// Whether to include the number of mutual friends between the current user
+    ///
+    /// If unset it will default to false
+    pub with_mutual_friends_count: Option<bool>,
+    /// The guild id to get the user's member profile in, if any.
+    ///
+    /// Note:
+    ///
+    /// when you click on a user in the member list in the discord client, a request is sent with
+    /// this property set to the selected guild id.
+    ///
+    /// This makes the request include fields such as guild_member and guild_member_profile
+    pub guild_id: Option<Snowflake>,
+    /// The role id to get the user's application role connection metadata in, if any.
+    pub connections_role_id: Option<Snowflake>,
+}
+
