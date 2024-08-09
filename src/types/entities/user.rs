@@ -331,8 +331,8 @@ pub struct ProfileBadge {
     /// A link (potentially used for href) for the badge.
     ///
     /// e.g.:
-    /// "staff" badge links to "https://discord.com/company"
-    /// "certified_moderator" links to "https://discord.com/safety"
+    /// `"staff"` badge links to `"https://discord.com/company"`
+    /// `"certified_moderator"` links to `"https://discord.com/safety"`
     pub link: Option<String>,
 }
 
