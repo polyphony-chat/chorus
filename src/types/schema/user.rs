@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-use crate::types::{Snowflake, ThemeColors};
+use crate::types::{HarvestBackendType, Snowflake, ThemeColors};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -218,7 +218,7 @@ pub struct GetUserProfileSchema {
 ///
 /// See <https://docs.discord.sex/resources/user#get-pomelo-suggestions>
 pub(crate) struct GetPomeloSuggestionsReturn {
-	pub username: String
+    pub username: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -226,7 +226,7 @@ pub(crate) struct GetPomeloSuggestionsReturn {
 ///
 /// See <https://docs.discord.sex/resources/user#get-pomelo-eligibility>
 pub(crate) struct GetPomeloEligibilityReturn {
-	pub taken: bool
+    pub taken: bool,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
@@ -235,25 +235,35 @@ pub(crate) struct GetPomeloEligibilityReturn {
 ///
 /// See <https://docs.discord.sex/resources/user#get-recent-mentions>
 pub struct GetRecentMentionsSchema {
-	/// Only fetch messages before this message id
-	///
-	/// Due to the nature of snowflakes, this can be easily used to fetch
-	/// messages before a certain timestamp
-	pub before: Option<Snowflake>,
-	/// Max number of messages to return
-	///
-	/// Should be between 1 and 100.
-	///
-	/// If unset the limit is 25 messages
-	pub limit: Option<u8>,
-	/// Limit messages to a specific guild
-	pub guild_id: Option<Snowflake>,
-	/// Whether to include role mentions.
-	///
-	/// If unset the server assumes true
-	pub roles: Option<bool>,
-	/// Whether to include @everyone and @here mentions.
-	///
-	/// If unset the server assumes true
-	pub everyone: Option<bool>,
+    /// Only fetch messages before this message id
+    ///
+    /// Due to the nature of snowflakes, this can be easily used to fetch
+    /// messages before a certain timestamp
+    pub before: Option<Snowflake>,
+    /// Max number of messages to return
+    ///
+    /// Should be between 1 and 100.
+    ///
+    /// If unset the limit is 25 messages
+    pub limit: Option<u8>,
+    /// Limit messages to a specific guild
+    pub guild_id: Option<Snowflake>,
+    /// Whether to include role mentions.
+    ///
+    /// If unset the server assumes true
+    pub roles: Option<bool>,
+    /// Whether to include @everyone and @here mentions.
+    ///
+    /// If unset the server assumes true
+    pub everyone: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Internal type for the [crate::instance::ChorusUser::create_harvest] endpoint.
+// (koza): imo it's nicer if the user can just pass a vec, instead of having to bother with
+// a specific type
+///
+/// See <https://docs.discord.sex/resources/user#create-user-harvest>
+pub(crate) struct CreateUserHarvestSchema {
+    pub backends: Option<Vec<HarvestBackendType>>,
 }

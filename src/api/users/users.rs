@@ -12,9 +12,10 @@ use crate::{
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
     types::{
-        DeleteDisableUserSchema, GetPomeloEligibilityReturn, GetPomeloSuggestionsReturn,
-        GetRecentMentionsSchema, GetUserProfileSchema, LimitType, PublicUser, Snowflake, User,
-        UserModifyProfileSchema, UserModifySchema, UserProfile, UserProfileMetadata, UserSettings,
+        CreateUserHarvestSchema, DeleteDisableUserSchema, GetPomeloEligibilityReturn,
+        GetPomeloSuggestionsReturn, GetRecentMentionsSchema, GetUserProfileSchema, Harvest,
+        HarvestBackendType, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema,
+        UserModifySchema, UserProfile, UserProfileMetadata, UserSettings,
         VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
     },
 };
@@ -392,7 +393,7 @@ impl ChorusUser {
     /// Fires a RecentMentionDelete gateway event. (Note: yet to be implemented in chorus, see [#545](https://github.com/polyphony-chat/chorus/issues/545))
     ///
     /// As of 2024/08/09, Spacebar does not yet implement this endpoint.
-	 ///
+    ///
     /// See <https://docs.discord.sex/resources/user#delete-recent-mention>
     pub async fn delete_recent_mention(&mut self, message_id: Snowflake) -> ChorusResult<()> {
         let request = Client::new()
@@ -409,6 +410,100 @@ impl ChorusUser {
         };
 
         chorus_request.handle_request_as_result(self).await
+    }
+
+    /// If it exists, returns the most recent [Harvest] (personal data harvest request).
+    ///
+    /// To create a new [Harvest], see [Self::create_harvest].
+    ///
+    /// As of 2024/08/09, Spacebar does not yet implement this endpoint. (Or data harvesting)
+    ///
+    /// See <https://docs.discord.sex/resources/user#get-user-harvest>
+    pub async fn get_harvest(&mut self) -> ChorusResult<Option<Harvest>> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/harvest",
+                self.belongs_to.read().unwrap().urls.api,
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        // Manual handling, because a 204 with no harvest is a success state
+        // TODO: Maybe make this a method on ChorusRequest if we need it a lot
+        let response = chorus_request.send_request(self).await?;
+        log::trace!("Got response: {:?}", response);
+
+        if response.status() == http::StatusCode::NO_CONTENT {
+            return Ok(None);
+        }
+
+        let response_text = match response.text().await {
+            Ok(string) => string,
+            Err(e) => {
+                return Err(ChorusError::InvalidResponse {
+                    error: format!(
+                        "Error while trying to process the HTTP response into a String: {}",
+                        e
+                    ),
+                });
+            }
+        };
+
+        let object = match serde_json::from_str::<Harvest>(&response_text) {
+            Ok(object) => object,
+            Err(e) => {
+                return Err(ChorusError::InvalidResponse {
+                    error: format!(
+                        "Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
+                        e, response_text
+                    ),
+                })
+            }
+        };
+        Ok(Some(object))
+    }
+
+    /// Creates a personal data harvest request ([Harvest]) for the current user.
+    ///
+    /// To fetch the latest existing harvest, see [Self::get_harvest].
+    ///
+    /// Invalid options in the backends array are ignored.
+    ///
+    /// If the array is empty (after ignoring), it requests all [HarvestBackendType]s.
+    ///
+    /// As of 2024/08/09, Spacebar does not yet implement this endpoint. (Or data harvesting)
+    ///
+    /// See <https://docs.discord.sex/resources/user#create-user-harvest>
+    pub async fn create_harvest(
+        &mut self,
+        backends: Vec<HarvestBackendType>,
+    ) -> ChorusResult<Harvest> {
+        let schema = if backends.is_empty() {
+            CreateUserHarvestSchema { backends: None }
+        } else {
+            CreateUserHarvestSchema {
+                backends: Some(backends),
+            }
+        };
+
+        let request = Client::new()
+            .post(format!(
+                "{}/users/@me/harvest",
+                self.belongs_to.read().unwrap().urls.api,
+            ))
+            .header("Authorization", self.token())
+            .json(&schema);
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.deserialize_response(self).await
     }
 }
 
