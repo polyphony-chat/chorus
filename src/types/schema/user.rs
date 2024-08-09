@@ -228,3 +228,32 @@ pub(crate) struct GetPomeloSuggestionsReturn {
 pub(crate) struct GetPomeloEligibilityReturn {
 	pub taken: bool
 }
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+/// Query string parameters for the route GET /users/@me/mentions
+/// ([crate::instance::ChorusUser::get_recent_mentions])
+///
+/// See <https://docs.discord.sex/resources/user#get-recent-mentions>
+pub struct GetRecentMentionsSchema {
+	/// Only fetch messages before this message id
+	///
+	/// Due to the nature of snowflakes, this can be easily used to fetch
+	/// messages before a certain timestamp
+	pub before: Option<Snowflake>,
+	/// Max number of messages to return
+	///
+	/// Should be between 1 and 100.
+	///
+	/// If unset the limit is 25 messages
+	pub limit: Option<u8>,
+	/// Limit messages to a specific guild
+	pub guild_id: Option<Snowflake>,
+	/// Whether to include role mentions.
+	///
+	/// If unset the server assumes true
+	pub roles: Option<bool>,
+	/// Whether to include @everyone and @here mentions.
+	///
+	/// If unset the server assumes true
+	pub everyone: Option<bool>,
+}

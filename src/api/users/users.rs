@@ -13,8 +13,8 @@ use crate::{
     ratelimiter::ChorusRequest,
     types::{
         DeleteDisableUserSchema, GetPomeloEligibilityReturn, GetPomeloSuggestionsReturn,
-        GetUserProfileSchema, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema,
-        UserModifySchema, UserProfile, UserProfileMetadata, UserSettings,
+        GetRecentMentionsSchema, GetUserProfileSchema, LimitType, PublicUser, Snowflake, User,
+        UserModifyProfileSchema, UserModifySchema, UserProfile, UserProfileMetadata, UserSettings,
         VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
     },
 };
@@ -357,6 +357,58 @@ impl ChorusUser {
         }
 
         ChorusResult::Err(result.err().unwrap())
+    }
+
+    /// Fetches a list of [Message](crate::types::Message)s that the current user has been
+    /// mentioned in during the last 7 days.
+    ///
+    /// As of 2024/08/09, Spacebar does not yet implement this endpoint.
+    ///
+    /// See <https://docs.discord.sex/resources/user#get-recent-mentions>
+    pub async fn get_recent_mentions(
+        &mut self,
+        query_parameters: GetRecentMentionsSchema,
+    ) -> ChorusResult<Vec<crate::types::Message>> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/mentions",
+                self.belongs_to.read().unwrap().urls.api
+            ))
+            .header("Authorization", self.token())
+            .query(&query_parameters);
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request
+            .deserialize_response::<Vec<crate::types::Message>>(self)
+            .await
+    }
+
+    /// Acknowledges a message the current user has been mentioned in.
+    ///
+    /// Fires a RecentMentionDelete gateway event. (Note: yet to be implemented in chorus, see [#545](https://github.com/polyphony-chat/chorus/issues/545))
+    ///
+    /// As of 2024/08/09, Spacebar does not yet implement this endpoint.
+	 ///
+    /// See <https://docs.discord.sex/resources/user#delete-recent-mention>
+    pub async fn delete_recent_mention(&mut self, message_id: Snowflake) -> ChorusResult<()> {
+        let request = Client::new()
+            .delete(format!(
+                "{}/users/@me/mentions/{}",
+                self.belongs_to.read().unwrap().urls.api,
+                message_id
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.handle_request_as_result(self).await
     }
 }
 
