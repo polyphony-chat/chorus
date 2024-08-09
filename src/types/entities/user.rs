@@ -116,32 +116,32 @@ impl TryFrom<Vec<u8>> for ThemeColors {
 
 #[cfg(feature = "sqlx")]
 // TODO: Add tests for Encode and Decode.
-impl<'q> sqlx::Encode<'q, sqlx::MySql> for ThemeColors {
+impl<'q> sqlx::Encode<'q, sqlx::Any> for ThemeColors {
     fn encode_by_ref(
         &self,
-        buf: &mut <sqlx::MySql as sqlx::database::HasArguments<'q>>::ArgumentBuffer,
-    ) -> sqlx::encode::IsNull {
+        buf: &mut <sqlx::Any as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
         let mut vec_u8 = Vec::new();
         vec_u8.extend_from_slice(&self.inner.0.to_be_bytes());
         vec_u8.extend_from_slice(&self.inner.1.to_be_bytes());
-        <Vec<u8> as sqlx::Encode<'q, sqlx::MySql>>::encode_by_ref(&vec_u8, buf)
+        <Vec<u8> as sqlx::Encode<sqlx::Any>>::encode_by_ref(&vec_u8, buf)
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl<'d> sqlx::Decode<'d, sqlx::MySql> for ThemeColors {
+impl<'d> sqlx::Decode<'d, sqlx::Any> for ThemeColors {
     fn decode(
-        value: <sqlx::MySql as sqlx::database::HasValueRef<'d>>::ValueRef,
+        value: <sqlx::Any as sqlx::Database>::ValueRef<'d>,
     ) -> Result<Self, sqlx::error::BoxDynError> {
-        let value_vec = <Vec<u8> as sqlx::Decode<'d, sqlx::MySql>>::decode(value)?;
+        let value_vec = <Vec<u8> as sqlx::Decode<'d, sqlx::Any>>::decode(value)?;
         value_vec.try_into().map_err(|e: ChorusError| e.into())
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::MySql> for ThemeColors {
-    fn type_info() -> <sqlx::MySql as sqlx::Database>::TypeInfo {
-        <String as sqlx::Type<sqlx::MySql>>::type_info()
+impl sqlx::Type<sqlx::Any> for ThemeColors {
+    fn type_info() -> <sqlx::Any as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::Any>>::type_info()
     }
 }
 

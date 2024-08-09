@@ -5,14 +5,52 @@
 use crate::types::events::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize, WebSocketEvent, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Deserialize, Serialize, WebSocketEvent, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub struct GatewayHeartbeat {
     pub op: u8,
     pub d: Option<u64>,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, WebSocketEvent, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+impl GatewayHeartbeat {
+    /// The Heartbeat packet a server would receive from a new or fresh Gateway connection.
+    pub fn first() -> Self {
+        Self::default()
+    }
+
+    /// Quickly create a [GatewayHeartbeat] with the correct `opcode` and the given `sequence_number`.
+    ///
+    /// Shorthand for
+    /// ```rs
+    /// Self {
+    ///     op: 1,
+    ///     d: Some(sequence_number)
+    /// }
+    /// ```
+    pub fn new(sequence_number: u64) -> Self {
+        Self {
+            op: 1,
+            d: Some(sequence_number),
+        }
+    }
+}
+
+impl std::default::Default for GatewayHeartbeat {
+    fn default() -> Self {
+        Self { op: 1, d: None }
+    }
+}
+
+#[derive(
+    Debug, Deserialize, Serialize, Clone, WebSocketEvent, Copy, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub struct GatewayHeartbeatAck {
     pub op: i32,
 }
 
+impl std::default::Default for GatewayHeartbeatAck {
+    fn default() -> Self {
+        Self { op: 11 }
+    }
+}

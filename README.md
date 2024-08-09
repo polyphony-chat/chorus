@@ -119,11 +119,11 @@ We recommend checking out the "examples" directory, as well as the documentation
 
 ## MSRV (Minimum Supported Rust Version)
 
-Rust **1.67.1**. This number might change at any point while Chorus is not yet at version 1.0.0.
+Rust **1.70.0**. This number might change at any point while Chorus is not yet at version 1.0.0.
 
 ## Development Setup
 
-Make sure that you have at least Rust 1.67.1 installed. You can check your Rust version by running `cargo --version`
+Make sure that you have at least Rust 1.70.0 installed. You can check your Rust version by running `cargo --version`
 in your terminal. To compile for `wasm32-unknown-unknown`, you need to install the `wasm32-unknown-unknown` target.
 You can do this by running `rustup target add wasm32-unknown-unknown`.
 
