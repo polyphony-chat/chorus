@@ -17,6 +17,18 @@ pub struct UserUpdate {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
+/// See <https://docs.discord.sex/topics/gateway-events#user-note-update-structure>;
+///
+/// Sent when a note the current user has on another user is modified;
+///
+/// If the field "note" is an empty string, the note was removed.
+pub struct UserNoteUpdate {
+    /// Id of the user the note is for
+    pub id: Snowflake,
+    pub note: String,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
 /// Undocumented;
 ///
 /// Possibly an update for muted guild / channel settings for the current user;

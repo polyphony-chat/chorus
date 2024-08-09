@@ -404,6 +404,7 @@ impl Gateway {
                     "MESSAGE_REACTION_REMOVE" => message.reaction_remove, // TODO
                     "MESSAGE_REACTION_REMOVE_ALL" => message.reaction_remove_all, // TODO
                     "MESSAGE_REACTION_REMOVE_EMOJI" => message.reaction_remove_emoji, // TODO
+                    "RECENT_MENTION_DELETE" => message.recent_mention_delete,
                     "MESSAGE_ACK" => message.ack,
                     "PRESENCE_UPDATE" => user.presence_update, // TODO
                     "RELATIONSHIP_ADD" => relationship.add,
@@ -413,6 +414,7 @@ impl Gateway {
                     "STAGE_INSTANCE_DELETE" => stage_instance.delete,
                     "TYPING_START" => user.typing_start,
                     "USER_UPDATE" => user.update, // TODO
+                    "USER_NOTE_UPDATE" => user.note_update,
                     "USER_GUILD_SETTINGS_UPDATE" => user.guild_settings_update,
                     "VOICE_STATE_UPDATE" => voice.state_update, // TODO
                     "VOICE_SERVER_UPDATE" => voice.server_update,
