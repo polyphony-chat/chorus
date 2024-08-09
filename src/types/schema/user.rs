@@ -267,3 +267,11 @@ pub struct GetRecentMentionsSchema {
 pub(crate) struct CreateUserHarvestSchema {
     pub backends: Option<Vec<HarvestBackendType>>,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Internal type for the [crate::instance::ChorusUser::set_user_note] endpoint.
+///
+/// See <https://docs.discord.sex/resources/user#modify-user-note>
+pub(crate) struct ModifyUserNoteSchema {
+    pub note: Option<String>,
+}

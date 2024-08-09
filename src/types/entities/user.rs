@@ -765,3 +765,22 @@ pub struct MutualGuild {
     /// The user's nickname in the guild, if any
     pub nick: Option<String>,
 }
+
+/// Structure which is returned by the [crate::instance::ChorusUser::get_user_note] endpoint.
+///
+/// Note that [crate::instance::ChorusUser::get_user_notes] endpoint
+/// returns a completely different structure;
+// Specualation: this is probably how Discord stores notes internally
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#get-user-note>
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+pub struct UserNote {
+    /// Actual note contents; max 256 characters
+    pub note: String,
+    /// The ID of the user the note is on
+    pub note_user_id: Snowflake,
+    /// The ID of the user who created the note (always the current user)
+    pub user_id: Snowflake,
+}

@@ -2,7 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use reqwest::Client;
 use serde_json::to_string;
@@ -14,9 +17,9 @@ use crate::{
     types::{
         CreateUserHarvestSchema, DeleteDisableUserSchema, GetPomeloEligibilityReturn,
         GetPomeloSuggestionsReturn, GetRecentMentionsSchema, GetUserProfileSchema, Harvest,
-        HarvestBackendType, LimitType, PublicUser, Snowflake, User, UserModifyProfileSchema,
-        UserModifySchema, UserProfile, UserProfileMetadata, UserSettings,
-        VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
+        HarvestBackendType, LimitType, ModifyUserNoteSchema, PublicUser, Snowflake, User,
+        UserModifyProfileSchema, UserModifySchema, UserNote, UserProfile, UserProfileMetadata,
+        UserSettings, VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
     },
 };
 
@@ -224,10 +227,11 @@ impl ChorusUser {
 
     /// Verifies a code sent to change the current user's email.
     ///
-    /// Should be the follow-up to [Self::initiate_email_change]
-    ///
     /// This endpoint returns a token which can be used with [Self::modify]
     /// to set a new email address (email_token).
+    ///
+    /// # Notes
+    /// Should be the follow-up to [Self::initiate_email_change]
     ///
     /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
     // FIXME: Does this mean PUT users/@me/email is different?
@@ -256,8 +260,7 @@ impl ChorusUser {
 
     /// Returns a suggested unique username based on the current user's username.
     ///
-    /// Note:
-    ///
+    /// # Notes:
     /// "This endpoint is used during the pomelo migration flow.
     ///
     /// The user must be in the rollout to use this endpoint."
@@ -267,6 +270,7 @@ impl ChorusUser {
     ///
     /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
     ///
+    /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-pomelo-suggestions>
     pub async fn get_pomelo_suggestions(&mut self) -> ChorusResult<String> {
         let request = Client::new()
@@ -290,8 +294,10 @@ impl ChorusUser {
     ///
     /// Returns whether the username is not taken yet.
     ///
+    /// # Notes
     /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
     ///
+    /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-pomelo-eligibility>
     pub async fn get_pomelo_eligibility(&mut self, username: &String) -> ChorusResult<bool> {
         let request = Client::new()
@@ -321,8 +327,7 @@ impl ChorusUser {
     /// Updates [Self::object] to an updated representation returned by the server.
     // FIXME: Is this appropriate behaviour?
     ///
-    /// Note:
-    ///
+    /// # Notes
     /// "This endpoint is used during the pomelo migration flow.
     ///
     /// The user must be in the rollout to use this endpoint."
@@ -332,6 +337,7 @@ impl ChorusUser {
     //
     /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
     ///
+    /// # Reference
     /// See <https://docs.discord.sex/resources/user#create-pomelo-migration>
     pub async fn create_pomelo_migration(&mut self, username: &String) -> ChorusResult<()> {
         let request = Client::new()
@@ -363,8 +369,10 @@ impl ChorusUser {
     /// Fetches a list of [Message](crate::types::Message)s that the current user has been
     /// mentioned in during the last 7 days.
     ///
+    /// # Notes
     /// As of 2024/08/09, Spacebar does not yet implement this endpoint.
     ///
+    /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-recent-mentions>
     pub async fn get_recent_mentions(
         &mut self,
@@ -390,10 +398,12 @@ impl ChorusUser {
 
     /// Acknowledges a message the current user has been mentioned in.
     ///
-    /// Fires a RecentMentionDelete gateway event. (Note: yet to be implemented in chorus, see [#545](https://github.com/polyphony-chat/chorus/issues/545))
+    /// Fires a `RecentMentionDelete` gateway event. (Note: yet to be implemented in chorus, see [#545](https://github.com/polyphony-chat/chorus/issues/545))
     ///
+    /// # Notes
     /// As of 2024/08/09, Spacebar does not yet implement this endpoint.
     ///
+    /// # Reference
     /// See <https://docs.discord.sex/resources/user#delete-recent-mention>
     pub async fn delete_recent_mention(&mut self, message_id: Snowflake) -> ChorusResult<()> {
         let request = Client::new()
@@ -416,8 +426,10 @@ impl ChorusUser {
     ///
     /// To create a new [Harvest], see [Self::create_harvest].
     ///
+    /// # Notes
     /// As of 2024/08/09, Spacebar does not yet implement this endpoint. (Or data harvesting)
     ///
+    /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-harvest>
     pub async fn get_harvest(&mut self) -> ChorusResult<Option<Harvest>> {
         let request = Client::new()
@@ -469,6 +481,7 @@ impl ChorusUser {
 
     /// Creates a personal data harvest request ([Harvest]) for the current user.
     ///
+    /// # Notes
     /// To fetch the latest existing harvest, see [Self::get_harvest].
     ///
     /// Invalid options in the backends array are ignored.
@@ -477,6 +490,7 @@ impl ChorusUser {
     ///
     /// As of 2024/08/09, Spacebar does not yet implement this endpoint. (Or data harvesting)
     ///
+    /// # Reference
     /// See <https://docs.discord.sex/resources/user#create-user-harvest>
     pub async fn create_harvest(
         &mut self,
@@ -504,6 +518,57 @@ impl ChorusUser {
         };
 
         chorus_request.deserialize_response(self).await
+    }
+
+    /// Returns a mapping of user IDs ([Snowflake]s) to notes ([String]s) for the current user.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-user-notes>
+    pub async fn get_user_notes(&mut self) -> ChorusResult<HashMap<Snowflake, String>> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/notes",
+                self.belongs_to.read().unwrap().urls.api,
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.deserialize_response(self).await
+    }
+
+    /// Fetches the note ([UserNote]) for the given user.
+    ///
+    /// If the current user has no note for the target, this endpoint
+    /// returns `Err(NotFound { error: "{\"message\": \"Unknown User\", \"code\": 10013}" })`
+    ///
+    /// # Notes
+    /// This function is a wrapper around [`User::get_note`].
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-user-note>
+    pub async fn get_user_note(&mut self, target_user_id: Snowflake) -> ChorusResult<UserNote> {
+        User::get_note(self, target_user_id).await
+    }
+
+    /// Sets the note for the given user.
+    ///
+    /// Fires a `UserNoteUpdate` gateway event. (Note: yet to be implemented in chorus, see [#546](https://github.com/polyphony-chat/chorus/issues/546))
+    ///
+    /// # Notes
+    /// This function is a wrapper around [`User::set_note`].
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#modify-user-note>
+    pub async fn set_user_note(
+        &mut self,
+        target_user_id: Snowflake,
+        note: Option<String>,
+    ) -> ChorusResult<()> {
+        User::set_note(self, target_user_id, note).await
     }
 }
 
@@ -658,5 +723,62 @@ impl User {
         chorus_request
             .deserialize_response::<UserProfileMetadata>(user)
             .await
+    }
+
+    /// Fetches the note ([UserNote]) for the given user.
+    ///
+    /// If the current user has no note for the target, this endpoint
+    /// returns `Err(NotFound { error: "{\"message\": \"Unknown User\", \"code\": 10013}" })`
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-user-note>
+    pub async fn get_note(
+        user: &mut ChorusUser,
+        target_user_id: Snowflake,
+    ) -> ChorusResult<UserNote> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/notes/{}",
+                user.belongs_to.read().unwrap().urls.api,
+                target_user_id
+            ))
+            .header("Authorization", user.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.deserialize_response(user).await
+    }
+
+    /// Sets the note for the given user.
+    ///
+    /// Fires a `UserNoteUpdate` gateway event. (Note: yet to be implemented in chorus, see [#546](https://github.com/polyphony-chat/chorus/issues/546))
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#modify-user-note>
+    pub async fn set_note(
+        user: &mut ChorusUser,
+        target_user_id: Snowflake,
+        note: Option<String>,
+    ) -> ChorusResult<()> {
+        let schema = ModifyUserNoteSchema { note };
+
+        let request = Client::new()
+            .put(format!(
+                "{}/users/@me/notes/{}",
+                user.belongs_to.read().unwrap().urls.api,
+                target_user_id
+            ))
+            .header("Authorization", user.token())
+            .json(&schema);
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.handle_request_as_result(user).await
     }
 }
