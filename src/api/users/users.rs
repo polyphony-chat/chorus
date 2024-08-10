@@ -15,11 +15,12 @@ use crate::{
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
     types::{
-        CreateUserHarvestSchema, DeleteDisableUserSchema, GetPomeloEligibilityReturn,
-        GetPomeloSuggestionsReturn, GetRecentMentionsSchema, GetUserProfileSchema, Harvest,
-        HarvestBackendType, LimitType, ModifyUserNoteSchema, PublicUser, Snowflake, User,
-        UserModifyProfileSchema, UserModifySchema, UserNote, UserProfile, UserProfileMetadata,
-        UserSettings, VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
+        AuthorizeConnectionSchema, ConnectionType, CreateUserHarvestSchema,
+        DeleteDisableUserSchema, GetPomeloEligibilityReturn, GetPomeloSuggestionsReturn,
+        GetRecentMentionsSchema, GetUserProfileSchema, Harvest, HarvestBackendType, LimitType,
+        ModifyUserNoteSchema, PublicUser, Snowflake, User, UserModifyProfileSchema,
+        UserModifySchema, UserNote, UserProfile, UserProfileMetadata, UserSettings,
+        VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
     },
 };
 

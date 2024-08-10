@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-use crate::types::{HarvestBackendType, Snowflake, ThemeColors};
+use crate::types::{HarvestBackendType, Snowflake, ThemeColors, TwoWayLinkType};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -274,4 +274,26 @@ pub(crate) struct CreateUserHarvestSchema {
 /// See <https://docs.discord.sex/resources/user#modify-user-note>
 pub(crate) struct ModifyUserNoteSchema {
     pub note: Option<String>,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Query string parameters for the route GET /connections/{connection.type}/authorize
+/// ([crate::instance::ChorusUser::authorize_connection])
+///
+/// See <https://docs.discord.sex/resources/user#authorize-user-connection>
+pub struct AuthorizeConnectionSchema {
+    /// The type of two-way link ([TwoWayLinkType]) to create
+    pub two_way_link_type: Option<TwoWayLinkType>,
+    /// The device code to use for the two-way link
+    pub two_way_user_code: Option<String>,
+    /// If this is a continuation of a previous authorization
+    pub continuation: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Internal type for the [crate::instance::ChorusUser::authorize_connection] endpoint.
+///
+/// See <https://docs.discord.sex/resources/user#authorize-user-connection>
+pub(crate) struct AuthorizeConnectionReturn {
+    pub url: String,
 }
