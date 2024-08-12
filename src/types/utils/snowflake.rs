@@ -99,28 +99,28 @@ impl<'de> serde::Deserialize<'de> for Snowflake {
 }
 
 #[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::Any> for Snowflake {
-    fn type_info() -> <sqlx::Any as sqlx::Database>::TypeInfo {
-        <String as sqlx::Type<sqlx::Any>>::type_info()
+impl sqlx::Type<sqlx::Postgres> for Snowflake {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl<'q> sqlx::Encode<'q, sqlx::Any> for Snowflake {
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for Snowflake {
     fn encode_by_ref(
         &self,
-        buf: &mut <sqlx::Any as sqlx::Database>::ArgumentBuffer<'q>,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
     ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <String as sqlx::Encode<'q, sqlx::Any>>::encode_by_ref(&self.0.to_string(), buf)
+        <String as sqlx::Encode<'q, sqlx::Postgres>>::encode_by_ref(&self.0.to_string(), buf)
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl<'d> sqlx::Decode<'d, sqlx::Any> for Snowflake {
+impl<'d> sqlx::Decode<'d, sqlx::Postgres> for Snowflake {
     fn decode(
-        value: <sqlx::Any as sqlx::Database>::ValueRef<'d>,
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'d>,
     ) -> Result<Self, sqlx::error::BoxDynError> {
-        <String as sqlx::Decode<'d, sqlx::Any>>::decode(value)
+        <String as sqlx::Decode<'d, sqlx::Postgres>>::decode(value)
             .map(|s| s.parse::<u64>().map(Snowflake).unwrap())
     }
 }

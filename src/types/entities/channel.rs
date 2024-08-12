@@ -342,7 +342,7 @@ pub struct DefaultReaction {
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(u32)]
+#[repr(i32)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#channel-type>
 pub enum ChannelType {

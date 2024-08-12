@@ -109,32 +109,32 @@ impl TryFrom<Vec<u8>> for ThemeColors {
 
 #[cfg(feature = "sqlx")]
 // TODO: Add tests for Encode and Decode.
-impl<'q> sqlx::Encode<'q, sqlx::Any> for ThemeColors {
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for ThemeColors {
     fn encode_by_ref(
         &self,
-        buf: &mut <sqlx::Any as sqlx::Database>::ArgumentBuffer<'q>,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
     ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
         let mut vec_u8 = Vec::new();
         vec_u8.extend_from_slice(&self.inner.0.to_be_bytes());
         vec_u8.extend_from_slice(&self.inner.1.to_be_bytes());
-        <Vec<u8> as sqlx::Encode<sqlx::Any>>::encode_by_ref(&vec_u8, buf)
+        <Vec<u8> as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&vec_u8, buf)
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl<'d> sqlx::Decode<'d, sqlx::Any> for ThemeColors {
+impl<'d> sqlx::Decode<'d, sqlx::Postgres> for ThemeColors {
     fn decode(
-        value: <sqlx::Any as sqlx::Database>::ValueRef<'d>,
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'d>,
     ) -> Result<Self, sqlx::error::BoxDynError> {
-        let value_vec = <Vec<u8> as sqlx::Decode<'d, sqlx::Any>>::decode(value)?;
+        let value_vec = <Vec<u8> as sqlx::Decode<'d, sqlx::Postgres>>::decode(value)?;
         value_vec.try_into().map_err(|e: ChorusError| e.into())
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::Any> for ThemeColors {
-    fn type_info() -> <sqlx::Any as sqlx::Database>::TypeInfo {
-        <String as sqlx::Type<sqlx::Any>>::type_info()
+impl sqlx::Type<sqlx::Postgres> for ThemeColors {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 }
 
