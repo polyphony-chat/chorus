@@ -41,13 +41,7 @@ use super::{option_arc_rwlock_ptr_eq, option_vec_arc_rwlock_ptr_eq};
 /// See <https://discord-userdoccers.vercel.app/resources/channel#channels-resource>
 pub struct Channel {
     pub application_id: Option<Snowflake>,
-    #[cfg(feature = "sqlx")]
-    pub applied_tags: Option<sqlx::types::Json<Vec<String>>>,
-    #[cfg(not(feature = "sqlx"))]
     pub applied_tags: Option<Vec<String>>,
-    #[cfg(feature = "sqlx")]
-    pub available_tags: Option<sqlx::types::Json<Vec<Tag>>>,
-    #[cfg(not(feature = "sqlx"))]
     pub available_tags: Option<Vec<Tag>>,
     pub bitrate: Option<i32>,
     #[serde(rename = "type")]
@@ -55,9 +49,7 @@ pub struct Channel {
     pub created_at: Option<chrono::DateTime<Utc>>,
     pub default_auto_archive_duration: Option<i32>,
     pub default_forum_layout: Option<i32>,
-    #[cfg(feature = "sqlx")]
-    pub default_reaction_emoji: Option<sqlx::types::Json<DefaultReaction>>,
-    #[cfg(not(feature = "sqlx"))]
+    // DefaultReaction could be stored in a separate table. However, there are a lot of default emojis. How would we handle that?
     pub default_reaction_emoji: Option<DefaultReaction>,
     pub default_sort_order: Option<i32>,
     pub default_thread_rate_limit_per_user: Option<i32>,

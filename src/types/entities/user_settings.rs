@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 use crate::types::Shared;
 use serde_aux::field_attributes::deserialize_option_number_from_string;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, Copy, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, Copy, PartialOrd, Ord, Hash,
+)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum UserStatus {
@@ -26,7 +28,9 @@ impl std::fmt::Display for UserStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, Copy, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, Copy, PartialOrd, Ord, Hash,
+)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum UserTheme {
@@ -44,9 +48,6 @@ pub struct UserSettings {
     pub animate_stickers: u8,
     pub contact_sync_enabled: bool,
     pub convert_emoticons: bool,
-    #[cfg(feature = "sqlx")]
-    pub custom_status: Option<sqlx::types::Json<CustomStatus>>,
-    #[cfg(not(feature = "sqlx"))]
     pub custom_status: Option<CustomStatus>,
     pub default_guilds_restricted: bool,
     pub detect_platform_accounts: bool,
@@ -54,20 +55,10 @@ pub struct UserSettings {
     pub disable_games_tab: bool,
     pub enable_tts_command: bool,
     pub explicit_content_filter: u8,
-    #[cfg(feature = "sqlx")]
-    pub friend_source_flags: sqlx::types::Json<FriendSourceFlags>,
-    #[cfg(not(feature = "sqlx"))]
     pub friend_source_flags: FriendSourceFlags,
     pub gateway_connected: Option<bool>,
     pub gif_auto_play: bool,
-    #[cfg(feature = "sqlx")]
-    pub guild_folders: sqlx::types::Json<Vec<GuildFolder>>,
-    #[cfg(not(feature = "sqlx"))]
     pub guild_folders: Vec<GuildFolder>,
-    #[cfg(feature = "sqlx")]
-    #[serde(default)]
-    pub guild_positions: sqlx::types::Json<Vec<String>>,
-    #[cfg(not(feature = "sqlx"))]
     #[serde(default)]
     pub guild_positions: Vec<String>,
     pub inline_attachment_media: bool,
@@ -77,9 +68,6 @@ pub struct UserSettings {
     pub native_phone_integration_enabled: bool,
     pub render_embeds: bool,
     pub render_reactions: bool,
-    #[cfg(feature = "sqlx")]
-    pub restricted_guilds: sqlx::types::Json<Vec<String>>,
-    #[cfg(not(feature = "sqlx"))]
     pub restricted_guilds: Vec<String>,
     pub show_current_game: bool,
     pub status: Shared<UserStatus>,
