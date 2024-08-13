@@ -304,10 +304,9 @@ pub struct UserProfile {
 
     pub mutual_friends_count: Option<u32>,
 
-	 pub connected_accounts: Vec<PublicConnection>,
+    pub connected_accounts: Vec<PublicConnection>,
 
     // TODO: Add application role connections!
-
     /// The type of premium (Nitro) a user has
     pub premium_type: Option<PremiumType>,
     /// The date the user's premium (Nitro) subscribtion started
@@ -785,4 +784,28 @@ pub struct UserNote {
     pub note_user_id: Snowflake,
     /// The ID of the user who created the note (always the current user)
     pub user_id: Snowflake,
+}
+
+/// Structure which defines an affinity the local user has with another user.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#user-affinity-structure>
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, PartialOrd)]
+pub struct UserAffinity {
+    /// The other user's id
+    pub user_id: Snowflake,
+    /// The affinity score
+    pub affinity: f32,
+}
+
+/// Structure which defines an affinity the local user has with a guild.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#guild-affinity-structure>
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, PartialOrd)]
+pub struct GuildAffinity {
+    /// The guild's id
+    pub guild_id: Snowflake,
+    /// The affinity score
+    pub affinity: f32,
 }

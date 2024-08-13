@@ -17,10 +17,11 @@ use crate::{
     types::{
         AuthorizeConnectionSchema, ConnectionType, CreateUserHarvestSchema,
         DeleteDisableUserSchema, GetPomeloEligibilityReturn, GetPomeloSuggestionsReturn,
-        GetRecentMentionsSchema, GetUserProfileSchema, Harvest, HarvestBackendType, LimitType,
-        ModifyUserNoteSchema, PublicUser, Snowflake, User, UserModifyProfileSchema,
-        UserModifySchema, UserNote, UserProfile, UserProfileMetadata, UserSettings,
-        VerifyUserEmailChangeResponse, VerifyUserEmailChangeSchema,
+        GetRecentMentionsSchema, GetUserProfileSchema, GuildAffinities, Harvest,
+        HarvestBackendType, LimitType, ModifyUserNoteSchema, PublicUser, Snowflake, User,
+        UserAffinities, UserModifyProfileSchema, UserModifySchema, UserNote, UserProfile,
+        UserProfileMetadata, UserSettings, VerifyUserEmailChangeResponse,
+        VerifyUserEmailChangeSchema,
     },
 };
 
@@ -570,6 +571,48 @@ impl ChorusUser {
         note: Option<String>,
     ) -> ChorusResult<()> {
         User::set_note(self, target_user_id, note).await
+    }
+
+    /// Fetches the current user's affinity scores for other users.
+    ///
+    /// (Affinity scores are a measure of how likely a user is to be friends with another user.)
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-user-affinities>
+    pub async fn get_user_affinities(&mut self) -> ChorusResult<UserAffinities> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/affinities/users",
+                self.belongs_to.read().unwrap().urls.api,
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.deserialize_response(self).await
+    }
+
+    /// Fetches the current user's affinity scores for their joined guilds.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-guild-affinities>
+    pub async fn get_guild_affinities(&mut self) -> ChorusResult<GuildAffinities> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/affinities/guilds",
+                self.belongs_to.read().unwrap().urls.api,
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.deserialize_response(self).await
     }
 }
 
