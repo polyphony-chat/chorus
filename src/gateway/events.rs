@@ -76,6 +76,7 @@ pub struct Message {
 #[derive(Default, Debug)]
 pub struct User {
     pub update: Publisher<types::UserUpdate>,
+    pub connections_update: Publisher<types::UserConnectionsUpdate>,
     pub note_update: Publisher<types::UserNoteUpdate>,
     pub guild_settings_update: Publisher<types::UserGuildSettingsUpdate>,
     pub presence_update: Publisher<types::PresenceUpdate>,

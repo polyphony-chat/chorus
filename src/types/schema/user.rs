@@ -297,3 +297,80 @@ pub struct AuthorizeConnectionSchema {
 pub(crate) struct AuthorizeConnectionReturn {
     pub url: String,
 }
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Json schema for the route POST /connections/{connection.type}/callback ([crate::instance::ChorusUser::create_connection_callback]).
+///
+/// See <https://docs.discord.sex/resources/user#create-user-connection-callback>
+pub struct CreateConnectionCallbackSchema {
+	/// The authorization code for the connection
+	pub code: String,
+	/// The "state" used to authorize a connection
+	// TODO: what is this?
+	pub state: String,
+	pub two_way_link_code: Option<String>,
+	pub insecure: Option<bool>,
+	pub friend_sync: Option<bool>,
+	/// Additional parameters used for OpenID Connect
+	// FIXME: Is this correct? in other connections additional info
+	// is provided like this, only being string - string
+	pub openid_params: Option<HashMap<String, String>>
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Json schema for the route PUT /users/@me/connections/contacts/{connection.id} ([crate::instance::ChorusUser::create_contact_sync_connection]).
+///
+/// See <https://docs.discord.sex/resources/user#create-contact-sync-connection>
+pub struct CreateContactSyncConnectionSchema {
+	/// The username of the connection account
+	pub name: String,
+	/// Whether to sync friends over the connection
+	pub friend_sync: Option<bool>,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Json schema for the route PATCH /users/@me/connections/{connection.type}/{connection.id} ([crate::instance::ChorusUser::modify_connection]).
+///
+/// Note: not all connection types support all parameters.
+///
+/// See <https://docs.discord.sex/resources/user#modify-user-connection>
+pub struct ModifyConnectionSchema {
+	/// The connection account's username
+	///
+	/// Note: We have not found which connection this could apply to
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub name: Option<String>,
+
+	/// Whether activities related to this connection will be shown in presence
+	///
+	/// e.g. on a Spotify connection, "Display Spotify as your status"
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub show_activity: Option<bool>,
+
+	/// Whether or not to sync friends from this connection
+	///
+	/// Note: we have not found which connections this can apply to
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub friend_sync: Option<bool>,
+
+	/// Whether to show additional metadata on the user's profile
+	///
+	/// e.g. on a Steam connection, "Display details on profile"
+	/// (number of games, items, member since)
+	///
+	/// on a Twitter connection, number of posts / followers, member since
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub metadata_visibility: Option<bool>,
+
+	/// Whether to show the connection on the user's profile
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub visibility: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Internal type for the [crate::instance::ChorusUser::get_connection_access_token] endpoint.
+///
+/// See <https://docs.discord.sex/resources/user#get-user-connection-access-token>
+pub(crate) struct GetConnectionAccessTokenReturn {
+    pub access_token: String,
+}

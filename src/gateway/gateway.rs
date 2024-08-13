@@ -414,6 +414,7 @@ impl Gateway {
                     "STAGE_INSTANCE_DELETE" => stage_instance.delete,
                     "TYPING_START" => user.typing_start,
                     "USER_UPDATE" => user.update, // TODO
+                    "USER_CONNECTIONS_UPDATE" => user.connections_update, // TODO
                     "USER_NOTE_UPDATE" => user.note_update,
                     "USER_GUILD_SETTINGS_UPDATE" => user.guild_settings_update,
                     "VOICE_STATE_UPDATE" => voice.state_update, // TODO

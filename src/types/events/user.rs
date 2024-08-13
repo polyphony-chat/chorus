@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::PublicUser;
 use crate::types::events::WebSocketEvent;
 use crate::types::utils::Snowflake;
+use crate::types::Connection;
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#user-update>;
@@ -14,6 +15,15 @@ use crate::types::utils::Snowflake;
 pub struct UserUpdate {
     #[serde(flatten)]
     pub user: PublicUser,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
+/// Sent to indicate updates to a user's [Connection].
+///
+/// Not documented anywhere
+pub struct UserConnectionsUpdate {
+    #[serde(flatten)]
+    pub connection: Connection,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]

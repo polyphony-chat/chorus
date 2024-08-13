@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    fmt::Display,
-};
+use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -153,6 +150,39 @@ impl Display for ConnectionType {
     }
 }
 
+impl ConnectionType {
+    /// Returns an array of all the connections
+    pub fn array() -> [ConnectionType; 25] {
+        [
+            ConnectionType::AmazonMusic,
+            ConnectionType::BattleNet,
+            ConnectionType::Bungie,
+            ConnectionType::Contacts,
+            ConnectionType::Crunchyroll,
+            ConnectionType::Domain,
+            ConnectionType::Ebay,
+            ConnectionType::EpicGames,
+            ConnectionType::Facebook,
+            ConnectionType::GitHub,
+            ConnectionType::Instagram,
+            ConnectionType::LeagueOfLegends,
+            ConnectionType::PayPal,
+            ConnectionType::Playstation,
+            ConnectionType::Reddit,
+            ConnectionType::RiotGames,
+            ConnectionType::Samsung,
+            ConnectionType::Spotify,
+            ConnectionType::Skype,
+            ConnectionType::Steam,
+            ConnectionType::TikTok,
+            ConnectionType::Twitch,
+            ConnectionType::Twitter,
+            ConnectionType::Xbox,
+            ConnectionType::YouTube,
+        ]
+    }
+}
+
 #[derive(
     Serialize_repr, Deserialize_repr, Debug, Clone, Eq, PartialEq, Hash, Copy, PartialOrd, Ord,
 )]
@@ -188,4 +218,18 @@ impl Display for TwoWayLinkType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(format!("{:?}", self).as_str())
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+/// Defines a subreddit as fetched through a Reddit connection.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#subreddit-structure>
+pub struct ConnectionSubreddit {
+	/// The subreddit's internal id, e.g. "t5_388p4"
+	pub id: String,
+	/// How many reddit users follow the subreddit
+	pub subscribers: usize,
+	/// The subreddit's relative url, e.g. "/r/discordapp/"
+	pub url: String,
 }
