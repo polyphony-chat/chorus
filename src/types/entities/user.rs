@@ -23,7 +23,7 @@ use crate::gateway::GatewayHandle;
 #[cfg(feature = "client")]
 use chorus_macros::{Composite, Updateable};
 
-use super::{Emoji, GuildMember};
+use super::{Emoji, GuildMember, PublicConnection};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
@@ -304,8 +304,10 @@ pub struct UserProfile {
 
     pub mutual_friends_count: Option<u32>,
 
-    // TODO: Add connections!
-    // TODO: And application role connections!
+	 pub connected_accounts: Vec<PublicConnection>,
+
+    // TODO: Add application role connections!
+
     /// The type of premium (Nitro) a user has
     pub premium_type: Option<PremiumType>,
     /// The date the user's premium (Nitro) subscribtion started
