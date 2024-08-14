@@ -13,13 +13,14 @@ rust-version = "1.70.0"
 
 [features]
 default = ["client", "rt-multi-thread"]
-backend = ["poem", "sqlx"]
+backend = ["poem", "sqlx", "num-bigint"]
 rt-multi-thread = ["tokio/rt-multi-thread"]
 rt = ["tokio/rt"]
 client = ["flate2"]
 voice = ["voice_udp", "voice_gateway"]
 voice_udp = ["dep:discortp", "dep:crypto_secretbox"]
 voice_gateway = []
+num-bigint = ["dep:num-bigint"]
 
 [dependencies]
 tokio = { version = "1.38.1", features = ["macros", "sync"] }
@@ -54,6 +55,7 @@ sqlx = { version = "0.8.0", features = [
     "ipnetwork",
     "runtime-tokio-rustls",
     "postgres",
+    "bigdecimal",
 ], optional = true }
 discortp = { version = "0.5.0", optional = true, features = [
     "rtp",
@@ -65,6 +67,7 @@ rand = "0.8.5"
 flate2 = { version = "1.0.30", optional = true }
 webpki-roots = "0.26.3"
 pubserve = { version = "1.1.0", features = ["async", "send"] }
+num-bigint = { version = "0.4.6", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rustls = "0.21.12"
