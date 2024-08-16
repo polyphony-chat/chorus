@@ -809,3 +809,47 @@ pub struct GuildAffinity {
     /// The affinity score
     pub affinity: f32,
 }
+
+/// Structure which defines the local user's premium perk usage.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#get-user-premium-usage>
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct PremiumUsage {
+    /// Number of Nitro stickers the user has sent
+    pub nitro_sticker_sends: PremiumUsageEntry,
+    /// Number of animated emojis the user has sent
+    pub total_animated_emojis: PremiumUsageEntry,
+    /// Number of global emojis the user has sent
+    pub total_global_emojis: PremiumUsageEntry,
+    /// Number of large uploads the user has made
+    pub total_large_uploads: PremiumUsageEntry,
+    /// Number of times the user has streamed in HD
+    pub total_hd_streams: PremiumUsageEntry,
+    /// Number of hours the user has streamed in HD
+    pub hd_hours_streamed: PremiumUsageEntry,
+}
+
+/// Structure for the data in [PremiumUsage].
+///
+/// Currently only contains the number of uses of a premium perk.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#premium-usage-structure>
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct PremiumUsageEntry {
+    /// Total number of uses for this perk
+    pub value: usize,
+}
+
+impl Into<usize> for PremiumUsageEntry {
+	fn into(self) -> usize {
+	    self.value
+	}
+}
+
+impl From<usize> for PremiumUsageEntry {
+	fn from(value: usize) -> Self {
+	    PremiumUsageEntry { value }
+	}
+}

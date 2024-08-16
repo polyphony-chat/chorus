@@ -18,8 +18,8 @@ use crate::{
         AuthorizeConnectionSchema, ConnectionType, CreateUserHarvestSchema,
         DeleteDisableUserSchema, GetPomeloEligibilityReturn, GetPomeloSuggestionsReturn,
         GetRecentMentionsSchema, GetUserProfileSchema, GuildAffinities, Harvest,
-        HarvestBackendType, LimitType, ModifyUserNoteSchema, PublicUser, Snowflake, User,
-        UserAffinities, UserModifyProfileSchema, UserModifySchema, UserNote, UserProfile,
+        HarvestBackendType, LimitType, ModifyUserNoteSchema, PremiumUsage, PublicUser, Snowflake,
+        User, UserAffinities, UserModifyProfileSchema, UserModifySchema, UserNote, UserProfile,
         UserProfileMetadata, UserSettings, VerifyUserEmailChangeResponse,
         VerifyUserEmailChangeSchema,
     },
@@ -603,6 +603,32 @@ impl ChorusUser {
         let request = Client::new()
             .get(format!(
                 "{}/users/@me/affinities/guilds",
+                self.belongs_to.read().unwrap().urls.api,
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.deserialize_response(self).await
+    }
+
+    /// Fetches the current user's usage of various premium perks ([PremiumUsage] object).
+    ///
+    /// The local user must have premium (nitro), otherwise the request will fail
+	 /// with a 404 NotFound error and the message {"message": "Premium usage not available", "code": 10084}.
+	 ///
+	 /// # Notes
+	 /// As of 2024/08/16, Spacebar does not yet implement this endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-user-premium-usage>
+    pub async fn get_premium_usage(&mut self) -> ChorusResult<PremiumUsage> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/premium-usage",
                 self.belongs_to.read().unwrap().urls.api,
             ))
             .header("Authorization", self.token());
