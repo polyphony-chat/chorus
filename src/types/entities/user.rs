@@ -842,14 +842,14 @@ pub struct PremiumUsageData {
     pub value: usize,
 }
 
-impl Into<PremiumUsageData> for usize {
-	fn into(self) -> PremiumUsageData {
-	    PremiumUsageData { value: self }
+impl From<PremiumUsageData> for usize {
+	fn from(value: PremiumUsageData) -> Self {
+	    value.value
 	}
 }
 
-impl Into<usize> for PremiumUsageData {
-	fn into(self) -> usize {
-	    self.value
+impl From<usize> for PremiumUsageData {
+	fn from(value: usize) -> Self {
+	    PremiumUsageData { value }
 	}
 }
