@@ -817,17 +817,17 @@ pub struct GuildAffinity {
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct PremiumUsage {
     /// Number of Nitro stickers the user has sent
-    pub nitro_sticker_sends: PremiumUsageEntry,
+    pub nitro_sticker_sends: PremiumUsageData,
     /// Number of animated emojis the user has sent
-    pub total_animated_emojis: PremiumUsageEntry,
+    pub total_animated_emojis: PremiumUsageData,
     /// Number of global emojis the user has sent
-    pub total_global_emojis: PremiumUsageEntry,
+    pub total_global_emojis: PremiumUsageData,
     /// Number of large uploads the user has made
-    pub total_large_uploads: PremiumUsageEntry,
+    pub total_large_uploads: PremiumUsageData,
     /// Number of times the user has streamed in HD
-    pub total_hd_streams: PremiumUsageEntry,
+    pub total_hd_streams: PremiumUsageData,
     /// Number of hours the user has streamed in HD
-    pub hd_hours_streamed: PremiumUsageEntry,
+    pub hd_hours_streamed: PremiumUsageData,
 }
 
 /// Structure for the data in [PremiumUsage].
@@ -837,19 +837,19 @@ pub struct PremiumUsage {
 /// # Reference
 /// See <https://docs.discord.sex/resources/user#premium-usage-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PremiumUsageEntry {
+pub struct PremiumUsageData {
     /// Total number of uses for this perk
     pub value: usize,
 }
 
-impl Into<usize> for PremiumUsageEntry {
-	fn into(self) -> usize {
-	    self.value
+impl Into<PremiumUsageData> for usize {
+	fn into(self) -> PremiumUsageData {
+	    PremiumUsageData { value: self }
 	}
 }
 
-impl From<usize> for PremiumUsageEntry {
-	fn from(value: usize) -> Self {
-	    PremiumUsageEntry { value }
+impl Into<usize> for PremiumUsageData {
+	fn into(self) -> usize {
+	    self.value
 	}
 }
