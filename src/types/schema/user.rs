@@ -422,7 +422,7 @@ pub enum CreateDomainConnectionReturn {
     /// To verify ownership, either:
     ///
     /// - add the proof string as a TXT DNS record to the domain,
-    ///	 with the name of the record being `_discord.{domain}` or
+    ///   with the name of the record being `_discord.{domain}` or
     ///
     /// - serve the proof string as a file at `https://{domain}/.well-known/discord`
     ///

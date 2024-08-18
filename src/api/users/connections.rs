@@ -147,9 +147,9 @@ impl ChorusUser {
     ///             println!("");
     ///             println!("- create a DNS TXT record with the name _discord.{domain} and content {proof}");
     ///             println!("or");
-    ///		        println!("- create a file at https://{domain}/.well-known/discord with the content {proof}");
-    ///		        // Once the user has added the proof, retry calling the endpoint
-    ///		    }
+    ///             println!("- create a file at https://{domain}/.well-known/discord with the content {proof}");
+    ///             // Once the user has added the proof, retry calling the endpoint
+    ///         }
     ///         CreateDomainConnectionReturn::Ok(connection) => {
     ///             println!("Successfulyl created connection! {:?}", connection);
     ///         }
