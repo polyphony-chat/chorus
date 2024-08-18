@@ -273,7 +273,10 @@ pub struct GuildScheduledEvent {
     pub entity_id: Option<Snowflake>,
     pub entity_metadata: Option<GuildScheduledEventEntityMetadata>,
     pub creator: Option<Shared<User>>,
+    #[cfg(not(feature = "sqlx"))]
     pub user_count: Option<u64>,
+    #[cfg(feature = "sqlx")]
+    pub user_count: Option<sqlx_pg_uint::PgU64>,
     pub image: Option<String>,
 }
 

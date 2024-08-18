@@ -6,9 +6,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    Shared,
     entities::{Guild, User},
     utils::Snowflake,
+    Shared,
 };
 
 /// See <https://docs.spacebar.chat/routes/#cmp--schemas-template>
@@ -18,7 +18,10 @@ pub struct GuildTemplate {
     pub code: String,
     pub name: String,
     pub description: Option<String>,
+    #[cfg(not(feature = "sqlx"))]
     pub usage_count: Option<u64>,
+    #[cfg(feature = "sqlx")]
+    pub usage_count: Option<sqlx_pg_uint::PgU64>,
     pub creator_id: Snowflake,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub creator: Shared<User>,

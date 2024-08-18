@@ -293,7 +293,10 @@ pub struct ThreadMember {
     pub id: Option<Snowflake>,
     pub user_id: Option<Snowflake>,
     pub join_timestamp: Option<DateTime<Utc>>,
+    #[cfg(not(feature = "sqlx"))]
     pub flags: Option<u64>,
+    #[cfg(feature = "sqlx")]
+    pub flags: Option<sqlx_pg_uint::PgU64>,
     pub member: Option<Shared<GuildMember>>,
 }
 

@@ -7,6 +7,8 @@ use super::option_vec_arc_rwlock_ptr_eq;
 
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+#[cfg(feature = "sqlx")]
+use sqlx_pg_uint::PgU64;
 
 use crate::types::utils::Snowflake;
 use crate::types::{
@@ -251,16 +253,28 @@ pub struct AuditEntryInfo {
     pub auto_moderation_rule_trigger_type: Option<AutoModerationRuleTriggerType>,
     pub channel_id: Option<Snowflake>,
     // #[serde(option_string)]
+    #[cfg(not(feature = "sqlx"))]
     pub count: Option<u64>,
+    #[cfg(feature = "sqlx")]
+    pub count: Option<PgU64>,
     // #[serde(option_string)]
+    #[cfg(not(feature = "sqlx"))]
     pub delete_member_days: Option<u64>,
+    #[cfg(feature = "sqlx")]
+    pub delete_member_days: Option<PgU64>,
     /// The ID of the overwritten entity
     pub id: Option<Snowflake>,
     pub integration_type: Option<IntegrationType>,
     // #[serde(option_string)]
+    #[cfg(not(feature = "sqlx"))]
     pub members_removed: Option<u64>,
+    #[cfg(feature = "sqlx")]
+    pub members_removed: Option<PgU64>,
     // #[serde(option_string)]
+    #[cfg(not(feature = "sqlx"))]
     pub message_id: Option<u64>,
+    #[cfg(feature = "sqlx")]
+    pub message_id: Option<PgU64>,
     pub role_name: Option<String>,
     #[serde(rename = "type")]
     pub overwrite_type: Option<PermissionOverwriteType>,
