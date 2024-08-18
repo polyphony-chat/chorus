@@ -6,7 +6,7 @@ use crate::errors::ChorusError;
 use crate::types::utils::Snowflake;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::deserialize_option_number_from_string;
+use serde_aux::prelude::{deserialize_option_number_from_string, deserialize_default_from_null};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::array::TryFromSliceError;
 use std::fmt::Debug;
@@ -257,6 +257,9 @@ pub struct UserProfileMetadata {
     /// The guild ID this profile applies to, if it is a guild profile.
     pub guild_id: Option<Snowflake>,
     /// The user's pronouns, up to 40 characters
+	 #[serde(deserialize_with = "deserialize_default_from_null")]
+	 // Note: spacebar will send this is as null, while it should be ""
+	 // See issue 1188
     pub pronouns: String,
     /// The user's bio / description, up to 190 characters
     pub bio: Option<String>,
