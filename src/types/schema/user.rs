@@ -191,18 +191,22 @@ pub struct VerifyUserEmailChangeResponse {
 ///
 /// See <https://docs.discord.sex/resources/user#get-user-profile>
 pub struct GetUserProfileSchema {
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// Whether to include the mutual guilds between the current user.
     ///
     /// If unset it will default to true
     pub with_mutual_guilds: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// Whether to include the mutual friends between the current user.
     ///
     /// If unset it will default to false
     pub with_mutual_friends: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// Whether to include the number of mutual friends between the current user
     ///
     /// If unset it will default to false
     pub with_mutual_friends_count: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// The guild id to get the user's member profile in, if any.
     ///
     /// Note:
@@ -212,6 +216,7 @@ pub struct GetUserProfileSchema {
     ///
     /// This makes the request include fields such as guild_member and guild_member_profile
     pub guild_id: Option<Snowflake>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// The role id to get the user's application role connection metadata in, if any.
     pub connections_role_id: Option<Snowflake>,
 }
