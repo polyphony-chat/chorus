@@ -140,20 +140,20 @@ impl ChorusUser {
     /// let result = user.create_domain_connection(&domain).await;
     ///
     /// if let Ok(returned) = result {
-    ///	    match returned {
-    ///	        CreateDomainConnectionReturn::ProofNeeded(proof) => {
-    ///		    println!("Additional proof needed!");
-    ///		    println!("Either:");
-    ///		    println!("");
-    ///		    println!("- create a DNS TXT record with the name _discord.{domain} and content {proof}");
-    ///		    println!("or");
-    ///		    println!("- create a file at https://{domain}/.well-known/discord with the content {proof}");
-    ///		    // Once the user has added the proof, retry calling the endpoint
-    ///		}
-    ///		CreateDomainConnectionReturn::Ok(connection) => {
-    ///		    println!("Successfulyl created connection! {:?}", connection);
-    ///		}
-    ///	    }
+    ///     match returned {
+    ///         CreateDomainConnectionReturn::ProofNeeded(proof) => {
+    ///             println!("Additional proof needed!");
+    ///             println!("Either:");
+    ///             println!("");
+    ///             println!("- create a DNS TXT record with the name _discord.{domain} and content {proof}");
+    ///             println!("or");
+    ///		        println!("- create a file at https://{domain}/.well-known/discord with the content {proof}");
+    ///		        // Once the user has added the proof, retry calling the endpoint
+    ///		    }
+    ///         CreateDomainConnectionReturn::Ok(connection) => {
+    ///             println!("Successfulyl created connection! {:?}", connection);
+    ///         }
+    ///     }
     /// } else {
     ///     println!("Failed to create connection: {:?}", result);
     /// }
@@ -205,7 +205,7 @@ impl ChorusUser {
             }
         }
 
-        return Err(error);
+        Err(error)
     }
 
     // TODO: Add create_domain_connection (<https://docs.discord.sex/resources/user#create-domain-connection>)

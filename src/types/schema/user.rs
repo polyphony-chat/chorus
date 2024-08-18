@@ -422,9 +422,7 @@ pub enum CreateDomainConnectionReturn {
     /// To verify ownership, either:
     ///
     /// - add the proof string as a TXT DNS record to the domain,
-    /// with the name of the record being `_discord.{domain}`
-    ///
-    /// or
+    ///	 with the name of the record being `_discord.{domain}` or
     ///
     /// - serve the proof string as a file at `https://{domain}/.well-known/discord`
     ///
@@ -443,9 +441,9 @@ pub enum CreateDomainConnectionReturn {
 /// # Reference
 /// ```json
 /// {
-///	"amount": 2,
-///	"replenished_today": false,
-///	"next_replenish_at": "2024-08-18T23:53:17+00:00"
+///     "amount": 2,
+///     "replenished_today": false,
+///     "next_replenish_at": "2024-08-18T23:53:17+00:00"
 /// }
 /// ```
 pub struct BurstCreditsInfo {
