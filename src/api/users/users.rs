@@ -15,7 +15,7 @@ use crate::{
     instance::{ChorusUser, Instance},
     ratelimiter::ChorusRequest,
     types::{
-        AuthorizeConnectionSchema, ConnectionType, CreateUserHarvestSchema,
+        AuthorizeConnectionSchema, BurstCreditsInfo, ConnectionType, CreateUserHarvestSchema,
         DeleteDisableUserSchema, GetPomeloEligibilityReturn, GetPomeloSuggestionsReturn,
         GetRecentMentionsSchema, GetUserProfileSchema, GuildAffinities, Harvest,
         HarvestBackendType, LimitType, ModifyUserNoteSchema, PremiumUsage, PublicUser, Snowflake,
@@ -618,10 +618,10 @@ impl ChorusUser {
     /// Fetches the current user's usage of various premium perks ([PremiumUsage] object).
     ///
     /// The local user must have premium (nitro), otherwise the request will fail
-	 /// with a 404 NotFound error and the message {"message": "Premium usage not available", "code": 10084}.
-	 ///
-	 /// # Notes
-	 /// As of 2024/08/16, Spacebar does not yet implement this endpoint.
+    /// with a 404 NotFound error and the message {"message": "Premium usage not available", "code": 10084}.
+    ///
+    /// # Notes
+    /// As of 2024/08/16, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-premium-usage>
@@ -629,6 +629,29 @@ impl ChorusUser {
         let request = Client::new()
             .get(format!(
                 "{}/users/@me/premium-usage",
+                self.belongs_to.read().unwrap().urls.api,
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.deserialize_response(self).await
+    }
+
+    /// Fetches info about the current user's burst credits
+    /// (how many are remaining, when they will replenish).
+    ///
+    /// Burst credits are used to create burst reactions.
+    ///
+    /// # Notes
+    /// As of 2024/08/18, Spacebar does not yet implement this endpoint.
+    pub async fn get_burst_credits(&mut self) -> ChorusResult<BurstCreditsInfo> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/burst-credits",
                 self.belongs_to.read().unwrap().urls.api,
             ))
             .header("Authorization", self.token());

@@ -4,11 +4,12 @@
 
 use std::collections::HashMap;
 
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    Connection, GuildAffinity, HarvestBackendType, Snowflake, ThemeColors, TwoWayLinkType, UserAffinity
+    Connection, GuildAffinity, HarvestBackendType, Snowflake, ThemeColors, TwoWayLinkType,
+    UserAffinity,
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -377,7 +378,7 @@ pub(crate) struct GetConnectionAccessTokenReturn {
     pub access_token: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
 /// Return type for the [crate::instance::ChorusUser::get_user_affinities] endpoint.
 ///
 /// See <https://docs.discord.sex/resources/user#get-user-affinities>
@@ -388,7 +389,7 @@ pub struct UserAffinities {
     pub inverse_user_affinities: Vec<UserAffinity>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
 /// Return type for the [crate::instance::ChorusUser::get_guild_affinities] endpoint.
 ///
 /// See <https://docs.discord.sex/resources/user#get-guild-affinities>
@@ -396,7 +397,7 @@ pub struct GuildAffinities {
     pub guild_affinities: Vec<GuildAffinity>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
 /// Return type for the error in the [crate::instance::ChorusUser::create_domain_connection] endpoint.
 ///
 /// This allows us to retrieve the needed proof for actually verifying the connection.
@@ -404,8 +405,8 @@ pub struct GuildAffinities {
 /// See <https://docs.discord.sex/resources/user#create-domain-connection>
 pub(crate) struct CreateDomainConnectionError {
     pub message: String,
-	 pub code: u16,
-	 pub proof: String,
+    pub code: u16,
+    pub proof: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -413,25 +414,44 @@ pub(crate) struct CreateDomainConnectionError {
 ///
 /// See <https://docs.discord.sex/resources/user#create-domain-connection>
 pub enum CreateDomainConnectionReturn {
-	/// Additional proof is needed to verify domain ownership.
-	///
-	/// The inner object is a proof string (e.g.
-	/// `dh=dceaca792e3c40fcf356a9297949940af5cfe538`)
-	///
-	/// To verify ownership, either:
-	///
-	/// - add the proof string as a TXT DNS record to the domain,
-	/// with the name of the record being `_discord.{domain}`
-	///
-	/// or
-	///
-	/// - serve the proof string as a file at `https://{domain}/.well-known/discord`
-	///
-	/// After either of these proofs are added, the request should be retried.
-	///
-	ProofNeeded(String),
-	/// The domain connection was successfully created, no further action is needed.
-	///
-	/// The inner object is the new connection.
-	Ok(Connection)
+    /// Additional proof is needed to verify domain ownership.
+    ///
+    /// The inner object is a proof string (e.g.
+    /// `dh=dceaca792e3c40fcf356a9297949940af5cfe538`)
+    ///
+    /// To verify ownership, either:
+    ///
+    /// - add the proof string as a TXT DNS record to the domain,
+    /// with the name of the record being `_discord.{domain}`
+    ///
+    /// or
+    ///
+    /// - serve the proof string as a file at `https://{domain}/.well-known/discord`
+    ///
+    /// After either of these proofs are added, the request should be retried.
+    ///
+    ProofNeeded(String),
+    /// The domain connection was successfully created, no further action is needed.
+    ///
+    /// The inner object is the new connection.
+    Ok(Connection),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+/// Return type for the [crate::instance::ChorusUser::get_burst_credits] endpoint.
+///
+/// # Reference
+/// ```json
+/// {
+///	"amount": 2,
+///	"replenished_today": false,
+///	"next_replenish_at": "2024-08-18T23:53:17+00:00"
+/// }
+/// ```
+pub struct BurstCreditsInfo {
+    /// Amount of remaining burst credits the local user has
+    pub amount: u16,
+    pub replenished_today: bool,
+    /// When the user's burst credits will automatically replenish again
+    pub next_replenish_at: DateTime<Utc>,
 }
