@@ -2,13 +2,14 @@ use futures_util::FutureExt;
 use reqwest::Client;
 
 use crate::{
-    errors::ChorusResult,
+    errors::{ChorusError, ChorusResult},
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{
         AuthorizeConnectionReturn, AuthorizeConnectionSchema, Connection, ConnectionSubreddit,
         ConnectionType, CreateConnectionCallbackSchema, CreateContactSyncConnectionSchema,
-        GetConnectionAccessTokenReturn, LimitType, ModifyConnectionSchema,
+        CreateDomainConnectionError, CreateDomainConnectionReturn, GetConnectionAccessTokenReturn,
+        LimitType, ModifyConnectionSchema,
     },
 };
 
@@ -119,6 +120,92 @@ impl ChorusUser {
         };
 
         chorus_request.deserialize_response(self).await
+    }
+
+    /// Creates a new domain connection for the current user.
+    ///
+    /// This route has two possible successful return values:
+    /// [CreateDomainConnectionReturn::Ok] and [CreateDomainConnectionReturn::ProofNeeded]
+    ///
+    /// To properly handle both, please see their respective documentation pages.
+    ///
+    /// # Notes
+    /// To create normal connection types, see [Self::authorize_connection] and
+    /// [Self::create_connection_callback]
+    ///
+    /// # Examples
+    /// ```no_run
+    /// let domain = "example.com".to_string();
+    ///
+    /// let result = user.create_domain_connection(&domain).await;
+    ///
+    /// if let Ok(returned) = result {
+    ///	    match returned {
+    ///	        CreateDomainConnectionReturn::ProofNeeded(proof) => {
+    ///		    println!("Additional proof needed!");
+    ///		    println!("Either:");
+    ///		    println!("");
+    ///		    println!("- create a DNS TXT record with the name _discord.{domain} and content {proof}");
+    ///		    println!("or");
+    ///		    println!("- create a file at https://{domain}/.well-known/discord with the content {proof}");
+    ///		    // Once the user has added the proof, retry calling the endpoint
+    ///		}
+    ///		CreateDomainConnectionReturn::Ok(connection) => {
+    ///		    println!("Successfulyl created connection! {:?}", connection);
+    ///		}
+    ///	    }
+    /// } else {
+    ///     println!("Failed to create connection: {:?}", result);
+    /// }
+    /// ```
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#create-domain-connection>
+    pub async fn create_domain_connection(
+        &mut self,
+        domain: &String,
+    ) -> ChorusResult<CreateDomainConnectionReturn> {
+        let request = Client::new()
+            .post(format!(
+                "{}/users/@me/connections/domain/{}",
+                self.belongs_to.read().unwrap().urls.api,
+                domain
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        let result = chorus_request
+            .deserialize_response::<Connection>(self)
+            .await;
+
+        if let Ok(connection) = result {
+            return Ok(CreateDomainConnectionReturn::Ok(connection));
+        }
+
+        let error = result.err().unwrap();
+
+        if let ChorusError::ReceivedErrorCode {
+            error_code,
+            error: ref error_string,
+        } = error
+        {
+            if error_code == 400 {
+                let try_deserialize: Result<CreateDomainConnectionError, serde_json::Error> =
+                    serde_json::from_str(error_string);
+
+                if let Ok(deserialized_error) = try_deserialize {
+                    return Ok(CreateDomainConnectionReturn::ProofNeeded(
+                        deserialized_error.proof,
+                    ));
+                }
+            }
+        }
+
+        return Err(error);
     }
 
     // TODO: Add create_domain_connection (<https://docs.discord.sex/resources/user#create-domain-connection>)
