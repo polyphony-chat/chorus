@@ -53,12 +53,9 @@ impl Display for Snowflake {
     }
 }
 
-impl<T> From<T> for Snowflake
-where
-    T: Into<u64>,
-{
-    fn from(item: T) -> Self {
-        Self(item.into())
+impl From<u64> for Snowflake {
+    fn from(item: u64) -> Self {
+        Self(item)
     }
 }
 
