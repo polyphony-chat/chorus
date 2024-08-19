@@ -32,9 +32,6 @@ use super::option_arc_rwlock_ptr_eq;
 pub struct Emoji {
     pub id: Snowflake,
     pub name: Option<String>,
-    #[cfg(feature = "sqlx")]
-    pub roles: Option<sqlx::types::Json<Vec<Snowflake>>>,
-    #[cfg(not(feature = "sqlx"))]
     pub roles: Option<Vec<Snowflake>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<Shared<User>>,

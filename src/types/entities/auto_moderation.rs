@@ -32,7 +32,8 @@ pub struct AutoModerationRule {
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default, Copy)]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i8))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-event-types>
 pub enum AutoModerationRuleEventType {
@@ -43,7 +44,8 @@ pub enum AutoModerationRuleEventType {
 #[derive(
     Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i8))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-types>
 pub enum AutoModerationRuleTriggerType {
@@ -91,7 +93,8 @@ pub struct AutoModerationRuleTriggerMetadataForMentionSpam {
 #[derive(
     Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i8))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-preset-types>
 pub enum AutoModerationRuleKeywordPresetType {
@@ -110,9 +113,20 @@ pub struct AutoModerationAction {
 }
 
 #[derive(
-    Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy, Hash
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Clone,
+    Default,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Copy,
+    Hash,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i8))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-types>
 pub enum AutoModerationActionType {

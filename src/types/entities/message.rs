@@ -150,7 +150,10 @@ pub enum MessageReferenceType {
 pub struct MessageInteraction {
     pub id: Snowflake,
     #[serde(rename = "type")]
+    #[cfg(not(feature = "sqlx"))]
     pub interaction_type: u8,
+    #[cfg(feature = "sqlx")]
+    pub interaction_type: sqlx_pg_uint::PgU8,
     pub name: String,
     pub user: User,
     pub member: Option<Shared<GuildMember>>,
@@ -282,8 +285,14 @@ pub struct EmbedField {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Reaction {
+    #[cfg(not(feature = "sqlx"))]
     pub count: u32,
+    #[cfg(feature = "sqlx")]
+    pub count: sqlx_pg_uint::PgU32,
+    #[cfg(not(feature = "sqlx"))]
     pub burst_count: u32,
+    #[cfg(feature = "sqlx")]
+    pub burst_count: sqlx_pg_uint::PgU32,
     #[serde(default)]
     pub me: bool,
     #[serde(default)]
@@ -296,6 +305,8 @@ pub struct Reaction {
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 pub enum Component {
     ActionRow = 1,
     Button = 2,
@@ -320,7 +331,8 @@ pub struct MessageActivity {
     Debug, Default, PartialEq, Clone, Copy, Serialize_repr, Deserialize_repr, Eq, PartialOrd, Ord,
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
 /// See <https://docs.discord.sex/resources/message#message-type>

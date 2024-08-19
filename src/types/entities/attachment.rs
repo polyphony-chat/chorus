@@ -48,7 +48,10 @@ pub struct Attachment {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PartialDiscordFileAttachment {
-    pub id: Option<i16>,
+    #[cfg(not(feature = "sqlx"))]
+    pub id: Option<u64>,
+    #[cfg(feature = "sqlx")]
+    pub id: Option<PgU64>,
     pub filename: String,
     /// Max 1024 characters
     pub description: Option<String>,

@@ -45,7 +45,10 @@ pub struct UserSettings {
     pub afk_timeout: Option<u16>,
     pub allow_accessibility_detection: bool,
     pub animate_emoji: bool,
+    #[cfg(not(feature = "sqlx"))]
     pub animate_stickers: u8,
+    #[cfg(feature = "sqlx")]
+    pub animate_stickers: sqlx_pg_uint::PgU8,
     pub contact_sync_enabled: bool,
     pub convert_emoticons: bool,
     pub custom_status: Option<CustomStatus>,
@@ -54,7 +57,10 @@ pub struct UserSettings {
     pub developer_mode: bool,
     pub disable_games_tab: bool,
     pub enable_tts_command: bool,
+    #[cfg(not(feature = "sqlx"))]
     pub explicit_content_filter: u8,
+    #[cfg(feature = "sqlx")]
+    pub explicit_content_filter: sqlx_pg_uint::PgU8,
     pub friend_source_flags: FriendSourceFlags,
     pub gateway_connected: Option<bool>,
     pub gif_auto_play: bool,
@@ -82,7 +88,10 @@ impl Default for UserSettings {
             afk_timeout: Some(3600),
             allow_accessibility_detection: true,
             animate_emoji: true,
+            #[cfg(not(feature = "sqlx"))]
             animate_stickers: 0,
+            #[cfg(feature = "sqlx")]
+            animate_stickers: 0.into(),
             contact_sync_enabled: false,
             convert_emoticons: false,
             custom_status: None,
@@ -91,7 +100,10 @@ impl Default for UserSettings {
             developer_mode: true,
             disable_games_tab: true,
             enable_tts_command: false,
+            #[cfg(not(feature = "sqlx"))]
             explicit_content_filter: 0,
+            #[cfg(feature = "sqlx")]
+            explicit_content_filter: 0.into(),
             friend_source_flags: Default::default(),
             gateway_connected: Some(false),
             gif_auto_play: false,
@@ -137,7 +149,10 @@ impl Default for FriendSourceFlags {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuildFolder {
+    #[cfg(not(feature = "sqlx"))]
     pub color: Option<u32>,
+    #[cfg(feature = "sqlx")]
+    pub color: Option<sqlx_pg_uint::PgU32>,
     pub guild_ids: Vec<String>,
     // FIXME: What is this thing?
     // It's not a snowflake, and it's sometimes a string and sometimes an integer.

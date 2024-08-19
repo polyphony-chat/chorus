@@ -110,7 +110,8 @@ pub struct AuditLogChange {
     PartialOrd,
     Ord,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference:
 /// See <https://docs.discord.sex/resources/audit-log#audit-log-events>

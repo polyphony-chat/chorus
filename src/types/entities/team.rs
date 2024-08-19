@@ -34,7 +34,10 @@ impl PartialEq for Team {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TeamMember {
+    #[cfg(not(feature = "sqlx"))]
     pub membership_state: u8,
+    #[cfg(feature = "sqlx")]
+    pub membership_state: sqlx_pg_uint::PgU8,
     pub permissions: Vec<String>,
     pub team_id: Snowflake,
     pub user: Shared<User>,
