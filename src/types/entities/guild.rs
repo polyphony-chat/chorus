@@ -304,7 +304,7 @@ impl PartialEq for GuildScheduledEvent {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq, Copy)]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-privacy-level>
 pub enum GuildScheduledEventPrivacyLevel {
     #[default]
@@ -313,7 +313,7 @@ pub enum GuildScheduledEventPrivacyLevel {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq, Copy)]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-status>
 pub enum GuildScheduledEventStatus {
     #[default]
@@ -337,7 +337,7 @@ pub enum GuildScheduledEventStatus {
     Hash,
 )]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types>
 pub enum GuildScheduledEventEntityType {
     #[default]
@@ -400,7 +400,7 @@ pub enum MessageNotificationLevel {
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#explicit-content-filter-level>
 pub enum ExplicitContentFilterLevel {
@@ -425,7 +425,7 @@ pub enum ExplicitContentFilterLevel {
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
 pub enum VerificationLevel {
@@ -452,7 +452,7 @@ pub enum VerificationLevel {
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
 pub enum MFALevel {
@@ -476,7 +476,7 @@ pub enum MFALevel {
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
 pub enum NSFWLevel {
@@ -502,7 +502,7 @@ pub enum NSFWLevel {
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
 pub enum PremiumTier {

@@ -33,7 +33,7 @@ pub struct AutoModerationRule {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default, Copy)]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-event-types>
 pub enum AutoModerationRuleEventType {
@@ -45,7 +45,7 @@ pub enum AutoModerationRuleEventType {
     Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy,
 )]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-types>
 pub enum AutoModerationRuleTriggerType {
@@ -97,7 +97,7 @@ pub struct AutoModerationRuleTriggerMetadataForMentionSpam {
     Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy,
 )]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-preset-types>
 pub enum AutoModerationRuleKeywordPresetType {
@@ -129,7 +129,7 @@ pub struct AutoModerationAction {
     Hash,
 )]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-types>
 pub enum AutoModerationActionType {

@@ -42,7 +42,10 @@ pub enum UserTheme {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserSettings {
+    #[cfg(not(feature = "sqlx"))]
     pub afk_timeout: Option<u16>,
+    #[cfg(feature = "sqlx")]
+    pub afk_timeout: Option<sqlx_pg_uint::PgU16>,
     pub allow_accessibility_detection: bool,
     pub animate_emoji: bool,
     #[cfg(not(feature = "sqlx"))]
@@ -85,7 +88,7 @@ pub struct UserSettings {
 impl Default for UserSettings {
     fn default() -> Self {
         Self {
-            afk_timeout: Some(3600),
+            afk_timeout: Some(3600.into()),
             allow_accessibility_detection: true,
             animate_emoji: true,
             #[cfg(not(feature = "sqlx"))]
@@ -137,6 +140,7 @@ pub struct CustomStatus {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct FriendSourceFlags {
     pub all: bool,
 }
@@ -148,6 +152,7 @@ impl Default for FriendSourceFlags {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GuildFolder {
     #[cfg(not(feature = "sqlx"))]
     pub color: Option<u32>,
