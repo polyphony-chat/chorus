@@ -194,7 +194,8 @@ pub struct PermissionOverwrite {
 }
 
 #[derive(Debug, Serialize_repr, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Copy)]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// # Reference
 ///
 /// See <https://docs.discord.sex/resources/channel#permission-overwrite-type>

@@ -45,7 +45,8 @@ impl PartialEq for Relationship {
     Copy,
     Hash,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// See <https://discord-userdoccers.vercel.app/resources/user#relationship-type>
 pub enum RelationshipType {
     Suggestion = 6,

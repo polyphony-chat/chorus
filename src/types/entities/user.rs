@@ -47,7 +47,10 @@ pub struct User {
     pub bot: Option<bool>,
     pub system: Option<bool>,
     pub mfa_enabled: Option<bool>,
+    #[cfg(not(feature = "sqlx"))]
     pub accent_color: Option<u32>,
+    #[cfg(feature = "sqlx")]
+    pub accent_color: Option<sqlx_pg_uint::PgU32>,
     #[cfg_attr(feature = "sqlx", sqlx(default))]
     pub locale: Option<String>,
     pub verified: Option<bool>,
@@ -58,7 +61,10 @@ pub struct User {
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub flags: Option<UserFlags>,
     pub premium_since: Option<DateTime<Utc>>,
+    #[cfg(not(feature = "sqlx"))]
     pub premium_type: Option<u8>,
+    #[cfg(feature = "sqlx")]
+    pub premium_type: Option<sqlx_pg_uint::PgU8>,
     pub pronouns: Option<String>,
     pub public_flags: Option<UserFlags>,
     pub banner: Option<String>,
@@ -144,13 +150,19 @@ pub struct PublicUser {
     pub username: Option<String>,
     pub discriminator: Option<String>,
     pub avatar: Option<String>,
+    #[cfg(not(feature = "sqlx"))]
     pub accent_color: Option<u32>,
+    #[cfg(feature = "sqlx")]
+    pub accent_color: Option<sqlx_pg_uint::PgU32>,
     pub banner: Option<String>,
     pub theme_colors: Option<ThemeColors>,
     pub pronouns: Option<String>,
     pub bot: Option<bool>,
     pub bio: Option<String>,
+    #[cfg(not(feature = "sqlx"))]
     pub premium_type: Option<u8>,
+    #[cfg(feature = "sqlx")]
+    pub premium_type: Option<sqlx_pg_uint::PgU8>,
     pub premium_since: Option<DateTime<Utc>>,
     pub public_flags: Option<UserFlags>,
 }
