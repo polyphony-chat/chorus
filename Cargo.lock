@@ -2314,9 +2314,9 @@ dependencies = [
 
 [[package]]
 name = "sqlx-pg-uint"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "252a4a55217704777814f5be098ab5563d1e21c7f0d3010a301f75373d68c8e2"
+checksum = "ba7acddf6774b42bfba10aad5a0496e3df8bc6a45a2a0ab010175b69280a5f2c"
 dependencies = [
  "bigdecimal",
  "serde",
@@ -2327,9 +2327,9 @@ dependencies = [
 
 [[package]]
 name = "sqlx-pg-uint-macros"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe4f5704fe7b866782ab87d9fe069c2f02be27b801e990af56a3d94a29290bd8"
+checksum = "3415daefc001b6cda372707886d508a819196d39fc769e9d9aed2b4e659a51b3"
 dependencies = [
  "quote",
  "syn 2.0.75",
