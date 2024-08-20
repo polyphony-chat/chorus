@@ -130,7 +130,8 @@ impl Default for UserSettings {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct CustomStatus {
     pub emoji_id: Option<String>,
     pub emoji_name: Option<String>,
