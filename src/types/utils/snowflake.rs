@@ -103,6 +103,13 @@ impl sqlx::Type<sqlx::Postgres> for Snowflake {
 }
 
 #[cfg(feature = "sqlx")]
+impl sqlx::postgres::PgHasArrayType for Snowflake {
+    fn array_type_info() -> sqlx::postgres::PgTypeInfo {
+        <Vec<String> as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
 impl<'q> sqlx::Encode<'q, sqlx::Postgres> for Snowflake {
     fn encode_by_ref(
         &self,
