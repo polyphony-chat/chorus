@@ -171,6 +171,8 @@ fn compare_permission_overwrites(
 ///
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#forum-tag-object>
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct Tag {
     pub id: Snowflake,
     /// The name of the tag (max 20 characters)
