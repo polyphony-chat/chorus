@@ -317,6 +317,8 @@ impl PartialEq for ThreadMember {
 ///
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#default-reaction-object>
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct DefaultReaction {
     #[serde(default)]
     pub emoji_id: Option<Snowflake>,
