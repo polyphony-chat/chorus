@@ -524,6 +524,9 @@ impl ChorusUser {
 
     /// Returns a mapping of user IDs ([Snowflake]s) to notes ([String]s) for the current user.
     ///
+	 /// # Notes
+    /// As of 2024/08/21, Spacebar does not yet implement this endpoint.
+	 ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-notes>
     pub async fn get_user_notes(&mut self) -> ChorusResult<HashMap<Snowflake, String>> {
