@@ -5,6 +5,7 @@
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
 use crate::types::Shared;
+use crate::UInt8;
 
 #[cfg(feature = "client")]
 use chorus_macros::Updateable;
@@ -32,7 +33,8 @@ pub struct AutoModerationRule {
 }
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default, Copy)]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-event-types>
 pub enum AutoModerationRuleEventType {
@@ -43,7 +45,8 @@ pub enum AutoModerationRuleEventType {
 #[derive(
     Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-types>
 pub enum AutoModerationRuleTriggerType {
@@ -80,18 +83,20 @@ pub struct AutoModerationRuleTriggerMetadataForKeywordPreset {
     pub allow_list: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy)]
+#[allow(missing_copy_implementations)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata>
 pub struct AutoModerationRuleTriggerMetadataForMentionSpam {
     /// Max 50
-    pub mention_total_limit: u8,
+    pub mention_total_limit: UInt8,
     pub mention_raid_protection_enabled: bool,
 }
 
 #[derive(
     Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-preset-types>
 pub enum AutoModerationRuleKeywordPresetType {
@@ -110,9 +115,20 @@ pub struct AutoModerationAction {
 }
 
 #[derive(
-    Serialize_repr, Deserialize_repr, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Copy, Hash
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Clone,
+    Default,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Copy,
+    Hash,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-action-object-action-types>
 pub enum AutoModerationActionType {

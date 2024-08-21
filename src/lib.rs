@@ -101,8 +101,7 @@ This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read
     clippy::extra_unused_lifetimes,
     clippy::from_over_into,
     clippy::needless_borrow,
-    clippy::new_without_default,
-    clippy::useless_conversion
+    clippy::new_without_default
 )]
 #![warn(
     clippy::todo,
@@ -111,7 +110,8 @@ This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read
     clippy::print_stdout,
     clippy::print_stderr,
     missing_debug_implementations,
-    missing_copy_implementations
+    missing_copy_implementations,
+    clippy::useless_conversion
 )]
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
@@ -138,6 +138,27 @@ pub mod types;
     any(feature = "voice_udp", feature = "voice_gateway")
 ))]
 pub mod voice;
+
+#[cfg(not(feature = "sqlx"))]
+pub type UInt128 = u128;
+#[cfg(feature = "sqlx")]
+pub type UInt128 = sqlx_pg_uint::PgU128;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt64 = u64;
+#[cfg(feature = "sqlx")]
+pub type UInt64 = sqlx_pg_uint::PgU64;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt32 = u32;
+#[cfg(feature = "sqlx")]
+pub type UInt32 = sqlx_pg_uint::PgU32;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt16 = u16;
+#[cfg(feature = "sqlx")]
+pub type UInt16 = sqlx_pg_uint::PgU16;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt8 = u8;
+#[cfg(feature = "sqlx")]
+pub type UInt8 = sqlx_pg_uint::PgU8;
 
 #[derive(Clone, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// A URLBundle bundles together the API-, Gateway- and CDN-URLs of a Spacebar instance.

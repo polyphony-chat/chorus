@@ -10,6 +10,7 @@ use crate::types::{
     utils::Snowflake,
     Shared,
 };
+use crate::{UInt16, UInt8};
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -23,8 +24,8 @@ pub struct Integration {
     pub syncing: Option<bool>,
     pub role_id: Option<String>,
     pub enabled_emoticons: Option<bool>,
-    pub expire_behaviour: Option<u8>,
-    pub expire_grace_period: Option<u16>,
+    pub expire_behaviour: Option<UInt8>,
+    pub expire_grace_period: Option<UInt16>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<Shared<User>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]

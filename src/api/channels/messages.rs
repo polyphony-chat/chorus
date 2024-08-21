@@ -16,6 +16,7 @@ use crate::types::{
 };
 
 impl Message {
+    #[allow(clippy::useless_conversion)]
     /// Sends a message in the channel with the provided channel_id.
     /// Returns the sent message.
     ///
@@ -40,7 +41,7 @@ impl Message {
             chorus_request.deserialize_response::<Message>(user).await
         } else {
             for (index, attachment) in message.attachments.iter_mut().enumerate() {
-                attachment.get_mut(index).unwrap().id = Some(index as i16);
+                attachment.get_mut(index).unwrap().id = Some((index as u64).into());
             }
             let mut form = reqwest::multipart::Form::new();
             let payload_json = to_string(&message).unwrap();

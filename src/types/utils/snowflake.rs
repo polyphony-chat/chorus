@@ -53,12 +53,9 @@ impl Display for Snowflake {
     }
 }
 
-impl<T> From<T> for Snowflake
-where
-    T: Into<u64>,
-{
-    fn from(item: T) -> Self {
-        Self(item.into())
+impl From<u64> for Snowflake {
+    fn from(item: u64) -> Self {
+        Self(item)
     }
 }
 
@@ -99,28 +96,35 @@ impl<'de> serde::Deserialize<'de> for Snowflake {
 }
 
 #[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::Any> for Snowflake {
-    fn type_info() -> <sqlx::Any as sqlx::Database>::TypeInfo {
-        <String as sqlx::Type<sqlx::Any>>::type_info()
+impl sqlx::Type<sqlx::Postgres> for Snowflake {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl<'q> sqlx::Encode<'q, sqlx::Any> for Snowflake {
+impl sqlx::postgres::PgHasArrayType for Snowflake {
+    fn array_type_info() -> sqlx::postgres::PgTypeInfo {
+        <Vec<String> as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for Snowflake {
     fn encode_by_ref(
         &self,
-        buf: &mut <sqlx::Any as sqlx::Database>::ArgumentBuffer<'q>,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
     ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <String as sqlx::Encode<'q, sqlx::Any>>::encode_by_ref(&self.0.to_string(), buf)
+        <String as sqlx::Encode<'q, sqlx::Postgres>>::encode_by_ref(&self.0.to_string(), buf)
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl<'d> sqlx::Decode<'d, sqlx::Any> for Snowflake {
+impl<'d> sqlx::Decode<'d, sqlx::Postgres> for Snowflake {
     fn decode(
-        value: <sqlx::Any as sqlx::Database>::ValueRef<'d>,
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'d>,
     ) -> Result<Self, sqlx::error::BoxDynError> {
-        <String as sqlx::Decode<'d, sqlx::Any>>::decode(value)
+        <String as sqlx::Decode<'d, sqlx::Postgres>>::decode(value)
             .map(|s| s.parse::<u64>().map(Snowflake).unwrap())
     }
 }

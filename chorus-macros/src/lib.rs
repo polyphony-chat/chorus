@@ -164,23 +164,23 @@ pub fn sqlx_bitflag_derive(input: TokenStream) -> TokenStream {
 
     quote!{
         #[cfg(feature = "sqlx")]
-        impl sqlx::Type<sqlx::Any> for #name {
-            fn type_info() -> sqlx::any::AnyTypeInfo {
-                <Vec<u8> as sqlx::Type<sqlx::Any>>::type_info()
+        impl sqlx::Type<sqlx::Postgres> for #name {
+            fn type_info() -> sqlx::postgres::PgTypeInfo {
+                <Vec<u8> as sqlx::Type<sqlx::Postgres>>::type_info()
             }
         }
 
         #[cfg(feature = "sqlx")]
-        impl<'q> sqlx::Encode<'q, sqlx::Any> for #name {
-            fn encode_by_ref(&self, buf: &mut <sqlx::Any as sqlx::Database>::ArgumentBuffer<'q>) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-                <Vec<u8> as sqlx::Encode<sqlx::Any>>::encode_by_ref(&self.bits().to_be_bytes().into(), buf)
+        impl<'q> sqlx::Encode<'q, sqlx::Postgres> for #name {
+            fn encode_by_ref(&self, buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+                <Vec<u8> as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.bits().to_be_bytes().into(), buf)
             }
         }
 
         #[cfg(feature = "sqlx")]
-        impl<'q> sqlx::Decode<'q, sqlx::Any> for #name {
-            fn decode(value: <sqlx::Any as sqlx::Database>::ValueRef<'q>) -> Result<Self, sqlx::error::BoxDynError> {
-                let vec = <Vec<u8> as sqlx::Decode<sqlx::Any>>::decode(value)?;
+        impl<'q> sqlx::Decode<'q, sqlx::Postgres> for #name {
+            fn decode(value: <sqlx::Postgres as sqlx::Database>::ValueRef<'q>) -> Result<Self, sqlx::error::BoxDynError> {
+                let vec = <Vec<u8> as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
                 Ok(Self::from_bits(vec_u8_to_u64(vec)).unwrap())
             }
         }

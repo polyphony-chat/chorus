@@ -8,6 +8,7 @@ use serde_aux::prelude::deserialize_option_number_from_string;
 use std::fmt::Debug;
 
 use crate::types::utils::Snowflake;
+use crate::{UInt16, UInt32};
 
 #[cfg(feature = "client")]
 use chorus_macros::{Composite, Updateable};
@@ -32,7 +33,7 @@ pub struct RoleObject {
     pub hoist: bool,
     pub icon: Option<String>,
     pub unicode_emoji: Option<String>,
-    pub position: u16,
+    pub position: UInt16,
     #[serde(default)]
     pub permissions: PermissionFlags,
     pub managed: bool,
@@ -47,11 +48,13 @@ pub struct RoleObject {
 pub struct RoleSubscriptionData {
     pub role_subscription_listing_id: Snowflake,
     pub tier_name: String,
-    pub total_months_subscribed: u32,
+    pub total_months_subscribed: UInt32,
     pub is_renewal: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash, Copy, PartialOrd, Ord)]
+#[derive(
+    Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash, Copy, PartialOrd, Ord,
+)]
 /// See <https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure>
 pub struct RoleTags {
     #[serde(default)]

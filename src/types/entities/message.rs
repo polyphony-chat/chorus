@@ -15,6 +15,7 @@ use crate::types::{
     utils::Snowflake,
     Shared,
 };
+use crate::{UInt32, UInt8};
 
 use super::option_arc_rwlock_ptr_eq;
 
@@ -150,7 +151,7 @@ pub enum MessageReferenceType {
 pub struct MessageInteraction {
     pub id: Snowflake,
     #[serde(rename = "type")]
-    pub interaction_type: u8,
+    pub interaction_type: UInt8,
     pub name: String,
     pub user: User,
     pub member: Option<Shared<GuildMember>>,
@@ -282,8 +283,8 @@ pub struct EmbedField {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Reaction {
-    pub count: u32,
-    pub burst_count: u32,
+    pub count: UInt32,
+    pub burst_count: UInt32,
     #[serde(default)]
     pub me: bool,
     #[serde(default)]
@@ -296,6 +297,8 @@ pub struct Reaction {
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 pub enum Component {
     ActionRow = 1,
     Button = 2,
@@ -320,7 +323,8 @@ pub struct MessageActivity {
     Debug, Default, PartialEq, Clone, Copy, Serialize_repr, Deserialize_repr, Eq, PartialOrd, Ord,
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
 /// See <https://docs.discord.sex/resources/message#message-type>
@@ -464,7 +468,8 @@ pub struct PartialEmoji {
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord, Eq, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 pub enum ReactionType {
     Normal = 0,
     Burst = 1, // The dreaded super reactions
