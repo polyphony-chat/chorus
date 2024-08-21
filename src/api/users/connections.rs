@@ -133,6 +133,8 @@ impl ChorusUser {
     /// To create normal connection types, see [Self::authorize_connection] and
     /// [Self::create_connection_callback]
     ///
+    /// As of 2024/08/21, Spacebar does not yet implement this endpoint.
+    ///
     /// # Examples
     /// ```no_run
     /// let domain = "example.com".to_string();

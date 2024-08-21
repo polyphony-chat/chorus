@@ -91,6 +91,8 @@ impl From<Connection> for PublicConnection {
 #[serde(rename_all = "lowercase")]
 /// A type of connection; the service the connection is for
 ///
+/// Note: this is subject to change, and the enum is likely non-exhaustive
+///
 /// # Reference
 /// See <https://docs.discord.sex/resources/user#connection-type>
 pub enum ConnectionType {
@@ -105,6 +107,8 @@ pub enum ConnectionType {
     /// (Not returned in Get User Profile or when fetching connections)
     Contacts,
     Crunchyroll,
+    /// Note: spacebar only
+    Discord,
     Domain,
     Ebay,
     EpicGames,
@@ -151,9 +155,42 @@ impl Display for ConnectionType {
 }
 
 impl ConnectionType {
-    /// Returns an array of all the connections
-    pub fn array() -> [ConnectionType; 25] {
-        [
+    /// Returns an vector of all the connection types
+    // API note: this could be an array, but it is subject to change.
+    pub fn vector() -> Vec<ConnectionType> {
+        vec![
+            ConnectionType::AmazonMusic,
+            ConnectionType::BattleNet,
+            ConnectionType::Bungie,
+            ConnectionType::Contacts,
+            ConnectionType::Crunchyroll,
+            ConnectionType::Discord,
+            ConnectionType::Domain,
+            ConnectionType::Ebay,
+            ConnectionType::EpicGames,
+            ConnectionType::Facebook,
+            ConnectionType::GitHub,
+            ConnectionType::Instagram,
+            ConnectionType::LeagueOfLegends,
+            ConnectionType::PayPal,
+            ConnectionType::Playstation,
+            ConnectionType::Reddit,
+            ConnectionType::RiotGames,
+            ConnectionType::Samsung,
+            ConnectionType::Spotify,
+            ConnectionType::Skype,
+            ConnectionType::Steam,
+            ConnectionType::TikTok,
+            ConnectionType::Twitch,
+            ConnectionType::Twitter,
+            ConnectionType::Xbox,
+            ConnectionType::YouTube,
+        ]
+    }
+
+    /// Returns an vector of all the connection types available on discord
+    pub fn discord_vector() -> Vec<ConnectionType> {
+        vec![
             ConnectionType::AmazonMusic,
             ConnectionType::BattleNet,
             ConnectionType::Bungie,
@@ -175,6 +212,23 @@ impl ConnectionType {
             ConnectionType::Skype,
             ConnectionType::Steam,
             ConnectionType::TikTok,
+            ConnectionType::Twitch,
+            ConnectionType::Twitter,
+            ConnectionType::Xbox,
+            ConnectionType::YouTube,
+        ]
+    }
+
+    /// Returns an vector of all the connection types available on spacebar
+    pub fn spacebar_vector() -> Vec<ConnectionType> {
+        vec![
+            ConnectionType::BattleNet,
+            ConnectionType::Discord,
+            ConnectionType::EpicGames,
+            ConnectionType::Facebook,
+            ConnectionType::GitHub,
+            ConnectionType::Reddit,
+            ConnectionType::Spotify,
             ConnectionType::Twitch,
             ConnectionType::Twitter,
             ConnectionType::Xbox,
@@ -226,10 +280,10 @@ impl Display for TwoWayLinkType {
 /// # Reference
 /// See <https://docs.discord.sex/resources/user#subreddit-structure>
 pub struct ConnectionSubreddit {
-	/// The subreddit's internal id, e.g. "t5_388p4"
-	pub id: String,
-	/// How many reddit users follow the subreddit
-	pub subscribers: usize,
-	/// The subreddit's relative url, e.g. "/r/discordapp/"
-	pub url: String,
+    /// The subreddit's internal id, e.g. "t5_388p4"
+    pub id: String,
+    /// How many reddit users follow the subreddit
+    pub subscribers: usize,
+    /// The subreddit's relative url, e.g. "/r/discordapp/"
+    pub url: String,
 }
