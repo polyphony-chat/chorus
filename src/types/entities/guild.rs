@@ -17,6 +17,7 @@ use crate::types::{
     interfaces::WelcomeScreenObject,
     utils::Snowflake,
 };
+use crate::UInt64;
 
 use super::{option_arc_rwlock_ptr_eq, vec_arc_rwlock_ptr_eq, PublicUser};
 
@@ -273,10 +274,7 @@ pub struct GuildScheduledEvent {
     pub entity_id: Option<Snowflake>,
     pub entity_metadata: Option<GuildScheduledEventEntityMetadata>,
     pub creator: Option<Shared<User>>,
-    #[cfg(not(feature = "sqlx"))]
-    pub user_count: Option<u64>,
-    #[cfg(feature = "sqlx")]
-    pub user_count: Option<sqlx_pg_uint::PgU64>,
+    pub user_count: Option<UInt64>,
     pub image: Option<String>,
 }
 

@@ -139,6 +139,27 @@ pub mod types;
 ))]
 pub mod voice;
 
+#[cfg(not(feature = "sqlx"))]
+pub type UInt128 = u128;
+#[cfg(feature = "sqlx")]
+pub type UInt128 = sqlx_pg_uint::PgU128;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt64 = u64;
+#[cfg(feature = "sqlx")]
+pub type UInt64 = sqlx_pg_uint::PgU64;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt32 = u32;
+#[cfg(feature = "sqlx")]
+pub type UInt32 = sqlx_pg_uint::PgU32;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt16 = u16;
+#[cfg(feature = "sqlx")]
+pub type UInt16 = sqlx_pg_uint::PgU16;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt8 = u8;
+#[cfg(feature = "sqlx")]
+pub type UInt8 = sqlx_pg_uint::PgU8;
+
 #[derive(Clone, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// A URLBundle bundles together the API-, Gateway- and CDN-URLs of a Spacebar instance.
 ///

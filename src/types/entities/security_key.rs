@@ -5,6 +5,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
+use crate::UInt64;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -13,10 +14,7 @@ pub struct SecurityKey {
     pub user_id: String,
     pub key_id: String,
     pub public_key: String,
-    #[cfg(not(feature = "sqlx"))]
-    pub counter: u64,
-    #[cfg(feature = "sqlx")]
-    pub counter: sqlx_pg_uint::PgU64,
+    pub counter: UInt64,
     pub name: String,
 }
 
@@ -27,10 +25,7 @@ impl Default for SecurityKey {
             user_id: String::new(),
             key_id: String::new(),
             public_key: String::new(),
-            #[cfg(not(feature = "sqlx"))]
-            counter: 0,
-            #[cfg(feature = "sqlx")]
-            counter: sqlx_pg_uint::PgU64::from(0),
+            counter: 0.into(),
             name: String::new(),
         }
     }

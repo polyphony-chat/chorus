@@ -5,6 +5,7 @@
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
 use crate::types::Shared;
+use crate::UInt8;
 
 #[cfg(feature = "client")]
 use chorus_macros::Updateable;
@@ -86,10 +87,7 @@ pub struct AutoModerationRuleTriggerMetadataForKeywordPreset {
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata>
 pub struct AutoModerationRuleTriggerMetadataForMentionSpam {
     /// Max 50
-    #[cfg(not(feature = "sqlx"))]
-    pub mention_total_limit: u8,
-    #[cfg(feature = "sqlx")]
-    pub mention_total_limit: sqlx_pg_uint::PgU8,
+    pub mention_total_limit: UInt8,
     pub mention_raid_protection_enabled: bool,
 }
 

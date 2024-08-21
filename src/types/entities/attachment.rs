@@ -3,10 +3,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "sqlx")]
-use sqlx_pg_uint::PgU64;
 
 use crate::types::utils::Snowflake;
+use crate::UInt64;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, PartialOrd)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -18,20 +17,11 @@ pub struct Attachment {
     /// Max 1024 characters
     pub description: Option<String>,
     pub content_type: Option<String>,
-    #[cfg(not(feature = "sqlx"))]
-    pub size: u64,
-    #[cfg(feature = "sqlx")]
-    pub size: PgU64,
+    pub size: UInt64,
     pub url: String,
     pub proxy_url: String,
-    #[cfg(not(feature = "sqlx"))]
-    pub height: Option<u64>,
-    #[cfg(feature = "sqlx")]
-    pub height: Option<PgU64>,
-    #[cfg(not(feature = "sqlx"))]
-    pub width: Option<u64>,
-    #[cfg(feature = "sqlx")]
-    pub width: Option<PgU64>,
+    pub height: Option<UInt64>,
+    pub width: Option<UInt64>,
     pub ephemeral: Option<bool>,
     /// The duration of the audio file (only for voice messages)
     pub duration_secs: Option<f32>,
@@ -48,18 +38,12 @@ pub struct Attachment {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PartialDiscordFileAttachment {
-    #[cfg(not(feature = "sqlx"))]
-    pub id: Option<u64>,
-    #[cfg(feature = "sqlx")]
-    pub id: Option<PgU64>,
+    pub id: Option<UInt64>,
     pub filename: String,
     /// Max 1024 characters
     pub description: Option<String>,
     pub content_type: Option<String>,
-    #[cfg(not(feature = "sqlx"))]
-    pub size: Option<u64>,
-    #[cfg(feature = "sqlx")]
-    pub size: Option<PgU64>,
+    pub size: Option<UInt64>,
     pub url: Option<String>,
     pub proxy_url: Option<String>,
     pub height: Option<i32>,

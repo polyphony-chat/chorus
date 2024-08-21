@@ -15,6 +15,7 @@ use crate::types::{
     utils::Snowflake,
     Shared,
 };
+use crate::{UInt32, UInt8};
 
 use super::option_arc_rwlock_ptr_eq;
 
@@ -150,10 +151,7 @@ pub enum MessageReferenceType {
 pub struct MessageInteraction {
     pub id: Snowflake,
     #[serde(rename = "type")]
-    #[cfg(not(feature = "sqlx"))]
-    pub interaction_type: u8,
-    #[cfg(feature = "sqlx")]
-    pub interaction_type: sqlx_pg_uint::PgU8,
+    pub interaction_type: UInt8,
     pub name: String,
     pub user: User,
     pub member: Option<Shared<GuildMember>>,
@@ -285,14 +283,8 @@ pub struct EmbedField {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Reaction {
-    #[cfg(not(feature = "sqlx"))]
-    pub count: u32,
-    #[cfg(feature = "sqlx")]
-    pub count: sqlx_pg_uint::PgU32,
-    #[cfg(not(feature = "sqlx"))]
-    pub burst_count: u32,
-    #[cfg(feature = "sqlx")]
-    pub burst_count: sqlx_pg_uint::PgU32,
+    pub count: UInt32,
+    pub burst_count: UInt32,
     #[serde(default)]
     pub me: bool,
     #[serde(default)]

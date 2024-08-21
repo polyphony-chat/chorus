@@ -10,6 +10,7 @@ use crate::types::{
     Guild, InviteFlags, InviteTargetType, InviteType, Shared, Snowflake, VerificationLevel,
     WelcomeScreenObject,
 };
+use crate::{UInt32, UInt8};
 
 use super::guild::GuildScheduledEvent;
 use super::{Application, Channel, GuildMember, NSFWLevel, User};
@@ -39,14 +40,8 @@ pub struct Invite {
     pub invite_type: Option<InviteType>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub inviter: Option<User>,
-    #[cfg(not(feature = "sqlx"))]
-    pub max_age: Option<u32>,
-    #[cfg(feature = "sqlx")]
-    pub max_age: Option<sqlx_pg_uint::PgU32>,
-    #[cfg(not(feature = "sqlx"))]
-    pub max_uses: Option<u8>,
-    #[cfg(feature = "sqlx")]
-    pub max_uses: Option<sqlx_pg_uint::PgU8>,
+    pub max_age: Option<UInt32>,
+    pub max_uses: Option<UInt8>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub stage_instance: Option<InviteStageInstance>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
@@ -56,10 +51,7 @@ pub struct Invite {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub target_user: Option<User>,
     pub temporary: Option<bool>,
-    #[cfg(not(feature = "sqlx"))]
-    pub uses: Option<u32>,
-    #[cfg(feature = "sqlx")]
-    pub uses: Option<sqlx_pg_uint::PgU32>,
+    pub uses: Option<UInt32>,
 }
 
 /// The guild an invite is for.

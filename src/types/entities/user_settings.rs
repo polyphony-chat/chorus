@@ -6,6 +6,7 @@ use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::Shared;
+use crate::{UInt16, UInt32, UInt8};
 use serde_aux::field_attributes::deserialize_option_number_from_string;
 
 #[derive(
@@ -42,16 +43,10 @@ pub enum UserTheme {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserSettings {
-    #[cfg(not(feature = "sqlx"))]
-    pub afk_timeout: Option<u16>,
-    #[cfg(feature = "sqlx")]
-    pub afk_timeout: Option<sqlx_pg_uint::PgU16>,
+    pub afk_timeout: Option<UInt16>,
     pub allow_accessibility_detection: bool,
     pub animate_emoji: bool,
-    #[cfg(not(feature = "sqlx"))]
-    pub animate_stickers: u8,
-    #[cfg(feature = "sqlx")]
-    pub animate_stickers: sqlx_pg_uint::PgU8,
+    pub animate_stickers: UInt8,
     pub contact_sync_enabled: bool,
     pub convert_emoticons: bool,
     pub custom_status: Option<CustomStatus>,
@@ -60,10 +55,7 @@ pub struct UserSettings {
     pub developer_mode: bool,
     pub disable_games_tab: bool,
     pub enable_tts_command: bool,
-    #[cfg(not(feature = "sqlx"))]
-    pub explicit_content_filter: u8,
-    #[cfg(feature = "sqlx")]
-    pub explicit_content_filter: sqlx_pg_uint::PgU8,
+    pub explicit_content_filter: UInt8,
     pub friend_source_flags: FriendSourceFlags,
     pub gateway_connected: Option<bool>,
     pub gif_auto_play: bool,
@@ -156,10 +148,7 @@ impl Default for FriendSourceFlags {
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct GuildFolder {
-    #[cfg(not(feature = "sqlx"))]
-    pub color: Option<u32>,
-    #[cfg(feature = "sqlx")]
-    pub color: Option<sqlx_pg_uint::PgU32>,
+    pub color: Option<UInt32>,
     pub guild_ids: Vec<String>,
     // FIXME: What is this thing?
     // It's not a snowflake, and it's sometimes a string and sometimes an integer.

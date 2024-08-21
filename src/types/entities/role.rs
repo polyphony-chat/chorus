@@ -8,6 +8,7 @@ use serde_aux::prelude::deserialize_option_number_from_string;
 use std::fmt::Debug;
 
 use crate::types::utils::Snowflake;
+use crate::{UInt16, UInt32};
 
 #[cfg(feature = "client")]
 use chorus_macros::{Composite, Updateable};
@@ -32,10 +33,7 @@ pub struct RoleObject {
     pub hoist: bool,
     pub icon: Option<String>,
     pub unicode_emoji: Option<String>,
-    #[cfg(not(feature = "sqlx"))]
-    pub position: u16,
-    #[cfg(feature = "sqlx")]
-    pub position: sqlx_pg_uint::PgU16,
+    pub position: UInt16,
     #[serde(default)]
     pub permissions: PermissionFlags,
     pub managed: bool,
@@ -50,10 +48,7 @@ pub struct RoleObject {
 pub struct RoleSubscriptionData {
     pub role_subscription_listing_id: Snowflake,
     pub tier_name: String,
-    #[cfg(not(feature = "sqlx"))]
-    pub total_months_subscribed: u32,
-    #[cfg(feature = "sqlx")]
-    pub total_months_subscribed: sqlx_pg_uint::PgU32,
+    pub total_months_subscribed: UInt32,
     pub is_renewal: bool,
 }
 
