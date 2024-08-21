@@ -16,6 +16,7 @@ use crate::types::{
 };
 
 impl Message {
+    #[allow(clippy::useless_conversion)]
     /// Sends a message in the channel with the provided channel_id.
     /// Returns the sent message.
     ///

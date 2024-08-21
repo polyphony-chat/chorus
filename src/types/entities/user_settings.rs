@@ -80,7 +80,8 @@ pub struct UserSettings {
 impl Default for UserSettings {
     fn default() -> Self {
         Self {
-            afk_timeout: Some(3600.into()),
+            #[allow(clippy::useless_conversion)]
+            afk_timeout: Some(3600u16.into()),
             allow_accessibility_detection: true,
             animate_emoji: true,
             #[cfg(not(feature = "sqlx"))]

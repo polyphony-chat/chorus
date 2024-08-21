@@ -25,7 +25,8 @@ impl Default for SecurityKey {
             user_id: String::new(),
             key_id: String::new(),
             public_key: String::new(),
-            counter: 0.into(),
+            #[allow(clippy::useless_conversion)]
+            counter: 0u64.into(),
             name: String::new(),
         }
     }

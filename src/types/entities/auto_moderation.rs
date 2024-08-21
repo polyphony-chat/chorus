@@ -83,6 +83,7 @@ pub struct AutoModerationRuleTriggerMetadataForKeywordPreset {
     pub allow_list: Vec<String>,
 }
 
+#[allow(missing_copy_implementations)]
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 /// See <https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata>
 pub struct AutoModerationRuleTriggerMetadataForMentionSpam {
