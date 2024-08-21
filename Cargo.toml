@@ -82,13 +82,13 @@ getrandom = { version = "0.2.15" }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.15", features = ["js"] }
 ws_stream_wasm = "0.7.4"
-wasm-bindgen-futures = "0.4.42"
+wasm-bindgen-futures = "0.4.43"
 wasmtimer = "0.2.0"
 
 [dev-dependencies]
 lazy_static = "1.5.0"
-wasm-bindgen-test = "0.3.42"
-wasm-bindgen = "0.2.92"
+wasm-bindgen-test = "0.3.43"
+wasm-bindgen = "0.2.93"
 simple_logger = { version = "5.0.0", default-features = false }
 
 [lints.rust]
