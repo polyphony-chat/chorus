@@ -166,22 +166,21 @@ pub fn sqlx_bitflag_derive(input: TokenStream) -> TokenStream {
         #[cfg(feature = "sqlx")]
         impl sqlx::Type<sqlx::Postgres> for #name {
             fn type_info() -> sqlx::postgres::PgTypeInfo {
-                <Vec<u8> as sqlx::Type<sqlx::Postgres>>::type_info()
+                <sqlx_pg_uint::PgU64 as sqlx::Type<sqlx::Postgres>>::type_info()
             }
         }
 
         #[cfg(feature = "sqlx")]
         impl<'q> sqlx::Encode<'q, sqlx::Postgres> for #name {
             fn encode_by_ref(&self, buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-                <Vec<u8> as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.bits().to_be_bytes().into(), buf)
+                <sqlx_pg_uint::PgU64 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.bits().into(), buf)
             }
         }
 
         #[cfg(feature = "sqlx")]
         impl<'q> sqlx::Decode<'q, sqlx::Postgres> for #name {
             fn decode(value: <sqlx::Postgres as sqlx::Database>::ValueRef<'q>) -> Result<Self, sqlx::error::BoxDynError> {
-                let vec = <Vec<u8> as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
-                Ok(Self::from_bits(vec_u8_to_u64(vec)).unwrap())
+                <sqlx_pg_uint::PgU64 as sqlx::Decode<sqlx::Postgres>>::decode(value).map(|v| Self::from_bits_truncate(v.to_uint()))
             }
         }
 
