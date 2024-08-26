@@ -3,27 +3,29 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /*!
-Chorus combines all the required functionalities of a user-centric Spacebar library into one package.
+Chorus is a Rust library which poses as an API wrapper for [Spacebar Chat](https://github.com/spacebarchat/),
+Discord and our own Polyphony. Its high-level API is designed to be easy to use, while still providing the
+flexibility one would expect from a library like this.
+
+You can establish as many connections to as many servers as you want, and you can use them all at the same time.
+
+## A Tour of Chorus
+
+Chorus combines all the required functionalities of an API wrapper for chat services into one modular library.
 The library handles various aspects on your behalf, such as rate limiting, authentication and maintaining
 a WebSocket connection to the Gateway. This means that you can focus on building your application,
 instead of worrying about the underlying implementation details.
 
 ### Establishing a Connection
 
-To connect to a Spacebar compatible server, you need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
+To connect to a Polyphony/Spacebar compatible server, you'll need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
 
 ```rs
 use chorus::instance::Instance;
-use chorus::UrlBundle;
 
 #[tokio::main]
 async fn main() {
-    let bundle = UrlBundle::new(
-        "https://example.com/api".to_string(),
-        "wss://example.com/".to_string(),
-        "https://example.com/cdn".to_string(),
-    );
-    let instance = Instance::new(bundle)
+    let instance = Instance::new("https://example.com")
         .await
         .expect("Failed to connect to the Spacebar server");
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
@@ -36,7 +38,7 @@ This Instance can now be used to log in, register and from there on, interact wi
 
 ### Logging In
 
-Logging in correctly provides you with an instance of [`ChorusUser`](https://docs.rs/chorus/latest/chorus/instance/struct.ChorusUser.html), with which you can interact with the server and
+Logging in correctly provides you with an instance of `ChorusUser`, with which you can interact with the server and
 manipulate the account. Assuming you already have an account on the server, you can log in like this:
 
 ```rs
@@ -48,7 +50,7 @@ let login_schema = LoginSchema {
     password: "Correct-Horse-Battery-Staple".to_string(),
     ..Default::default()
 };
-// Each user connects to the Gateway. The Gateway connection lives on a separate thread. Depending on
+// Each user connects to the Gateway. Each users' Gateway connection lives on a separate thread. Depending on
 // the runtime feature you choose, this can potentially take advantage of all of your computers' threads.
 let user = instance
     .login_account(login_schema)
@@ -64,15 +66,33 @@ All major desktop operating systems (Windows, macOS (aarch64/x86_64), Linux (aar
 `wasm32-unknown-unknown` is a supported compilation target on versions `0.12.0` and up. This allows you to use
 Chorus in your browser, or in any other environment that supports WebAssembly.
 
-We recommend checking out the examples directory, as well as the documentation for more information.
+To compile for `wasm32-unknown-unknown`, execute the following command:
+
+```sh
+cargo build --target=wasm32-unknown-unknown --no-default-features
+```
+
+The following features are supported on `wasm32-unknown-unknown`:
+
+| Feature           | WASM Support |
+| ----------------- | ------------ |
+| `client`          | ✅            |
+| `rt`              | ✅            |
+| `rt-multi-thread` | ❌            |
+| `backend`         | ❌            |
+| `voice`           | ❌            |
+| `voice_udp`       | ❌            |
+| `voice_gateway`   | ✅            |
+
+We recommend checking out the "examples" directory, as well as the documentation for more information.
 
 ## MSRV (Minimum Supported Rust Version)
 
-Rust **1.67.1**. This number might change at any point while Chorus is not yet at version 1.0.0.
+Rust **1.70.0**. This number might change at any point while Chorus is not yet at version 1.0.0.
 
 ## Development Setup
 
-Make sure that you have at least Rust 1.67.1 installed. You can check your Rust version by running `cargo --version`
+Make sure that you have at least Rust 1.70.0 installed. You can check your Rust version by running `cargo --version`
 in your terminal. To compile for `wasm32-unknown-unknown`, you need to install the `wasm32-unknown-unknown` target.
 You can do this by running `rustup target add wasm32-unknown-unknown`.
 
@@ -86,12 +106,16 @@ like "proxy connection checking" are already disabled on this version, which oth
 ### wasm
 
 To test for wasm, you will need to `cargo install wasm-pack`. You can then run
-`wasm-pack test --<chrome/firefox/safari> --headless -- --target wasm32-unknown-unknown --features="rt, client" --no-default-features`
+`wasm-pack test --<chrome/firefox/safari> --headless -- --target wasm32-unknown-unknown --features="rt, client, voice_gateway" --no-default-features`
 to run the tests for wasm.
 
 ## Versioning
 
 This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read the specification [here](https://semver.org/spec/v2.0.0.html).
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 !*/
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/polyphony-chat/design/main/branding/polyphony-chorus-round-8bit.png"
