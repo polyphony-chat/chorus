@@ -57,7 +57,7 @@ use chorus::instance::Instance;
 
 #[tokio::main]
 async fn main() {
-    let instance = Instance::new("https://example.com")
+    let instance = Instance::new("https://example.com", None)
         .await
         .expect("Failed to connect to the Spacebar server");
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
