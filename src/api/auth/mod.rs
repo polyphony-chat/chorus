@@ -22,9 +22,8 @@ pub mod register;
 
 impl Instance {
     /// Logs into an existing account on the spacebar server, using only a token.
-    pub async fn login_with_token(&mut self, token: String) -> ChorusResult<ChorusUser> {
-        let mut user =
-            ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
+    pub async fn login_with_token(&mut self, token: &str) -> ChorusResult<ChorusUser> {
+        let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
 
         let object = User::get(&mut user, None).await?;
         let settings = User::get_settings(&mut user).await?;

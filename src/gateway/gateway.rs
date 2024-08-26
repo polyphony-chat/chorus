@@ -48,7 +48,7 @@ impl Gateway {
     /// # Note
     /// The websocket url should begin with the prefix wss:// or ws:// (for unsecure connections)
     pub async fn spawn(
-        websocket_url: String,
+        websocket_url: &str,
         options: GatewayOptions,
     ) -> Result<GatewayHandle, GatewayError> {
         let url = options.add_to_url(websocket_url);

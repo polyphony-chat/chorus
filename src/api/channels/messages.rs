@@ -112,7 +112,7 @@ impl Message {
         let result = request.send_request(user).await?;
         let result_json = result.json::<Value>().await.unwrap();
         if !result_json.is_object() {
-            return Err(search_error(result_json.to_string()));
+            return Err(search_error(result_json.to_string().as_str()));
         }
         let value_map = result_json.as_object().unwrap();
         if let Some(messages) = value_map.get("messages") {
@@ -123,7 +123,7 @@ impl Message {
         }
         // The code below might be incorrect. We'll cross that bridge when we come to it
         if !value_map.contains_key("code") || !value_map.contains_key("retry_after") {
-            return Err(search_error(result_json.to_string()));
+            return Err(search_error(result_json.to_string().as_str()));
         }
         let code = value_map.get("code").unwrap().as_u64().unwrap();
         let retry_after = value_map.get("retry_after").unwrap().as_u64().unwrap();
@@ -482,7 +482,7 @@ impl Message {
     }
 }
 
-fn search_error(result_text: String) -> ChorusError {
+fn search_error(result_text: &str) -> ChorusError {
     ChorusError::InvalidResponse {
         error: format!(
             "Got unexpected Response, or Response which is not valid JSON. Response: \n{}",

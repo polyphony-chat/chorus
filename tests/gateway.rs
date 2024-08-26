@@ -31,7 +31,7 @@ use wasmtimer::tokio::sleep;
 async fn test_gateway_establish() {
     let bundle = common::setup().await;
 
-    let _: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone(), GatewayOptions::default())
+    let _: GatewayHandle = Gateway::spawn(&bundle.urls.wss, GatewayOptions::default())
         .await
         .unwrap();
     common::teardown(bundle).await
@@ -55,7 +55,7 @@ impl Subscriber<GatewayReady> for GatewayReadyObserver {
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
-    let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone(), GatewayOptions::default())
+    let gateway: GatewayHandle = Gateway::spawn(&bundle.urls.wss, GatewayOptions::default())
         .await
         .unwrap();
 

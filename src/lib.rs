@@ -186,7 +186,7 @@ pub struct UrlBundle {
 
 impl UrlBundle {
     /// Creates a new UrlBundle from the relevant urls.
-    pub fn new(root: String, api: String, wss: String, cdn: String) -> Self {
+    pub fn new(root: &str, api: &str, wss: &str, cdn: &str) -> Self {
         Self {
             root: UrlBundle::parse_url(root),
             api: UrlBundle::parse_url(api),
@@ -203,17 +203,17 @@ impl UrlBundle {
     /// let url = parse_url("localhost:3000");
     /// ```
     /// `-> Outputs "http://localhost:3000".`
-    pub fn parse_url(url: String) -> String {
-        let url = match Url::parse(&url) {
+    pub fn parse_url(url: &str) -> String {
+        let url = match Url::parse(url) {
             Ok(url) => {
                 if url.scheme() == "localhost" {
-                    return UrlBundle::parse_url(format!("http://{}", url));
+                    return UrlBundle::parse_url(&format!("http://{}", url));
                 }
                 url
             }
             Err(ParseError::RelativeUrlWithoutBase) => {
                 let url_fmt = format!("http://{}", url);
-                return UrlBundle::parse_url(url_fmt);
+                return UrlBundle::parse_url(&url_fmt);
             }
             Err(_) => panic!("Invalid URL"), // TODO: should not panic here
         };
@@ -236,7 +236,7 @@ impl UrlBundle {
     /// of the above approaches fail, it is very likely that the instance is misconfigured, unreachable, or that
     /// a wrong URL was provided.
     pub async fn from_root_url(url: &str) -> ChorusResult<UrlBundle> {
-        let parsed = UrlBundle::parse_url(url.to_string());
+        let parsed = UrlBundle::parse_url(url);
         let client = reqwest::Client::new();
         let request_wellknown = client
             .get(format!("{}/.well-known/spacebar", &parsed))
@@ -274,10 +274,10 @@ impl UrlBundle {
             .await
         {
             Ok(UrlBundle::new(
-                url.to_string(),
-                body.api_endpoint,
-                body.gateway,
-                body.cdn,
+                url,
+                &body.api_endpoint,
+                &body.gateway,
+                &body.cdn,
             ))
         } else {
             Err(ChorusError::RequestFailed {
@@ -294,13 +294,13 @@ mod lib {
 
     #[test]
     fn test_parse_url() {
-        let mut result = UrlBundle::parse_url(String::from("localhost:3000/"));
-        assert_eq!(result, String::from("http://localhost:3000"));
-        result = UrlBundle::parse_url(String::from("https://some.url.com/"));
+        let mut result = UrlBundle::parse_url("localhost:3000/");
+        assert_eq!(result, "http://localhost:3000");
+        result = UrlBundle::parse_url("https://some.url.com/");
         assert_eq!(result, String::from("https://some.url.com"));
-        result = UrlBundle::parse_url(String::from("https://some.url.com/"));
-        assert_eq!(result, String::from("https://some.url.com"));
-        result = UrlBundle::parse_url(String::from("https://some.url.com"));
-        assert_eq!(result, String::from("https://some.url.com"));
+        result = UrlBundle::parse_url("https://some.url.com/");
+        assert_eq!(result, "https://some.url.com");
+        result = UrlBundle::parse_url("https://some.url.com");
+        assert_eq!(result, "https://some.url.com");
     }
 }

@@ -41,7 +41,7 @@ pub struct VoiceGateway {
 
 impl VoiceGateway {
     #[allow(clippy::new_ret_no_self)]
-    pub async fn spawn(websocket_url: String) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
+    pub async fn spawn(websocket_url: &str) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
         // Append the needed things to the websocket url
         let processed_url = format!("wss://{}/?v=7", websocket_url);
         trace!("VGW: Connecting to {}", processed_url.clone());
@@ -110,7 +110,7 @@ impl VoiceGateway {
         });
 
         Ok(VoiceGatewayHandle {
-            url: websocket_url.clone(),
+            url: websocket_url.to_string(),
             events: shared_events,
             websocket_send: shared_websocket_send.clone(),
             kill_send: kill_send.clone(),

@@ -52,7 +52,7 @@ impl Subscriber<GatewayReady> for ExampleObserver {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let gateway_websocket_url = GATEWAY_URL.to_string();
+    let gateway_websocket_url = GATEWAY_URL;
 
     // These options specify the encoding format, compression, etc
     //
