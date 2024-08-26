@@ -45,15 +45,15 @@ impl Instance {
             .token;
         user.set_token(&token);
 
+        let mut identify = GatewayIdentifyPayload::common();
+        identify.token = user.token();
+        user.gateway.send_identify(identify).await;
+
         let object = User::get(&mut user, None).await?;
         let settings = User::get_settings(&mut user).await?;
 
         *user.object.write().unwrap() = object;
         *user.settings.write().unwrap() = settings;
-
-        let mut identify = GatewayIdentifyPayload::common();
-        identify.token = user.token();
-        user.gateway.send_identify(identify).await;
 
         Ok(user)
     }
