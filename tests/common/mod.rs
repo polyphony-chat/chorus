@@ -66,7 +66,9 @@ pub(crate) async fn setup() -> TestBundle {
     )
     .init();
 
-    let instance = Instance::new("http://localhost:3001/api").await.unwrap();
+    let instance = Instance::new("http://localhost:3001/api", None)
+        .await
+        .unwrap();
     // Requires the existence of the below user.
     let reg = RegisterSchema {
         username: "integrationtestuser".into(),

@@ -6,7 +6,7 @@ use chorus::instance::Instance;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let instance = Instance::new("https://example.com/")
+    let instance = Instance::new("https://example.com/", None)
         .await
         .expect("Failed to connect to the Spacebar server");
     dbg!(instance.instance_info);
