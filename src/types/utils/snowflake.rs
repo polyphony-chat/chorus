@@ -59,6 +59,12 @@ impl From<u64> for Snowflake {
     }
 }
 
+impl From<Snowflake> for u64 {
+    fn from(item: Snowflake) -> Self {
+        item.0
+    }
+}
+
 impl serde::Serialize for Snowflake {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
