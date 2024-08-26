@@ -9,8 +9,8 @@ use jsonwebtoken::{
 };
 use serde::{Deserialize, Serialize};
 
-pub fn generate_token(id: &Snowflake, email: String, jwt_key: &str) -> String {
-    let claims = Claims::new(&email, id);
+pub fn generate_token(id: &Snowflake, email: &str, jwt_key: &str) -> String {
+    let claims = Claims::new(email, id);
 
     build_token(&claims, jwt_key).unwrap()
 }

@@ -72,7 +72,7 @@ impl VoiceGatewayHandle {
 
     /// Sends a speaking event to the gateway
     pub async fn send_speaking(&self, to_send: Speaking) {
-        let to_send_value = serde_json::to_value(&to_send).unwrap();
+        let to_send_value = serde_json::to_value(to_send).unwrap();
 
         trace!("VGW: Sending Speaking");
 

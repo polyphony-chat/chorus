@@ -110,7 +110,7 @@ impl Instance {
     }
 
     pub async fn is_limited(api_url: &str) -> ChorusResult<Option<LimitsConfiguration>> {
-        let api_url = UrlBundle::parse_url(api_url.to_string());
+        let api_url = UrlBundle::parse_url(api_url);
         let client = Client::new();
         let request = client
             .get(format!("{}/policies/instance/limits", &api_url))
@@ -163,8 +163,8 @@ impl ChorusUser {
         self.token.clone()
     }
 
-    pub fn set_token(&mut self, token: String) {
-        self.token = token;
+    pub fn set_token(&mut self, token: &str) {
+        self.token = token.to_string();
     }
 
     /// Creates a new [ChorusUser] from existing data.
@@ -195,16 +195,16 @@ impl ChorusUser {
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
-    pub(crate) async fn shell(instance: Shared<Instance>, token: String) -> ChorusUser {
+    pub(crate) async fn shell(instance: Shared<Instance>, token: &str) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
         let object = Arc::new(RwLock::new(User::default()));
-        let wss_url = instance.read().unwrap().urls.wss.clone();
+        let wss_url = &instance.read().unwrap().urls.wss.clone();
         // Dummy gateway object
         let gateway = Gateway::spawn(wss_url, GatewayOptions::default())
             .await
             .unwrap();
         ChorusUser {
-            token,
+            token: token.to_string(),
             belongs_to: instance.clone(),
             limits: instance
                 .read()

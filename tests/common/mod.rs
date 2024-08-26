@@ -10,7 +10,7 @@ use chorus::{
     instance::{ChorusUser, Instance},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
-        RoleCreateModifySchema, RoleObject, Shared
+        RoleCreateModifySchema, RoleObject, Shared,
     },
     UrlBundle,
 };
@@ -50,7 +50,7 @@ impl TestBundle {
             limits: self.user.limits.clone(),
             settings: self.user.settings.clone(),
             object: self.user.object.clone(),
-            gateway: Gateway::spawn(self.instance.urls.wss.clone(), GatewayOptions::default())
+            gateway: Gateway::spawn(&self.instance.urls.wss, GatewayOptions::default())
                 .await
                 .unwrap(),
         }
@@ -59,9 +59,12 @@ impl TestBundle {
 
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 pub(crate) async fn setup() -> TestBundle {
-
     // So we can get logs when tests fail
-    let _ = simple_logger::SimpleLogger::with_level(simple_logger::SimpleLogger::new(), log::LevelFilter::Debug).init();
+    let _ = simple_logger::SimpleLogger::with_level(
+        simple_logger::SimpleLogger::new(),
+        log::LevelFilter::Debug,
+    )
+    .init();
 
     let instance = Instance::new("http://localhost:3001/api").await.unwrap();
     // Requires the existence of the below user.
@@ -121,10 +124,10 @@ pub(crate) async fn setup() -> TestBundle {
         .unwrap();
 
     let urls = UrlBundle::new(
-        "http://localhost:3001/api".to_string(),
-        "http://localhost:3001/api".to_string(),
-        "ws://localhost:3001/".to_string(),
-        "http://localhost:3001".to_string(),
+        "http://localhost:3001/api",
+        "http://localhost:3001/api",
+        "ws://localhost:3001/",
+        "http://localhost:3001",
     );
     TestBundle {
         urls,

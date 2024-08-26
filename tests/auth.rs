@@ -79,11 +79,7 @@ async fn test_login_with_token() {
     let mut bundle = common::setup().await;
 
     let token = &bundle.user.token;
-    let other_user = bundle
-        .instance
-        .login_with_token(token.clone())
-        .await
-        .unwrap();
+    let other_user = bundle.instance.login_with_token(token).await.unwrap();
     assert_eq!(
         bundle.user.object.read().unwrap().id,
         other_user.object.read().unwrap().id
@@ -98,8 +94,8 @@ async fn test_login_with_token() {
 async fn test_login_with_invalid_token() {
     let mut bundle = common::setup().await;
 
-    let token = "invalid token lalalalala".to_string();
-    let other_user = bundle.instance.login_with_token(token.clone()).await;
+    let token = "invalid token lalalalala";
+    let other_user = bundle.instance.login_with_token(token).await;
 
     assert!(other_user.is_err());
 

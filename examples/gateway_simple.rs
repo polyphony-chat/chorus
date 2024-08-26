@@ -25,8 +25,8 @@ use wasmtimer::tokio::sleep;
 /// This example creates a simple gateway connection and a session with an Identify event
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let gateway_websocket_url = GATEWAY_URL.to_string();
-    
+    let gateway_websocket_url = GATEWAY_URL;
+
     // These options specify the encoding format, compression, etc
     //
     // For most cases the defaults should work, though some implementations
@@ -34,7 +34,9 @@ async fn main() {
     let options = GatewayOptions::default();
 
     // Initiate the gateway connection, starting a listener in one thread and a heartbeat handler in another
-    let gateway = Gateway::spawn(gateway_websocket_url, options).await.unwrap();
+    let gateway = Gateway::spawn(gateway_websocket_url, options)
+        .await
+        .unwrap();
 
     // At this point, we are connected to the server and are sending heartbeats, however we still haven't authenticated
 
