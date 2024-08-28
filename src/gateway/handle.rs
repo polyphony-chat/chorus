@@ -10,9 +10,10 @@ use std::fmt::Debug;
 use super::{events::Events, *};
 use crate::types::{self, Composite, Shared};
 
-/// Represents a handle to a Gateway connection. A Gateway connection will create observable
-/// [`GatewayEvents`](GatewayEvent), which you can subscribe to. Gateway events include all currently
-/// implemented types with the trait [`WebSocketEvent`]
+/// Represents a handle to a Gateway connection.
+///
+/// A Gateway connection will create observable [`Events`], which you can subscribe to.
+///
 /// Using this handle you can also send Gateway Events directly.
 #[derive(Debug, Clone)]
 pub struct GatewayHandle {
