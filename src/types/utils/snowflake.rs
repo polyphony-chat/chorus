@@ -26,7 +26,7 @@ impl Snowflake {
         const PROCESS_ID: u64 = 1;
         static INCREMENT: AtomicUsize = AtomicUsize::new(0);
 
-        let time = (Utc::now().naive_utc().timestamp_millis() - EPOCH) << 22;
+        let time = (Utc::now().naive_utc().and_utc().timestamp_millis() - EPOCH) << 22;
         let worker = WORKER_ID << 17;
         let process = PROCESS_ID << 12;
         let increment = INCREMENT.fetch_add(1, Ordering::Relaxed) as u64 % 32;
