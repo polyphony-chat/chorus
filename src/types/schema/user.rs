@@ -31,7 +31,7 @@ pub struct UserModifySchema {
     // TODO: Add a CDN data type
     pub avatar: Option<String>,
     /// Note: This is not yet implemented on Spacebar
-    pub avatar_decoration_id: Option<Snowflake>, 
+    pub avatar_decoration_id: Option<Snowflake>,
     /// Note: This is not yet implemented on Spacebar
     pub avatar_decoration_sku_id: Option<Snowflake>,
     /// The user's email address; if changing from a verified email, email_token must be provided
@@ -66,10 +66,15 @@ pub struct UserModifySchema {
     ///
     /// Only [UserFlags::PREMIUM_PROMO_DISMISSED], [UserFlags::HAS_UNREAD_URGENT_MESSAGES]
     /// and DISABLE_PREMIUM can be set.
-    ///
+	 ///
     /// # Note
     ///
     /// This is not yet implemented on Spacebar
+	 ///
+	 /// [UserFlags]: crate::types::UserFlags
+	 /// [UserFlags::PREMIUM_PROMO_DISMISSED]: crate::types::UserFlags::PREMIUM_PROMO_DISMISSED
+	 /// [UserFlags::HAS_UNREAD_URGENT_MESSAGES]:
+	 /// crate::types::UserFlags::HAS_UNREAD_URGENT_MESSAGES
     pub flags: Option<u64>,
     /// The user's date of birth, can only be set once
     ///
