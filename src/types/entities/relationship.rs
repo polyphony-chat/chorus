@@ -6,10 +6,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::gateway::Shared;
-use crate::types::Snowflake;
+use crate::types::{Shared, Snowflake};
 
-use super::PublicUser;
+use super::{arc_rwlock_ptr_eq, PublicUser};
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 /// See <https://discord-userdoccers.vercel.app/resources/user#relationship-structure>
@@ -22,17 +21,32 @@ pub struct Relationship {
     pub since: Option<DateTime<Utc>>,
 }
 
+#[cfg(not(tarpaulin_include))]
 impl PartialEq for Relationship {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
             && self.relationship_type == other.relationship_type
-            && self.since == other.since
             && self.nickname == other.nickname
+            && arc_rwlock_ptr_eq(&self.user, &other.user)
+            && self.since == other.since
     }
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default, Eq, PartialEq)]
-#[repr(u8)]
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Clone,
+    Default,
+    Eq,
+    PartialEq,
+    PartialOrd,
+    Ord,
+    Copy,
+    Hash,
+)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// See <https://discord-userdoccers.vercel.app/resources/user#relationship-type>
 pub enum RelationshipType {
     Suggestion = 6,

@@ -6,7 +6,7 @@ use crate::types::{events::WebSocketEvent, UserStatus};
 use crate::types::{Activity, ClientStatusObject, PublicUser, Snowflake};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Sent by the client to update its status and presence;
 /// See <https://discord.com/developers/docs/topics/gateway-events#update-presence>
 pub struct UpdatePresence {
@@ -18,16 +18,18 @@ pub struct UpdatePresence {
     pub afk: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, WebSocketEvent)]
 /// Received to tell the client that a user updated their presence / status
+///
 /// See <https://discord.com/developers/docs/topics/gateway-events#presence-update-presence-update-event-fields>
+/// (Same structure as <https://docs.discord.sex/resources/presence#presence-object>)
 pub struct PresenceUpdate {
     pub user: PublicUser,
     #[serde(default)]
     pub guild_id: Option<Snowflake>,
     pub status: UserStatus,
+    #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatusObject,
 }
 
-impl WebSocketEvent for PresenceUpdate {}

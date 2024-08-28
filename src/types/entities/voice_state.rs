@@ -5,7 +5,8 @@
 #[cfg(feature = "client")]
 use chorus_macros::Composite;
 
-use crate::gateway::Shared;
+use crate::types::Shared;
+
 #[cfg(feature = "client")]
 use crate::types::Composite;
 
@@ -24,6 +25,8 @@ use crate::types::{
     utils::Snowflake,
 };
 
+use super::option_arc_rwlock_ptr_eq;
+
 /// The VoiceState struct. Note, that Discord does not have an `id` field for this, whereas Spacebar
 /// does.
 ///
@@ -33,9 +36,11 @@ use crate::types::{
 #[cfg_attr(feature = "client", derive(Composite))]
 pub struct VoiceState {
     pub guild_id: Option<Snowflake>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub guild: Option<Guild>,
     pub channel_id: Option<Snowflake>,
     pub user_id: Snowflake,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member: Option<Shared<GuildMember>>,
     /// Includes alphanumeric characters, not a snowflake
     pub session_id: String,
@@ -51,6 +56,29 @@ pub struct VoiceState {
     pub id: Option<Snowflake>, // Only exists on Spacebar
 }
 
+#[cfg(not(tarpaulin_include))]
+impl PartialEq for VoiceState {
+    fn eq(&self, other: &Self) -> bool {
+        self.guild_id == other.guild_id
+            && self.guild == other.guild
+            && self.channel_id == other.channel_id
+            && self.user_id == other.user_id
+            && option_arc_rwlock_ptr_eq(&self.member, &other.member)
+            && self.session_id == other.session_id
+            && self.token == other.token
+            && self.deaf == other.deaf
+            && self.mute == other.mute
+            && self.self_deaf == other.self_deaf
+            && self.self_mute == other.self_mute
+            && self.self_stream == other.self_stream
+            && self.self_video == other.self_video
+            && self.suppress == other.suppress
+            && self.request_to_speak_timestamp == other.request_to_speak_timestamp
+            && self.id == other.id
+    }
+}
+
+#[cfg(feature = "client")]
 impl Updateable for VoiceState {
     #[cfg(not(tarpaulin_include))]
     fn id(&self) -> Snowflake {

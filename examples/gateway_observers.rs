@@ -3,6 +3,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // This example showcase how to properly use gateway observers.
+// (This assumes you have a manually created gateway, if you created
+// a ChorusUser by e.g. logging in, you can access the gateway with user.gateway)
 //
 // To properly run it, you will need to change the token below.
 
@@ -12,12 +14,12 @@ const TOKEN: &str = "";
 const GATEWAY_URL: &str = "wss://gateway.old.server.spacebar.chat/";
 
 use async_trait::async_trait;
-use chorus::gateway::Gateway;
+use chorus::gateway::{Gateway, GatewayOptions};
 use chorus::{
     self,
-    gateway::Observer,
     types::{GatewayIdentifyPayload, GatewayReady},
 };
+use pubserve::Subscriber;
 use std::{sync::Arc, time::Duration};
 use tokio::{self};
 
@@ -32,11 +34,16 @@ use wasmtimer::tokio::sleep;
 #[derive(Debug)]
 pub struct ExampleObserver {}
 
-// This struct can observe GatewayReady events when subscribed, because it implements the trait Observer<GatewayReady>.
-// The Observer trait can be implemented for a struct for a given websocketevent to handle observing it
+// This struct can observe GatewayReady events when subscribed, because it implements the trait Subscriber<GatewayReady>.
+// The Subscriber trait can be implemented for a struct for a given websocketevent to handle observing it
+//
+// Note that this trait is quite generic and can be use to observe any type.
+//
+// It is just used for WebSocketEvents in chorus.
+//
 // One struct can be an observer of multiple websocketevents, if needed
 #[async_trait]
-impl Observer<GatewayReady> for ExampleObserver {
+impl Subscriber<GatewayReady> for ExampleObserver {
     // After we subscribe to an event this function is called every time we receive it
     async fn update(&self, _data: &GatewayReady) {
         println!("Observed Ready!");
@@ -45,10 +52,18 @@ impl Observer<GatewayReady> for ExampleObserver {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let gateway_websocket_url = GATEWAY_URL.to_string();
+    let gateway_websocket_url = GATEWAY_URL;
+
+    // These options specify the encoding format, compression, etc
+    //
+    // For most cases the defaults should work, though some implementations
+    // might only support some formats or not support compression
+    let options = GatewayOptions::default();
 
     // Initiate the gateway connection
-    let gateway = Gateway::spawn(gateway_websocket_url).await.unwrap();
+    let gateway = Gateway::spawn(gateway_websocket_url, options)
+        .await
+        .unwrap();
 
     // Create an instance of our observer
     let observer = ExampleObserver {};

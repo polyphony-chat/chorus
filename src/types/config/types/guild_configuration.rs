@@ -3,19 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt::{Display, Formatter};
-#[cfg(feature = "sqlx")]
-use std::io::Write;
 use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "sqlx")]
-use sqlx::{
-    database::{HasArguments, HasValueRef},
-    encode::IsNull,
-    error::BoxDynError,
-    Decode, MySql,
-};
 
 use crate::types::config::types::subconfigs::guild::{
     autojoin::AutoJoinConfiguration, discovery::DiscoverConfiguration,
@@ -171,9 +162,11 @@ impl Display for GuildFeaturesList {
 }
 
 #[cfg(feature = "sqlx")]
-impl<'r> sqlx::Decode<'r, sqlx::MySql> for GuildFeaturesList {
-    fn decode(value: <MySql as HasValueRef<'r>>::ValueRef) -> Result<Self, BoxDynError> {
-        let v = <&str as Decode<sqlx::MySql>>::decode(value)?;
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for GuildFeaturesList {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'r>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        let v = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
         Ok(Self(
             v.split(',')
                 .filter(|f| !f.is_empty())
@@ -184,10 +177,13 @@ impl<'r> sqlx::Decode<'r, sqlx::MySql> for GuildFeaturesList {
 }
 
 #[cfg(feature = "sqlx")]
-impl<'q> sqlx::Encode<'q, sqlx::MySql> for GuildFeaturesList {
-    fn encode_by_ref(&self, buf: &mut <MySql as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for GuildFeaturesList {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
         if self.is_empty() {
-            return IsNull::Yes;
+            return Ok(sqlx::encode::IsNull::Yes);
         }
         let features = self
             .iter()
@@ -195,30 +191,18 @@ impl<'q> sqlx::Encode<'q, sqlx::MySql> for GuildFeaturesList {
             .collect::<Vec<_>>()
             .join(",");
 
-        let _ = buf.write(features.as_bytes());
-        IsNull::No
+        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&features, buf)
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::MySql> for GuildFeaturesList {
-    fn type_info() -> sqlx::mysql::MySqlTypeInfo {
-        <&str as sqlx::Type<sqlx::MySql>>::type_info()
+impl sqlx::Type<sqlx::Postgres> for GuildFeaturesList {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 
-    fn compatible(ty: &sqlx::mysql::MySqlTypeInfo) -> bool {
-        <&str as sqlx::Type<sqlx::MySql>>::compatible(ty)
-    }
-}
-
-#[cfg(feature = "sqlx")]
-impl sqlx::TypeInfo for GuildFeaturesList {
-    fn is_null(&self) -> bool {
-        false
-    }
-
-    fn name(&self) -> &str {
-        "TEXT"
+    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
     }
 }
 
@@ -373,6 +357,12 @@ impl FromStr for GuildFeatures {
             "INVITES_CLOSED" => Ok(GuildFeatures::InvitesClosed),
             _ => Err(Error::Guild(GuildError::InvalidGuildFeature)),
         }
+    }
+}
+
+impl From<Vec<GuildFeatures>> for GuildFeaturesList {
+    fn from(features: Vec<GuildFeatures>) -> GuildFeaturesList {
+        Self(features)
     }
 }
 

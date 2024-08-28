@@ -5,8 +5,7 @@
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 
-use crate::types::ChannelType;
-use crate::types::{entities::PermissionOverwrite, Snowflake};
+use crate::types::{entities::PermissionOverwrite, ChannelType, DefaultReaction, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
 #[serde(rename_all = "snake_case")]
@@ -36,7 +35,7 @@ pub struct ChannelCreateSchema {
 #[serde(rename_all = "snake_case")]
 pub struct ChannelModifySchema {
     pub name: Option<String>,
-    pub channel_type: Option<u8>,
+    pub channel_type: Option<ChannelType>,
     pub topic: Option<String>,
     pub icon: Option<String>,
     pub bitrate: Option<i32>,
@@ -48,7 +47,7 @@ pub struct ChannelModifySchema {
     pub nsfw: Option<bool>,
     pub rtc_region: Option<String>,
     pub default_auto_archive_duration: Option<i32>,
-    pub default_reaction_emoji: Option<String>,
+    pub default_reaction_emoji: Option<DefaultReaction>,
     pub flags: Option<i32>,
     pub default_thread_rate_limit_per_user: Option<i32>,
     pub video_quality_mode: Option<i32>,
@@ -59,7 +58,7 @@ pub struct GetChannelMessagesSchema {
     /// Between 1 and 100, defaults to 50.
     pub limit: Option<i32>,
     #[serde(flatten)]
-    pub anchor: ChannelMessagesAnchor,
+    pub anchor: Option<ChannelMessagesAnchor>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
@@ -74,21 +73,21 @@ impl GetChannelMessagesSchema {
     pub fn before(anchor: Snowflake) -> Self {
         Self {
             limit: None,
-            anchor: ChannelMessagesAnchor::Before(anchor),
+            anchor: Some(ChannelMessagesAnchor::Before(anchor)),
         }
     }
 
     pub fn around(anchor: Snowflake) -> Self {
         Self {
             limit: None,
-            anchor: ChannelMessagesAnchor::Around(anchor),
+            anchor: Some(ChannelMessagesAnchor::Around(anchor)),
         }
     }
 
     pub fn after(anchor: Snowflake) -> Self {
         Self {
             limit: None,
-            anchor: ChannelMessagesAnchor::After(anchor),
+            anchor: Some(ChannelMessagesAnchor::After(anchor)),
         }
     }
 
@@ -109,7 +108,7 @@ pub struct CreateChannelInviteSchema {
     pub temporary: Option<bool>,
     pub unique: Option<bool>,
     pub validate: Option<String>,
-    pub target_type: Option<InviteType>,
+    pub target_type: Option<InviteTargetType>,
     pub target_user_id: Option<Snowflake>,
     pub target_application_id: Option<Snowflake>,
 }
@@ -131,15 +130,32 @@ impl Default for CreateChannelInviteSchema {
 }
 
 bitflags! {
-    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, chorus_macros::SerdeBitFlags)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     pub struct InviteFlags: u64 {
         const GUEST = 1 << 0;
+        const VIEWED = 1 << 1;
     }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, Default, PartialOrd, Ord, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 pub enum InviteType {
+    #[default]
+    Guild = 0,
+    GroupDm = 1,
+    Friend = 2,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, Default, PartialOrd, Ord, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
+pub enum InviteTargetType {
     #[default]
     Stream = 1,
     EmbeddedApplication = 2,
@@ -155,10 +171,26 @@ pub struct AddChannelRecipientSchema {
 }
 
 /// See <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
-#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(
+    Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq, Copy, Hash,
+)]
 pub struct ModifyChannelPositionsSchema {
     pub id: Snowflake,
     pub position: Option<u32>,
     pub lock_permissions: Option<bool>,
     pub parent_id: Option<Snowflake>,
+}
+
+/// See <https://docs.discord.sex/resources/channel#follow-channel>
+#[derive(
+    Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq, Copy, Hash,
+)]
+pub struct AddFollowingChannelSchema {
+    pub webhook_channel_id: Snowflake,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
+pub struct CreateWebhookSchema {
+    pub name: String,
+    pub avatar: Option<String>,
 }

@@ -20,7 +20,7 @@ pub struct Interaction {
     pub version: i32,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, Eq, PartialOrd, Ord, Hash, Copy)]
 pub enum InteractionType {
     #[default]
     SelfCommand = 0,
@@ -28,7 +28,7 @@ pub enum InteractionType {
     ApplicationCommand = 2,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Copy, Eq, Hash, PartialOrd, Ord)]
 pub enum InteractionResponseType {
     SelfCommandResponse = 0,
     Pong = 1,
@@ -38,7 +38,7 @@ pub enum InteractionResponseType {
     AcknowledgeWithSource = 5,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, Eq, Hash, PartialOrd, Ord)]
 pub struct InteractionApplicationCommandCallbackData {
     pub tts: bool,
     pub content: String,

@@ -6,9 +6,9 @@ use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
 use crate::types::entities::User;
 use crate::types::Snowflake;
+use crate::types::{PartialEmoji, Shared};
 
 #[cfg(feature = "client")]
 use crate::gateway::GatewayHandle;
@@ -22,6 +22,8 @@ use crate::gateway::Updateable;
 #[cfg(feature = "client")]
 use chorus_macros::{Composite, Updateable};
 
+use super::option_arc_rwlock_ptr_eq;
+
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
 #[cfg_attr(feature = "client", derive(Updateable, Composite))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -30,9 +32,6 @@ use chorus_macros::{Composite, Updateable};
 pub struct Emoji {
     pub id: Snowflake,
     pub name: Option<String>,
-    #[cfg(feature = "sqlx")]
-    pub roles: Option<sqlx::types::Json<Vec<Snowflake>>>,
-    #[cfg(not(feature = "sqlx"))]
     pub roles: Option<Vec<Snowflake>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<Shared<User>>,
@@ -42,27 +41,33 @@ pub struct Emoji {
     pub available: Option<bool>,
 }
 
-impl std::hash::Hash for Emoji {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-        self.name.hash(state);
-        self.roles.hash(state);
-        self.roles.hash(state);
-        self.require_colons.hash(state);
-        self.managed.hash(state);
-        self.animated.hash(state);
-        self.available.hash(state);
+#[cfg(not(tarpaulin_include))]
+#[allow(clippy::nonminimal_bool)]
+impl PartialEq for Emoji {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+            && self.name == other.name
+            && self.roles == other.roles
+            && self.roles == other.roles
+            && option_arc_rwlock_ptr_eq(&self.user, &other.user)
+            && self.require_colons == other.require_colons
+            && self.managed == other.managed
+            && self.animated == other.animated
+            && self.available == other.available
     }
 }
 
-impl PartialEq for Emoji {
-    fn eq(&self, other: &Self) -> bool {
-        !(self.id != other.id
-            || self.name != other.name
-            || self.roles != other.roles
-            || self.require_colons != other.require_colons
-            || self.managed != other.managed
-            || self.animated != other.animated
-            || self.available != other.available)
+impl From<PartialEmoji> for Emoji {
+    fn from(value: PartialEmoji) -> Self {
+        Self {
+            id: value.id.unwrap_or_default(), // TODO: Make this method an impl to TryFrom<> instead
+            name: Some(value.name),
+            roles: None,
+            user: None,
+            require_colons: Some(value.animated),
+            managed: None,
+            animated: Some(value.animated),
+            available: None,
+        }
     }
 }

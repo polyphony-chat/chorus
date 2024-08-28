@@ -1,9 +1,10 @@
 [package]
 name = "chorus-macros"
-version = "0.2.0"
+version = "0.5.0"
 edition = "2021"
-license = "AGPL-3.0"
+license = "MPL-2.0"
 description = "Macros for the chorus crate."
+repository = "https://github.com/polyphony-chat/chorus"
 
 [lib]
 proc-macro = true

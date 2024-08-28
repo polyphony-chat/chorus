@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd, Copy, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct MetricsConfiguration {
     pub timeout: u64,

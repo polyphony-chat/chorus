@@ -8,7 +8,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::gateway::{Gateway, GatewayHandle};
-use crate::types::GatewayIdentifyPayload;
+use crate::types::{GatewayIdentifyPayload, User};
 use crate::{
     errors::ChorusResult,
     instance::{ChorusUser, Instance, Token},
@@ -37,29 +37,24 @@ impl Instance {
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since register is an instance wide limit), which is why we are just cloning
         // the instances' limits to pass them on as user_rate_limits later.
-        let mut shell =
-            ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None".to_string()).await;
+        let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
+
         let token = chorus_request
-            .deserialize_response::<Token>(&mut shell)
+            .deserialize_response::<Token>(&mut user)
             .await?
             .token;
-        if self.limits_information.is_some() {
-            self.limits_information.as_mut().unwrap().ratelimits = shell.limits.unwrap();
-        }
-        let user_object = self.get_user(token.clone(), None).await.unwrap();
-        let settings = ChorusUser::get_settings(&token, &self.urls.api.clone(), self).await?;
+        user.set_token(&token);
+
+        let object = User::get(&mut user, None).await?;
+        let settings = User::get_settings(&mut user).await?;
+
+        *user.object.write().unwrap() = object;
+        *user.settings.write().unwrap() = settings;
+
         let mut identify = GatewayIdentifyPayload::common();
-        let gateway: GatewayHandle = Gateway::spawn(self.urls.wss.clone()).await.unwrap();
-        identify.token = token.clone();
-        gateway.send_identify(identify).await;
-        let user = ChorusUser::new(
-            Arc::new(RwLock::new(self.clone())),
-            token.clone(),
-            self.clone_limits_if_some(),
-            Arc::new(RwLock::new(settings)),
-            Arc::new(RwLock::new(user_object)),
-            gateway,
-        );
+        identify.token = user.token();
+        user.gateway.send_identify(identify).await;
+
         Ok(user)
     }
 }

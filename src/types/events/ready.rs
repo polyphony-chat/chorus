@@ -6,13 +6,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Guild, User};
 use crate::types::events::{Session, WebSocketEvent};
-use crate::types::interfaces::ClientStatusObject;
-use crate::types::{Activity, GuildMember, PresenceUpdate, VoiceState};
+use crate::types::{Activity, Channel, ClientStatusObject, GuildMember, PresenceUpdate, Snowflake, VoiceState};
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// 1/2 half documented;
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
+/// 1/2 officially documented;
 /// Received after identifying, provides initial user info;
-/// See <https://discord.com/developers/docs/topics/gateway-events#ready;>
+///
+/// See <https://docs.discord.sex/topics/gateway-events#ready> and <https://discord.com/developers/docs/topics/gateway-events#ready>
+// TODO: There are a LOT of fields missing here
 pub struct GatewayReady {
     pub analytics_token: Option<String>,
     pub auth_session_id_hash: Option<String>,
@@ -30,42 +31,49 @@ pub struct GatewayReady {
     pub shard: Option<(u64, u64)>,
 }
 
-impl WebSocketEvent for GatewayReady {}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Officially Undocumented;
-/// Sent after the READY event when a client is a user, seems to somehow add onto the ready event;
+/// Sent after the READY event when a client is a user, 
+/// seems to somehow add onto the ready event;
+///
+/// See <https://docs.discord.sex/topics/gateway-events#ready-supplemental>
 pub struct GatewayReadySupplemental {
+    /// The presences of the user's relationships and guild presences sent at startup
     pub merged_presences: MergedPresences,
     pub merged_members: Vec<Vec<GuildMember>>,
-    // ?
-    pub lazy_private_channels: Vec<serde_json::Value>,
+    pub lazy_private_channels: Vec<Channel>,
     pub guilds: Vec<SupplementalGuild>,
-    // ? pomelo
+    // "Upcoming changes that the client should disclose to the user" (discord.sex)
     pub disclose: Vec<String>,
 }
 
-impl WebSocketEvent for GatewayReadySupplemental {}
-
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
+/// See <https://docs.discord.sex/topics/gateway-events#merged-presences-structure>
 pub struct MergedPresences {
-    pub guilds: Vec<Vec<MergedPresenceGuild>>,
+    /// "Presences of the user's guilds in the same order as the guilds array in ready"
+    /// (discord.sex)
+    pub guilds: Vec<Vec<MergedPresenceGuild>>, 
+    /// "Presences of the user's friends and implicit relationships" (discord.sex)
     pub friends: Vec<MergedPresenceFriend>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
+/// Not documented even unofficially
 pub struct MergedPresenceFriend {
-    pub user_id: String,
+    pub user_id: Snowflake,
     pub status: String,
-    /// Looks like ms??
-    pub last_modified: u128,
+    // Looks like ms??
+    //
+    // Not always sent
+    pub last_modified: Option<u128>,
     pub client_status: ClientStatusObject,
     pub activities: Vec<Activity>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
+/// Not documented even unofficially
 pub struct MergedPresenceGuild {
-    pub user_id: String,
+    pub user_id: Snowflake,
     pub status: String,
     // ?
     pub game: Option<serde_json::Value>,
@@ -74,8 +82,10 @@ pub struct MergedPresenceGuild {
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
+/// See <https://docs.discord.sex/topics/gateway-events#supplemental-guild-structure>
 pub struct SupplementalGuild {
+    pub id: Snowflake,
     pub voice_states: Option<Vec<VoiceState>>,
-    pub id: String,
+    /// Field not documented even unofficially
     pub embedded_activities: Vec<serde_json::Value>,
 }

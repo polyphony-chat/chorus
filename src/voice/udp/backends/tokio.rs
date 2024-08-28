@@ -6,7 +6,7 @@ use std::net::SocketAddr;
 
 use crate::errors::VoiceUdpError;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct TokioBackend;
 
 pub type TokioSocket = tokio::net::UdpSocket;

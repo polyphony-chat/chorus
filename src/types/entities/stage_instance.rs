@@ -21,8 +21,11 @@ pub struct StageInstance {
     pub guild_scheduled_event_id: Option<Snowflake>,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Default)]
-#[repr(u8)]
+#[derive(
+    Serialize_repr, Deserialize_repr, Debug, Clone, Default, Copy, PartialEq, Eq, PartialOrd, Ord,
+)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// See <https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level>
 pub enum StageInstancePrivacyLevel {

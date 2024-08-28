@@ -13,11 +13,11 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::ChorusResult;
-use crate::gateway::{Gateway, GatewayHandle, Shared};
+use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
-    GeneralConfiguration, Limit, LimitType, LimitsConfiguration, User, UserSettings,
+    GeneralConfiguration, Limit, LimitType, LimitsConfiguration, Shared, User, UserSettings,
 };
 use crate::UrlBundle;
 
@@ -31,24 +31,8 @@ pub struct Instance {
     pub limits_information: Option<LimitsInformation>,
     #[serde(skip)]
     pub client: Client,
-}
-
-impl PartialEq for Instance {
-    fn eq(&self, other: &Self) -> bool {
-        self.urls == other.urls
-            && self.instance_info == other.instance_info
-            && self.limits_information == other.limits_information
-    }
-}
-
-impl std::hash::Hash for Instance {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.urls.hash(state);
-        self.instance_info.hash(state);
-        if let Some(inf) = &self.limits_information {
-            inf.hash(state);
-        }
-    }
+    #[serde(skip)]
+    pub gateway_options: GatewayOptions,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Eq)]
@@ -67,6 +51,7 @@ impl std::hash::Hash for LimitsInformation {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 impl PartialEq for LimitsInformation {
     fn eq(&self, other: &Self) -> bool {
         self.ratelimits.iter().eq(other.ratelimits.iter())
@@ -84,8 +69,13 @@ impl Instance {
 
     /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle).
     ///
+    /// If `options` is `None`, the default [`GatewayOptions`] will be used.
+    ///
     /// To create an Instance from one singular url, use [`Instance::new()`].
-    pub async fn from_url_bundle(urls: UrlBundle) -> ChorusResult<Instance> {
+    pub async fn from_url_bundle(
+        urls: UrlBundle,
+        options: Option<GatewayOptions>,
+    ) -> ChorusResult<Instance> {
         let is_limited: Option<LimitsConfiguration> = Instance::is_limited(&urls.api).await?;
         let limit_information;
 
@@ -104,6 +94,7 @@ impl Instance {
             instance_info: GeneralConfiguration::default(),
             limits_information: limit_information,
             client: Client::new(),
+            gateway_options: options.unwrap_or_default(),
         };
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
@@ -117,14 +108,16 @@ impl Instance {
 
     /// Creates a new [`Instance`] by trying to get the [relevant instance urls](UrlBundle) from a root url.
     ///
+    /// If `options` is `None`, the default [`GatewayOptions`] will be used.
+    ///
     /// Shorthand for `Instance::from_url_bundle(UrlBundle::from_root_domain(root_domain).await?)`.
-    pub async fn new(root_url: &str) -> ChorusResult<Instance> {
+    pub async fn new(root_url: &str, options: Option<GatewayOptions>) -> ChorusResult<Instance> {
         let urls = UrlBundle::from_root_url(root_url).await?;
-        Instance::from_url_bundle(urls).await
+        Instance::from_url_bundle(urls, options).await
     }
 
     pub async fn is_limited(api_url: &str) -> ChorusResult<Option<LimitsConfiguration>> {
-        let api_url = UrlBundle::parse_url(api_url.to_string());
+        let api_url = UrlBundle::parse_url(api_url);
         let client = Client::new();
         let request = client
             .get(format!("{}/policies/instance/limits", &api_url))
@@ -138,6 +131,13 @@ impl Instance {
             Ok(limits) => Ok(Some(limits)),
             Err(_) => Ok(None),
         }
+    }
+
+    /// Sets the [`GatewayOptions`] the instance will use when spawning new connections.
+    ///
+    /// These options are used on the gateways created when logging in and registering.
+    pub fn set_gateway_options(&mut self, options: GatewayOptions) {
+        self.gateway_options = options;
     }
 }
 
@@ -165,21 +165,13 @@ pub struct ChorusUser {
     pub gateway: GatewayHandle,
 }
 
-impl PartialEq for ChorusUser {
-    fn eq(&self, other: &Self) -> bool {
-        self.token == other.token
-            && self.limits == other.limits
-            && self.gateway.url == other.gateway.url
-    }
-}
-
 impl ChorusUser {
     pub fn token(&self) -> String {
         self.token.clone()
     }
 
-    pub fn set_token(&mut self, token: String) {
-        self.token = token;
+    pub fn set_token(&mut self, token: &str) {
+        self.token = token.to_string();
     }
 
     /// Creates a new [ChorusUser] from existing data.
@@ -210,14 +202,15 @@ impl ChorusUser {
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
-    pub(crate) async fn shell(instance: Shared<Instance>, token: String) -> ChorusUser {
+    pub(crate) async fn shell(instance: Shared<Instance>, token: &str) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
         let object = Arc::new(RwLock::new(User::default()));
-        let wss_url = instance.read().unwrap().urls.wss.clone();
+        let wss_url = &instance.read().unwrap().urls.wss.clone();
+        let gateway_options = instance.read().unwrap().gateway_options;
         // Dummy gateway object
-        let gateway = Gateway::spawn(wss_url).await.unwrap();
+        let gateway = Gateway::spawn(wss_url, gateway_options).await.unwrap();
         ChorusUser {
-            token,
+            token: token.to_string(),
             belongs_to: instance.clone(),
             limits: instance
                 .read()

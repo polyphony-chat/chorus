@@ -4,13 +4,13 @@
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, PartialOrd, Copy)]
 pub struct LatLong {
     pub latitude: f64,
     pub longitude: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, PartialOrd)]
 pub struct Region {
     pub id: String,
     pub name: String,

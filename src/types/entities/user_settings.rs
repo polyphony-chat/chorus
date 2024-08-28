@@ -2,14 +2,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::sync::{Arc, RwLock};
-
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
+use crate::types::Shared;
+use crate::{UInt16, UInt32, UInt8};
+use serde_aux::field_attributes::deserialize_option_number_from_string;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, Copy, PartialOrd, Ord, Hash,
+)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum UserStatus {
@@ -27,7 +29,9 @@ impl std::fmt::Display for UserStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, Copy, PartialOrd, Ord, Hash,
+)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum UserTheme {
@@ -39,36 +43,23 @@ pub enum UserTheme {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserSettings {
-    pub afk_timeout: u16,
+    pub afk_timeout: Option<UInt16>,
     pub allow_accessibility_detection: bool,
     pub animate_emoji: bool,
-    pub animate_stickers: u8,
+    pub animate_stickers: UInt8,
     pub contact_sync_enabled: bool,
     pub convert_emoticons: bool,
-    #[cfg(feature = "sqlx")]
-    pub custom_status: Option<sqlx::types::Json<CustomStatus>>,
-    #[cfg(not(feature = "sqlx"))]
     pub custom_status: Option<CustomStatus>,
     pub default_guilds_restricted: bool,
     pub detect_platform_accounts: bool,
     pub developer_mode: bool,
     pub disable_games_tab: bool,
     pub enable_tts_command: bool,
-    pub explicit_content_filter: u8,
-    #[cfg(feature = "sqlx")]
-    pub friend_source_flags: sqlx::types::Json<FriendSourceFlags>,
-    #[cfg(not(feature = "sqlx"))]
+    pub explicit_content_filter: UInt8,
     pub friend_source_flags: FriendSourceFlags,
     pub gateway_connected: Option<bool>,
     pub gif_auto_play: bool,
-    #[cfg(feature = "sqlx")]
-    pub guild_folders: sqlx::types::Json<Vec<GuildFolder>>,
-    #[cfg(not(feature = "sqlx"))]
     pub guild_folders: Vec<GuildFolder>,
-    #[cfg(feature = "sqlx")]
-    #[serde(default)]
-    pub guild_positions: sqlx::types::Json<Vec<String>>,
-    #[cfg(not(feature = "sqlx"))]
     #[serde(default)]
     pub guild_positions: Vec<String>,
     pub inline_attachment_media: bool,
@@ -78,9 +69,6 @@ pub struct UserSettings {
     pub native_phone_integration_enabled: bool,
     pub render_embeds: bool,
     pub render_reactions: bool,
-    #[cfg(feature = "sqlx")]
-    pub restricted_guilds: sqlx::types::Json<Vec<String>>,
-    #[cfg(not(feature = "sqlx"))]
     pub restricted_guilds: Vec<String>,
     pub show_current_game: bool,
     pub status: Shared<UserStatus>,
@@ -92,10 +80,14 @@ pub struct UserSettings {
 impl Default for UserSettings {
     fn default() -> Self {
         Self {
-            afk_timeout: 3600,
+            #[allow(clippy::useless_conversion)]
+            afk_timeout: Some(3600u16.into()),
             allow_accessibility_detection: true,
             animate_emoji: true,
+            #[cfg(not(feature = "sqlx"))]
             animate_stickers: 0,
+            #[cfg(feature = "sqlx")]
+            animate_stickers: 0.into(),
             contact_sync_enabled: false,
             convert_emoticons: false,
             custom_status: None,
@@ -104,7 +96,10 @@ impl Default for UserSettings {
             developer_mode: true,
             disable_games_tab: true,
             enable_tts_command: false,
+            #[cfg(not(feature = "sqlx"))]
             explicit_content_filter: 0,
+            #[cfg(feature = "sqlx")]
+            explicit_content_filter: 0.into(),
             friend_source_flags: Default::default(),
             gateway_connected: Some(false),
             gif_auto_play: false,
@@ -119,7 +114,7 @@ impl Default for UserSettings {
             render_reactions: true,
             restricted_guilds: Default::default(),
             show_current_game: true,
-            status: Arc::new(RwLock::new(UserStatus::Online)),
+            status: Default::default(),
             stream_notifications_enabled: false,
             theme: UserTheme::Dark,
             timezone_offset: 0,
@@ -128,7 +123,8 @@ impl Default for UserSettings {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct CustomStatus {
     pub emoji_id: Option<String>,
     pub emoji_name: Option<String>,
@@ -137,7 +133,8 @@ pub struct CustomStatus {
     pub text: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 pub struct FriendSourceFlags {
     pub all: bool,
 }
@@ -149,11 +146,20 @@ impl Default for FriendSourceFlags {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct GuildFolder {
-    pub color: u32,
+    pub color: Option<UInt32>,
     pub guild_ids: Vec<String>,
-    pub id: u16,
-    pub name: String,
+    // FIXME: What is this thing?
+    // It's not a snowflake, and it's sometimes a string and sometimes an integer.
+    //
+    // Ex: 1249181105
+    //
+    // It can also be negative somehow? Ex: -1176643795
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    pub id: Option<i64>,
+    pub name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -2,16 +2,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use chorus::gateway::{Gateway, Shared};
-use chorus::types::IntoShared;
+use std::str::FromStr;
+
+use chorus::gateway::{Gateway, GatewayOptions};
+use chorus::types::{IntoShared, PermissionFlags};
 use chorus::{
     instance::{ChorusUser, Instance},
     types::{
         Channel, ChannelCreateSchema, Guild, GuildCreateSchema, RegisterSchema,
-        RoleCreateModifySchema, RoleObject,
+        RoleCreateModifySchema, RoleObject, Shared,
     },
     UrlBundle,
 };
+
+use chrono::NaiveDate;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -30,7 +34,7 @@ impl TestBundle {
         let register_schema = RegisterSchema {
             username: username.to_string(),
             consent: true,
-            date_of_birth: Some("2000-01-01".to_string()),
+            date_of_birth: Some(NaiveDate::from_str("2000-01-01").unwrap()),
             ..Default::default()
         };
         self.instance
@@ -46,7 +50,7 @@ impl TestBundle {
             limits: self.user.limits.clone(),
             settings: self.user.settings.clone(),
             object: self.user.object.clone(),
-            gateway: Gateway::spawn(self.instance.urls.wss.clone())
+            gateway: Gateway::spawn(&self.instance.urls.wss, GatewayOptions::default())
                 .await
                 .unwrap(),
         }
@@ -55,12 +59,21 @@ impl TestBundle {
 
 // Set up a test by creating an Instance and a User. Reduces Test boilerplate.
 pub(crate) async fn setup() -> TestBundle {
-    let instance = Instance::new("http://localhost:3001/api").await.unwrap();
+    // So we can get logs when tests fail
+    let _ = simple_logger::SimpleLogger::with_level(
+        simple_logger::SimpleLogger::new(),
+        log::LevelFilter::Debug,
+    )
+    .init();
+
+    let instance = Instance::new("http://localhost:3001/api", None)
+        .await
+        .unwrap();
     // Requires the existence of the below user.
     let reg = RegisterSchema {
         username: "integrationtestuser".into(),
         consent: true,
-        date_of_birth: Some("2000-01-01".to_string()),
+        date_of_birth: Some(NaiveDate::from_str("2000-01-01").unwrap()),
         ..Default::default()
     };
     let guild_create_schema = GuildCreateSchema {
@@ -100,7 +113,7 @@ pub(crate) async fn setup() -> TestBundle {
 
     let role_create_schema: chorus::types::RoleCreateModifySchema = RoleCreateModifySchema {
         name: Some("Bundle role".to_string()),
-        permissions: Some("8".to_string()), // Administrator permissions
+        permissions: PermissionFlags::from_bits(8), // Administrator permissions
         hoist: Some(true),
         icon: None,
         unicode_emoji: Some("".to_string()),
@@ -113,10 +126,10 @@ pub(crate) async fn setup() -> TestBundle {
         .unwrap();
 
     let urls = UrlBundle::new(
-        "http://localhost:3001/api".to_string(),
-        "http://localhost:3001/api".to_string(),
-        "ws://localhost:3001".to_string(),
-        "http://localhost:3001".to_string(),
+        "http://localhost:3001/api",
+        "http://localhost:3001/api",
+        "ws://localhost:3001/",
+        "http://localhost:3001",
     );
     TestBundle {
         urls,

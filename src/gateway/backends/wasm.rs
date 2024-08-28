@@ -9,8 +9,7 @@ use futures_util::{
 
 use ws_stream_wasm::*;
 
-use crate::errors::GatewayError;
-use crate::gateway::GatewayMessage;
+use crate::gateway::{GatewayMessage, RawGatewayMessage};
 
 #[derive(Debug, Clone)]
 pub struct WasmBackend;
@@ -22,13 +21,8 @@ pub type WasmStream = SplitStream<WsStream>;
 impl WasmBackend {
     pub async fn connect(
         websocket_url: &str,
-    ) -> Result<(WasmSink, WasmStream), crate::errors::GatewayError> {
-        let (_, websocket_stream) = match WsMeta::connect(websocket_url, None).await {
-            Ok(stream) => Ok(stream),
-            Err(e) => Err(GatewayError::CannotConnect {
-                error: e.to_string(),
-            }),
-        }?;
+    ) -> Result<(WasmSink, WasmStream), ws_stream_wasm::WsErr> {
+        let (_, websocket_stream) = WsMeta::connect(websocket_url, None).await?;
 
         Ok(websocket_stream.split())
     }
@@ -49,6 +43,24 @@ impl From<WsMessage> for GatewayMessage {
                 let _ = bin.iter().map(|v| text.push_str(&v.to_string()));
                 Self(text)
             }
+        }
+    }
+}
+
+impl From<RawGatewayMessage> for WsMessage {
+    fn from(message: RawGatewayMessage) -> Self {
+        match message {
+            RawGatewayMessage::Text(text) => WsMessage::Text(text),
+            RawGatewayMessage::Bytes(bytes) => WsMessage::Binary(bytes),
+        }
+    }
+}
+
+impl From<WsMessage> for RawGatewayMessage {
+    fn from(value: WsMessage) -> Self {
+        match value {
+            WsMessage::Binary(bytes) => RawGatewayMessage::Bytes(bytes),
+            WsMessage::Text(text) => RawGatewayMessage::Text(text),
         }
     }
 }

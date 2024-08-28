@@ -5,11 +5,12 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::gateway::Shared;
 use crate::types::{
     entities::{Application, User},
     utils::Snowflake,
+    Shared,
 };
+use crate::{UInt16, UInt8};
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -18,13 +19,13 @@ pub struct Integration {
     pub id: Snowflake,
     pub name: String,
     #[serde(rename = "type")]
-    pub integration_type: String,
+    pub integration_type: IntegrationType,
     pub enabled: bool,
     pub syncing: Option<bool>,
     pub role_id: Option<String>,
     pub enabled_emoticons: Option<bool>,
-    pub expire_behaviour: Option<u8>,
-    pub expire_grace_period: Option<u16>,
+    pub expire_behaviour: Option<UInt8>,
+    pub expire_grace_period: Option<UInt16>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<Shared<User>>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
@@ -42,4 +43,18 @@ pub struct Integration {
 pub struct IntegrationAccount {
     pub id: String,
     pub name: String,
+}
+
+#[derive(
+    Debug, Default, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord, Copy, Hash,
+)]
+#[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(rename_all = "snake_case"))]
+pub enum IntegrationType {
+    #[default]
+    Twitch,
+    Youtube,
+    Discord,
+    GuildSubscription,
 }

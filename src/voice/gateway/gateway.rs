@@ -6,14 +6,17 @@ use std::{sync::Arc, time::Duration};
 
 use log::*;
 
+use pubserve::Publisher;
 use tokio::sync::Mutex;
 
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 
+use crate::gateway::Sink;
+use crate::gateway::Stream;
+use crate::gateway::WebSocketBackend;
 use crate::{
     errors::VoiceGatewayError,
-    gateway::GatewayEvent,
     types::{
         VoiceGatewayReceivePayload, VoiceHelloData, WebSocketEvent, VOICE_BACKEND_VERSION,
         VOICE_CLIENT_CONNECT_FLAGS, VOICE_CLIENT_CONNECT_PLATFORM, VOICE_CLIENT_DISCONNECT,
@@ -21,14 +24,10 @@ use crate::{
         VOICE_READY, VOICE_RESUME, VOICE_SELECT_PROTOCOL, VOICE_SESSION_DESCRIPTION,
         VOICE_SESSION_UPDATE, VOICE_SPEAKING, VOICE_SSRC_DEFINITION,
     },
-    voice::gateway::{
-        heartbeat::VoiceHeartbeatThreadCommunication, VoiceGatewayMessage, WebSocketBackend,
-    },
+    voice::gateway::{heartbeat::VoiceHeartbeatThreadCommunication, VoiceGatewayMessage},
 };
 
-use super::{
-    events::VoiceEvents, heartbeat::VoiceHeartbeatHandler, Sink, Stream, VoiceGatewayHandle,
-};
+use super::{events::VoiceEvents, heartbeat::VoiceHeartbeatHandler, VoiceGatewayHandle};
 
 #[derive(Debug)]
 pub struct VoiceGateway {
@@ -42,13 +41,20 @@ pub struct VoiceGateway {
 
 impl VoiceGateway {
     #[allow(clippy::new_ret_no_self)]
-    pub async fn spawn(websocket_url: String) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
+    pub async fn spawn(websocket_url: &str) -> Result<VoiceGatewayHandle, VoiceGatewayError> {
         // Append the needed things to the websocket url
         let processed_url = format!("wss://{}/?v=7", websocket_url);
-        trace!("Created voice socket url: {}", processed_url.clone());
+        trace!("VGW: Connecting to {}", processed_url.clone());
 
         let (websocket_send, mut websocket_receive) =
-            WebSocketBackend::connect(&processed_url).await?;
+            match WebSocketBackend::connect(&processed_url).await {
+                Ok(streams) => streams,
+                Err(e) => {
+                    return Err(VoiceGatewayError::CannotConnect {
+                        error: format!("{:?}", e),
+                    })
+                }
+            };
 
         let shared_websocket_send = Arc::new(Mutex::new(websocket_send));
 
@@ -104,7 +110,7 @@ impl VoiceGateway {
         });
 
         Ok(VoiceGatewayHandle {
-            url: websocket_url.clone(),
+            url: websocket_url.to_string(),
             events: shared_events,
             websocket_send: shared_websocket_send.clone(),
             kill_send: kill_send.clone(),
@@ -154,7 +160,7 @@ impl VoiceGateway {
     /// (Called for every event in handle_message)
     async fn handle_event<'a, T: WebSocketEvent + serde::Deserialize<'a>>(
         data: &'a str,
-        event: &mut GatewayEvent<T>,
+        event: &mut Publisher<T>,
     ) -> Result<(), serde_json::Error> {
         let data_deserialize_result: Result<T, serde_json::Error> = serde_json::from_str(data);
 
@@ -162,7 +168,7 @@ impl VoiceGateway {
             return Err(data_deserialize_result.err().unwrap());
         }
 
-        event.notify(data_deserialize_result.unwrap()).await;
+        event.publish(data_deserialize_result.unwrap()).await;
         Ok(())
     }
 
@@ -176,7 +182,7 @@ impl VoiceGateway {
             if let Some(error) = msg.error() {
                 warn!("GW: Received error {:?}, connection will close..", error);
                 self.close().await;
-                self.events.lock().await.error.notify(error).await;
+                self.events.lock().await.error.publish(error).await;
             } else {
                 warn!(
                     "Message unrecognised: {:?}, please open an issue on the chorus github",

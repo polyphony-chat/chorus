@@ -3,22 +3,42 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::types::WebSocketEvent;
+use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
 /// Received on gateway init, tells the client how often to send heartbeats;
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(
+    Debug, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent, Copy, Hash, PartialOrd, Ord,
+)]
 pub struct GatewayHello {
     pub op: i32,
     pub d: HelloData,
 }
 
-impl WebSocketEvent for GatewayHello {}
-
-#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, Copy)]
+#[derive(
+    Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Copy, WebSocketEvent, Hash, PartialOrd, Ord,
+)]
 /// Contains info on how often the client should send heartbeats to the server;
 pub struct HelloData {
     /// How often a client should send heartbeats, in milliseconds
     pub heartbeat_interval: u64,
 }
 
-impl WebSocketEvent for HelloData {}
+impl std::default::Default for GatewayHello {
+    fn default() -> Self {
+        Self {
+            // "HELLO" opcode is 10
+            op: 10,
+            d: Default::default(),
+        }
+    }
+}
+
+impl std::default::Default for HelloData {
+    fn default() -> Self {
+        Self {
+            // Discord docs mention 45000 seconds - discord.sex mentions 41250. Defaulting to 45s
+            heartbeat_interval: 45000,
+        }
+    }
+}

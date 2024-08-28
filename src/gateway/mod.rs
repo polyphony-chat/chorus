@@ -2,7 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use async_trait::async_trait;
 
 pub mod backends;
 pub mod events;
@@ -10,15 +9,17 @@ pub mod gateway;
 pub mod handle;
 pub mod heartbeat;
 pub mod message;
+pub mod options;
 
 pub use backends::*;
 pub use gateway::*;
 pub use handle::*;
 use heartbeat::*;
 pub use message::*;
+pub use options::*;
 
 use crate::errors::GatewayError;
-use crate::types::{Snowflake, WebSocketEvent};
+use crate::types::Snowflake;
 
 use std::any::Any;
 use std::collections::HashMap;
@@ -76,67 +77,11 @@ const GATEWAY_LAZY_REQUEST: u8 = 14;
 
 pub type ObservableObject = dyn Send + Sync + Any;
 
+/// Note: this is a reexport of [pubserve::Subscriber],
+/// exported not to break the public api and make development easier
+pub use pubserve::Subscriber as Observer;
+
 /// An entity type which is supposed to be updateable via the Gateway. This is implemented for all such types chorus supports, implementing it for your own types is likely a mistake.
 pub trait Updateable: 'static + Send + Sync {
     fn id(&self) -> Snowflake;
 }
-
-/// Trait which defines the behavior of an Observer. An Observer is an object which is subscribed to
-/// an Observable. The Observer is notified when the Observable's data changes.
-/// In this case, the Observable is a [`GatewayEvent`], which is a wrapper around a WebSocketEvent.
-/// Note that `Debug` is used to tell `Observer`s apart when unsubscribing.
-#[async_trait]
-pub trait Observer<T>: Sync + Send + std::fmt::Debug {
-    async fn update(&self, data: &T);
-}
-
-/// GatewayEvent is a wrapper around a WebSocketEvent. It is used to notify the observers of a
-/// change in the WebSocketEvent. GatewayEvents are observable.
-#[derive(Default, Debug)]
-pub struct GatewayEvent<T: WebSocketEvent> {
-    observers: Vec<Arc<dyn Observer<T>>>,
-}
-
-impl<T: WebSocketEvent> GatewayEvent<T> {
-    pub fn new() -> Self {
-        Self {
-            observers: Vec::new(),
-        }
-    }
-
-    /// Returns true if the GatewayEvent is observed by at least one Observer.
-    pub fn is_observed(&self) -> bool {
-        !self.observers.is_empty()
-    }
-
-    /// Subscribes an Observer to the GatewayEvent.
-    pub fn subscribe(&mut self, observable: Arc<dyn Observer<T>>) {
-        self.observers.push(observable);
-    }
-
-    /// Unsubscribes an Observer from the GatewayEvent.
-    pub fn unsubscribe(&mut self, observable: &dyn Observer<T>) {
-        // .retain()'s closure retains only those elements of the vector, which have a different
-        // pointer value than observable.
-        // The usage of the debug format to compare the generic T of observers is quite stupid, but the only thing to compare between them is T and if T == T they are the same
-        // anddd there is no way to do that without using format
-        let to_remove = format!("{:?}", observable);
-        self.observers
-            .retain(|obs| format!("{:?}", obs) != to_remove);
-    }
-
-    /// Notifies the observers of the GatewayEvent.
-    pub(crate) async fn notify(&self, new_event_data: T) {
-        for observer in &self.observers {
-            observer.update(&new_event_data).await;
-        }
-    }
-}
-
-/// A type alias for [`Arc<RwLock<T>>`], used to make the public facing API concerned with
-/// Composite structs more ergonomic.
-/// ## Note
-///
-/// While `T` does not have to implement `Composite` to be used with `Shared`,
-/// the primary use of `Shared` is with types that implement `Composite`.
-pub type Shared<T> = Arc<RwLock<T>>;

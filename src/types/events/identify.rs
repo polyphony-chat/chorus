@@ -6,7 +6,7 @@ use crate::types::events::{PresenceUpdate, WebSocketEvent};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, WebSocketEvent)]
 pub struct GatewayIdentifyPayload {
     pub token: String,
     pub properties: GatewayIdentifyConnectionProps,
@@ -70,9 +70,7 @@ impl GatewayIdentifyPayload {
     }
 }
 
-impl WebSocketEvent for GatewayIdentifyPayload {}
-
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
 #[serde_as]
 pub struct GatewayIdentifyConnectionProps {
     /// Almost always sent
@@ -159,7 +157,7 @@ impl GatewayIdentifyConnectionProps {
             // 25% of the web
             //default.browser_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36".to_string();
             browser: String::from("Chrome"),
-            browser_version: String::from("113.0.0.0"),
+            browser_version: String::from("126.0.0.0"),
             system_locale: String::from("en-US"),
             os: String::from("Windows"),
             os_version: Some(String::from("10")),

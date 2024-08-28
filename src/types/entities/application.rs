@@ -7,9 +7,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::gateway::Shared;
 use crate::types::utils::Snowflake;
+use crate::types::Shared;
 use crate::types::{Team, User};
+
+#[allow(unused_imports)]
+use super::{arc_rwlock_ptr_eq, option_arc_rwlock_ptr_eq};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -31,7 +34,7 @@ pub struct Application {
     pub verify_key: String,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub owner: Shared<User>,
-    pub flags: u64,
+    pub flags: ApplicationFlags,
     #[cfg(feature = "sqlx")]
     pub redirect_uris: Option<sqlx::types::Json<Vec<String>>>,
     #[cfg(not(feature = "sqlx"))]
@@ -59,6 +62,64 @@ pub struct Application {
     pub team: Option<Team>,
 }
 
+#[cfg(not(tarpaulin_include))]
+impl PartialEq for Application {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+            && self.name == other.name
+            && self.icon == other.icon
+            && self.description == other.description
+            && self.summary == other.summary
+            && self.r#type == other.r#type
+            && self.hook == other.hook
+            && self.bot_public == other.bot_public
+            && self.bot_require_code_grant == other.bot_require_code_grant
+            && self.verify_key == other.verify_key
+            && arc_rwlock_ptr_eq(&self.owner, &other.owner)
+            && self.flags == other.flags
+            && self.redirect_uris == other.redirect_uris
+            && self.rpc_application_state == other.rpc_application_state
+            && self.store_application_state == other.store_application_state
+            && self.verification_state == other.verification_state
+            && self.interactions_endpoint_url == other.interactions_endpoint_url
+            && self.integration_public == other.integration_public
+            && self.integration_require_code_grant == other.integration_require_code_grant
+            && self.discoverability_state == other.discoverability_state
+            && self.discovery_eligibility_flags == other.discovery_eligibility_flags
+            && self.tags == other.tags
+            && self.cover_image == other.cover_image
+            && compare_install_params(&self.install_params, &other.install_params)
+            && self.terms_of_service_url == other.terms_of_service_url
+            && self.privacy_policy_url == other.privacy_policy_url
+            && self.team == other.team
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+fn compare_install_params(
+    a: &Option<sqlx::types::Json<InstallParams>>,
+    b: &Option<sqlx::types::Json<InstallParams>>,
+) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => match (a.encode_to_string(), b.encode_to_string()) {
+            (Ok(a), Ok(b)) => a == b,
+            _ => false,
+        },
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
+fn compare_install_params(
+    a: &Option<Shared<InstallParams>>,
+    b: &Option<Shared<InstallParams>>,
+) -> bool {
+    option_arc_rwlock_ptr_eq(a, b)
+}
+
 impl Default for Application {
     fn default() -> Self {
         Self {
@@ -73,7 +134,7 @@ impl Default for Application {
             bot_require_code_grant: false,
             verify_key: "".to_string(),
             owner: Default::default(),
-            flags: 0,
+            flags: ApplicationFlags::empty(),
             redirect_uris: None,
             rpc_application_state: 0,
             store_application_state: 1,
@@ -93,12 +154,6 @@ impl Default for Application {
     }
 }
 
-impl Application {
-    pub fn flags(&self) -> ApplicationFlags {
-        ApplicationFlags::from_bits(self.flags.to_owned()).unwrap()
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// # Reference
 /// See <https://discord.com/developers/docs/resources/application#install-params-object>
@@ -108,7 +163,8 @@ pub struct InstallParams {
 }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy,  Serialize, Deserialize, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
     /// See <https://discord.com/developers/docs/resources/application#application-object-application-flags>
     pub struct ApplicationFlags: u64 {
@@ -168,7 +224,8 @@ pub struct ApplicationCommandOptionChoice {
 
 #[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
-#[repr(i32)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// # Reference
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-types>
 pub enum ApplicationCommandOptionType {
@@ -212,7 +269,9 @@ pub struct GuildApplicationCommandPermissions {
     pub permissions: Vec<Shared<ApplicationCommandPermission>>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Serialize, Deserialize, Copy, Eq, Hash, PartialOrd, Ord,
+)]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure>
 pub struct ApplicationCommandPermission {
     pub id: Snowflake,
@@ -222,9 +281,22 @@ pub struct ApplicationCommandPermission {
     pub permission: bool,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Default,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type>
 pub enum ApplicationCommandPermissionType {
     #[default]

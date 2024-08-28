@@ -3,11 +3,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::types::utils::Snowflake;
-use jsonwebtoken::{encode, EncodingKey, Header};
+use jsonwebtoken::errors::Error;
+use jsonwebtoken::{
+    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
+};
 use serde::{Deserialize, Serialize};
 
-pub fn generate_token(id: &Snowflake, email: String, jwt_key: &str) -> String {
-    let claims = Claims::new(&email, id);
+pub fn generate_token(id: &Snowflake, email: &str, jwt_key: &str) -> String {
+    let claims = Claims::new(email, id);
 
     build_token(&claims, jwt_key).unwrap()
 }
@@ -19,7 +22,7 @@ pub struct Claims {
     /// When the token was issued
     pub iat: i64,
     pub email: String,
-    pub id: String,
+    pub id: Snowflake,
 }
 
 impl Claims {
@@ -27,7 +30,7 @@ impl Claims {
         let unix = chrono::Utc::now().timestamp();
         Self {
             exp: unix + (60 * 60 * 24),
-            id: id.to_string(),
+            id: *id,
             iat: unix,
             email: user.to_string(),
         }
@@ -42,8 +45,13 @@ pub fn build_token(claims: &Claims, jwt_key: &str) -> Result<String, jsonwebtoke
     )
 }
 
-/*pub fn decode_token(token: &str) -> Result<TokenData<Claims>, Error> {
+pub fn decode_token(token: &str, jwt_secret: &str) -> Result<TokenData<Claims>, Error> {
     let mut validation = Validation::new(Algorithm::HS256);
-    validation.sub = Some("quartzauth".to_string());
-    decode(token, &DecodingKey::from_secret(JWT_SECRET), &validation)
-}*/
+    //TODO: What is this?
+    //validation.sub = Some("quartzauth".to_string());
+    decode(
+        token,
+        &DecodingKey::from_secret(jwt_secret.as_bytes()),
+        &validation,
+    )
+}

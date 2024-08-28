@@ -44,6 +44,16 @@ impl ChorusUser {
         &mut self,
         query: Option<GetUserGuildSchema>,
     ) -> ChorusResult<Vec<Guild>> {
+
+        let query_parameters = {
+            if let Some(query_some) = query {
+                query_some.to_query()
+            }
+            else {
+                Vec::new()
+            }
+        };
+
         let url = format!(
             "{}/users/@me/guilds",
             self.belongs_to.read().unwrap().urls.api,
@@ -53,7 +63,7 @@ impl ChorusUser {
                 .get(url)
                 .header("Authorization", self.token())
                 .header("Content-Type", "application/json")
-                .body(to_string(&query).unwrap()),
+                .query(&query_parameters),
 
             limit_type: LimitType::Global,
         };

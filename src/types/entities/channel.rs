@@ -3,15 +3,15 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use serde_aux::prelude::deserialize_string_from_number;
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::fmt::Debug;
+use std::fmt::{Debug, Formatter};
+use std::str::FromStr;
 
-use crate::gateway::Shared;
 use crate::types::{
     entities::{GuildMember, User},
     utils::Snowflake,
+    PermissionFlags, Shared,
 };
 
 #[cfg(feature = "client")]
@@ -22,9 +22,16 @@ use crate::gateway::GatewayHandle;
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
+use crate::UInt64;
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, Composite, Updateable};
+use serde::de::{Error, Visitor};
+
+#[cfg(feature = "sqlx")]
+use sqlx::types::Json;
+
+use super::{option_arc_rwlock_ptr_eq, option_vec_arc_rwlock_ptr_eq};
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -35,13 +42,7 @@ use chorus_macros::{observe_option_vec, Composite, Updateable};
 /// See <https://discord-userdoccers.vercel.app/resources/channel#channels-resource>
 pub struct Channel {
     pub application_id: Option<Snowflake>,
-    #[cfg(feature = "sqlx")]
-    pub applied_tags: Option<sqlx::types::Json<Vec<String>>>,
-    #[cfg(not(feature = "sqlx"))]
     pub applied_tags: Option<Vec<String>>,
-    #[cfg(feature = "sqlx")]
-    pub available_tags: Option<sqlx::types::Json<Vec<Tag>>>,
-    #[cfg(not(feature = "sqlx"))]
     pub available_tags: Option<Vec<Tag>>,
     pub bitrate: Option<i32>,
     #[serde(rename = "type")]
@@ -49,9 +50,7 @@ pub struct Channel {
     pub created_at: Option<chrono::DateTime<Utc>>,
     pub default_auto_archive_duration: Option<i32>,
     pub default_forum_layout: Option<i32>,
-    #[cfg(feature = "sqlx")]
-    pub default_reaction_emoji: Option<sqlx::types::Json<DefaultReaction>>,
-    #[cfg(not(feature = "sqlx"))]
+    // DefaultReaction could be stored in a separate table. However, there are a lot of default emojis. How would we handle that?
     pub default_reaction_emoji: Option<DefaultReaction>,
     pub default_sort_order: Option<i32>,
     pub default_thread_rate_limit_per_user: Option<i32>,
@@ -64,7 +63,9 @@ pub struct Channel {
     pub managed: Option<bool>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member: Option<ThreadMember>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub member_count: Option<i32>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub message_count: Option<i32>,
     pub name: Option<String>,
     pub nsfw: Option<bool>,
@@ -75,6 +76,7 @@ pub struct Channel {
     #[cfg(not(feature = "sqlx"))]
     #[cfg_attr(feature = "client", observe_option_vec)]
     pub permission_overwrites: Option<Vec<Shared<PermissionOverwrite>>>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub permissions: Option<String>,
     pub position: Option<i32>,
     pub rate_limit_per_user: Option<i32>,
@@ -85,19 +87,28 @@ pub struct Channel {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub thread_metadata: Option<ThreadMetadata>,
     pub topic: Option<String>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub total_message_sent: Option<i32>,
     pub user_limit: Option<i32>,
     pub video_quality_mode: Option<i32>,
 }
 
+#[cfg(not(tarpaulin_include))]
+#[allow(clippy::nonminimal_bool)]
 impl PartialEq for Channel {
     fn eq(&self, other: &Self) -> bool {
         self.application_id == other.application_id
+            && self.applied_tags == other.applied_tags
+            && self.applied_tags == other.applied_tags
+            && self.available_tags == other.available_tags
+            && self.available_tags == other.available_tags
             && self.bitrate == other.bitrate
             && self.channel_type == other.channel_type
             && self.created_at == other.created_at
             && self.default_auto_archive_duration == other.default_auto_archive_duration
             && self.default_forum_layout == other.default_forum_layout
+            && self.default_reaction_emoji == other.default_reaction_emoji
+            && self.default_reaction_emoji == other.default_reaction_emoji
             && self.default_sort_order == other.default_sort_order
             && self.default_thread_rate_limit_per_user == other.default_thread_rate_limit_per_user
             && self.flags == other.flags
@@ -107,16 +118,23 @@ impl PartialEq for Channel {
             && self.last_message_id == other.last_message_id
             && self.last_pin_timestamp == other.last_pin_timestamp
             && self.managed == other.managed
+            && self.member == other.member
             && self.member_count == other.member_count
             && self.message_count == other.message_count
             && self.name == other.name
             && self.nsfw == other.nsfw
             && self.owner_id == other.owner_id
             && self.parent_id == other.parent_id
+            && compare_permission_overwrites(
+                &self.permission_overwrites,
+                &other.permission_overwrites,
+            )
             && self.permissions == other.permissions
             && self.position == other.position
             && self.rate_limit_per_user == other.rate_limit_per_user
+            && option_vec_arc_rwlock_ptr_eq(&self.recipients, &other.recipients)
             && self.rtc_region == other.rtc_region
+            && self.thread_metadata == other.thread_metadata
             && self.topic == other.topic
             && self.total_message_sent == other.total_message_sent
             && self.user_limit == other.user_limit
@@ -124,11 +142,38 @@ impl PartialEq for Channel {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[cfg(not(tarpaulin_include))]
+#[cfg(feature = "sqlx")]
+fn compare_permission_overwrites(
+    a: &Option<Json<Vec<PermissionOverwrite>>>,
+    b: &Option<Json<Vec<PermissionOverwrite>>>,
+) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => match (a.encode_to_string(), b.encode_to_string()) {
+            (Ok(a), Ok(b)) => a == b,
+            _ => false,
+        },
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+#[cfg(not(feature = "sqlx"))]
+fn compare_permission_overwrites(
+    a: &Option<Vec<Shared<PermissionOverwrite>>>,
+    b: &Option<Vec<Shared<PermissionOverwrite>>>,
+) -> bool {
+    option_vec_arc_rwlock_ptr_eq(a, b)
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 /// A tag that can be applied to a thread in a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel.
 ///
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#forum-tag-object>
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct Tag {
     pub id: Snowflake,
     /// The name of the tag (max 20 characters)
@@ -144,26 +189,105 @@ pub struct Tag {
 pub struct PermissionOverwrite {
     pub id: Snowflake,
     #[serde(rename = "type")]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub overwrite_type: String,
+    pub overwrite_type: PermissionOverwriteType,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub allow: String,
+    pub allow: PermissionFlags,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_string_from_number")]
-    pub deny: String,
+    pub deny: PermissionFlags,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize_repr, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Copy)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/channel#permission-overwrite-type>
+pub enum PermissionOverwriteType {
+    Role = 0,
+    Member = 1,
+}
+
+impl From<u8> for PermissionOverwriteType {
+    fn from(v: u8) -> Self {
+        match v {
+            0 => PermissionOverwriteType::Role,
+            1 => PermissionOverwriteType::Member,
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl FromStr for PermissionOverwriteType {
+    type Err = serde::de::value::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "role" => Ok(PermissionOverwriteType::Role),
+            "member" => Ok(PermissionOverwriteType::Member),
+            _ => Err(Self::Err::custom("invalid permission overwrite type")),
+        }
+    }
+}
+
+struct PermissionOverwriteTypeVisitor;
+
+impl<'de> Visitor<'de> for PermissionOverwriteTypeVisitor {
+    type Value = PermissionOverwriteType;
+
+    fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+        formatter.write_str("a valid permission overwrite type")
+    }
+
+    fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
+    where
+        E: Error,
+    {
+        Ok(PermissionOverwriteType::from(v))
+    }
+
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: Error,
+    {
+        self.visit_u8(v as u8)
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: Error,
+    {
+        PermissionOverwriteType::from_str(v).map_err(E::custom)
+    }
+
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+    where
+        E: Error,
+    {
+        self.visit_str(v.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for PermissionOverwriteType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let val = deserializer.deserialize_any(PermissionOverwriteTypeVisitor)?;
+
+        Ok(val)
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Copy)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#thread-metadata-object>
 pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: i32,
-    pub archive_timestamp: String,
+    pub archive_timestamp: DateTime<Utc>,
     pub locked: bool,
     pub invitable: Option<bool>,
-    pub create_timestamp: Option<String>,
+    pub create_timestamp: Option<DateTime<Utc>>,
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
@@ -172,16 +296,29 @@ pub struct ThreadMetadata {
 pub struct ThreadMember {
     pub id: Option<Snowflake>,
     pub user_id: Option<Snowflake>,
-    pub join_timestamp: Option<String>,
-    pub flags: Option<u64>,
+    pub join_timestamp: Option<DateTime<Utc>>,
+    pub flags: Option<UInt64>,
     pub member: Option<Shared<GuildMember>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[cfg(not(tarpaulin_include))]
+impl PartialEq for ThreadMember {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+            && self.user_id == other.user_id
+            && self.join_timestamp == other.join_timestamp
+            && self.flags == other.flags
+            && option_arc_rwlock_ptr_eq(&self.member, &other.member)
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd)]
 /// Specifies the emoji to use as the default way to react to a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel post.
 ///
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#default-reaction-object>
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct DefaultReaction {
     #[serde(default)]
     pub emoji_id: Option<Snowflake>,
@@ -203,7 +340,7 @@ pub struct DefaultReaction {
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(u32)]
+#[repr(i32)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#channel-type>
 pub enum ChannelType {
@@ -255,4 +392,12 @@ pub enum ChannelType {
     CustomStart = 64,
     // TODO: Couldn't find reference
     Unhandled = 255,
+}
+
+/// # Reference
+/// See <https://docs.discord.sex/resources/message#followed-channel-object>
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord)]
+pub struct FollowedChannel {
+    pub channel_id: Snowflake,
+    pub webhook_id: Snowflake,
 }

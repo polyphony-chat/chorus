@@ -8,7 +8,7 @@ use crate::types::config::types::subconfigs::limits::ratelimits::{
     auth::AuthRateLimit, RateLimitOptions,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash, Copy, PartialOrd, Ord)]
 pub struct RouteRateLimit {
     pub guild: RateLimitOptions,
     pub webhook: RateLimitOptions,

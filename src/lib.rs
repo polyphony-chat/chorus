@@ -3,27 +3,29 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /*!
-Chorus combines all the required functionalities of a user-centric Spacebar library into one package.
+Chorus is a Rust library which poses as an API wrapper for [Spacebar Chat](https://github.com/spacebarchat/),
+Discord and our own Polyphony. Its high-level API is designed to be easy to use, while still providing the
+flexibility one would expect from a library like this.
+
+You can establish as many connections to as many servers as you want, and you can use them all at the same time.
+
+## A Tour of Chorus
+
+Chorus combines all the required functionalities of an API wrapper for chat services into one modular library.
 The library handles various aspects on your behalf, such as rate limiting, authentication and maintaining
 a WebSocket connection to the Gateway. This means that you can focus on building your application,
 instead of worrying about the underlying implementation details.
 
 ### Establishing a Connection
 
-To connect to a Spacebar compatible server, you need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
+To connect to a Polyphony/Spacebar compatible server, you'll need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
 
 ```rs
 use chorus::instance::Instance;
-use chorus::UrlBundle;
 
 #[tokio::main]
 async fn main() {
-    let bundle = UrlBundle::new(
-        "https://example.com/api".to_string(),
-        "wss://example.com/".to_string(),
-        "https://example.com/cdn".to_string(),
-    );
-    let instance = Instance::new(bundle)
+    let instance = Instance::new("https://example.com")
         .await
         .expect("Failed to connect to the Spacebar server");
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
@@ -36,7 +38,7 @@ This Instance can now be used to log in, register and from there on, interact wi
 
 ### Logging In
 
-Logging in correctly provides you with an instance of [`ChorusUser`](https://docs.rs/chorus/latest/chorus/instance/struct.ChorusUser.html), with which you can interact with the server and
+Logging in correctly provides you with an instance of `ChorusUser`, with which you can interact with the server and
 manipulate the account. Assuming you already have an account on the server, you can log in like this:
 
 ```rs
@@ -48,7 +50,7 @@ let login_schema = LoginSchema {
     password: "Correct-Horse-Battery-Staple".to_string(),
     ..Default::default()
 };
-// Each user connects to the Gateway. The Gateway connection lives on a separate thread. Depending on
+// Each user connects to the Gateway. Each users' Gateway connection lives on a separate thread. Depending on
 // the runtime feature you choose, this can potentially take advantage of all of your computers' threads.
 let user = instance
     .login_account(login_schema)
@@ -64,15 +66,33 @@ All major desktop operating systems (Windows, macOS (aarch64/x86_64), Linux (aar
 `wasm32-unknown-unknown` is a supported compilation target on versions `0.12.0` and up. This allows you to use
 Chorus in your browser, or in any other environment that supports WebAssembly.
 
-We recommend checking out the examples directory, as well as the documentation for more information.
+To compile for `wasm32-unknown-unknown`, execute the following command:
+
+```sh
+cargo build --target=wasm32-unknown-unknown --no-default-features
+```
+
+The following features are supported on `wasm32-unknown-unknown`:
+
+| Feature           | WASM Support |
+| ----------------- | ------------ |
+| `client`          | ✅            |
+| `rt`              | ✅            |
+| `rt-multi-thread` | ❌            |
+| `backend`         | ❌            |
+| `voice`           | ❌            |
+| `voice_udp`       | ❌            |
+| `voice_gateway`   | ✅            |
+
+We recommend checking out the "examples" directory, as well as the documentation for more information.
 
 ## MSRV (Minimum Supported Rust Version)
 
-Rust **1.67.1**. This number might change at any point while Chorus is not yet at version 1.0.0.
+Rust **1.70.0**. This number might change at any point while Chorus is not yet at version 1.0.0.
 
 ## Development Setup
 
-Make sure that you have at least Rust 1.67.1 installed. You can check your Rust version by running `cargo --version`
+Make sure that you have at least Rust 1.70.0 installed. You can check your Rust version by running `cargo --version`
 in your terminal. To compile for `wasm32-unknown-unknown`, you need to install the `wasm32-unknown-unknown` target.
 You can do this by running `rustup target add wasm32-unknown-unknown`.
 
@@ -86,31 +106,36 @@ like "proxy connection checking" are already disabled on this version, which oth
 ### wasm
 
 To test for wasm, you will need to `cargo install wasm-pack`. You can then run
-`wasm-pack test --<chrome/firefox/safari> --headless -- --target wasm32-unknown-unknown --features="rt, client" --no-default-features`
+`wasm-pack test --<chrome/firefox/safari> --headless -- --target wasm32-unknown-unknown --features="rt, client, voice_gateway" --no-default-features`
 to run the tests for wasm.
 
 ## Versioning
 
 This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read the specification [here](https://semver.org/spec/v2.0.0.html).
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 !*/
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/polyphony-chat/design/main/branding/polyphony-chorus-round-8bit.png"
 )]
 #![allow(clippy::module_inception)]
 #![deny(
-    missing_debug_implementations,
     clippy::extra_unused_lifetimes,
     clippy::from_over_into,
     clippy::needless_borrow,
-    clippy::new_without_default,
-    clippy::useless_conversion
+    clippy::new_without_default
 )]
 #![warn(
     clippy::todo,
     clippy::unimplemented,
     clippy::dbg_macro,
     clippy::print_stdout,
-    clippy::print_stderr
+    clippy::print_stderr,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    clippy::useless_conversion
 )]
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
@@ -138,6 +163,27 @@ pub mod types;
 ))]
 pub mod voice;
 
+#[cfg(not(feature = "sqlx"))]
+pub type UInt128 = u128;
+#[cfg(feature = "sqlx")]
+pub type UInt128 = sqlx_pg_uint::PgU128;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt64 = u64;
+#[cfg(feature = "sqlx")]
+pub type UInt64 = sqlx_pg_uint::PgU64;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt32 = u32;
+#[cfg(feature = "sqlx")]
+pub type UInt32 = sqlx_pg_uint::PgU32;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt16 = u16;
+#[cfg(feature = "sqlx")]
+pub type UInt16 = sqlx_pg_uint::PgU16;
+#[cfg(not(feature = "sqlx"))]
+pub type UInt8 = u8;
+#[cfg(feature = "sqlx")]
+pub type UInt8 = sqlx_pg_uint::PgU8;
+
 #[derive(Clone, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// A URLBundle bundles together the API-, Gateway- and CDN-URLs of a Spacebar instance.
 ///
@@ -164,7 +210,7 @@ pub struct UrlBundle {
 
 impl UrlBundle {
     /// Creates a new UrlBundle from the relevant urls.
-    pub fn new(root: String, api: String, wss: String, cdn: String) -> Self {
+    pub fn new(root: &str, api: &str, wss: &str, cdn: &str) -> Self {
         Self {
             root: UrlBundle::parse_url(root),
             api: UrlBundle::parse_url(api),
@@ -181,17 +227,17 @@ impl UrlBundle {
     /// let url = parse_url("localhost:3000");
     /// ```
     /// `-> Outputs "http://localhost:3000".`
-    pub fn parse_url(url: String) -> String {
-        let url = match Url::parse(&url) {
+    pub fn parse_url(url: &str) -> String {
+        let url = match Url::parse(url) {
             Ok(url) => {
                 if url.scheme() == "localhost" {
-                    return UrlBundle::parse_url(format!("http://{}", url));
+                    return UrlBundle::parse_url(&format!("http://{}", url));
                 }
                 url
             }
             Err(ParseError::RelativeUrlWithoutBase) => {
                 let url_fmt = format!("http://{}", url);
-                return UrlBundle::parse_url(url_fmt);
+                return UrlBundle::parse_url(&url_fmt);
             }
             Err(_) => panic!("Invalid URL"), // TODO: should not panic here
         };
@@ -214,7 +260,7 @@ impl UrlBundle {
     /// of the above approaches fail, it is very likely that the instance is misconfigured, unreachable, or that
     /// a wrong URL was provided.
     pub async fn from_root_url(url: &str) -> ChorusResult<UrlBundle> {
-        let parsed = UrlBundle::parse_url(url.to_string());
+        let parsed = UrlBundle::parse_url(url);
         let client = reqwest::Client::new();
         let request_wellknown = client
             .get(format!("{}/.well-known/spacebar", &parsed))
@@ -252,10 +298,10 @@ impl UrlBundle {
             .await
         {
             Ok(UrlBundle::new(
-                url.to_string(),
-                body.api_endpoint,
-                body.gateway,
-                body.cdn,
+                url,
+                &body.api_endpoint,
+                &body.gateway,
+                &body.cdn,
             ))
         } else {
             Err(ChorusError::RequestFailed {
@@ -272,13 +318,13 @@ mod lib {
 
     #[test]
     fn test_parse_url() {
-        let mut result = UrlBundle::parse_url(String::from("localhost:3000/"));
-        assert_eq!(result, String::from("http://localhost:3000"));
-        result = UrlBundle::parse_url(String::from("https://some.url.com/"));
+        let mut result = UrlBundle::parse_url("localhost:3000/");
+        assert_eq!(result, "http://localhost:3000");
+        result = UrlBundle::parse_url("https://some.url.com/");
         assert_eq!(result, String::from("https://some.url.com"));
-        result = UrlBundle::parse_url(String::from("https://some.url.com/"));
-        assert_eq!(result, String::from("https://some.url.com"));
-        result = UrlBundle::parse_url(String::from("https://some.url.com"));
-        assert_eq!(result, String::from("https://some.url.com"));
+        result = UrlBundle::parse_url("https://some.url.com/");
+        assert_eq!(result, "https://some.url.com");
+        result = UrlBundle::parse_url("https://some.url.com");
+        assert_eq!(result, "https://some.url.com");
     }
 }

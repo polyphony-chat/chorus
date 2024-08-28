@@ -14,6 +14,7 @@ use chorus::types::{
     self, Channel, ChannelCreateSchema, ChannelModifySchema, GatewayReady, IntoShared,
     RoleCreateModifySchema, RoleObject,
 };
+use pubserve::Subscriber;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
@@ -30,7 +31,9 @@ use wasmtimer::tokio::sleep;
 async fn test_gateway_establish() {
     let bundle = common::setup().await;
 
-    let _: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
+    let _: GatewayHandle = Gateway::spawn(&bundle.urls.wss, GatewayOptions::default())
+        .await
+        .unwrap();
     common::teardown(bundle).await
 }
 
@@ -40,7 +43,7 @@ struct GatewayReadyObserver {
 }
 
 #[async_trait]
-impl Observer<GatewayReady> for GatewayReadyObserver {
+impl Subscriber<GatewayReady> for GatewayReadyObserver {
     async fn update(&self, _data: &GatewayReady) {
         self.channel.send(()).await.unwrap();
     }
@@ -52,7 +55,9 @@ impl Observer<GatewayReady> for GatewayReadyObserver {
 async fn test_gateway_authenticate() {
     let bundle = common::setup().await;
 
-    let gateway: GatewayHandle = Gateway::spawn(bundle.urls.wss.clone()).await.unwrap();
+    let gateway: GatewayHandle = Gateway::spawn(&bundle.urls.wss, GatewayOptions::default())
+        .await
+        .unwrap();
 
     let (ready_send, mut ready_receive) = tokio::sync::mpsc::channel(1);
 
@@ -79,9 +84,9 @@ async fn test_gateway_authenticate() {
             println!("Timed out waiting for event, failing..");
             assert!(false);
         }
-        // Sucess, we have received it
+        // Success, we have received it
         Some(_) = ready_receive.recv() => {}
-    };
+    }
 
     common::teardown(bundle).await
 }
@@ -125,7 +130,7 @@ async fn test_self_updating_structs() {
         .gateway
         .observe_and_into_inner(bundle.guild.clone())
         .await;
-    assert!(guild.channels.is_none());
+    assert!(guild.channels.is_empty());
 
     Channel::create(
         &mut bundle.user,
@@ -145,8 +150,8 @@ async fn test_self_updating_structs() {
         .gateway
         .observe_and_into_inner(guild.into_shared())
         .await;
-    assert!(guild.channels.is_some());
-    assert!(guild.channels.as_ref().unwrap().len() == 1);
+    assert!(!guild.channels.is_empty());
+    assert_eq!(guild.channels.len(), 1);
 
     common::teardown(bundle).await
 }
@@ -160,13 +165,12 @@ async fn test_recursive_self_updating_structs() {
     // Observe Guild, make sure it has no channels
     let guild = bundle.user.gateway.observe(guild.clone()).await;
     let inner_guild = guild.read().unwrap().clone();
-    assert!(inner_guild.roles.is_none());
+    assert!(inner_guild.roles.is_empty());
     // Create Role
     let permissions = types::PermissionFlags::CONNECT | types::PermissionFlags::MANAGE_EVENTS;
-    let permissions = Some(permissions.to_string());
     let mut role_create_schema: types::RoleCreateModifySchema = RoleCreateModifySchema {
         name: Some("cool person".to_string()),
-        permissions,
+        permissions: Some(permissions),
         hoist: Some(true),
         icon: None,
         unicode_emoji: Some("".to_string()),
@@ -186,7 +190,7 @@ async fn test_recursive_self_updating_structs() {
         .await;
     // Update Guild and check for Guild
     let inner_guild = guild.read().unwrap().clone();
-    assert!(inner_guild.roles.is_some());
+    assert!(!inner_guild.roles.is_empty());
     // Update the Role
     role_create_schema.name = Some("yippieee".to_string());
     RoleObject::modify(&mut bundle.user, guild_id, role.id, role_create_schema)
@@ -202,8 +206,7 @@ async fn test_recursive_self_updating_structs() {
     let guild = bundle.user.gateway.observe(bundle.guild.clone()).await;
     let inner_guild = guild.read().unwrap().clone();
     let guild_roles = inner_guild.roles;
-    let guild_role = guild_roles.unwrap();
-    let guild_role_inner = guild_role.get(0).unwrap().read().unwrap().clone();
+    let guild_role_inner = guild_roles.first().unwrap().read().unwrap().clone();
     assert_eq!(guild_role_inner.name, "yippieee".to_string());
     common::teardown(bundle).await;
 }

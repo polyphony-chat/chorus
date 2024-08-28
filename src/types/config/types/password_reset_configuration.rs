@@ -4,7 +4,9 @@
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, Copy, Hash, PartialOrd, Ord,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct PasswordResetConfiguration {
     pub require_captcha: bool,

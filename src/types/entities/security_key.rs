@@ -5,6 +5,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
+use crate::UInt64;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -13,7 +14,7 @@ pub struct SecurityKey {
     pub user_id: String,
     pub key_id: String,
     pub public_key: String,
-    pub counter: u64,
+    pub counter: UInt64,
     pub name: String,
 }
 
@@ -24,7 +25,8 @@ impl Default for SecurityKey {
             user_id: String::new(),
             key_id: String::new(),
             public_key: String::new(),
-            counter: 0,
+            #[allow(clippy::useless_conversion)]
+            counter: 0u64.into(),
             name: String::new(),
         }
     }

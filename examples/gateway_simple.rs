@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // This example showcases how to initiate a gateway connection manually
-// (e. g. not through ChorusUser)
+// (e. g. not through ChorusUser or Instance)
 //
 // To properly run it, you will need to modify the token below.
 
@@ -14,7 +14,7 @@ const GATEWAY_URL: &str = "wss://gateway.old.server.spacebar.chat/";
 
 use std::time::Duration;
 
-use chorus::gateway::Gateway;
+use chorus::gateway::{Gateway, GatewayOptions};
 use chorus::{self, types::GatewayIdentifyPayload};
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -25,10 +25,18 @@ use wasmtimer::tokio::sleep;
 /// This example creates a simple gateway connection and a session with an Identify event
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let gateway_websocket_url = GATEWAY_URL.to_string();
+    let gateway_websocket_url = GATEWAY_URL;
+
+    // These options specify the encoding format, compression, etc
+    //
+    // For most cases the defaults should work, though some implementations
+    // might only support some formats or not support compression
+    let options = GatewayOptions::default();
 
     // Initiate the gateway connection, starting a listener in one thread and a heartbeat handler in another
-    let gateway = Gateway::spawn(gateway_websocket_url).await.unwrap();
+    let gateway = Gateway::spawn(gateway_websocket_url, options)
+        .await
+        .unwrap();
 
     // At this point, we are connected to the server and are sending heartbeats, however we still haven't authenticated
 

@@ -2,6 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use pubserve::Publisher;
+
 use super::*;
 use crate::types;
 
@@ -23,144 +25,144 @@ pub struct Events {
     pub call: Call,
     pub voice: Voice,
     pub webhooks: Webhooks,
-    pub gateway_identify_payload: GatewayEvent<types::GatewayIdentifyPayload>,
-    pub gateway_resume: GatewayEvent<types::GatewayResume>,
-    pub error: GatewayEvent<GatewayError>,
+    pub gateway_identify_payload: Publisher<types::GatewayIdentifyPayload>,
+    pub gateway_resume: Publisher<types::GatewayResume>,
+    pub error: Publisher<GatewayError>,
 }
 
 #[derive(Default, Debug)]
 pub struct Application {
-    pub command_permissions_update: GatewayEvent<types::ApplicationCommandPermissionsUpdate>,
+    pub command_permissions_update: Publisher<types::ApplicationCommandPermissionsUpdate>,
 }
 
 #[derive(Default, Debug)]
 pub struct AutoModeration {
-    pub rule_create: GatewayEvent<types::AutoModerationRuleCreate>,
-    pub rule_update: GatewayEvent<types::AutoModerationRuleUpdate>,
-    pub rule_delete: GatewayEvent<types::AutoModerationRuleDelete>,
-    pub action_execution: GatewayEvent<types::AutoModerationActionExecution>,
+    pub rule_create: Publisher<types::AutoModerationRuleCreate>,
+    pub rule_update: Publisher<types::AutoModerationRuleUpdate>,
+    pub rule_delete: Publisher<types::AutoModerationRuleDelete>,
+    pub action_execution: Publisher<types::AutoModerationActionExecution>,
 }
 
 #[derive(Default, Debug)]
 pub struct Session {
-    pub ready: GatewayEvent<types::GatewayReady>,
-    pub ready_supplemental: GatewayEvent<types::GatewayReadySupplemental>,
-    pub replace: GatewayEvent<types::SessionsReplace>,
-    pub reconnect: GatewayEvent<types::GatewayReconnect>,
-    pub invalid: GatewayEvent<types::GatewayInvalidSession>,
+    pub ready: Publisher<types::GatewayReady>,
+    pub ready_supplemental: Publisher<types::GatewayReadySupplemental>,
+    pub replace: Publisher<types::SessionsReplace>,
+    pub reconnect: Publisher<types::GatewayReconnect>,
+    pub invalid: Publisher<types::GatewayInvalidSession>,
 }
 
 #[derive(Default, Debug)]
 pub struct StageInstance {
-    pub create: GatewayEvent<types::StageInstanceCreate>,
-    pub update: GatewayEvent<types::StageInstanceUpdate>,
-    pub delete: GatewayEvent<types::StageInstanceDelete>,
+    pub create: Publisher<types::StageInstanceCreate>,
+    pub update: Publisher<types::StageInstanceUpdate>,
+    pub delete: Publisher<types::StageInstanceDelete>,
 }
 
 #[derive(Default, Debug)]
 pub struct Message {
-    pub create: GatewayEvent<types::MessageCreate>,
-    pub update: GatewayEvent<types::MessageUpdate>,
-    pub delete: GatewayEvent<types::MessageDelete>,
-    pub delete_bulk: GatewayEvent<types::MessageDeleteBulk>,
-    pub reaction_add: GatewayEvent<types::MessageReactionAdd>,
-    pub reaction_remove: GatewayEvent<types::MessageReactionRemove>,
-    pub reaction_remove_all: GatewayEvent<types::MessageReactionRemoveAll>,
-    pub reaction_remove_emoji: GatewayEvent<types::MessageReactionRemoveEmoji>,
-    pub ack: GatewayEvent<types::MessageACK>,
+    pub create: Publisher<types::MessageCreate>,
+    pub update: Publisher<types::MessageUpdate>,
+    pub delete: Publisher<types::MessageDelete>,
+    pub delete_bulk: Publisher<types::MessageDeleteBulk>,
+    pub reaction_add: Publisher<types::MessageReactionAdd>,
+    pub reaction_remove: Publisher<types::MessageReactionRemove>,
+    pub reaction_remove_all: Publisher<types::MessageReactionRemoveAll>,
+    pub reaction_remove_emoji: Publisher<types::MessageReactionRemoveEmoji>,
+    pub ack: Publisher<types::MessageACK>,
 }
 
 #[derive(Default, Debug)]
 pub struct User {
-    pub update: GatewayEvent<types::UserUpdate>,
-    pub guild_settings_update: GatewayEvent<types::UserGuildSettingsUpdate>,
-    pub presence_update: GatewayEvent<types::PresenceUpdate>,
-    pub typing_start: GatewayEvent<types::TypingStartEvent>,
+    pub update: Publisher<types::UserUpdate>,
+    pub guild_settings_update: Publisher<types::UserGuildSettingsUpdate>,
+    pub presence_update: Publisher<types::PresenceUpdate>,
+    pub typing_start: Publisher<types::TypingStartEvent>,
 }
 
 #[derive(Default, Debug)]
 pub struct Relationship {
-    pub add: GatewayEvent<types::RelationshipAdd>,
-    pub remove: GatewayEvent<types::RelationshipRemove>,
+    pub add: Publisher<types::RelationshipAdd>,
+    pub remove: Publisher<types::RelationshipRemove>,
 }
 
 #[derive(Default, Debug)]
 pub struct Channel {
-    pub create: GatewayEvent<types::ChannelCreate>,
-    pub update: GatewayEvent<types::ChannelUpdate>,
-    pub unread_update: GatewayEvent<types::ChannelUnreadUpdate>,
-    pub delete: GatewayEvent<types::ChannelDelete>,
-    pub pins_update: GatewayEvent<types::ChannelPinsUpdate>,
+    pub create: Publisher<types::ChannelCreate>,
+    pub update: Publisher<types::ChannelUpdate>,
+    pub unread_update: Publisher<types::ChannelUnreadUpdate>,
+    pub delete: Publisher<types::ChannelDelete>,
+    pub pins_update: Publisher<types::ChannelPinsUpdate>,
 }
 
 #[derive(Default, Debug)]
 pub struct Thread {
-    pub create: GatewayEvent<types::ThreadCreate>,
-    pub update: GatewayEvent<types::ThreadUpdate>,
-    pub delete: GatewayEvent<types::ThreadDelete>,
-    pub list_sync: GatewayEvent<types::ThreadListSync>,
-    pub member_update: GatewayEvent<types::ThreadMemberUpdate>,
-    pub members_update: GatewayEvent<types::ThreadMembersUpdate>,
+    pub create: Publisher<types::ThreadCreate>,
+    pub update: Publisher<types::ThreadUpdate>,
+    pub delete: Publisher<types::ThreadDelete>,
+    pub list_sync: Publisher<types::ThreadListSync>,
+    pub member_update: Publisher<types::ThreadMemberUpdate>,
+    pub members_update: Publisher<types::ThreadMembersUpdate>,
 }
 
 #[derive(Default, Debug)]
 pub struct Guild {
-    pub create: GatewayEvent<types::GuildCreate>,
-    pub update: GatewayEvent<types::GuildUpdate>,
-    pub delete: GatewayEvent<types::GuildDelete>,
-    pub audit_log_entry_create: GatewayEvent<types::GuildAuditLogEntryCreate>,
-    pub ban_add: GatewayEvent<types::GuildBanAdd>,
-    pub ban_remove: GatewayEvent<types::GuildBanRemove>,
-    pub emojis_update: GatewayEvent<types::GuildEmojisUpdate>,
-    pub stickers_update: GatewayEvent<types::GuildStickersUpdate>,
-    pub integrations_update: GatewayEvent<types::GuildIntegrationsUpdate>,
-    pub member_add: GatewayEvent<types::GuildMemberAdd>,
-    pub member_remove: GatewayEvent<types::GuildMemberRemove>,
-    pub member_update: GatewayEvent<types::GuildMemberUpdate>,
-    pub members_chunk: GatewayEvent<types::GuildMembersChunk>,
-    pub role_create: GatewayEvent<types::GuildRoleCreate>,
-    pub role_update: GatewayEvent<types::GuildRoleUpdate>,
-    pub role_delete: GatewayEvent<types::GuildRoleDelete>,
-    pub role_scheduled_event_create: GatewayEvent<types::GuildScheduledEventCreate>,
-    pub role_scheduled_event_update: GatewayEvent<types::GuildScheduledEventUpdate>,
-    pub role_scheduled_event_delete: GatewayEvent<types::GuildScheduledEventDelete>,
-    pub role_scheduled_event_user_add: GatewayEvent<types::GuildScheduledEventUserAdd>,
-    pub role_scheduled_event_user_remove: GatewayEvent<types::GuildScheduledEventUserRemove>,
-    pub passive_update_v1: GatewayEvent<types::PassiveUpdateV1>,
+    pub create: Publisher<types::GuildCreate>,
+    pub update: Publisher<types::GuildUpdate>,
+    pub delete: Publisher<types::GuildDelete>,
+    pub audit_log_entry_create: Publisher<types::GuildAuditLogEntryCreate>,
+    pub ban_add: Publisher<types::GuildBanAdd>,
+    pub ban_remove: Publisher<types::GuildBanRemove>,
+    pub emojis_update: Publisher<types::GuildEmojisUpdate>,
+    pub stickers_update: Publisher<types::GuildStickersUpdate>,
+    pub integrations_update: Publisher<types::GuildIntegrationsUpdate>,
+    pub member_add: Publisher<types::GuildMemberAdd>,
+    pub member_remove: Publisher<types::GuildMemberRemove>,
+    pub member_update: Publisher<types::GuildMemberUpdate>,
+    pub members_chunk: Publisher<types::GuildMembersChunk>,
+    pub role_create: Publisher<types::GuildRoleCreate>,
+    pub role_update: Publisher<types::GuildRoleUpdate>,
+    pub role_delete: Publisher<types::GuildRoleDelete>,
+    pub role_scheduled_event_create: Publisher<types::GuildScheduledEventCreate>,
+    pub role_scheduled_event_update: Publisher<types::GuildScheduledEventUpdate>,
+    pub role_scheduled_event_delete: Publisher<types::GuildScheduledEventDelete>,
+    pub role_scheduled_event_user_add: Publisher<types::GuildScheduledEventUserAdd>,
+    pub role_scheduled_event_user_remove: Publisher<types::GuildScheduledEventUserRemove>,
+    pub passive_update_v1: Publisher<types::PassiveUpdateV1>,
 }
 
 #[derive(Default, Debug)]
 pub struct Invite {
-    pub create: GatewayEvent<types::InviteCreate>,
-    pub delete: GatewayEvent<types::InviteDelete>,
+    pub create: Publisher<types::InviteCreate>,
+    pub delete: Publisher<types::InviteDelete>,
 }
 
 #[derive(Default, Debug)]
 pub struct Integration {
-    pub create: GatewayEvent<types::IntegrationCreate>,
-    pub update: GatewayEvent<types::IntegrationUpdate>,
-    pub delete: GatewayEvent<types::IntegrationDelete>,
+    pub create: Publisher<types::IntegrationCreate>,
+    pub update: Publisher<types::IntegrationUpdate>,
+    pub delete: Publisher<types::IntegrationDelete>,
 }
 
 #[derive(Default, Debug)]
 pub struct Interaction {
-    pub create: GatewayEvent<types::InteractionCreate>,
+    pub create: Publisher<types::InteractionCreate>,
 }
 
 #[derive(Default, Debug)]
 pub struct Call {
-    pub create: GatewayEvent<types::CallCreate>,
-    pub update: GatewayEvent<types::CallUpdate>,
-    pub delete: GatewayEvent<types::CallDelete>,
+    pub create: Publisher<types::CallCreate>,
+    pub update: Publisher<types::CallUpdate>,
+    pub delete: Publisher<types::CallDelete>,
 }
 
 #[derive(Default, Debug)]
 pub struct Voice {
-    pub state_update: GatewayEvent<types::VoiceStateUpdate>,
-    pub server_update: GatewayEvent<types::VoiceServerUpdate>,
+    pub state_update: Publisher<types::VoiceStateUpdate>,
+    pub server_update: Publisher<types::VoiceServerUpdate>,
 }
 
 #[derive(Default, Debug)]
 pub struct Webhooks {
-    pub update: GatewayEvent<types::WebhooksUpdate>,
+    pub update: Publisher<types::WebhooksUpdate>,
 }

@@ -8,8 +8,6 @@ use std::{
 };
 
 use chrono::{DateTime, TimeZone, Utc};
-#[cfg(feature = "sqlx")]
-use sqlx::Type;
 
 /// 2015-01-01
 const EPOCH: i64 = 1420070400000;
@@ -19,8 +17,6 @@ const EPOCH: i64 = 1420070400000;
 /// # Reference
 /// See <https://discord.com/developers/docs/reference#snowflakes>
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-#[cfg_attr(feature = "sqlx", derive(Type))]
-#[cfg_attr(feature = "sqlx", sqlx(transparent))]
 pub struct Snowflake(pub u64);
 
 impl Snowflake {
@@ -30,7 +26,7 @@ impl Snowflake {
         const PROCESS_ID: u64 = 1;
         static INCREMENT: AtomicUsize = AtomicUsize::new(0);
 
-        let time = (Utc::now().naive_utc().timestamp_millis() - EPOCH) << 22;
+        let time = (Utc::now().naive_utc().and_utc().timestamp_millis() - EPOCH) << 22;
         let worker = WORKER_ID << 17;
         let process = PROCESS_ID << 12;
         let increment = INCREMENT.fetch_add(1, Ordering::Relaxed) as u64 % 32;
@@ -57,12 +53,15 @@ impl Display for Snowflake {
     }
 }
 
-impl<T> From<T> for Snowflake
-where
-    T: Into<u64>,
-{
-    fn from(item: T) -> Self {
-        Self(item.into())
+impl From<u64> for Snowflake {
+    fn from(item: u64) -> Self {
+        Self(item)
+    }
+}
+
+impl From<Snowflake> for u64 {
+    fn from(item: Snowflake) -> Self {
+        item.0
     }
 }
 
@@ -99,6 +98,43 @@ impl<'de> serde::Deserialize<'de> for Snowflake {
             }
         }
         deserializer.deserialize_str(SnowflakeVisitor)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::Postgres> for Snowflake {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <sqlx_pg_uint::PgU64 as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::postgres::PgHasArrayType for Snowflake {
+    fn array_type_info() -> sqlx::postgres::PgTypeInfo {
+        <Vec<sqlx_pg_uint::PgU64> as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for Snowflake {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        <sqlx_pg_uint::PgU64 as sqlx::Encode<'q, sqlx::Postgres>>::encode_by_ref(
+            &sqlx_pg_uint::PgU64::from(self.0),
+            buf,
+        )
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'d> sqlx::Decode<'d, sqlx::Postgres> for Snowflake {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'d>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        <sqlx_pg_uint::PgU64 as sqlx::Decode<'d, sqlx::Postgres>>::decode(value)
+            .map(|s| s.to_uint().into())
     }
 }
 

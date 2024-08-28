@@ -114,7 +114,7 @@ async fn search_messages() {
         .await
         .unwrap();
     assert!(!query_result.is_empty());
-    assert_eq!(query_result.get(0).unwrap().id, message.id);
+    assert_eq!(query_result.first().unwrap().id, message.id);
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
@@ -139,8 +139,7 @@ async fn test_stickies() {
     assert_eq!(
         Message::get_sticky(channel.id, &mut bundle.user)
             .await
-            .unwrap()
-            .get(0)
+            .unwrap().first()
             .unwrap()
             .id,
         message.id
