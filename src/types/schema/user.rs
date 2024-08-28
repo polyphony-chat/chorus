@@ -66,15 +66,15 @@ pub struct UserModifySchema {
     ///
     /// Only [UserFlags::PREMIUM_PROMO_DISMISSED], [UserFlags::HAS_UNREAD_URGENT_MESSAGES]
     /// and DISABLE_PREMIUM can be set.
-	 ///
+    ///
     /// # Note
     ///
     /// This is not yet implemented on Spacebar
-	 ///
-	 /// [UserFlags]: crate::types::UserFlags
-	 /// [UserFlags::PREMIUM_PROMO_DISMISSED]: crate::types::UserFlags::PREMIUM_PROMO_DISMISSED
-	 /// [UserFlags::HAS_UNREAD_URGENT_MESSAGES]:
-	 /// crate::types::UserFlags::HAS_UNREAD_URGENT_MESSAGES
+    ///
+    /// [UserFlags]: crate::types::UserFlags
+    /// [UserFlags::PREMIUM_PROMO_DISMISSED]: crate::types::UserFlags::PREMIUM_PROMO_DISMISSED
+    /// [UserFlags::HAS_UNREAD_URGENT_MESSAGES]:
+    /// crate::types::UserFlags::HAS_UNREAD_URGENT_MESSAGES
     pub flags: Option<u64>,
     /// The user's date of birth, can only be set once
     ///
