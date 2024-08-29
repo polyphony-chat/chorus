@@ -25,8 +25,8 @@ impl GatewayOptions {
     /// Adds the options to an existing gateway url
     ///
     /// Returns the new url
-    pub(crate) fn add_to_url(&self, url: String) -> String {
-        let mut url = url;
+    pub(crate) fn add_to_url(&self, url: &str) -> String {
+        let mut url = url.to_string();
 
         let mut parameters = Vec::with_capacity(2);
 

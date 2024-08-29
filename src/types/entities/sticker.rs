@@ -77,7 +77,8 @@ pub struct StickerItem {
 #[derive(
     Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename = "SCREAMING_SNAKE_CASE")]
 /// # Reference
@@ -93,7 +94,8 @@ pub enum StickerType {
 #[derive(
     Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
 /// See <https://docs.discord.sex/resources/sticker#sticker-format-types>

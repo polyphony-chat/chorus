@@ -5,6 +5,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
+use crate::UInt64;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, PartialOrd)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -16,11 +17,11 @@ pub struct Attachment {
     /// Max 1024 characters
     pub description: Option<String>,
     pub content_type: Option<String>,
-    pub size: u64,
+    pub size: UInt64,
     pub url: String,
     pub proxy_url: String,
-    pub height: Option<u64>,
-    pub width: Option<u64>,
+    pub height: Option<UInt64>,
+    pub width: Option<UInt64>,
     pub ephemeral: Option<bool>,
     /// The duration of the audio file (only for voice messages)
     pub duration_secs: Option<f32>,
@@ -37,12 +38,12 @@ pub struct Attachment {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PartialDiscordFileAttachment {
-    pub id: Option<i16>,
+    pub id: Option<UInt64>,
     pub filename: String,
     /// Max 1024 characters
     pub description: Option<String>,
     pub content_type: Option<String>,
-    pub size: Option<i64>,
+    pub size: Option<UInt64>,
     pub url: Option<String>,
     pub proxy_url: Option<String>,
     pub height: Option<i32>,

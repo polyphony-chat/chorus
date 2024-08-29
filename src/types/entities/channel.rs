@@ -22,6 +22,7 @@ use crate::gateway::GatewayHandle;
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
+use crate::UInt64;
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, Composite, Updateable};
@@ -41,13 +42,7 @@ use super::{option_arc_rwlock_ptr_eq, option_vec_arc_rwlock_ptr_eq};
 /// See <https://discord-userdoccers.vercel.app/resources/channel#channels-resource>
 pub struct Channel {
     pub application_id: Option<Snowflake>,
-    #[cfg(feature = "sqlx")]
-    pub applied_tags: Option<sqlx::types::Json<Vec<String>>>,
-    #[cfg(not(feature = "sqlx"))]
     pub applied_tags: Option<Vec<String>>,
-    #[cfg(feature = "sqlx")]
-    pub available_tags: Option<sqlx::types::Json<Vec<Tag>>>,
-    #[cfg(not(feature = "sqlx"))]
     pub available_tags: Option<Vec<Tag>>,
     pub bitrate: Option<i32>,
     #[serde(rename = "type")]
@@ -55,9 +50,7 @@ pub struct Channel {
     pub created_at: Option<chrono::DateTime<Utc>>,
     pub default_auto_archive_duration: Option<i32>,
     pub default_forum_layout: Option<i32>,
-    #[cfg(feature = "sqlx")]
-    pub default_reaction_emoji: Option<sqlx::types::Json<DefaultReaction>>,
-    #[cfg(not(feature = "sqlx"))]
+    // DefaultReaction could be stored in a separate table. However, there are a lot of default emojis. How would we handle that?
     pub default_reaction_emoji: Option<DefaultReaction>,
     pub default_sort_order: Option<i32>,
     pub default_thread_rate_limit_per_user: Option<i32>,
@@ -179,6 +172,8 @@ fn compare_permission_overwrites(
 ///
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#forum-tag-object>
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct Tag {
     pub id: Snowflake,
     /// The name of the tag (max 20 characters)
@@ -202,7 +197,8 @@ pub struct PermissionOverwrite {
 }
 
 #[derive(Debug, Serialize_repr, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Copy)]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// # Reference
 ///
 /// See <https://docs.discord.sex/resources/channel#permission-overwrite-type>
@@ -301,7 +297,7 @@ pub struct ThreadMember {
     pub id: Option<Snowflake>,
     pub user_id: Option<Snowflake>,
     pub join_timestamp: Option<DateTime<Utc>>,
-    pub flags: Option<u64>,
+    pub flags: Option<UInt64>,
     pub member: Option<Shared<GuildMember>>,
 }
 
@@ -321,6 +317,8 @@ impl PartialEq for ThreadMember {
 ///
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#default-reaction-object>
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct DefaultReaction {
     #[serde(default)]
     pub emoji_id: Option<Snowflake>,
@@ -342,7 +340,7 @@ pub struct DefaultReaction {
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(u32)]
+#[repr(i32)]
 /// # Reference
 /// See <https://discord-userdoccers.vercel.app/resources/channel#channel-type>
 pub enum ChannelType {

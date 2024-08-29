@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::User;
 use crate::types::Shared;
 use crate::types::Snowflake;
+use crate::UInt8;
 
 use super::arc_rwlock_ptr_eq;
 
@@ -34,7 +35,7 @@ impl PartialEq for Team {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TeamMember {
-    pub membership_state: u8,
+    pub membership_state: UInt8,
     pub permissions: Vec<String>,
     pub team_id: Snowflake,
     pub user: Shared<User>,
