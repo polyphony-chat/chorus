@@ -184,6 +184,9 @@ pub type UInt8 = u8;
 #[cfg(feature = "sqlx")]
 pub type UInt8 = sqlx_pg_uint::PgU8;
 
+#[cfg(feature = "client")]
+pub use pubserve::*;
+
 #[derive(Clone, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// A URLBundle bundles together the API-, Gateway- and CDN-URLs of a Spacebar instance.
 ///

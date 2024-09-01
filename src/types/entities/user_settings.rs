@@ -7,7 +7,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::Shared;
 use crate::{UInt16, UInt32, UInt8};
-use serde_aux::field_attributes::deserialize_option_number_from_string;
+use serde_aux::field_attributes::{
+    deserialize_number_from_string, deserialize_option_number_from_string,
+};
 
 #[derive(
     Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, Copy, PartialOrd, Ord, Hash,
@@ -43,9 +45,11 @@ pub enum UserTheme {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserSettings {
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub afk_timeout: Option<UInt16>,
     pub allow_accessibility_detection: bool,
     pub animate_emoji: bool,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub animate_stickers: UInt8,
     pub contact_sync_enabled: bool,
     pub convert_emoticons: bool,
@@ -55,6 +59,7 @@ pub struct UserSettings {
     pub developer_mode: bool,
     pub disable_games_tab: bool,
     pub enable_tts_command: bool,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub explicit_content_filter: UInt8,
     pub friend_source_flags: FriendSourceFlags,
     pub gateway_connected: Option<bool>,
@@ -74,6 +79,7 @@ pub struct UserSettings {
     pub status: Shared<UserStatus>,
     pub stream_notifications_enabled: bool,
     pub theme: UserTheme,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub timezone_offset: i16,
 }
 

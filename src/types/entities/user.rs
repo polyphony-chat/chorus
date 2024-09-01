@@ -48,6 +48,7 @@ pub struct User {
     pub bot: Option<bool>,
     pub system: Option<bool>,
     pub mfa_enabled: Option<bool>,
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub accent_color: Option<UInt32>,
     #[cfg_attr(feature = "sqlx", sqlx(default))]
     pub locale: Option<String>,
@@ -59,6 +60,7 @@ pub struct User {
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub flags: Option<UserFlags>,
     pub premium_since: Option<DateTime<Utc>>,
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub premium_type: Option<UInt8>,
     pub pronouns: Option<String>,
     pub public_flags: Option<UserFlags>,
@@ -68,7 +70,9 @@ pub struct User {
     pub phone: Option<String>,
     pub nsfw_allowed: Option<bool>,
     pub premium: Option<bool>,
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub purchased_flags: Option<i32>,
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub premium_usage_flags: Option<i32>,
     pub disabled: Option<bool>,
 }
