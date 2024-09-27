@@ -28,11 +28,12 @@ use crate::UrlBundle;
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
+    pub(crate) software: InstanceSoftware,
     pub limits_information: Option<LimitsInformation>,
     #[serde(skip)]
     pub client: Client,
     #[serde(skip)]
-    pub gateway_options: GatewayOptions,
+    pub(crate) gateway_options: GatewayOptions,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Eq)]
@@ -72,6 +73,8 @@ impl Instance {
     /// If `options` is `None`, the default [`GatewayOptions`] will be used.
     ///
     /// To create an Instance from one singular url, use [`Instance::new()`].
+    // Note: maybe make this just take urls and then add another method which creates an instance
+    // from urls and custom gateway options, since gateway options will be automatically generated?
     pub async fn from_url_bundle(
         urls: UrlBundle,
         options: Option<GatewayOptions>,
@@ -88,6 +91,9 @@ impl Instance {
         } else {
             limit_information = None
         }
+
+        let software = Instance::detect_software(&urls.api).await;
+
         let mut instance = Instance {
             urls: urls.clone(),
             // Will be overwritten in the next step
@@ -95,6 +101,7 @@ impl Instance {
             limits_information: limit_information,
             client: Client::new(),
             gateway_options: options.unwrap_or_default(),
+            software,
         };
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
@@ -133,11 +140,83 @@ impl Instance {
         }
     }
 
-    /// Sets the [`GatewayOptions`] the instance will use when spawning new connections.
+    /// Detects which [InstanceSoftware] the instance is running.
+    pub async fn detect_software(api_url: &str) -> InstanceSoftware {
+        // TODO: How?
+        //
+        // Spacebar has .well-known/spacebar, but that isn't on the API, but on the base
+        // which we aren't even guaranteed to have..
+        InstanceSoftware::Other
+    }
+
+    /// Returns the [`GatewayOptions`] the instance uses when spawning new connections.
+    ///
+    /// These options are used on the gateways created when logging in and registering.
+    pub fn gateway_options(&self) -> GatewayOptions {
+        self.gateway_options
+    }
+
+    /// Manually sets the [`GatewayOptions`] the instance should use when spawning new connections.
     ///
     /// These options are used on the gateways created when logging in and registering.
     pub fn set_gateway_options(&mut self, options: GatewayOptions) {
         self.gateway_options = options;
+    }
+
+    /// Returns which [`InstanceSoftware`] the instance is running.
+    pub fn software(&self) -> InstanceSoftware {
+        self.software
+    }
+
+    /// Manually sets which [`InstanceSoftware`] the instance is running.
+    ///
+    /// Note: you should only use this if you are absolutely sure about an instance (e. g. you run it).
+    /// If set to an incorrect value, this may cause unexpected errors or even undefined behaviours.
+    ///
+    /// Manually setting the software is generally discouraged. Chorus should automatically detect
+    /// which type of software the instance is running.
+    pub fn set_software(&mut self, software: InstanceSoftware) {
+        self.software = software;
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+/// The software implementation the spacebar-compatible instance is running.
+///
+/// This is useful since some softwares may support additional features,
+/// while other do not fully implement the api yet.
+pub enum InstanceSoftware {
+    /// The official typescript Spacebar server, available
+    /// at <https://github.com/spacebarchat/server>
+    SpacebarTypescript,
+    /// The Polyphony server written in rust, available at
+    /// at <https://github.com/polyphony-chat/symfonia>
+    Symfonia,
+    /// We could not determine the instance software or it
+    /// is one we don't specifically differentiate.
+    ///
+    /// Assume it implements all features of the spacebar protocol.
+    #[default]
+    Other,
+}
+
+impl InstanceSoftware {
+    /// Returns whether the software supports z-lib stream compression on the gateway
+    pub fn supports_gateway_zlib(self) -> bool {
+        match self {
+            InstanceSoftware::SpacebarTypescript => true,
+            InstanceSoftware::Symfonia => false,
+            InstanceSoftware::Other => true,
+        }
+    }
+
+    /// Returns whether the software supports sending data in the Erlang external term format on the gateway
+    pub fn supports_gateway_etf(self) -> bool {
+        match self {
+            InstanceSoftware::SpacebarTypescript => true,
+            InstanceSoftware::Symfonia => false,
+            InstanceSoftware::Other => true,
+        }
     }
 }
 
