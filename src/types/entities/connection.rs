@@ -15,6 +15,7 @@ pub struct Connection {
     #[serde(rename = "id")]
     pub connected_account_id: String,
 
+    /// The service of the connected account
     #[serde(rename = "type")]
     pub connection_type: ConnectionType,
 
@@ -41,12 +42,26 @@ pub struct Connection {
     /// Whether this connection has a corresponding 3rd party OAuth2 token
     pub two_way_link: bool,
 
+    /// Who can see this connection
     pub visibility: ConnectionVisibilityType,
 
     /// The access token for the connection account
     ///
     /// Note: not included when fetching a user's connections via OAuth2
     pub access_token: Option<String>,
+}
+
+impl Connection {
+    /// Converts self info a [PublicConnection], forgetting private data
+    pub fn into_public(self: Connection) -> PublicConnection {
+        PublicConnection {
+            name: self.name,
+            verified: self.verified,
+            connection_type: self.connection_type,
+            connected_account_id: self.connected_account_id,
+            metadata: self.metadata,
+        }
+    }
 }
 
 /// A partial / public [Connection] type.
@@ -76,13 +91,7 @@ pub struct PublicConnection {
 
 impl From<Connection> for PublicConnection {
     fn from(value: Connection) -> Self {
-        Self {
-            connected_account_id: value.connected_account_id,
-            connection_type: value.connection_type,
-            name: value.name,
-            verified: value.verified,
-            metadata: value.metadata,
-        }
+        value.into_public()
     }
 }
 
@@ -275,15 +284,17 @@ impl Display for TwoWayLinkType {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-/// Defines a subreddit as fetched through a Reddit connection.
+/// Defines a subreddit as fetched through a Reddit connection ([[ConnectionType::Reddit]]).
 ///
 /// # Reference
 /// See <https://docs.discord.sex/resources/user#subreddit-structure>
 pub struct ConnectionSubreddit {
     /// The subreddit's internal id, e.g. "t5_388p4"
     pub id: String,
+
     /// How many reddit users follow the subreddit
     pub subscribers: usize,
+
     /// The subreddit's relative url, e.g. "/r/discordapp/"
     pub url: String,
 }

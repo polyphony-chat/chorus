@@ -139,6 +139,8 @@ impl ChorusUser {
     /// ```no_run
     /// let domain = "example.com".to_string();
     ///
+    /// let user: ChorusUser; // Get this by registering / logging in
+    ///
     /// let result = user.create_domain_connection(&domain).await;
     ///
     /// if let Ok(returned) = result {
@@ -209,9 +211,6 @@ impl ChorusUser {
 
         Err(error)
     }
-
-    // TODO: Add create_domain_connection (<https://docs.discord.sex/resources/user#create-domain-connection>)
-    // It requires changing how chorus handles errors to support properly
 
     /// Fetches the current user's [Connection]s
     ///

@@ -19,6 +19,7 @@ pub struct Harvest {
     pub harvest_id: Snowflake,
     /// The id of the user being harvested
     pub user_id: Snowflake,
+    /// How much the harvest has been processed
     pub status: HarvestStatus,
     /// The time the harvest was created
     pub created_at: DateTime<Utc>,
