@@ -452,7 +452,7 @@ pub enum VerificationLevel {
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
+/// See <https://docs.discord.sex/resources/guild#mfa-level>
 pub enum MFALevel {
     #[default]
     None = 0,
@@ -476,7 +476,7 @@ pub enum MFALevel {
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
+/// See <https://docs.discord.sex/resources/guild#nsfw-level>
 pub enum NSFWLevel {
     #[default]
     Default = 0,
@@ -502,12 +502,19 @@ pub enum NSFWLevel {
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
+// Note: Maybe rename this to GuildPremiumTier?
+/// **Guild** premium (Boosting) tier
+///
+/// See <https://docs.discord.sex/resources/guild#premium-tier>
 pub enum PremiumTier {
     #[default]
+    /// No server boost perks
     None = 0,
+    /// Level 1 server boost perks
     Tier1 = 1,
+    /// Level 2 server boost perks
     Tier2 = 2,
+    /// Level 3 server boost perks
     Tier3 = 3,
 }
 

@@ -4,11 +4,13 @@
 
 #![allow(unused_imports)]
 pub use channels::*;
+pub use connections::*;
 pub use guilds::*;
 pub use relationships::*;
 pub use users::*;
 
 pub mod channels;
+pub mod connections;
 pub mod guilds;
 pub mod relationships;
 pub mod users;
