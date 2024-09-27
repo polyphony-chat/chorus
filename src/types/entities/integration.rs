@@ -4,6 +4,7 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
     entities::{Application, User},
@@ -24,7 +25,7 @@ pub struct Integration {
     pub syncing: Option<bool>,
     pub role_id: Option<String>,
     pub enabled_emoticons: Option<bool>,
-    pub expire_behaviour: Option<UInt8>,
+    pub expire_behaviour: Option<IntegrationExpireBehaviour>,
     pub expire_grace_period: Option<UInt16>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<Shared<User>>,
@@ -51,6 +52,7 @@ pub struct IntegrationAccount {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(rename_all = "snake_case"))]
+/// See <https://docs.discord.sex/resources/integration#integration-type>
 pub enum IntegrationType {
     #[default]
     Twitch,
@@ -58,3 +60,32 @@ pub enum IntegrationType {
     Discord,
     GuildSubscription,
 }
+
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Default,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[repr(u8)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// Defines the behaviour that is executed when a user's subscription to the integration expires.
+///
+/// See <https://docs.discord.sex/resources/integration#integration-expire-behavior>
+pub enum IntegrationExpireBehaviour {
+    #[default]
+	 /// Remove the subscriber role from the user
+    RemoveRole = 0,
+	 /// Kick the user from the guild
+	 Kick = 1,
+}
+
+

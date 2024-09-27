@@ -31,7 +31,7 @@ impl Instance {
             ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
 >>>>>>> 03f1e7d (Refactor / fix login and register (#495))
 
-        let object = User::get(&mut user, None).await?;
+        let object = User::get_current(&mut user).await?;
         let settings = User::get_settings(&mut user).await?;
 
         *user.object.write().unwrap() = object;

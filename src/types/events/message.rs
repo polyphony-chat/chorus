@@ -149,6 +149,15 @@ pub struct MessageReactionRemoveEmoji {
     pub emoji: Emoji,
 }
 
+#[derive(Debug, Serialize, Deserialize, Default, Clone, Copy, WebSocketEvent)]
+/// Sent when a message that mentioned the current user in the last week is acknowledged and deleted.
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/gateway-events#recent-mention-delete>
+pub struct RecentMentionDelete {
+    pub message_id: Snowflake,
+}
+
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Officially Undocumented
 ///
