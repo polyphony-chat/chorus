@@ -51,11 +51,11 @@ impl Instance {
             }
         };
 
-        return match from_str::<PingReturn>(&response_text) {
+        match from_str::<PingReturn>(&response_text) {
 			Ok(return_value) => Ok(return_value),
 			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
                         e, response_text) })
-		  };
+		  }
     }
 
     /// Fetches the instance's software implementation and version.
@@ -96,9 +96,9 @@ impl Instance {
             }
         };
 
-        return match from_str::<VersionReturn>(&response_text) {
+        match from_str::<VersionReturn>(&response_text) {
 			Ok(return_value) => Ok(return_value),
 			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}", e, response_text) })
-		  };
+		  }
     }
 }

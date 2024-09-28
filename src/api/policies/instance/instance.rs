@@ -47,7 +47,7 @@ impl Instance {
             }
         };
 
-        return match from_str::<GeneralConfiguration>(&response_text) {
+        match from_str::<GeneralConfiguration>(&response_text) {
             Ok(object) => Ok(object),
             Err(e) => {
                 Err(ChorusError::InvalidResponse {
@@ -57,6 +57,6 @@ impl Instance {
                     ),
                 })
             }
-        };
+        }
     }
 }

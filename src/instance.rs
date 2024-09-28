@@ -149,18 +149,14 @@ impl Instance {
 
     /// Detects which [InstanceSoftware] the instance is running.
     pub async fn detect_software(&self) -> InstanceSoftware {
-        let version_res = self.get_version().await;
 
-        match version_res {
-            Ok(version) => {
-                match version.server.to_lowercase().as_str() {
-                    "symfonia" => return InstanceSoftware::Symfonia,
-                    // We can dream this will be implemented one day
-                    "spacebar" => return InstanceSoftware::SpacebarTypescript,
-                    _ => {}
-                }
+		 if let Ok(version) = self.get_version().await {
+            match version.server.to_lowercase().as_str() {
+                "symfonia" => return InstanceSoftware::Symfonia,
+                // We can dream this will be implemented one day
+                "spacebar" => return InstanceSoftware::SpacebarTypescript,
+                _ => {}
             }
-            _ => {}
         }
 
         // We know it isn't a symfonia server now, work around spacebar
