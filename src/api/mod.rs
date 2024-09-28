@@ -10,6 +10,7 @@ pub use guilds::*;
 pub use invites::*;
 pub use policies::instance::instance::*;
 pub use users::*;
+pub use instance::*;
 
 pub mod auth;
 pub mod channels;
@@ -17,3 +18,4 @@ pub mod guilds;
 pub mod invites;
 pub mod policies;
 pub mod users;
+pub mod instance;
