@@ -70,6 +70,33 @@ pub struct GatewayReadyBot {
     pub api_code_version: u8,
 }
 
+impl From<GatewayReady> for GatewayReadyBot {
+    fn from(value: GatewayReady) -> Self {
+        GatewayReadyBot {
+            v: value.v,
+            user: value.user,
+            guilds: value.guilds,
+            presences: value.presences,
+            sessions: value.sessions,
+            session_id: value.session_id,
+            session_type: value.session_type,
+            resume_gateway_url: value.resume_gateway_url,
+            shard: value.shard,
+            merged_presences: value.merged_presences,
+            users: value.users,
+            authenticator_types: value.authenticator_types,
+            geo_ordered_rtc_regions: value.geo_ordered_rtc_regions,
+            api_code_version: value.api_code_version,
+        }
+    }
+}
+
+impl GatewayReady {
+    /// Convert this struct into a [GatewayReadyBot] struct
+    pub fn to_bot(self) -> GatewayReadyBot {
+        self.into()
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
 #[repr(u8)]
 pub enum AuthenticatorType {
