@@ -23,6 +23,7 @@ pub struct GatewayReady {
     pub country_code: String,
     pub v: u8,
     pub user: User,
+    #[serde(default)]
     pub guilds: Vec<Guild>,
     pub presences: Option<Vec<PresenceUpdate>>,
     pub sessions: Option<Vec<Session>>,
@@ -32,20 +33,28 @@ pub struct GatewayReady {
     pub shard: Option<(u64, u64)>,
     pub user_settings: Option<UserSettings>,
     pub user_settings_proto: Option<String>,
+    #[serde(default)]
     pub relationships: Vec<Relationship>,
     pub friend_suggestion_count: u32,
+    #[serde(default)]
     pub private_channels: Vec<Channel>,
+    #[serde(default)]
     pub notes: HashMap<Snowflake, String>,
     pub merged_presences: Option<MergedPresences>,
+    #[serde(default)]
     pub users: Vec<User>,
     pub auth_token: Option<String>,
+    #[serde(default)]
     pub authenticator_types: Vec<AuthenticatorType>,
     pub required_action: Option<String>,
+    #[serde(default)]
     pub geo_ordered_rtc_regions: Vec<String>,
     /// TODO: Make tutorial object into object
     pub tutorial: Option<String>,
     pub api_code_version: u8,
+    #[serde(default)]
     pub experiments: Vec<String>,
+    #[serde(default)]
     pub guild_experiments: Vec<String>,
 }
 
