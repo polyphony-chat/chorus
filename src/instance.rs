@@ -92,8 +92,6 @@ impl Instance {
             limit_information = None
         }
 
-        let software = Instance::detect_software(&urls.api).await;
-
         let mut instance = Instance {
             urls: urls.clone(),
             // Will be overwritten in the next step
@@ -101,8 +99,10 @@ impl Instance {
             limits_information: limit_information,
             client: Client::new(),
             gateway_options: options.unwrap_or_default(),
-            software,
+            // Will also be detected soon
+            software: InstanceSoftware::Other,
         };
+
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
             Err(e) => {
@@ -110,6 +110,13 @@ impl Instance {
                 GeneralConfiguration::default()
             }
         };
+
+        instance.software = instance.detect_software().await;
+
+        if options.is_none() {
+            instance.gateway_options = GatewayOptions::for_instance_software(instance.software());
+        }
+
         Ok(instance)
     }
 
@@ -141,11 +148,29 @@ impl Instance {
     }
 
     /// Detects which [InstanceSoftware] the instance is running.
-    pub async fn detect_software(api_url: &str) -> InstanceSoftware {
-        // TODO: How?
-        //
-        // Spacebar has .well-known/spacebar, but that isn't on the API, but on the base
-        // which we aren't even guaranteed to have..
+    pub async fn detect_software(&self) -> InstanceSoftware {
+        let version_res = self.get_version().await;
+
+        match version_res {
+            Ok(version) => {
+                match version.server.to_lowercase().as_str() {
+                    "symfonia" => return InstanceSoftware::Symfonia,
+                    // We can dream this will be implemented one day
+                    "spacebar" => return InstanceSoftware::SpacebarTypescript,
+                    _ => {}
+                }
+            }
+            _ => {}
+        }
+
+        // We know it isn't a symfonia server now, work around spacebar
+        // not really having a version endpoint
+        let ping = self.ping().await;
+
+        if ping.is_ok() {
+            return InstanceSoftware::SpacebarTypescript;
+        }
+
         InstanceSoftware::Other
     }
 
