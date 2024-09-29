@@ -12,6 +12,7 @@ use crate::types::{
     Activity, Channel, ClientStatusObject, GuildMember, PresenceUpdate, Relationship, Snowflake,
     UserSettings, VoiceState,
 };
+use crate::{UInt32, UInt64, UInt8};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Received after identifying, provides initial user information and client state.
@@ -29,7 +30,7 @@ pub struct GatewayReady {
     pub country_code: String,
     #[serde(rename = "v")]
     /// API version
-    pub api_version: u8,
+    pub api_version: UInt8,
     /// The connected user
     pub user: User,
     #[serde(default)]
@@ -45,7 +46,7 @@ pub struct GatewayReady {
     /// WebSocket URL for resuming connections
     pub resume_gateway_url: String,
     /// The shard information (shard_id, num_shards) associated with this session, if sharded
-    pub shard: Option<(u64, u64)>,
+    pub shard: Option<(UInt64, UInt64)>,
     /// The client settings for the user
     pub user_settings: Option<UserSettings>,
     /// The base-64 encoded preloaded user settings for the user, (if missing, defaults are used)
@@ -54,7 +55,7 @@ pub struct GatewayReady {
     /// The relationships the user has with other users
     pub relationships: Vec<Relationship>,
     /// The number of friend suggestions the user has
-    pub friend_suggestion_count: u32,
+    pub friend_suggestion_count: UInt32,
     #[serde(default)]
     /// The DMs and group DMs the user is participating in
     pub private_channels: Vec<Channel>,
@@ -80,7 +81,7 @@ pub struct GatewayReady {
     /// TODO: Make tutorial object into object
     pub tutorial: Option<String>,
     /// The API code version, used when re-identifying with client state v2
-    pub api_code_version: u8,
+    pub api_code_version: UInt8,
     #[serde(default)]
     /// User experiment rollouts for the user
     /// TODO: Make User Experiments into own struct
@@ -101,7 +102,7 @@ pub struct GatewayReadyBot {
     pub _trace: Vec<String>,
     #[serde(rename = "v")]
     /// API version
-    pub api_version: u8,
+    pub api_version: UInt8,
     /// The connected bot user
     pub user: User,
     #[serde(default)]
@@ -116,7 +117,7 @@ pub struct GatewayReadyBot {
     /// WebSocket URL for resuming connections
     pub resume_gateway_url: String,
     /// The shard information (shard_id, num_shards) associated with this session, if sharded
-    pub shard: Option<(u64, u64)>,
+    pub shard: Option<(UInt64, UInt64)>,
     /// The presences of the user's non-offline friends and implicit relationships (depending on the `NO_AFFINE_USER_IDS` Gateway capability), and any guild presences sent at startup
     pub merged_presences: Option<MergedPresences>,
     #[serde(default)]
@@ -129,7 +130,7 @@ pub struct GatewayReadyBot {
     /// A geo-ordered list of RTC regions that can be used when when setting a voice channel's `rtc_region` or updating the client's voice state
     pub geo_ordered_rtc_regions: Vec<String>,
     /// The API code version, used when re-identifying with client state v2
-    pub api_code_version: u8,
+    pub api_code_version: UInt8,
 }
 
 impl From<GatewayReady> for GatewayReadyBot {
@@ -160,7 +161,8 @@ impl GatewayReady {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 pub enum AuthenticatorType {
     WebAuthn = 1,
     Totp = 2,

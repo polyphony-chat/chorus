@@ -7,7 +7,7 @@ use crate::types::utils::Snowflake;
 use crate::{UInt32, UInt8};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::{deserialize_option_number_from_string, deserialize_default_from_null};
+use serde_aux::prelude::{deserialize_default_from_null, deserialize_option_number_from_string};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::array::TryFromSliceError;
 use std::fmt::Debug;
@@ -234,7 +234,8 @@ bitflags::bitflags! {
     Ord,
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// **User** premium (Nitro) type
 ///
@@ -258,9 +259,9 @@ pub struct UserProfileMetadata {
     /// The guild ID this profile applies to, if it is a guild profile.
     pub guild_id: Option<Snowflake>,
     /// The user's pronouns, up to 40 characters
-	 #[serde(deserialize_with = "deserialize_default_from_null")]
-	 // Note: spacebar will send this is as null, while it should be ""
-	 // See issue 1188
+    #[serde(deserialize_with = "deserialize_default_from_null")]
+    // Note: spacebar will send this is as null, while it should be ""
+    // See issue 1188
     pub pronouns: String,
     /// The user's bio / description, up to 190 characters
     pub bio: Option<String>,
@@ -847,13 +848,13 @@ pub struct PremiumUsageData {
 }
 
 impl From<PremiumUsageData> for usize {
-	fn from(value: PremiumUsageData) -> Self {
-	    value.value
-	}
+    fn from(value: PremiumUsageData) -> Self {
+        value.value
+    }
 }
 
 impl From<usize> for PremiumUsageData {
-	fn from(value: usize) -> Self {
-	    PremiumUsageData { value }
-	}
+    fn from(value: usize) -> Self {
+        PremiumUsageData { value }
+    }
 }
