@@ -4,11 +4,13 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::types::PremiumType;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, Hash, PartialOrd, Ord)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDefaults {
     pub premium: bool,
-    pub premium_type: u8,
+    pub premium_type: PremiumType,
     pub verified: bool,
 }
 
@@ -16,7 +18,7 @@ impl Default for UserDefaults {
     fn default() -> Self {
         Self {
             premium: true,
-            premium_type: 2,
+            premium_type: PremiumType::Tier2,
             verified: true,
         }
     }
