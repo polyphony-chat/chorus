@@ -4,7 +4,7 @@
 
 use std::{os::unix::fs::chroot, str::FromStr};
 
-use chorus::{instance::ChorusUser, types::{AuthenticatorType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema}};
+use chorus::{instance::ChorusUser, types::{ReadyAuthenticatorType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema}};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
@@ -79,11 +79,7 @@ async fn test_login_with_token() {
     let mut bundle = common::setup().await;
 
     let token = &bundle.user.token;
-    let other_user = bundle
-        .instance
-        .login_with_token(token.clone())
-        .await
-        .unwrap();
+    let other_user = bundle.instance.login_with_token(token).await.unwrap();
     assert_eq!(
         bundle.user.object.as_ref().unwrap().read().unwrap().id,
         other_user.object.unwrap().read().unwrap().id
@@ -98,8 +94,8 @@ async fn test_login_with_token() {
 async fn test_login_with_invalid_token() {
     let mut bundle = common::setup().await;
 
-    let token = "invalid token lalalalala".to_string();
-    let other_user = bundle.instance.login_with_token(token.clone()).await;
+    let token = "invalid token lalalalala";
+    let other_user = bundle.instance.login_with_token(token).await;
 
     assert!(other_user.is_err());
 
@@ -117,7 +113,7 @@ async fn test_complete_mfa_challenge_totp() {
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: AuthenticatorType::TOTP,
+        mfa_type: ReadyAuthenticatorType::TOTP,
         data: "".to_string(),
     };
 
@@ -138,7 +134,7 @@ async fn test_complete_mfa_challenge_sms() {
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: AuthenticatorType::SMS,
+        mfa_type: ReadyAuthenticatorType::SMS,
         data: "".to_string(),
     };
 
@@ -159,7 +155,7 @@ async fn test_verify_mfa_login_webauthn() {
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: AuthenticatorType::SMS,
+        mfa_type: ReadyAuthenticatorType::SMS,
         data: "".to_string(),
     };
 
@@ -180,7 +176,7 @@ async fn test_complete_mfa_challenge_backup() {
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: AuthenticatorType::Backup,
+        mfa_type: ReadyAuthenticatorType::Backup,
         data: "".to_string(),
     };
 
@@ -201,7 +197,7 @@ async fn test_complete_mfa_challenge_password() {
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: AuthenticatorType::Password,
+        mfa_type: ReadyAuthenticatorType::Password,
         data: "".to_string(),
     };
 

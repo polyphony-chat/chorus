@@ -102,7 +102,10 @@ fn compare_install_params(
     b: &Option<sqlx::types::Json<InstallParams>>,
 ) -> bool {
     match (a, b) {
-        (Some(a), Some(b)) => a.encode_to_string() == b.encode_to_string(),
+        (Some(a), Some(b)) => match (a.encode_to_string(), b.encode_to_string()) {
+            (Ok(a), Ok(b)) => a == b,
+            _ => false,
+        },
         (None, None) => true,
         _ => false,
     }
@@ -221,7 +224,8 @@ pub struct ApplicationCommandOptionChoice {
 
 #[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
-#[repr(i32)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// # Reference
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-types>
 pub enum ApplicationCommandOptionType {
@@ -291,7 +295,8 @@ pub struct ApplicationCommandPermission {
     Ord,
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 /// See <https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type>
 pub enum ApplicationCommandPermissionType {
     #[default]

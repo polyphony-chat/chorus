@@ -8,9 +8,11 @@ pub use audit_log::*;
 pub use auto_moderation::*;
 pub use channel::*;
 pub use config::*;
+pub use connection::*;
 pub use emoji::*;
 pub use guild::*;
 pub use guild_member::*;
+pub use harvest::*;
 pub use integration::*;
 pub use invite::*;
 pub use message::*;
@@ -50,9 +52,11 @@ mod audit_log;
 mod auto_moderation;
 mod channel;
 mod config;
+mod connection;
 mod emoji;
 mod guild;
 mod guild_member;
+mod harvest;
 mod integration;
 mod invite;
 mod message;
@@ -130,10 +134,10 @@ pub trait Composite<T: Updateable + Clone + Debug> {
 pub trait IntoShared {
     /// Uses [`Shared`] to provide an ergonomic alternative to `Arc::new(RwLock::new(obj))`.
     ///
-    /// [`Shared<Self>`] can then be observed using the [`Gateway`], turning the underlying
+    /// [`Shared<Self>`] can then be observed using the gateway, turning the underlying
     /// `dyn Composite<Self>` into a self-updating struct, which is a tracked variant of a chorus
     /// entity struct, updating its' held information when new information concerning itself arrives
-    /// over the [`Gateway`] connection, reducing the need for expensive network-API calls.
+    /// over the gateway connection, reducing the need for expensive network-API calls.
     fn into_shared(self) -> Shared<Self>;
 }
 

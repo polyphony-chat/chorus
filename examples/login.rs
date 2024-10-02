@@ -7,7 +7,7 @@ use chorus::types::LoginSchema;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let mut instance = Instance::new("https://example.com/")
+    let mut instance = Instance::new("https://example.com/", None)
         .await
         .expect("Failed to connect to the Spacebar server");
     // Assume, you already have an account created on this instance. Registering an account works

@@ -12,7 +12,7 @@ use std::time::Duration;
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use chrono::Utc; 
+use chrono::Utc;
 
 use crate::errors::ChorusResult;
 use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
@@ -30,11 +30,12 @@ use crate::UrlBundle;
 pub struct Instance {
     pub urls: UrlBundle,
     pub instance_info: GeneralConfiguration,
+    pub(crate) software: InstanceSoftware,
     pub limits_information: Option<LimitsInformation>,
     #[serde(skip)]
     pub client: Client,
     #[serde(skip)]
-    pub gateway_options: GatewayOptions,
+    pub(crate) gateway_options: GatewayOptions,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Eq)]
@@ -71,8 +72,15 @@ impl Instance {
 
     /// Creates a new [`Instance`] from the [relevant instance urls](UrlBundle).
     ///
+    /// If `options` is `None`, the default [`GatewayOptions`] will be used.
+    ///
     /// To create an Instance from one singular url, use [`Instance::new()`].
-    pub async fn from_url_bundle(urls: UrlBundle) -> ChorusResult<Instance> {
+    // Note: maybe make this just take urls and then add another method which creates an instance
+    // from urls and custom gateway options, since gateway options will be automatically generated?
+    pub async fn from_url_bundle(
+        urls: UrlBundle,
+        options: Option<GatewayOptions>,
+    ) -> ChorusResult<Instance> {
         let is_limited: Option<LimitsConfiguration> = Instance::is_limited(&urls.api).await?;
         let limit_information;
 
@@ -85,14 +93,18 @@ impl Instance {
         } else {
             limit_information = None
         }
+
         let mut instance = Instance {
             urls: urls.clone(),
             // Will be overwritten in the next step
             instance_info: GeneralConfiguration::default(),
             limits_information: limit_information,
             client: Client::new(),
-            gateway_options: GatewayOptions::default(),
+            gateway_options: options.unwrap_or_default(),
+            // Will also be detected soon
+            software: InstanceSoftware::Other,
         };
+
         instance.instance_info = match instance.general_configuration_schema().await {
             Ok(schema) => schema,
             Err(e) => {
@@ -100,19 +112,28 @@ impl Instance {
                 GeneralConfiguration::default()
             }
         };
+
+        instance.software = instance.detect_software().await;
+
+        if options.is_none() {
+            instance.gateway_options = GatewayOptions::for_instance_software(instance.software());
+        }
+
         Ok(instance)
     }
 
     /// Creates a new [`Instance`] by trying to get the [relevant instance urls](UrlBundle) from a root url.
     ///
+    /// If `options` is `None`, the default [`GatewayOptions`] will be used.
+    ///
     /// Shorthand for `Instance::from_url_bundle(UrlBundle::from_root_domain(root_domain).await?)`.
-    pub async fn new(root_url: &str) -> ChorusResult<Instance> {
+    pub async fn new(root_url: &str, options: Option<GatewayOptions>) -> ChorusResult<Instance> {
         let urls = UrlBundle::from_root_url(root_url).await?;
-        Instance::from_url_bundle(urls).await
+        Instance::from_url_bundle(urls, options).await
     }
 
     pub async fn is_limited(api_url: &str) -> ChorusResult<Option<LimitsConfiguration>> {
-        let api_url = UrlBundle::parse_url(api_url.to_string());
+        let api_url = UrlBundle::parse_url(api_url);
         let client = Client::new();
         let request = client
             .get(format!("{}/policies/instance/limits", &api_url))
@@ -128,11 +149,96 @@ impl Instance {
         }
     }
 
-    /// Sets the [`GatewayOptions`] the instance will use when spawning new connections.
+    /// Detects which [InstanceSoftware] the instance is running.
+    pub async fn detect_software(&self) -> InstanceSoftware {
+        if let Ok(version) = self.get_version().await {
+            match version.server.to_lowercase().as_str() {
+                "symfonia" => return InstanceSoftware::Symfonia,
+                // We can dream this will be implemented one day
+                "spacebar" => return InstanceSoftware::SpacebarTypescript,
+                _ => {}
+            }
+        }
+
+        // We know it isn't a symfonia server now, work around spacebar
+        // not really having a version endpoint
+        let ping = self.ping().await;
+
+        if ping.is_ok() {
+            return InstanceSoftware::SpacebarTypescript;
+        }
+
+        InstanceSoftware::Other
+    }
+
+    /// Returns the [`GatewayOptions`] the instance uses when spawning new connections.
+    ///
+    /// These options are used on the gateways created when logging in and registering.
+    pub fn gateway_options(&self) -> GatewayOptions {
+        self.gateway_options
+    }
+
+    /// Manually sets the [`GatewayOptions`] the instance should use when spawning new connections.
     ///
     /// These options are used on the gateways created when logging in and registering.
     pub fn set_gateway_options(&mut self, options: GatewayOptions) {
         self.gateway_options = options;
+    }
+
+    /// Returns which [`InstanceSoftware`] the instance is running.
+    pub fn software(&self) -> InstanceSoftware {
+        self.software
+    }
+
+    /// Manually sets which [`InstanceSoftware`] the instance is running.
+    ///
+    /// Note: you should only use this if you are absolutely sure about an instance (e. g. you run it).
+    /// If set to an incorrect value, this may cause unexpected errors or even undefined behaviours.
+    ///
+    /// Manually setting the software is generally discouraged. Chorus should automatically detect
+    /// which type of software the instance is running.
+    pub fn set_software(&mut self, software: InstanceSoftware) {
+        self.software = software;
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+/// The software implementation the spacebar-compatible instance is running.
+///
+/// This is useful since some softwares may support additional features,
+/// while other do not fully implement the api yet.
+pub enum InstanceSoftware {
+    /// The official typescript Spacebar server, available
+    /// at <https://github.com/spacebarchat/server>
+    SpacebarTypescript,
+    /// The Polyphony server written in rust, available at
+    /// at <https://github.com/polyphony-chat/symfonia>
+    Symfonia,
+    /// We could not determine the instance software or it
+    /// is one we don't specifically differentiate.
+    ///
+    /// Assume it implements all features of the spacebar protocol.
+    #[default]
+    Other,
+}
+
+impl InstanceSoftware {
+    /// Returns whether the software supports z-lib stream compression on the gateway
+    pub fn supports_gateway_zlib(self) -> bool {
+        match self {
+            InstanceSoftware::SpacebarTypescript => true,
+            InstanceSoftware::Symfonia => false,
+            InstanceSoftware::Other => true,
+        }
+    }
+
+    /// Returns whether the software supports sending data in the Erlang external term format on the gateway
+    pub fn supports_gateway_etf(self) -> bool {
+        match self {
+            InstanceSoftware::SpacebarTypescript => true,
+            InstanceSoftware::Symfonia => false,
+            InstanceSoftware::Other => true,
+        }
     }
 }
 
@@ -166,8 +272,8 @@ impl ChorusUser {
         self.token.clone()
     }
 
-    pub fn set_token(&mut self, token: String) {
-        self.token = token;
+    pub fn set_token(&mut self, token: &str) {
+        self.token = token.to_string();
     }
 
     /// Creates a new [ChorusUser] from existing data.
@@ -199,15 +305,15 @@ impl ChorusUser {
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
     /// need to make a RateLimited request. To use the [`GatewayHandle`], you will have to identify
     /// first.
-    pub(crate) async fn shell(instance: Shared<Instance>, token: String) -> ChorusUser {
+    pub(crate) async fn shell(instance: Shared<Instance>, token: &str) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
-        let wss_url = instance.read().unwrap().urls.wss.clone();
+        let wss_url = &instance.read().unwrap().urls.wss.clone();
+        let gateway_options = instance.read().unwrap().gateway_options;
+
         // Dummy gateway object
-        let gateway = Gateway::spawn(wss_url, GatewayOptions::default())
-            .await
-            .unwrap();
+        let gateway = Gateway::spawn(wss_url, gateway_options).await.unwrap();
         ChorusUser {
-            token,
+            token: token.to_string(),
             mfa_token: None,
             belongs_to: instance.clone(),
             limits: instance
@@ -225,7 +331,7 @@ impl ChorusUser {
     /// Sends a request to complete an MFA challenge.
     ///
     /// If successful, the MFA verification JWT returned is set on the current [ChorusUser] executing the
-    /// request. 
+    /// request.
     ///
     /// The JWT token expires after 5 minutes.
     ///

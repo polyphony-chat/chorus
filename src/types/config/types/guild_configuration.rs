@@ -162,9 +162,11 @@ impl Display for GuildFeaturesList {
 }
 
 #[cfg(feature = "sqlx")]
-impl<'r> sqlx::Decode<'r, sqlx::MySql> for GuildFeaturesList {
-    fn decode(value: <sqlx::MySql as sqlx::database::HasValueRef<'r>>::ValueRef) -> Result<Self, sqlx::error::BoxDynError> {
-        let v = <String as sqlx::Decode<sqlx::MySql>>::decode(value)?;
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for GuildFeaturesList {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'r>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        let v = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
         Ok(Self(
             v.split(',')
                 .filter(|f| !f.is_empty())
@@ -175,10 +177,13 @@ impl<'r> sqlx::Decode<'r, sqlx::MySql> for GuildFeaturesList {
 }
 
 #[cfg(feature = "sqlx")]
-impl<'q> sqlx::Encode<'q, sqlx::MySql> for GuildFeaturesList {
-    fn encode_by_ref(&self, buf: &mut <sqlx::MySql as sqlx::database::HasArguments<'q>>::ArgumentBuffer) -> sqlx::encode::IsNull {
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for GuildFeaturesList {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
         if self.is_empty() {
-            return sqlx::encode::IsNull::Yes;
+            return Ok(sqlx::encode::IsNull::Yes);
         }
         let features = self
             .iter()
@@ -186,18 +191,18 @@ impl<'q> sqlx::Encode<'q, sqlx::MySql> for GuildFeaturesList {
             .collect::<Vec<_>>()
             .join(",");
 
-        <String as sqlx::Encode<sqlx::MySql>>::encode_by_ref(&features, buf)
+        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&features, buf)
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::MySql> for GuildFeaturesList {
-    fn type_info() -> sqlx::mysql::MySqlTypeInfo {
-        <String as sqlx::Type<sqlx::MySql>>::type_info()
+impl sqlx::Type<sqlx::Postgres> for GuildFeaturesList {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 
-    fn compatible(ty: &sqlx::mysql::MySqlTypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::MySql>>::compatible(ty)
+    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
     }
 }
 

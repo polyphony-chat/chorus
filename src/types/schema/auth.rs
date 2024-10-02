@@ -5,6 +5,8 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
+use crate::types::{Shared, UserSettings};
+
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub struct RegisterSchema {
@@ -48,13 +50,7 @@ pub struct VerifyMFALoginSchema {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum VerifyMFALoginResponse {
-    Success { token: String, user_settings: LoginSettings },
+    Success { token: String, user_settings: Shared<UserSettings> },
     UserSuspended { suspended_user_token: String }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub struct LoginSettings {
-    pub locale: String,
-    pub theme: String,
-}

@@ -17,7 +17,7 @@ impl Instance {
     /// # Reference
     /// See <https://docs.spacebar.chat/routes/#get-/policies/instance/>
     pub async fn general_configuration_schema(&self) -> ChorusResult<GeneralConfiguration> {
-        let endpoint_url = self.urls.api.clone() + "/policies/instance";
+        let endpoint_url = self.urls.api.clone() + "/policies/instance/";
         let request = match self.client.get(&endpoint_url).send().await {
             Ok(result) => result,
             Err(e) => {
@@ -35,7 +35,28 @@ impl Instance {
             });
         }
 
-        let body = request.text().await.unwrap();
-        Ok(from_str::<GeneralConfiguration>(&body).unwrap())
+        let response_text = match request.text().await {
+            Ok(string) => string,
+            Err(e) => {
+                return Err(ChorusError::InvalidResponse {
+                    error: format!(
+                        "Error while trying to process the HTTP response into a String: {}",
+                        e
+                    ),
+                });
+            }
+        };
+
+        match from_str::<GeneralConfiguration>(&response_text) {
+            Ok(object) => Ok(object),
+            Err(e) => {
+                Err(ChorusError::InvalidResponse {
+                    error: format!(
+                        "Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
+                        e, response_text
+                    ),
+                })
+            }
+        }
     }
 }

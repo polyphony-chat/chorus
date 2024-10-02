@@ -12,6 +12,7 @@ use crate::types::utils::Snowflake;
 use crate::types::{
     AutoModerationRuleTriggerType, IntegrationType, PermissionOverwriteType, Shared,
 };
+use crate::UInt64;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -51,7 +52,10 @@ fn compare_options(
     b: &Option<sqlx::types::Json<AuditEntryInfo>>,
 ) -> bool {
     match (a, b) {
-        (Some(a), Some(b)) => a.encode_to_string() == b.encode_to_string(),
+        (Some(a), Some(b)) => match (a.encode_to_string(), b.encode_to_string()) {
+            (Ok(a), Ok(b)) => a == b,
+            _ => false,
+        },
         (None, None) => true,
         _ => false,
     }
@@ -69,7 +73,10 @@ fn compare_changes(
     a: &sqlx::types::Json<Option<Vec<Shared<AuditLogChange>>>>,
     b: &sqlx::types::Json<Option<Vec<Shared<AuditLogChange>>>>,
 ) -> bool {
-    a.encode_to_string() == b.encode_to_string()
+    match (a.encode_to_string(), b.encode_to_string()) {
+        (Ok(a), Ok(b)) => a == b,
+        _ => false,
+    }
 }
 
 #[cfg(not(tarpaulin_include))]
@@ -102,7 +109,8 @@ pub struct AuditLogChange {
     PartialOrd,
     Ord,
 )]
-#[repr(u8)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference:
 /// See <https://docs.discord.sex/resources/audit-log#audit-log-events>
@@ -245,16 +253,16 @@ pub struct AuditEntryInfo {
     pub auto_moderation_rule_trigger_type: Option<AutoModerationRuleTriggerType>,
     pub channel_id: Option<Snowflake>,
     // #[serde(option_string)]
-    pub count: Option<u64>,
+    pub count: Option<UInt64>,
     // #[serde(option_string)]
-    pub delete_member_days: Option<u64>,
+    pub delete_member_days: Option<UInt64>,
     /// The ID of the overwritten entity
     pub id: Option<Snowflake>,
     pub integration_type: Option<IntegrationType>,
     // #[serde(option_string)]
-    pub members_removed: Option<u64>,
+    pub members_removed: Option<UInt64>,
     // #[serde(option_string)]
-    pub message_id: Option<u64>,
+    pub message_id: Option<UInt64>,
     pub role_name: Option<String>,
     #[serde(rename = "type")]
     pub overwrite_type: Option<PermissionOverwriteType>,
