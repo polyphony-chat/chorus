@@ -106,7 +106,7 @@ async fn search_messages() {
     let _arg = Some(&vec_attach);
     let message = bundle.user.send_message(message, channel.id).await.unwrap();
     let query = MessageSearchQuery {
-        author_id: Some(Vec::from([bundle.user.object.as_ref().unwrap().read().unwrap().id])),
+        author_id: Some(Vec::from([bundle.user.object.read().unwrap().id])),
         ..Default::default()
     };
     let guild_id = bundle.guild.read().unwrap().id;

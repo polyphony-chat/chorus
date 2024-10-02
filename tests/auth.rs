@@ -2,9 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{os::unix::fs::chroot, str::FromStr};
+use std::str::FromStr;
 
-use chorus::{instance::ChorusUser, types::{ReadyAuthenticatorType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema}};
+use chorus::types::{AuthenticatorType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
@@ -81,8 +81,8 @@ async fn test_login_with_token() {
     let token = &bundle.user.token;
     let other_user = bundle.instance.login_with_token(token).await.unwrap();
     assert_eq!(
-        bundle.user.object.as_ref().unwrap().read().unwrap().id,
-        other_user.object.unwrap().read().unwrap().id
+        bundle.user.object.read().unwrap().id,
+        other_user.object.read().unwrap().id
     );
     assert_eq!(bundle.user.token, other_user.token);
 
@@ -108,12 +108,12 @@ async fn test_complete_mfa_challenge_totp() {
     let mut bundle = common::setup().await;
 
     let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(token).await
+    let mut chorus_user = bundle.instance.login_with_token(&token).await
         .unwrap();
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: ReadyAuthenticatorType::TOTP,
+        mfa_type: AuthenticatorType::TOTP,
         data: "".to_string(),
     };
 
@@ -129,12 +129,12 @@ async fn test_complete_mfa_challenge_sms() {
     let mut bundle = common::setup().await;
 
     let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(token).await
+    let mut chorus_user = bundle.instance.login_with_token(&token).await
         .unwrap();
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: ReadyAuthenticatorType::SMS,
+        mfa_type: AuthenticatorType::SMS,
         data: "".to_string(),
     };
 
@@ -150,12 +150,12 @@ async fn test_verify_mfa_login_webauthn() {
     let mut bundle = common::setup().await;
 
     let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(token).await
+    let mut chorus_user = bundle.instance.login_with_token(&token).await
         .unwrap();
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: ReadyAuthenticatorType::SMS,
+        mfa_type: AuthenticatorType::SMS,
         data: "".to_string(),
     };
 
@@ -171,12 +171,12 @@ async fn test_complete_mfa_challenge_backup() {
     let mut bundle = common::setup().await;
 
     let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(token).await
+    let mut chorus_user = bundle.instance.login_with_token(&token).await
         .unwrap();
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: ReadyAuthenticatorType::Backup,
+        mfa_type: AuthenticatorType::Backup,
         data: "".to_string(),
     };
 
@@ -192,12 +192,12 @@ async fn test_complete_mfa_challenge_password() {
     let mut bundle = common::setup().await;
 
     let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(token).await
+    let mut chorus_user = bundle.instance.login_with_token(&token).await
         .unwrap();
 
     let schema = MfaVerifySchema {
         ticket: "".to_string(),
-        mfa_type: ReadyAuthenticatorType::Password,
+        mfa_type: AuthenticatorType::Password,
         data: "".to_string(),
     };
 

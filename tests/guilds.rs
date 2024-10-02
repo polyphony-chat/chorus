@@ -60,8 +60,7 @@ async fn guild_create_ban() {
         .await
         .unwrap();
     other_user.accept_invite(&invite.code, None).await.unwrap();
-    let other_user_id = other_user.object.as_ref().unwrap()
-        .read().unwrap().id;
+    let other_user_id = other_user.object.read().unwrap().id;
     Guild::create_ban(
         guild.id,
         other_user_id,
@@ -104,9 +103,7 @@ async fn guild_remove_member() {
         .await
         .unwrap();
     other_user.accept_invite(&invite.code, None).await.unwrap();
-    let other_user_id = other_user.object
-        .as_ref().unwrap()
-        .read().unwrap().id;
+    let other_user_id = other_user.object.read().unwrap().id;
     Guild::remove_member(guild.id, other_user_id, None, &mut bundle.user)
         .await
         .unwrap();
