@@ -25,15 +25,7 @@ impl Instance {
     pub async fn login_with_token(&mut self, token: &str) -> ChorusResult<ChorusUser> {
         let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
 
-        let object = User::get_current(&mut user).await?;
-        let settings = User::get_settings(&mut user).await?;
-
-        user.object = Some(Arc::new(RwLock::new(object)));
-        *user.settings.write().unwrap() = settings;
-
-        let mut identify = GatewayIdentifyPayload::common();
-        identify.token = user.token();
-        user.gateway.send_identify(identify).await;
+		  user.update_with_login_data(token.to_string(), None).await?;
 
         Ok(user)
     }

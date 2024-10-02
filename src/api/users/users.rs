@@ -361,7 +361,7 @@ impl ChorusUser {
 
         // FIXME: Does UserUpdate do this automatically? or would a user need to manually observe ChorusUser::object
         if let Ok(new_object) = result {
-            self.object = Some(Arc::new(RwLock::new(new_object)));
+            *self.object.write().unwrap() = new_object;
             return ChorusResult::Ok(());
         }
 

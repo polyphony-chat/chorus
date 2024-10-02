@@ -39,15 +39,9 @@ impl Instance {
         let login_result = chorus_request
             .deserialize_response::<LoginResult>(&mut user)
             .await?;
-        user.set_token(&login_result.token);
-        user.settings = login_result.settings;
 
-        let object = User::get_current(&mut user).await?;
-        user.object = Some(Arc::new(RwLock::new(object)));
-
-        let mut identify = GatewayIdentifyPayload::common();
-        identify.token = user.token();
-        user.gateway.send_identify(identify).await;
+        user.update_with_login_data(login_result.token, Some(login_result.settings))
+            .await?;
 
         Ok(user)
     }
@@ -81,8 +75,8 @@ impl Instance {
                 token,
                 user_settings,
             } => {
-                user.set_token(&token);
-                user.settings = user_settings;
+                user.update_with_login_data(token, Some(user_settings))
+                    .await?;
             }
             VerifyMFALoginResponse::UserSuspended {
                 suspended_user_token,
@@ -92,13 +86,6 @@ impl Instance {
                 })
             }
         }
-
-        let object = User::get_current(&mut user).await?;
-        user.object = Some(Arc::new(RwLock::new(object)));
-
-        let mut identify = GatewayIdentifyPayload::common();
-        identify.token = user.token();
-        user.gateway.send_identify(identify).await;
 
         Ok(user)
     }
@@ -120,8 +107,7 @@ impl Instance {
             limit_type: LimitType::Ip,
         };
 
-        let mut chorus_user =
-            ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
+        let mut chorus_user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
 
         let send_mfa_sms_response = chorus_request
             .deserialize_response::<SendMfaSmsResponse>(&mut chorus_user)

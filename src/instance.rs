@@ -14,12 +14,12 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use chrono::Utc;
 
-use crate::errors::ChorusResult;
+use crate::errors::{ChorusError, ChorusResult};
 use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
-    GeneralConfiguration, Limit, LimitType, LimitsConfiguration, MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings, MfaToken
+    GatewayIdentifyPayload, GeneralConfiguration, Limit, LimitType, LimitsConfiguration, MfaToken, MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings
 };
 use crate::UrlBundle;
 
@@ -263,7 +263,7 @@ pub struct ChorusUser {
     pub mfa_token: Option<MfaToken>,
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: Shared<UserSettings>,
-    pub object: Option<Shared<User>>,
+    pub object: Shared<User>,
     pub gateway: GatewayHandle,
 }
 
@@ -286,7 +286,7 @@ impl ChorusUser {
         token: String,
         limits: Option<HashMap<LimitType, Limit>>,
         settings: Shared<UserSettings>,
-        object: Option<Shared<User>>,
+        object: Shared<User>,
         gateway: GatewayHandle,
     ) -> ChorusUser {
         ChorusUser {
@@ -300,6 +300,29 @@ impl ChorusUser {
         }
     }
 
+	 /// Updates a shell user after the login process.
+	 ///
+	 /// Fetches all the other required data from the api.
+	 ///
+	 /// If the received_settings can be None, since not all login methods
+	 /// return user settings. If this is the case, we'll fetch them via an api route.
+    pub(crate) async fn update_with_login_data(&mut self, token: String, received_settings: Option<Shared<UserSettings>>) -> ChorusResult<()> {
+		  let mut identify = GatewayIdentifyPayload::common();
+        identify.token = token.clone();
+        self.gateway.send_identify(identify).await;
+
+		  *self.object.write().unwrap() = self.get_current_user().await?;
+
+		  if let Some(passed_settings) = received_settings {
+				self.settings = passed_settings;
+		  }
+		  else {
+				*self.settings.write().unwrap() = self.get_settings().await?;
+		  }
+
+		  Ok(())
+    }
+
     /// Creates a new 'shell' of a user. The user does not exist as an object, and exists so that you have
     /// a ChorusUser object to make Rate Limited requests with. This is useful in scenarios like
     /// registering or logging in to the Instance, where you do not yet have a User object, but still
@@ -307,6 +330,8 @@ impl ChorusUser {
     /// first.
     pub(crate) async fn shell(instance: Shared<Instance>, token: &str) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
+        let object = Arc::new(RwLock::new(User::default()));
+
         let wss_url = &instance.read().unwrap().urls.wss.clone();
         let gateway_options = instance.read().unwrap().gateway_options;
 
@@ -323,7 +348,7 @@ impl ChorusUser {
                 .as_ref()
                 .map(|info| info.ratelimits.clone()),
             settings,
-            object: None,
+            object,
             gateway,
         }
     }
@@ -344,10 +369,7 @@ impl ChorusUser {
                 .post(endpoint_url)
                 .header("Authorization", self.token())
                 .json(&mfa_verify_schema),
-            limit_type: match self.object.is_some() {
-                true => LimitType::Global,
-                false => LimitType::Ip,
-            },
+            limit_type: LimitType::Global,
         };
 
         let mfa_token_schema = chorus_request
