@@ -94,6 +94,8 @@ impl Instance {
     ///
     /// # Reference
     /// See <https://docs.discord.sex/authentication#send-mfa-sms>
+    // FIXME: This uses ChorusUser::shell, when it *really* shoudln't, but
+    // there is no other way to send a ratelimited request
     pub async fn send_mfa_sms(
         &mut self,
         schema: SendMfaSmsSchema,
