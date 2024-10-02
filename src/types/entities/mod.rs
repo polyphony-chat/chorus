@@ -28,6 +28,8 @@ pub use user::*;
 pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
+
+#[cfg(feature = "client")]
 pub use mfa_token::*;
 
 use crate::types::Shared;
@@ -72,6 +74,12 @@ mod user;
 mod user_settings;
 mod voice_state;
 mod webhook;
+
+// Note: this is a purely client side version of the mfa token.
+//
+// For the server, you'd likely only store when it expires somewhere,
+// and give the JWT to the client to store
+#[cfg(feature = "client")]
 mod mfa_token;
 
 #[cfg(feature = "client")]
