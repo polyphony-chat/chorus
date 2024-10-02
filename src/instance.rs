@@ -307,8 +307,11 @@ impl ChorusUser {
 	 /// If the received_settings can be None, since not all login methods
 	 /// return user settings. If this is the case, we'll fetch them via an api route.
     pub(crate) async fn update_with_login_data(&mut self, token: String, received_settings: Option<Shared<UserSettings>>) -> ChorusResult<()> {
+
+		  self.token = token.clone();
+
 		  let mut identify = GatewayIdentifyPayload::common();
-        identify.token = token.clone();
+        identify.token = token;
         self.gateway.send_identify(identify).await;
 
 		  *self.object.write().unwrap() = self.get_current_user().await?;
