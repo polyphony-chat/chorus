@@ -233,9 +233,7 @@ bitflags::bitflags! {
     PartialOrd,
     Ord,
 )]
-#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
-#[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i16))]
+#[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// **User** premium (Nitro) type
 ///
@@ -250,6 +248,50 @@ pub enum PremiumType {
     Tier2 = 2,
     /// Nitro Basic
     Tier3 = 3,
+}
+
+impl TryFrom<u8> for PremiumType {
+    type Error = ChorusError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Self::None),
+            1 => Ok(Self::Tier1),
+            2 => Ok(Self::Tier2),
+            3 => Ok(Self::Tier3),
+            _ => Err(ChorusError::InvalidArguments {
+                error: "Value is not a valid PremiumType".to_string(),
+            }),
+        }
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::Postgres> for PremiumType {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <sqlx_pg_uint::PgU8 as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for PremiumType {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::from(*self as u8);
+        sqlx_pg_uint.encode_by_ref(buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for PremiumType {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'r>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::decode(value)?;
+        PremiumType::try_from(sqlx_pg_uint.to_uint()).map_err(|e| e.into())
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
