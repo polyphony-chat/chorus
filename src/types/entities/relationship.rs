@@ -21,7 +21,6 @@ pub struct Relationship {
     #[serde(rename = "type")]
     #[cfg_attr(feature = "sqlx", sqlx(rename = "type"))]
     pub relationship_type: RelationshipType,
-    #[cfg_attr(feature = "sqlx", sqlx(skip))] // Can be derived from the user id
     /// The nickname of the user in this relationship
     pub nickname: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))] // Can be derived from the user id
