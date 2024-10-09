@@ -4,7 +4,15 @@
 
 use std::str::FromStr;
 
-use chorus::types::{AuthenticatorType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema};
+use chorus::types::{
+    AuthenticatorType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema,
+};
+use httptest::{
+    matchers::{all_of, contains, eq, json_decoded, request},
+    responders::json_encoded,
+    Expectation,
+};
+use serde_json::json;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]
@@ -105,104 +113,148 @@ async fn test_login_with_invalid_token() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_complete_mfa_challenge_totp() {
-    let mut bundle = common::setup().await;
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
 
-    let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(&token).await
-        .unwrap();
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/mfa/finish"),
+            request::body(json_decoded(eq(
+                json!({"ticket": "testticket", "mfa_type": "totp", "data": "testdata"})
+            ))),
+            request::headers(contains(("Authorization", "faketoken")))
+        ])
+        .respond_with(json_encoded(json!({"token": "testtoken"}))),
+    );
 
     let schema = MfaVerifySchema {
-        ticket: "".to_string(),
+        ticket: "testticket".to_string(),
         mfa_type: AuthenticatorType::TOTP,
-        data: "".to_string(),
+        data: "testdata".to_string(),
     };
 
-    let result = chorus_user.complete_mfa_challenge(schema)
-        .await;
+    let result = bundle.user.complete_mfa_challenge(schema).await;
 
-    assert!(result.is_ok())
+    assert!(result.is_ok());
+    assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_complete_mfa_challenge_sms() {
-    let mut bundle = common::setup().await;
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
 
-    let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(&token).await
-        .unwrap();
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/mfa/finish"),
+            request::body(json_decoded(eq(
+                json!({"ticket": "testticket", "mfa_type": "sms", "data": "testdata"})
+            ))),
+            request::headers(contains(("Authorization", "faketoken")))
+        ])
+        .respond_with(json_encoded(json!({"token": "testtoken"}))),
+    );
 
     let schema = MfaVerifySchema {
-        ticket: "".to_string(),
+        ticket: "testticket".to_string(),
         mfa_type: AuthenticatorType::SMS,
-        data: "".to_string(),
+        data: "testdata".to_string(),
     };
 
-    let result = chorus_user.complete_mfa_challenge(schema)
-        .await;
+    let result = bundle.user.complete_mfa_challenge(schema).await;
 
-    assert!(result.is_ok())
+    assert!(result.is_ok());
+    assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_verify_mfa_login_webauthn() {
-    let mut bundle = common::setup().await;
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
 
-    let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(&token).await
-        .unwrap();
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/mfa/finish"),
+            request::body(json_decoded(eq(
+                json!({"ticket": "testticket", "mfa_type": "webauthn", "data": "testdata"})
+            ))),
+            request::headers(contains(("Authorization", "faketoken")))
+        ])
+        .respond_with(json_encoded(json!({"token": "testtoken"}))),
+    );
 
     let schema = MfaVerifySchema {
-        ticket: "".to_string(),
-        mfa_type: AuthenticatorType::SMS,
-        data: "".to_string(),
+        ticket: "testticket".to_string(),
+        mfa_type: AuthenticatorType::WebAuthn,
+        data: "testdata".to_string(),
     };
 
-    let result = chorus_user.complete_mfa_challenge(schema)
-        .await;
+    let result = bundle.user.complete_mfa_challenge(schema).await;
 
-    assert!(result.is_ok())
+    assert!(result.is_ok());
+    assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_complete_mfa_challenge_backup() {
-    let mut bundle = common::setup().await;
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
 
-    let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(&token).await
-        .unwrap();
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/mfa/finish"),
+            request::body(json_decoded(eq(
+                json!({"ticket": "testticket", "mfa_type": "backup", "data": "testdata"})
+            ))),
+            request::headers(contains(("Authorization", "faketoken")))
+        ])
+        .respond_with(json_encoded(json!({"token": "testtoken"}))),
+    );
 
     let schema = MfaVerifySchema {
-        ticket: "".to_string(),
+        ticket: "testticket".to_string(),
         mfa_type: AuthenticatorType::Backup,
-        data: "".to_string(),
+        data: "testdata".to_string(),
     };
 
-    let result = chorus_user.complete_mfa_challenge(schema)
-        .await;
+    let result = bundle.user.complete_mfa_challenge(schema).await;
 
-    assert!(result.is_ok())
+    assert!(result.is_ok());
+    assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_complete_mfa_challenge_password() {
-    let mut bundle = common::setup().await;
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
 
-    let token = "".to_string();
-    let mut chorus_user = bundle.instance.login_with_token(&token).await
-        .unwrap();
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/mfa/finish"),
+            request::body(json_decoded(eq(
+                json!({"ticket": "testticket", "mfa_type": "password", "data": "testdata"})
+            ))),
+            request::headers(contains(("Authorization", "faketoken")))
+        ])
+        .respond_with(json_encoded(json!({"token": "testtoken"}))),
+    );
 
     let schema = MfaVerifySchema {
-        ticket: "".to_string(),
+        ticket: "testticket".to_string(),
         mfa_type: AuthenticatorType::Password,
-        data: "".to_string(),
+        data: "testdata".to_string(),
     };
 
-    let result = chorus_user.complete_mfa_challenge(schema)
-        .await;
+    let result = bundle.user.complete_mfa_challenge(schema).await;
 
     assert!(result.is_ok())
 }
@@ -210,11 +262,24 @@ async fn test_complete_mfa_challenge_password() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_send_mfa_sms() {
-    let mut bundle = common::setup().await;
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
 
-    let schema = SendMfaSmsSchema { ticket: "".to_string() };
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/auth/mfa/sms/send"),
+            request::body(json_decoded(eq(json!({"ticket": "testticket"})))),
+        ])
+        .respond_with(json_encoded(json!({"phone": "+*******0085"}))),
+    );
+
+    let schema = SendMfaSmsSchema {
+        ticket: "testticket".to_string(),
+    };
 
     let result = bundle.instance.send_mfa_sms(schema).await;
 
-    assert!(result.is_ok())
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap().phone, "+*******0085".to_string());
 }

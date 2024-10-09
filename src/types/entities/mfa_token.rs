@@ -26,7 +26,6 @@ impl MfaToken {
     ///
     /// This is used to provide the token in requests that require MFA.
     pub fn add_to_request(&self, request: ChorusRequest) -> ChorusRequest {
-
         let mut request = request;
 
         let request_builder = request.request;
@@ -42,22 +41,21 @@ impl MfaToken {
 }
 
 impl ChorusRequest {
-	/// Adds an [MfaToken] to the request.
-	///
-	/// Used for requests that need MFA.
-	pub fn with_mfa(self, token: &MfaToken) -> ChorusRequest {
-		token.add_to_request(self)
-	}
+    /// Adds an [MfaToken] to the request.
+    ///
+    /// Used for requests that need MFA.
+    pub fn with_mfa(self, token: &MfaToken) -> ChorusRequest {
+        token.add_to_request(self)
+    }
 
-	/// Adds an [MfaToken] to the request, if the token is [Some].
-	///
-	/// Used for requests that need MFA, when we might or might not have a token already
-	pub fn with_maybe_mfa(self, token: &Option<MfaToken>) -> ChorusRequest {
+    /// Adds an [MfaToken] to the request, if the token is [Some].
+    ///
+    /// Used for requests that need MFA, when we might or might not have a token already
+    pub fn with_maybe_mfa(self, token: &Option<MfaToken>) -> ChorusRequest {
+        if let Some(mfa_token) = token {
+            return mfa_token.add_to_request(self);
+        }
 
-		if let Some(mfa_token) = token {
-			return mfa_token.add_to_request(self);
-		}
-
-		self
-	}
+        self
+    }
 }

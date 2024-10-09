@@ -10,16 +10,17 @@ use std::fmt;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
+use chrono::Utc;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use chrono::Utc;
 
 use crate::errors::{ChorusError, ChorusResult};
 use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
-    GatewayIdentifyPayload, GeneralConfiguration, Limit, LimitType, LimitsConfiguration, MfaToken, MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings
+    GatewayIdentifyPayload, GeneralConfiguration, Limit, LimitType, LimitsConfiguration, MfaToken,
+    MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings,
 };
 use crate::UrlBundle;
 
@@ -300,30 +301,32 @@ impl ChorusUser {
         }
     }
 
-	 /// Updates a shell user after the login process.
-	 ///
-	 /// Fetches all the other required data from the api.
-	 ///
-	 /// If the received_settings can be None, since not all login methods
-	 /// return user settings. If this is the case, we'll fetch them via an api route.
-    pub(crate) async fn update_with_login_data(&mut self, token: String, received_settings: Option<Shared<UserSettings>>) -> ChorusResult<()> {
+    /// Updates a shell user after the login process.
+    ///
+    /// Fetches all the other required data from the api.
+    ///
+    /// If the received_settings can be None, since not all login methods
+    /// return user settings. If this is the case, we'll fetch them via an api route.
+    pub(crate) async fn update_with_login_data(
+        &mut self,
+        token: String,
+        received_settings: Option<Shared<UserSettings>>,
+    ) -> ChorusResult<()> {
+        self.token = token.clone();
 
-		  self.token = token.clone();
-
-		  let mut identify = GatewayIdentifyPayload::common();
+        let mut identify = GatewayIdentifyPayload::common();
         identify.token = token;
         self.gateway.send_identify(identify).await;
 
-		  *self.object.write().unwrap() = self.get_current_user().await?;
+        *self.object.write().unwrap() = self.get_current_user().await?;
 
-		  if let Some(passed_settings) = received_settings {
-				self.settings = passed_settings;
-		  }
-		  else {
-				*self.settings.write().unwrap() = self.get_settings().await?;
-		  }
+        if let Some(passed_settings) = received_settings {
+            self.settings = passed_settings;
+        } else {
+            *self.settings.write().unwrap() = self.get_settings().await?;
+        }
 
-		  Ok(())
+        Ok(())
     }
 
     /// Creates a new 'shell' of a user. The user does not exist as an object, and exists so that you have
@@ -365,7 +368,10 @@ impl ChorusUser {
     ///
     /// # Reference
     /// See <https://docs.discord.sex/authentication#verify-mfa>
-    pub async fn complete_mfa_challenge(&mut self, mfa_verify_schema: MfaVerifySchema) -> ChorusResult<()> {
+    pub async fn complete_mfa_challenge(
+        &mut self,
+        mfa_verify_schema: MfaVerifySchema,
+    ) -> ChorusResult<()> {
         let endpoint_url = self.belongs_to.read().unwrap().urls.api.clone() + "/mfa/finish";
         let chorus_request = ChorusRequest {
             request: Client::new()
@@ -376,7 +382,8 @@ impl ChorusUser {
         };
 
         let mfa_token_schema = chorus_request
-            .deserialize_response::<MfaTokenSchema>(self).await?;
+            .deserialize_response::<MfaTokenSchema>(self)
+            .await?;
 
         self.mfa_token = Some(MfaToken {
             token: mfa_token_schema.token,
