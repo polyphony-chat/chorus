@@ -295,7 +295,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
         Expectation::matching(all_of![
             request::method("GET"),
             request::path("/api/users/@me"),
-            request::headers(contains(("Authorization", "faketoken")))
+            request::headers(contains(("authorization", "faketoken")))
         ])
         .respond_with(json_encoded(chorus::types::User {
             id: chorus::types::Snowflake(123456789101112131),
@@ -312,7 +312,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
         Expectation::matching(all_of![
             request::method("GET"),
             request::path("/api/users/@me/settings"),
-            request::headers(contains(("Authorization", "faketoken")))
+            request::headers(contains(("authorization", "faketoken")))
         ])
         .respond_with(json_encoded(chorus::types::UserSettings {
             status: chorus::types::UserStatus::Online.into_shared(),
@@ -326,7 +326,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::method("POST"),
             // Can we have wildcards here?
             request::path("/api/guilds/123456789101112131/delete"),
-            request::headers(contains(("Authorization", "faketoken")))
+            request::headers(contains(("authorization", "faketoken")))
         ])
         .respond_with(status_code(200)),
     );
@@ -335,7 +335,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
         Expectation::matching(all_of![
             request::method("POST"),
             request::path("/api/users/@me/delete"),
-            request::headers(contains(("Authorization", "faketoken")))
+            request::headers(contains(("authorization", "faketoken")))
         ])
         .respond_with(status_code(200)),
     );

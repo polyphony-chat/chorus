@@ -126,7 +126,7 @@ async fn test_complete_mfa_challenge_totp() {
             request::body(json_decoded(eq(
                 json!({"ticket": "testticket", "mfa_type": "totp", "data": "testdata"})
             ))),
-            request::headers(contains(("Authorization", "faketoken")))
+            request::headers(contains(("authorization", "faketoken")))
         ])
         .respond_with(json_encoded(json!({"token": "testtoken"}))),
     );
@@ -156,7 +156,7 @@ async fn test_complete_mfa_challenge_sms() {
             request::body(json_decoded(eq(
                 json!({"ticket": "testticket", "mfa_type": "sms", "data": "testdata"})
             ))),
-            request::headers(contains(("Authorization", "faketoken")))
+            request::headers(contains(("authorization", "faketoken")))
         ])
         .respond_with(json_encoded(json!({"token": "testtoken"}))),
     );
@@ -186,7 +186,7 @@ async fn test_verify_mfa_login_webauthn() {
             request::body(json_decoded(eq(
                 json!({"ticket": "testticket", "mfa_type": "webauthn", "data": "testdata"})
             ))),
-            request::headers(contains(("Authorization", "faketoken")))
+            request::headers(contains(("authorization", "faketoken")))
         ])
         .respond_with(json_encoded(json!({"token": "testtoken"}))),
     );
@@ -216,7 +216,7 @@ async fn test_complete_mfa_challenge_backup() {
             request::body(json_decoded(eq(
                 json!({"ticket": "testticket", "mfa_type": "backup", "data": "testdata"})
             ))),
-            request::headers(contains(("Authorization", "faketoken")))
+            request::headers(contains(("authorization", "faketoken")))
         ])
         .respond_with(json_encoded(json!({"token": "testtoken"}))),
     );
@@ -246,7 +246,7 @@ async fn test_complete_mfa_challenge_password() {
             request::body(json_decoded(eq(
                 json!({"ticket": "testticket", "mfa_type": "password", "data": "testdata"})
             ))),
-            request::headers(contains(("Authorization", "faketoken")))
+            request::headers(contains(("authorization", "faketoken")))
         ])
         .respond_with(json_encoded(json!({"token": "testtoken"}))),
     );
