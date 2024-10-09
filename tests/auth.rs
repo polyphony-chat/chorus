@@ -7,11 +7,14 @@ use std::str::FromStr;
 use chorus::types::{
     AuthenticatorType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema,
 };
+
+#[cfg(not(target_arch = "wasm32"))]
 use httptest::{
     matchers::{all_of, contains, eq, json_decoded, request},
     responders::json_encoded,
     Expectation,
 };
+
 use serde_json::json;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
@@ -110,8 +113,8 @@ async fn test_login_with_invalid_token() {
     common::teardown(bundle).await;
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
 async fn test_complete_mfa_challenge_totp() {
     let server = common::create_mock_server();
     let mut bundle = common::setup_with_mock_server(&server).await;
@@ -140,8 +143,8 @@ async fn test_complete_mfa_challenge_totp() {
     assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
 async fn test_complete_mfa_challenge_sms() {
     let server = common::create_mock_server();
     let mut bundle = common::setup_with_mock_server(&server).await;
@@ -170,8 +173,8 @@ async fn test_complete_mfa_challenge_sms() {
     assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
 async fn test_verify_mfa_login_webauthn() {
     let server = common::create_mock_server();
     let mut bundle = common::setup_with_mock_server(&server).await;
@@ -200,8 +203,8 @@ async fn test_verify_mfa_login_webauthn() {
     assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
 async fn test_complete_mfa_challenge_backup() {
     let server = common::create_mock_server();
     let mut bundle = common::setup_with_mock_server(&server).await;
@@ -230,8 +233,8 @@ async fn test_complete_mfa_challenge_backup() {
     assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
 async fn test_complete_mfa_challenge_password() {
     let server = common::create_mock_server();
     let mut bundle = common::setup_with_mock_server(&server).await;
@@ -259,8 +262,8 @@ async fn test_complete_mfa_challenge_password() {
     assert!(result.is_ok())
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
 async fn test_send_mfa_sms() {
     let server = common::create_mock_server();
     let mut bundle = common::setup_with_mock_server(&server).await;

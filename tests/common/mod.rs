@@ -16,9 +16,13 @@ use chorus::{
 };
 
 use chrono::NaiveDate;
-use httptest::matchers::{all_of, contains, request};
-use httptest::responders::{json_encoded, status_code};
-use httptest::Expectation;
+
+#[cfg(not(target_arch = "wasm32"))]
+use httptest::{
+    matchers::{all_of, contains, request},
+    responders::{json_encoded, status_code},
+    Expectation,
+};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -63,6 +67,7 @@ impl TestBundle {
 
 /// Set up a test by creating an [Instance] and a User for a real,
 /// running server at localhost:3001. Reduces Test boilerplate.
+#[allow(dead_code)]
 pub(crate) async fn setup() -> TestBundle {
     // So we can get logs when tests fail
     let _ = simple_logger::SimpleLogger::with_level(
@@ -146,11 +151,15 @@ pub(crate) async fn setup() -> TestBundle {
     }
 }
 
-/// Set up a test by "creating" an [Instance] and a User for a mocked
+/// Set up a test by creating an [Instance] and a User for a mocked
 /// server with httptest. Reduces Test boilerplate.
+///
+/// Note: httptest does not work on wasm!
 ///
 /// This test server will always provide snowflake ids as 123456789101112131
 /// and auth tokens as "faketoken"
+#[allow(dead_code)]
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) async fn setup_with_mock_server(server: &httptest::Server) -> TestBundle {
     // So we can get logs when tests fail
     let _ = simple_logger::SimpleLogger::with_level(
@@ -159,7 +168,9 @@ pub(crate) async fn setup_with_mock_server(server: &httptest::Server) -> TestBun
     )
     .init();
 
-    let instance = Instance::new(server.url_str("/api").as_str(), None).await.unwrap();
+    let instance = Instance::new(server.url_str("/api").as_str(), None)
+        .await
+        .unwrap();
 
     // Requires the existence of the below user.
     let reg = RegisterSchema {
@@ -223,8 +234,12 @@ pub(crate) async fn teardown(mut bundle: TestBundle) {
 /// Creates a mock http server at localhost:3001 with the basic routes
 /// needed to run TestBundle setup and teardown
 ///
+/// Note: httptest does not work on wasm!
+///
 /// This test server will always provide snowflake ids as 123456789101112131
 /// and auth tokens as "faketoken"
+#[allow(dead_code)]
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn create_mock_server() -> httptest::Server {
     let server = httptest::Server::run();
 
