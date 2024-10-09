@@ -134,7 +134,7 @@ pub struct CustomStatus {
 }
 
 #[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash, Default,
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash,
 )]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 pub struct FriendSourceFlags {
