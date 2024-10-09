@@ -39,7 +39,7 @@ pub struct MfaMethod {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum AuthenticatorType {
     TOTP,
     SMS,
