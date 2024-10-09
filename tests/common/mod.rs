@@ -256,6 +256,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::method("GET"),
             request::path("/api/policies/instance/domains")
         ])
+		  .times(0..100)
         .respond_with(json_encoded(
             chorus::types::types::domains_configuration::Domains {
                 api_endpoint: api_url.to_string(),
@@ -272,6 +273,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::method("POST"),
             request::path("/api/auth/register")
         ])
+		  .times(0..100)
         .respond_with(json_encoded(chorus::instance::Token {
             token: "faketoken".to_string(),
         })),
@@ -282,6 +284,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::method("POST"),
             request::path("/api/auth/login")
         ])
+		  .times(0..100)
         .respond_with(json_encoded(chorus::types::LoginResult {
             token: "faketoken".to_string(),
             settings: chorus::types::UserSettings {
@@ -297,6 +300,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::path("/api/users/@me"),
             request::headers(contains(("authorization", "faketoken")))
         ])
+		  .times(0..100)
         .respond_with(json_encoded(chorus::types::User {
             id: chorus::types::Snowflake(123456789101112131),
             username: "integrationtestuser".to_string(),
@@ -314,6 +318,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::path("/api/users/@me/settings"),
             request::headers(contains(("authorization", "faketoken")))
         ])
+		  .times(0..100)
         .respond_with(json_encoded(chorus::types::UserSettings {
             status: chorus::types::UserStatus::Online.into_shared(),
             ..Default::default()
@@ -328,6 +333,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::path("/api/guilds/123456789101112131/delete"),
             request::headers(contains(("authorization", "faketoken")))
         ])
+		  .times(0..100)
         .respond_with(status_code(200)),
     );
 
@@ -337,7 +343,63 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::path("/api/users/@me/delete"),
             request::headers(contains(("authorization", "faketoken")))
         ])
+		  .times(0..100)
         .respond_with(status_code(200)),
+    );
+
+	 // The following should just return a 404, and it's normal that we're getting them
+	 server.expect(
+        Expectation::matching(all_of![
+            request::method("GET"),
+            request::path("/api/.well-known/spacebar")
+        ])
+		  .times(0..100)
+        .respond_with(status_code(404)),
+    );
+
+	 server.expect(
+        Expectation::matching(all_of![
+            request::method("GET"),
+            request::path("/api/api/policies/instance/domains")
+        ])
+		  .times(0..100)
+        .respond_with(status_code(404)),
+    );
+
+	 server.expect(
+        Expectation::matching(all_of![
+            request::method("GET"),
+            request::path("/api/policies/instance/limits")
+        ])
+		  .times(0..100)
+        .respond_with(status_code(404)),
+    );
+
+	 server.expect(
+        Expectation::matching(all_of![
+            request::method("GET"),
+            request::path("/api/policies/instance/")
+        ])
+		  .times(0..100)
+        .respond_with(status_code(404)),
+    );
+
+	 server.expect(
+        Expectation::matching(all_of![
+            request::method("GET"),
+            request::path("/api/version")
+        ])
+		  .times(0..100)
+        .respond_with(status_code(404)),
+    );
+
+	 server.expect(
+        Expectation::matching(all_of![
+            request::method("GET"),
+            request::path("/api/ping")
+        ])
+		  .times(0..100)
+        .respond_with(status_code(404)),
     );
 
     server
