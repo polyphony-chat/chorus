@@ -82,11 +82,7 @@ impl ChorusUser {
     /// # Notes
     /// This function is a wrapper around [`User::get_settings`].
     pub async fn get_settings(&mut self) -> ChorusResult<UserSettings> {
-<<<<<<< HEAD
         User::get_settings(self).await
-=======
-        User::get_settings(self).await 
->>>>>>> 03f1e7d (Refactor / fix login and register (#495))
     }
 
     /// Modifies the current user's representation. (See [`User`])
@@ -882,7 +878,3 @@ impl User {
         chorus_request.handle_request_as_result(user).await
     }
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> 03f1e7d (Refactor / fix login and register (#495))

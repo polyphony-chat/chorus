@@ -4,7 +4,6 @@
 
 use crate::types::{PermissionFlags, Snowflake};
 use serde::{Deserialize, Serialize};
-use crate::types::{PermissionFlags, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]

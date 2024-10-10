@@ -19,8 +19,6 @@ use crate::{UInt32, UInt8};
 
 use super::option_arc_rwlock_ptr_eq;
 
-use super::option_arc_rwlock_ptr_eq;
-
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// Represents a message sent in a channel.

@@ -49,7 +49,7 @@ jsonwebtoken = "8.3.0"
 log = "0.4.22"
 async-trait = "0.1.81"
 chorus-macros = { path = "./chorus-macros", version = "0" } # Note: version here is used when releasing. This will use the latest release. Make sure to republish the crate when code in macros is changed!
-sqlx = { version = "0.8.1", features = [
+sqlx = { version = "0.8.2", features = [
     "json",
     "chrono",
     "ipnetwork",
@@ -67,7 +67,7 @@ rand = "0.8.5"
 flate2 = { version = "1.0.33", optional = true }
 webpki-roots = "0.26.3"
 pubserve = { version = "1.1.0", features = ["async", "send"] }
-sqlx-pg-uint = { version = "0.5.0", features = ["serde"], optional = true }
+sqlx-pg-uint = { version = "0.7.2", features = ["serde"], optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rustls = "0.21.12"
