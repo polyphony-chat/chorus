@@ -5,7 +5,7 @@
 use std::str::FromStr;
 
 use chorus::gateway::{Gateway, GatewayOptions};
-use chorus::types::{IntoShared, PermissionFlags};
+use chorus::types::{DeleteDisableUserSchema, IntoShared, PermissionFlags};
 use chorus::{
     instance::{ChorusUser, Instance},
     types::{
@@ -146,5 +146,9 @@ pub(crate) async fn setup() -> TestBundle {
 pub(crate) async fn teardown(mut bundle: TestBundle) {
     let id = bundle.guild.read().unwrap().id;
     Guild::delete(&mut bundle.user, id).await.unwrap();
-    bundle.user.delete().await.unwrap()
+    bundle
+        .user
+        .delete(DeleteDisableUserSchema { password: None })
+        .await
+        .unwrap()
 }

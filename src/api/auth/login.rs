@@ -38,7 +38,7 @@ impl Instance {
         user.set_token(&login_result.token);
         user.settings = login_result.settings;
 
-        let object = User::get(&mut user, None).await?;
+        let object = User::get_current(&mut user).await?;
         *user.object.write().unwrap() = object;
 
         let mut identify = GatewayIdentifyPayload::common();

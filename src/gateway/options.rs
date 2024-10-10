@@ -2,6 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::instance::InstanceSoftware;
+
 #[derive(Clone, PartialEq, Eq, Ord, PartialOrd, Debug, Default, Copy)]
 /// Options passed when initializing the gateway connection.
 ///
@@ -22,6 +24,23 @@ pub struct GatewayOptions {
 }
 
 impl GatewayOptions {
+    /// Creates the ideal gateway options for an [InstanceSoftware],
+    /// based off which features it supports.
+    pub fn for_instance_software(software: InstanceSoftware) -> GatewayOptions {
+        // TODO: Support ETF
+        let encoding = GatewayEncoding::Json;
+
+        let transport_compression = match software.supports_gateway_zlib() {
+            true => GatewayTransportCompression::ZLibStream,
+            false => GatewayTransportCompression::None,
+        };
+
+        GatewayOptions {
+            encoding,
+            transport_compression,
+        }
+    }
+
     /// Adds the options to an existing gateway url
     ///
     /// Returns the new url

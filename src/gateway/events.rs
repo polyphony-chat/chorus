@@ -69,12 +69,15 @@ pub struct Message {
     pub reaction_remove: Publisher<types::MessageReactionRemove>,
     pub reaction_remove_all: Publisher<types::MessageReactionRemoveAll>,
     pub reaction_remove_emoji: Publisher<types::MessageReactionRemoveEmoji>,
+    pub recent_mention_delete: Publisher<types::RecentMentionDelete>,
     pub ack: Publisher<types::MessageACK>,
 }
 
 #[derive(Default, Debug)]
 pub struct User {
     pub update: Publisher<types::UserUpdate>,
+    pub connections_update: Publisher<types::UserConnectionsUpdate>,
+    pub note_update: Publisher<types::UserNoteUpdate>,
     pub guild_settings_update: Publisher<types::UserGuildSettingsUpdate>,
     pub presence_update: Publisher<types::PresenceUpdate>,
     pub typing_start: Publisher<types::TypingStartEvent>,

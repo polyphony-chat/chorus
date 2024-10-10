@@ -30,7 +30,7 @@ pub struct Session {
 // Note: I don't think this one exists yet? Though I might've made a mistake and this might be a duplicate
 pub struct ClientInfo {
     pub client: Option<String>,
-    pub os: String,
+    pub os: Option<String>,
     pub version: u8,
 }
 
