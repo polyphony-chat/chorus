@@ -4,7 +4,7 @@
 
 use crate::errors::ChorusError;
 use crate::types::utils::Snowflake;
-use crate::{UInt32, UInt8};
+use crate::UInt32;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::{deserialize_default_from_null, deserialize_option_number_from_string};
