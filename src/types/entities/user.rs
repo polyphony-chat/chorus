@@ -826,10 +826,13 @@ pub struct MutualGuild {
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserNote {
     /// Actual note contents; max 256 characters
+    #[cfg_attr(feature = "sqlx", sqlx(rename = "content"))]
     pub note: String,
     /// The ID of the user the note is on
+    #[cfg_attr(feature = "sqlx", sqlx(rename = "target_id"))]
     pub note_user_id: Snowflake,
     /// The ID of the user who created the note (always the current user)
+    #[cfg_attr(feature = "sqlx", sqlx(rename = "owner_id"))]
     pub user_id: Snowflake,
 }
 
