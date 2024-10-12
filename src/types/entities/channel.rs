@@ -23,7 +23,7 @@ use crate::gateway::GatewayHandle;
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
-use crate::{UInt64, UInt8};
+use crate::UInt64;
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, Composite, Updateable};
@@ -59,7 +59,7 @@ pub struct Channel {
     pub default_auto_archive_duration: Option<i32>,
     pub default_forum_layout: Option<DefaultForumLayout>,
     pub default_reaction_emoji: Option<DefaultReaction>,
-    pub default_sort_order: Option<DefaultSearchOrder>,
+    pub default_sort_order: Option<DefaultSortOrder>,
     pub default_thread_rate_limit_per_user: Option<i32>,
     pub flags: Option<i32>,
     pub guild_id: Option<Snowflake>,
@@ -473,21 +473,24 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for DefaultForumLayout {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord, Default,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(u8)]
-pub enum DefaultSearchOrder {
+pub enum DefaultSortOrder {
+    #[default]
     LatestActivity = 0,
     CreationTime = 1,
 }
 
-impl TryFrom<u8> for DefaultSearchOrder {
+impl TryFrom<u8> for DefaultSortOrder {
     type Error = ChorusError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0 => Ok(DefaultSearchOrder::LatestActivity),
-            1 => Ok(DefaultSearchOrder::CreationTime),
+            0 => Ok(DefaultSortOrder::LatestActivity),
+            1 => Ok(DefaultSortOrder::CreationTime),
             _ => Err(ChorusError::InvalidArguments {
                 error: "Value is not a valid DefaultSearchOrder".to_string(),
             }),
@@ -496,14 +499,14 @@ impl TryFrom<u8> for DefaultSearchOrder {
 }
 
 #[cfg(feature = "sqlx")]
-impl sqlx::Type<sqlx::Postgres> for DefaultSearchOrder {
+impl sqlx::Type<sqlx::Postgres> for DefaultSortOrder {
     fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
         <sqlx_pg_uint::PgU8 as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 }
 
 #[cfg(feature = "sqlx")]
-impl<'q> sqlx::Encode<'q, sqlx::Postgres> for DefaultSearchOrder {
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for DefaultSortOrder {
     fn encode_by_ref(
         &self,
         buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
@@ -514,11 +517,11 @@ impl<'q> sqlx::Encode<'q, sqlx::Postgres> for DefaultSearchOrder {
 }
 
 #[cfg(feature = "sqlx")]
-impl<'r> sqlx::Decode<'r, sqlx::Postgres> for DefaultSearchOrder {
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for DefaultSortOrder {
     fn decode(
         value: <sqlx::Postgres as sqlx::Database>::ValueRef<'r>,
     ) -> Result<Self, sqlx::error::BoxDynError> {
         let sqlx_pg_uint = sqlx_pg_uint::PgU8::decode(value)?;
-        DefaultSearchOrder::try_from(sqlx_pg_uint.to_uint()).map_err(|e| e.into())
+        DefaultSortOrder::try_from(sqlx_pg_uint.to_uint()).map_err(|e| e.into())
     }
 }
