@@ -8,6 +8,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::{Debug, Formatter};
 use std::str::FromStr;
 
+use crate::errors::ChorusError;
 use crate::types::{
     entities::{GuildMember, User},
     utils::Snowflake,
@@ -22,7 +23,7 @@ use crate::gateway::GatewayHandle;
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
-use crate::UInt64;
+use crate::{UInt64, UInt8};
 
 #[cfg(feature = "client")]
 use chorus_macros::{observe_option_vec, Composite, Updateable};
@@ -31,7 +32,7 @@ use serde::de::{Error, Visitor};
 #[cfg(feature = "sqlx")]
 use sqlx::types::Json;
 
-use super::{option_arc_rwlock_ptr_eq, option_vec_arc_rwlock_ptr_eq};
+use super::{option_arc_rwlock_ptr_eq, option_vec_arc_rwlock_ptr_eq, Emoji};
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -42,17 +43,23 @@ use super::{option_arc_rwlock_ptr_eq, option_vec_arc_rwlock_ptr_eq};
 /// See <https://discord-userdoccers.vercel.app/resources/channel#channels-resource>
 pub struct Channel {
     pub application_id: Option<Snowflake>,
-    pub applied_tags: Option<Vec<String>>,
+    #[cfg(not(feature = "sqlx"))]
+    pub applied_tags: Option<Vec<Snowflake>>,
+    #[cfg(feature = "sqlx")]
+    pub applied_tags: Option<Json<Vec<Snowflake>>>,
+    #[cfg(not(feature = "sqlx"))]
     pub available_tags: Option<Vec<Tag>>,
+    #[cfg(feature = "sqlx")]
+    pub available_tags: Option<Json<Vec<Tag>>>,
     pub bitrate: Option<i32>,
     #[serde(rename = "type")]
+    #[cfg_attr(feature = "sqlx", sqlx(rename = "type"))]
     pub channel_type: ChannelType,
     pub created_at: Option<chrono::DateTime<Utc>>,
     pub default_auto_archive_duration: Option<i32>,
-    pub default_forum_layout: Option<i32>,
-    // DefaultReaction could be stored in a separate table. However, there are a lot of default emojis. How would we handle that?
+    pub default_forum_layout: Option<DefaultForumLayout>,
     pub default_reaction_emoji: Option<DefaultReaction>,
-    pub default_sort_order: Option<i32>,
+    pub default_sort_order: Option<DefaultSearchOrder>,
     pub default_thread_rate_limit_per_user: Option<i32>,
     pub flags: Option<i32>,
     pub guild_id: Option<Snowflake>,
@@ -325,6 +332,15 @@ pub struct DefaultReaction {
     pub emoji_name: Option<String>,
 }
 
+impl From<Emoji> for DefaultReaction {
+    fn from(value: Emoji) -> Self {
+        Self {
+            emoji_id: Some(value.id),
+            emoji_name: value.name,
+        }
+    }
+}
+
 #[derive(
     Default,
     Clone,
@@ -400,4 +416,109 @@ pub enum ChannelType {
 pub struct FollowedChannel {
     pub channel_id: Snowflake,
     pub webhook_id: Snowflake,
+}
+
+#[derive(
+    Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord, Default,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[repr(u8)]
+pub enum DefaultForumLayout {
+    #[default]
+    Default = 0,
+    List = 1,
+    Grid = 2,
+}
+
+impl TryFrom<u8> for DefaultForumLayout {
+    type Error = ChorusError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(DefaultForumLayout::Default),
+            1 => Ok(DefaultForumLayout::List),
+            2 => Ok(DefaultForumLayout::Grid),
+            _ => Err(ChorusError::InvalidArguments {
+                error: "Value is not a valid DefaultForumLayout".to_string(),
+            }),
+        }
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::Postgres> for DefaultForumLayout {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <sqlx_pg_uint::PgU8 as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for DefaultForumLayout {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::from(*self as u8);
+        sqlx_pg_uint.encode_by_ref(buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for DefaultForumLayout {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'r>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::decode(value)?;
+        DefaultForumLayout::try_from(sqlx_pg_uint.to_uint()).map_err(|e| e.into())
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[repr(u8)]
+pub enum DefaultSearchOrder {
+    LatestActivity = 0,
+    CreationTime = 1,
+}
+
+impl TryFrom<u8> for DefaultSearchOrder {
+    type Error = ChorusError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(DefaultSearchOrder::LatestActivity),
+            1 => Ok(DefaultSearchOrder::CreationTime),
+            _ => Err(ChorusError::InvalidArguments {
+                error: "Value is not a valid DefaultSearchOrder".to_string(),
+            }),
+        }
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::Postgres> for DefaultSearchOrder {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <sqlx_pg_uint::PgU8 as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for DefaultSearchOrder {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::from(*self as u8);
+        sqlx_pg_uint.encode_by_ref(buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for DefaultSearchOrder {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'r>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::decode(value)?;
+        DefaultSearchOrder::try_from(sqlx_pg_uint.to_uint()).map_err(|e| e.into())
+    }
 }
