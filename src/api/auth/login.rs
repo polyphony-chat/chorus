@@ -12,7 +12,7 @@ use crate::gateway::Gateway;
 use crate::instance::{ChorusUser, Instance};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    AuthenticatorType, GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema,
+    MfaAuthenticationType, GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema,
     SendMfaSmsResponse, SendMfaSmsSchema, User, VerifyMFALoginResponse, VerifyMFALoginSchema,
 };
 
@@ -52,7 +52,7 @@ impl Instance {
     /// See <https://docs.discord.sex/authentication#verify-mfa-login>
     pub async fn verify_mfa_login(
         &mut self,
-        authenticator: AuthenticatorType,
+        authenticator: MfaAuthenticationType,
         schema: VerifyMFALoginSchema,
     ) -> ChorusResult<ChorusUser> {
         let endpoint_url = self.urls.api.clone() + "/auth/mfa/" + &authenticator.to_string();

@@ -1,8 +1,9 @@
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::types::Snowflake;
+use crate::{errors::ChorusError, types::Snowflake};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
@@ -33,44 +34,142 @@ pub struct MfaVerificationSchema {
 #[serde(rename_all = "snake_case")]
 pub struct MfaMethod {
     #[serde(rename = "type")]
-    pub kind: AuthenticatorType,
+    pub kind: MfaAuthenticationType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub challenge: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub backup_codes_allowed: Option<bool>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "snake_case")]
+/// A multi-factor authentication authenticator.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#authenticator-object>
+pub struct MfaAuthenticator {
+	pub id: Snowflake,
+	#[serde(rename = "type")]
+	pub authenticator_type: MfaAuthenticatorType,
+	pub name: String,
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u8)]
+#[serde(rename_all = "lowercase")]
+/// Types of [MfaAuthenticator]s.
+///
+/// Not to be confused with [MfaAuthenticationType], which covers other cases of authentication as well. (Such as backup codes or a password)
+pub enum MfaAuthenticatorType {
+    WebAuthn = 1,
+    TOTP = 2,
+    SMS = 3,
+}
+
+impl TryFrom<u8> for MfaAuthenticatorType {
+    type Error = ChorusError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(Self::WebAuthn),
+            2 => Ok(Self::TOTP),
+            3 => Ok(Self::SMS),
+            _ => Err(ChorusError::InvalidArguments {
+                error: "Value is not a valid MfaAuthenticatorType".to_string(),
+            }),
+        }
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::Postgres> for MfaAuthenticatorType {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <sqlx_pg_uint::PgU8 as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for MfaAuthenticatorType {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::from(*self as u8);
+        sqlx_pg_uint.encode_by_ref(buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for MfaAuthenticatorType {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'r>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::decode(value)?;
+        MfaAuthenticatorType::try_from(sqlx_pg_uint.to_uint()).map_err(|e| e.into())
+    }
+}
+
+impl MfaAuthenticatorType {
+	/// Converts self into [MfaAuthenticationType]
+	pub fn into_authentication_type(self) -> MfaAuthenticationType {
+		match self {
+			Self::WebAuthn => MfaAuthenticationType::WebAuthn,
+			Self::TOTP => MfaAuthenticationType::TOTP,
+			Self::SMS => MfaAuthenticationType::SMS,
+		}
+	}
+}
+
+impl From<MfaAuthenticatorType> for MfaAuthenticationType {
+	fn from(value: MfaAuthenticatorType) -> Self {
+	    value.into_authentication_type()
+	}
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "lowercase")]
-pub enum AuthenticatorType {
+/// Ways to perform multi factor authentication.
+pub enum MfaAuthenticationType {
+    WebAuthn,
     TOTP,
     SMS,
     Backup,
-    WebAuthn,
     Password,
 }
 
-impl Display for AuthenticatorType {
+impl Display for MfaAuthenticationType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                AuthenticatorType::TOTP => "totp",
-                AuthenticatorType::SMS => "sms",
-                AuthenticatorType::Backup => "backup",
-                AuthenticatorType::WebAuthn => "webauthn",
-                AuthenticatorType::Password => "password",
+                MfaAuthenticationType::TOTP => "totp",
+                MfaAuthenticationType::SMS => "sms",
+                MfaAuthenticationType::Backup => "backup",
+                MfaAuthenticationType::WebAuthn => "webauthn",
+                MfaAuthenticationType::Password => "password",
             }
         )
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+/// An mfa backup code.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#backup-code-object>
+pub struct MfaBackupCode {
+    pub user_id: Snowflake,
+    pub code: String,
+    /// Whether or not the backup code has been used
+    pub consumed: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub struct MfaVerifySchema {
     pub ticket: String,
-    pub mfa_type: AuthenticatorType,
+    pub mfa_type: MfaAuthenticationType,
     pub data: String,
 }
 
@@ -87,18 +186,6 @@ pub struct SendMfaSmsSchema {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SendMfaSmsResponse {
     pub phone: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-/// An mfa backup code.
-///
-/// # Reference
-/// See <https://docs.discord.sex/resources/user#backup-code-object>
-pub struct MfaBackupCode {
-    pub user_id: Snowflake,
-    pub code: String,
-    /// Whether or not the backup code has been used
-    pub consumed: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

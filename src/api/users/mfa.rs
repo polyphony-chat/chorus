@@ -5,7 +5,7 @@ use crate::{
     instance::{ChorusUser, Token},
     ratelimiter::ChorusRequest,
     types::{
-        EnableTotpMfaResponse, EnableTotpMfaReturn, EnableTotpMfaSchema, LimitType,
+        MfaAuthenticator, EnableTotpMfaResponse, EnableTotpMfaReturn, EnableTotpMfaSchema, LimitType,
         SmsMfaRouteSchema,
     },
 };
@@ -134,5 +134,26 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token);
 
         chorus_request.handle_request_as_result(self).await
+    }
+
+    /// Fetches a list of [WebAuthn](crate::types::MfaAuthenticatorType::WebAuthn)
+    /// [MfaAuthenticator]s for the current user.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/user#get-webauthn-authenticators>
+    pub async fn get_webauthn_authenticators(&mut self) -> ChorusResult<Vec<MfaAuthenticator>> {
+        let request = Client::new()
+            .get(format!(
+                "{}/users/@me/mfa/webauthn/credentials",
+                self.belongs_to.read().unwrap().urls.api
+            ))
+            .header("Authorization", self.token());
+
+        let chorus_request = ChorusRequest {
+            request,
+            limit_type: LimitType::default(),
+        };
+
+        chorus_request.deserialize_response(self).await
     }
 }

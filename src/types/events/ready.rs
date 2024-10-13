@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{Guild, User};
 use crate::types::events::{Session, WebSocketEvent};
 use crate::types::{
-    Activity, AuthenticatorType, Channel, ClientStatusObject, GuildMember, PresenceUpdate, Relationship, Snowflake, UserSettings, VoiceState
+    Activity, Channel, ClientStatusObject, GuildMember, MfaAuthenticatorType, PresenceUpdate, Relationship, Snowflake, UserSettings, VoiceState
 };
 use crate::{UInt32, UInt64, UInt8};
 
@@ -72,7 +72,7 @@ pub struct GatewayReady {
     pub auth_token: Option<String>,
     #[serde(default)]
     /// The types of multi-factor authenticators the user has enabled
-    pub authenticator_types: Vec<ReadyAuthenticatorType>,
+    pub authenticator_types: Vec<MfaAuthenticatorType>,
     /// The action a user is required to take before continuing to use Discord
     pub required_action: Option<String>,
     #[serde(default)]
@@ -126,7 +126,7 @@ pub struct GatewayReadyBot {
     pub users: Vec<User>,
     #[serde(default)]
     /// The types of multi-factor authenticators the user has enabled
-    pub authenticator_types: Vec<ReadyAuthenticatorType>,
+    pub authenticator_types: Vec<MfaAuthenticatorType>,
     #[serde(default)]
     /// A geo-ordered list of RTC regions that can be used when when setting a voice channel's `rtc_region` or updating the client's voice state
     pub geo_ordered_rtc_regions: Vec<String>,
@@ -159,31 +159,6 @@ impl GatewayReady {
     /// Convert this struct into a [GatewayReadyBot] struct
     pub fn to_bot(self) -> GatewayReadyBot {
         self.into()
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
-#[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i16))]
-/// [AuthenticatorType] as received in the [GatewayReady] event
-pub enum ReadyAuthenticatorType {
-    WebAuthn = 1,
-    TOTP = 2,
-    SMS = 3,
-}
-
-impl ReadyAuthenticatorType {
-    fn into_authenticator_type(self) -> AuthenticatorType {
-        match self {
-            ReadyAuthenticatorType::WebAuthn => AuthenticatorType::WebAuthn,
-            ReadyAuthenticatorType::TOTP => AuthenticatorType::TOTP,
-            ReadyAuthenticatorType::SMS => AuthenticatorType::SMS,
-        }
-    }
-}
-
-impl From<ReadyAuthenticatorType> for AuthenticatorType {
-    fn from(value: ReadyAuthenticatorType) -> Self {
-        value.into_authenticator_type()
     }
 }
 

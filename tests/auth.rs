@@ -5,7 +5,7 @@
 use std::str::FromStr;
 
 use chorus::types::{
-    AuthenticatorType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema,
+    MfaAuthenticationType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema,
 };
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -133,7 +133,7 @@ async fn test_complete_mfa_challenge_totp() {
 
     let schema = MfaVerifySchema {
         ticket: "testticket".to_string(),
-        mfa_type: AuthenticatorType::TOTP,
+        mfa_type: MfaAuthenticationType::TOTP,
         data: "testdata".to_string(),
     };
 
@@ -163,7 +163,7 @@ async fn test_complete_mfa_challenge_sms() {
 
     let schema = MfaVerifySchema {
         ticket: "testticket".to_string(),
-        mfa_type: AuthenticatorType::SMS,
+        mfa_type: MfaAuthenticationType::SMS,
         data: "testdata".to_string(),
     };
 
@@ -193,7 +193,7 @@ async fn test_verify_mfa_login_webauthn() {
 
     let schema = MfaVerifySchema {
         ticket: "testticket".to_string(),
-        mfa_type: AuthenticatorType::WebAuthn,
+        mfa_type: MfaAuthenticationType::WebAuthn,
         data: "testdata".to_string(),
     };
 
@@ -223,7 +223,7 @@ async fn test_complete_mfa_challenge_backup() {
 
     let schema = MfaVerifySchema {
         ticket: "testticket".to_string(),
-        mfa_type: AuthenticatorType::Backup,
+        mfa_type: MfaAuthenticationType::Backup,
         data: "testdata".to_string(),
     };
 
@@ -253,7 +253,7 @@ async fn test_complete_mfa_challenge_password() {
 
     let schema = MfaVerifySchema {
         ticket: "testticket".to_string(),
-        mfa_type: AuthenticatorType::Password,
+        mfa_type: MfaAuthenticationType::Password,
         data: "testdata".to_string(),
     };
 
