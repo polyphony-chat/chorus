@@ -63,6 +63,9 @@ impl Guild {
     ///
     /// Returns the updated guild.
     ///
+    /// # Notes
+    /// This route requires MFA.
+    ///
     /// # Reference
     /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild>
     pub async fn modify(
@@ -81,7 +84,9 @@ impl Guild {
                 .header("Content-Type", "application/json")
                 .body(to_string(&schema).unwrap()),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_maybe_mfa(&user.mfa_token);
+
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
         Ok(response)
     }
@@ -90,12 +95,14 @@ impl Guild {
     ///
     /// User must be the owner.
     ///
+    /// # Notes
+    /// This route requires MFA.
+    ///
     /// # Example
     ///
     /// ```rs
-    /// let mut user = User::new();
-    /// let mut instance = Instance::new();
-    /// let guild_id = String::from("1234567890");
+    /// let mut user: ChorusUser;
+    /// let guild_id = Snowflake::from(1234567890);
     ///
     /// match Guild::delete(&mut user, guild_id) {
     ///     Err(e) => println!("Error deleting guild: {:?}", e),
@@ -111,13 +118,16 @@ impl Guild {
             user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
+
         let chorus_request = ChorusRequest {
             request: Client::new()
                 .post(url.clone())
                 .header("Authorization", user.token.clone())
                 .header("Content-Type", "application/json"),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_maybe_mfa(&user.mfa_token);
+
         chorus_request.handle_request_as_result(user).await
     }
 
