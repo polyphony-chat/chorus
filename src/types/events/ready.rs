@@ -37,6 +37,8 @@ pub struct GatewayReady {
     pub guilds: Vec<Guild>,
     /// The presences of the user's non-offline friends and implicit relationships (depending on the `NO_AFFINE_USER_IDS` Gateway capability).
     pub presences: Option<Vec<PresenceUpdate>>,
+    /// Undocumented. Seems to be a list of sessions the user is currently connected with.
+    /// On Discord.com, this includes the current session.
     pub sessions: Option<Vec<Session>>,
     /// Unique session ID, used for resuming connections
     pub session_id: String,
