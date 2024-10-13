@@ -4,7 +4,7 @@
 
 use crate::errors::ChorusError;
 use crate::types::utils::Snowflake;
-use crate::{UInt32, UInt8};
+use crate::UInt32;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::{deserialize_default_from_null, deserialize_option_number_from_string};
@@ -826,11 +826,14 @@ pub struct MutualGuild {
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserNote {
     /// Actual note contents; max 256 characters
-    pub note: String,
+    #[serde(rename = "note")]
+    pub content: String,
     /// The ID of the user the note is on
-    pub note_user_id: Snowflake,
+    #[serde(rename = "note_user_id")]
+    pub target_id: Snowflake,
     /// The ID of the user who created the note (always the current user)
-    pub user_id: Snowflake,
+    #[serde(rename = "user_id")]
+    pub author_id: Snowflake,
 }
 
 /// Structure which defines an affinity the local user has with another user.

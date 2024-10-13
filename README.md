@@ -143,7 +143,11 @@ to run the tests for wasm.
 
 ## Versioning
 
-This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read the specification [here](https://semver.org/spec/v2.0.0.html).
+Like other cargo crates, this crate uses Semantic Versioning 2.0.0 as its versioning scheme.
+You can read the specification [here](https://semver.org/spec/v2.0.0.html).
+
+Code gated behind the `backend` feature is not considered part of the public API and can change without
+affecting semver compatibility. The `backend` feature is explicitly meant for use in [`symfonia`](https://github.com/polyphony-chat/symfonia)
 
 ## Contributing
 
