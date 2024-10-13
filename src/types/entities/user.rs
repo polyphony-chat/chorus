@@ -826,14 +826,14 @@ pub struct MutualGuild {
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserNote {
     /// Actual note contents; max 256 characters
-    #[cfg_attr(feature = "sqlx", sqlx(rename = "content"))]
-    pub note: String,
+    #[serde(rename = "note")]
+    pub content: String,
     /// The ID of the user the note is on
-    #[cfg_attr(feature = "sqlx", sqlx(rename = "target_id"))]
-    pub note_user_id: Snowflake,
+    #[serde(rename = "note_user_id")]
+    pub target_id: Snowflake,
     /// The ID of the user who created the note (always the current user)
-    #[cfg_attr(feature = "sqlx", sqlx(rename = "owner_id"))]
-    pub user_id: Snowflake,
+    #[serde(rename = "user_id")]
+    pub author_id: Snowflake,
 }
 
 /// Structure which defines an affinity the local user has with another user.
