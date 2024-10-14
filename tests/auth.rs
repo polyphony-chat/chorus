@@ -499,7 +499,7 @@ async fn test_create_mfa_webauthn_authenticator() {
 				request::headers(contains(("authorization", "faketoken"))),
             request::headers(contains(("x-discord-mfa-authorization", "fakemfatoken"))),
         ])
-        .respond_with(json_encoded(json!({"ticket": "ODUyODkyMjk3NjYxOTA2OTkz.H2Rpq0.WrhGhYEhM3lHUPN61xF6JcQKwVutk8fBvcoHjo", "challenge": "{\"publicKey\":{\"challenge\":\"a8a1cHP7_zYheggFG68zKUkl8DwnEqfKvPE-GOMvhss\",\"timeout\":60000,\"rpId\":\"discord.com\",\"allowCredentials\":[{\"type\":\"public-key\",\"id\":\"izrvF80ogrfg9dC3RmWWwW1VxBVBG0TzJVXKOJl__6FvMa555dH4Trt2Ub8AdHxNLkQsc0unAGcn4-hrJHDKSO\"}],\"userVerification\":\"preferred\"}}"}))),
+        .respond_with(json_encoded(json!({"ticket": "ODUyODkyMjk3NjYxOTA2OTkz.WrhGhYEhM3lHUPN61xF6JcQKwVutk8fBvcoHjo", "challenge": "{\"publicKey\":{\"challenge\":\"a8a1cHP7_zYheggFG68zKUkl8DwnEqfKvPE-GOMvhss\",\"timeout\":60000,\"rpId\":\"discord.com\",\"allowCredentials\":[{\"type\":\"public-key\",\"id\":\"izrvF80ogrfg9dC3RmWWwW1VxBVBG0TzJVXKOJl__6FvMa555dH4Trt2Ub8AdHxNLkQsc0unAGcn4-hrJHDKSO\"}],\"userVerification\":\"preferred\"}}"}))),
     );
 
     // Finish creation
@@ -509,7 +509,7 @@ async fn test_create_mfa_webauthn_authenticator() {
             request::path("/api/users/@me/mfa/webauthn/credentials"),
 				request::headers(contains(("authorization", "faketoken"))),
             request::headers(contains(("x-discord-mfa-authorization", "fakemfatoken"))),
-            request::body(json_decoded(eq(json!({"name": "AlienKey", "ticket": "ODUyODkyMjk3NjYxOTA2OTkz.H2Rpq0.WrhGhYEhM3lHUPN61xF6JcQKwVutk8fBvcoHjo", "credential": "{\"test\": \"lest\"}"})))),
+            request::body(json_decoded(eq(json!({"name": "AlienKey", "ticket": "ODUyODkyMjk3NjYxOTA2OTkz.WrhGhYEhM3lHUPN61xF6JcQKwVutk8fBvcoHjo", "credential": "{\"test\": \"lest\"}"})))),
         ])
         .respond_with(json_encoded(json!({  "id": "1219430671865610261",
   "type": 1,
