@@ -268,7 +268,7 @@ pub struct BeginWebAuthnAuthenticatorCreationReturn {
 pub struct FinishWebAuthnAuthenticatorCreationSchema {
     /// Name of the authenticator to create (1 - 32 characters)
     pub name: String,
-    /// The MFA ticket returned by the (begin creation)[ChorusUser::being_webauthn_authenticator_creation] endpoint
+    /// The MFA ticket returned by the (begin creation)[crate::instance::ChorusUser::begin_webauthn_authenticator_creation] endpoint
     pub ticket: String,
     /// A stringified JSON object of the public key credential response.
     pub credential: String,
