@@ -5,7 +5,7 @@
 use std::str::FromStr;
 
 use chorus::types::{
-    MfaAuthenticationType, LoginSchema, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema,
+    LoginSchema, MfaAuthenticationType, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema,
 };
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -140,7 +140,10 @@ async fn test_complete_mfa_challenge_totp() {
     let result = bundle.user.complete_mfa_challenge(schema).await;
 
     assert!(result.is_ok());
-    assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
+    assert_eq!(
+        bundle.user.mfa_token.unwrap().token,
+        "testtoken".to_string()
+    );
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
@@ -170,7 +173,10 @@ async fn test_complete_mfa_challenge_sms() {
     let result = bundle.user.complete_mfa_challenge(schema).await;
 
     assert!(result.is_ok());
-    assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
+    assert_eq!(
+        bundle.user.mfa_token.unwrap().token,
+        "testtoken".to_string()
+    );
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
@@ -200,7 +206,10 @@ async fn test_verify_mfa_login_webauthn() {
     let result = bundle.user.complete_mfa_challenge(schema).await;
 
     assert!(result.is_ok());
-    assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
+    assert_eq!(
+        bundle.user.mfa_token.unwrap().token,
+        "testtoken".to_string()
+    );
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
@@ -230,7 +239,10 @@ async fn test_complete_mfa_challenge_backup() {
     let result = bundle.user.complete_mfa_challenge(schema).await;
 
     assert!(result.is_ok());
-    assert_eq!(bundle.user.mfa_token.unwrap().token, "testtoken".to_string());
+    assert_eq!(
+        bundle.user.mfa_token.unwrap().token,
+        "testtoken".to_string()
+    );
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
@@ -285,4 +297,343 @@ async fn test_send_mfa_sms() {
 
     assert!(result.is_ok());
     assert_eq!(result.unwrap().phone, "+*******0085".to_string());
+}
+
+// Note: user mfa routes are also here, because the other mfa routes were already here
+// TODO: Test also not having an mfa token and trying to make a request that needs mfa
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
+async fn test_enable_totp_mfa() {
+    use chorus::types::{EnableTotpMfaSchema, MfaBackupCode, Snowflake};
+
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
+
+    // TODO: Once json response codes are implemented, add the case where we can validate a user's
+    // password
+
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/users/@me/mfa/totp/enable"),
+            request::body(json_decoded(eq(json!({"password": "test_password", "secret":"testsecret", "code":"testcode"})))),
+				request::headers(contains(("authorization", "faketoken"))),
+        ])
+        .respond_with(json_encoded(json!({"token": "testtoken", "backup_codes": [{"user_id": "852892297661906993", "code": "zqs8oqxk", "consumed": false}]}))),
+    );
+
+    let schema = EnableTotpMfaSchema {
+        code: Some("testcode".to_string()),
+        password: "test_password".to_string(),
+        secret: Some("testsecret".to_string()),
+    };
+
+    let result = bundle.user.enable_totp_mfa(schema).await;
+
+    assert!(result.is_ok());
+    assert_eq!(
+        result.unwrap().backup_codes,
+        vec![MfaBackupCode {
+            user_id: Snowflake(852892297661906993),
+            code: "zqs8oqxk".to_string(),
+            consumed: false
+        }]
+    );
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
+async fn test_disable_totp_mfa() {
+    use chrono::{TimeDelta, Utc};
+
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
+
+    bundle.user.mfa_token = Some(chorus::types::MfaToken {
+        token: "fakemfatoken".to_string(),
+        expires_at: Utc::now() + TimeDelta::minutes(5),
+    });
+
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/users/@me/mfa/totp/disable"),
+            request::headers(contains(("x-discord-mfa-authorization", "fakemfatoken"))),
+            request::headers(contains(("authorization", "faketoken"))),
+        ])
+        .respond_with(json_encoded(json!({"token": "testmfatoken"}))),
+    );
+
+    let result = bundle.user.disable_totp_mfa().await;
+
+    assert!(result.is_ok());
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
+async fn test_enable_sms_mfa() {
+    use chrono::{TimeDelta, Utc};
+    use httptest::responders::status_code;
+
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
+
+    bundle.user.mfa_token = Some(chorus::types::MfaToken {
+        token: "fakemfatoken".to_string(),
+        expires_at: Utc::now() + TimeDelta::minutes(5),
+    });
+
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/users/@me/mfa/sms/enable"),
+            request::headers(contains(("x-discord-mfa-authorization", "fakemfatoken"))),
+            request::headers(contains(("authorization", "faketoken"))),
+            request::body(json_decoded(eq(json!({"password": "test_password"})))),
+        ])
+        .respond_with(status_code(204)),
+    );
+
+    let schema = chorus::types::SmsMfaRouteSchema {
+        password: "test_password".to_string(),
+    };
+
+    let result = bundle.user.enable_sms_mfa(schema).await;
+
+    assert!(result.is_ok());
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
+async fn test_disable_sms_mfa() {
+    use chrono::{TimeDelta, Utc};
+    use httptest::responders::status_code;
+
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
+
+    bundle.user.mfa_token = Some(chorus::types::MfaToken {
+        token: "fakemfatoken".to_string(),
+        expires_at: Utc::now() + TimeDelta::minutes(5),
+    });
+
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/users/@me/mfa/sms/disable"),
+            request::headers(contains(("x-discord-mfa-authorization", "fakemfatoken"))),
+            request::headers(contains(("authorization", "faketoken"))),
+            request::body(json_decoded(eq(json!({"password": "test_password"})))),
+        ])
+        .respond_with(status_code(204)),
+    );
+
+    let schema = chorus::types::SmsMfaRouteSchema {
+        password: "test_password".to_string(),
+    };
+
+    let result = bundle.user.disable_sms_mfa(schema).await;
+
+    assert!(result.is_ok());
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
+async fn test_get_mfa_webauthn_authenticators() {
+    use chorus::types::{MfaAuthenticator, Snowflake};
+    use chrono::{TimeDelta, Utc};
+
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
+
+    bundle.user.mfa_token = Some(chorus::types::MfaToken {
+        token: "fakemfatoken".to_string(),
+        expires_at: Utc::now() + TimeDelta::minutes(5),
+    });
+
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("GET"),
+            request::path("/api/users/@me/mfa/webauthn/credentials"),
+            request::headers(contains(("authorization", "faketoken"))),
+        ])
+        .respond_with(json_encoded(
+            json!([{"id": "1219430671865610261", "type": 1, "name": "Alienkey"}]),
+        )),
+    );
+
+    let result = bundle.user.get_webauthn_authenticators().await;
+
+    assert_eq!(
+        result.unwrap(),
+        vec![MfaAuthenticator {
+            id: Snowflake(1219430671865610261),
+            name: "Alienkey".to_string(),
+            authenticator_type: chorus::types::MfaAuthenticatorType::WebAuthn
+        }]
+    );
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
+async fn test_create_mfa_webauthn_authenticator() {
+    use chorus::types::{
+        FinishWebAuthnAuthenticatorCreationReturn, FinishWebAuthnAuthenticatorCreationSchema,
+        MfaAuthenticator, MfaBackupCode, Snowflake,
+    };
+    use chrono::{TimeDelta, Utc};
+
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
+
+    bundle.user.mfa_token = Some(chorus::types::MfaToken {
+        token: "fakemfatoken".to_string(),
+        expires_at: Utc::now() + TimeDelta::minutes(5),
+    });
+
+    // Begin creation
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/users/@me/mfa/webauthn/credentials"),
+				request::headers(contains(("authorization", "faketoken"))),
+            request::headers(contains(("x-discord-mfa-authorization", "fakemfatoken"))),
+        ])
+        .respond_with(json_encoded(json!({"ticket": "ODUyODkyMjk3NjYxOTA2OTkz.H2Rpq0.WrhGhYEhM3lHUPN61xF6JcQKwVutk8fBvcoHjo", "challenge": "{\"publicKey\":{\"challenge\":\"a8a1cHP7_zYheggFG68zKUkl8DwnEqfKvPE-GOMvhss\",\"timeout\":60000,\"rpId\":\"discord.com\",\"allowCredentials\":[{\"type\":\"public-key\",\"id\":\"izrvF80ogrfg9dC3RmWWwW1VxBVBG0TzJVXKOJl__6FvMa555dH4Trt2Ub8AdHxNLkQsc0unAGcn4-hrJHDKSO\"}],\"userVerification\":\"preferred\"}}"}))),
+    );
+
+    // Finish creation
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/users/@me/mfa/webauthn/credentials"),
+				request::headers(contains(("authorization", "faketoken"))),
+            request::headers(contains(("x-discord-mfa-authorization", "fakemfatoken"))),
+            request::body(json_decoded(eq(json!({"name": "AlienKey", "ticket": "ODUyODkyMjk3NjYxOTA2OTkz.H2Rpq0.WrhGhYEhM3lHUPN61xF6JcQKwVutk8fBvcoHjo", "credential": "{\"test\": \"lest\"}"})))),
+        ])
+        .respond_with(json_encoded(json!({  "id": "1219430671865610261",
+  "type": 1,
+  "name": "AlienKey",
+  "backup_codes": [
+    {
+      "user_id": "852892297661906993",
+      "code": "zqs8oqxk",
+      "consumed": false
+    }
+  ]}))),
+    );
+
+    let result = bundle
+        .user
+        .begin_webauthn_authenticator_creation()
+        .await
+        .unwrap();
+
+    let schema = FinishWebAuthnAuthenticatorCreationSchema {
+        name: "AlienKey".to_string(),
+        ticket: result.ticket,
+        credential: "{\"test\": \"lest\"}".to_string(),
+    };
+
+    let result = bundle
+        .user
+        .finish_webauthn_authenticator_creation(schema)
+        .await;
+
+    assert!(result.is_ok());
+    assert_eq!(
+        result.unwrap(),
+        FinishWebAuthnAuthenticatorCreationReturn {
+            backup_codes: vec![MfaBackupCode {
+                user_id: Snowflake(852892297661906993),
+                code: "zqs8oqxk".to_string(),
+                consumed: false
+            }],
+            authenticator: MfaAuthenticator {
+                name: "AlienKey".to_string(),
+                id: Snowflake(1219430671865610261),
+                authenticator_type: chorus::types::MfaAuthenticatorType::WebAuthn
+            }
+        }
+    );
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
+async fn test_modify_mfa_webauthn_authenticator() {
+    use chorus::types::{MfaAuthenticator, ModifyWebAuthnAuthenticatorSchema, Snowflake};
+    use chrono::{TimeDelta, Utc};
+
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
+
+    bundle.user.mfa_token = Some(chorus::types::MfaToken {
+        token: "fakemfatoken".to_string(),
+        expires_at: Utc::now() + TimeDelta::minutes(5),
+    });
+
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("PATCH"),
+            request::path("/api/users/@me/mfa/webauthn/credentials/1219430671865610261"),
+            request::headers(contains(("authorization", "faketoken"))),
+            request::headers(contains(("x-discord-mfa-authorization", "fakemfatoken"))),
+            request::body(json_decoded(eq(json!({"name": "Alienkey Pro Ultra SE+"})))),
+        ])
+        .respond_with(json_encoded(
+            json!({  "id": "1219430671865610261", "type": 1, "name": "Alienkey Pro Ultra SE+" }),
+        )),
+    );
+
+    let schema = ModifyWebAuthnAuthenticatorSchema {
+        name: Some("Alienkey Pro Ultra SE+".to_string()),
+    };
+
+    let result = bundle
+        .user
+        .modify_webauthn_authenticator(Snowflake(1219430671865610261), schema)
+        .await;
+
+    assert!(result.is_ok());
+    assert_eq!(
+        result.unwrap(),
+        MfaAuthenticator {
+            name: "Alienkey Pro Ultra SE+".to_string(),
+            id: Snowflake(1219430671865610261),
+            authenticator_type: chorus::types::MfaAuthenticatorType::WebAuthn
+        }
+    );
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
+async fn test_delete_mfa_webauthn_authenticator() {
+    use chorus::types::Snowflake;
+    use chrono::{TimeDelta, Utc};
+    use httptest::responders::status_code;
+
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
+
+    bundle.user.mfa_token = Some(chorus::types::MfaToken {
+        token: "fakemfatoken".to_string(),
+        expires_at: Utc::now() + TimeDelta::minutes(5),
+    });
+
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("DELETE"),
+            request::path("/api/users/@me/mfa/webauthn/credentials/1219430671865610261"),
+            request::headers(contains(("authorization", "faketoken"))),
+            request::headers(contains(("x-discord-mfa-authorization", "fakemfatoken"))),
+        ])
+        .respond_with(status_code(204)),
+    );
+
+    let result = bundle
+        .user
+        .delete_webauthn_authenticator(Snowflake(1219430671865610261))
+        .await;
+
+    assert!(result.is_ok());
 }
