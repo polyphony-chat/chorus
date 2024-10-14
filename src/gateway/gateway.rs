@@ -354,6 +354,9 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_UPDATE" =>auto_moderation.rule_update AutoModerationRuleUpdate: AutoModerationRule,
                     "AUTO_MODERATION_RULE_DELETE" => auto_moderation.rule_delete,
                     "AUTO_MODERATION_ACTION_EXECUTION" => auto_moderation.action_execution,
+                    "AUTHENTICATOR_CREATE" => mfa.authenticator_create, // TODO
+                    "AUTHENTICATOR_UPDATE" => mfa.authenticator_update, // TODO
+                    "AUTHENTICATOR_DELETE" => mfa.authenticator_delete, // TODO
                     "CHANNEL_CREATE" => channel.create ChannelCreate: Guild,
                     "CHANNEL_UPDATE" => channel.update ChannelUpdate: Channel,
                     "CHANNEL_UNREAD_UPDATE" => channel.unread_update,

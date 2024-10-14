@@ -41,26 +41,27 @@ pub struct MfaMethod {
     pub backup_codes_allowed: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 /// A multi-factor authentication authenticator.
 ///
 /// # Reference
 /// See <https://docs.discord.sex/resources/user#authenticator-object>
 pub struct MfaAuthenticator {
-	pub id: Snowflake,
-	#[serde(rename = "type")]
-	pub authenticator_type: MfaAuthenticatorType,
-	pub name: String,
+    pub id: Snowflake,
+    #[serde(rename = "type")]
+    pub authenticator_type: MfaAuthenticatorType,
+    pub name: String,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 #[serde(rename_all = "lowercase")]
 /// Types of [MfaAuthenticator]s.
 ///
 /// Not to be confused with [MfaAuthenticationType], which covers other cases of authentication as well. (Such as backup codes or a password)
 pub enum MfaAuthenticatorType {
+    #[default]
     WebAuthn = 1,
     TOTP = 2,
     SMS = 3,
@@ -110,20 +111,20 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for MfaAuthenticatorType {
 }
 
 impl MfaAuthenticatorType {
-	/// Converts self into [MfaAuthenticationType]
-	pub fn into_authentication_type(self) -> MfaAuthenticationType {
-		match self {
-			Self::WebAuthn => MfaAuthenticationType::WebAuthn,
-			Self::TOTP => MfaAuthenticationType::TOTP,
-			Self::SMS => MfaAuthenticationType::SMS,
-		}
-	}
+    /// Converts self into [MfaAuthenticationType]
+    pub fn into_authentication_type(self) -> MfaAuthenticationType {
+        match self {
+            Self::WebAuthn => MfaAuthenticationType::WebAuthn,
+            Self::TOTP => MfaAuthenticationType::TOTP,
+            Self::SMS => MfaAuthenticationType::SMS,
+        }
+    }
 }
 
 impl From<MfaAuthenticatorType> for MfaAuthenticationType {
-	fn from(value: MfaAuthenticatorType) -> Self {
-	    value.into_authentication_type()
-	}
+    fn from(value: MfaAuthenticatorType) -> Self {
+        value.into_authentication_type()
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -153,7 +154,7 @@ impl Display for MfaAuthenticationType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 /// An mfa backup code.
 ///
 /// # Reference
@@ -207,7 +208,9 @@ pub struct SendMfaSmsResponse {
 /// See <https://docs.discord.sex/resources/user#enable-totp-mfa>
 pub struct EnableTotpMfaSchema {
     pub password: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
 }
 
@@ -242,4 +245,105 @@ pub struct EnableTotpMfaReturn {
 pub struct SmsMfaRouteSchema {
     /// The user's current password
     pub password: String,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A return type for the [crate::instance::ChorusUser::begin_webauthn_authenticator_creation] route (Create WebAuthn Authenticator with no arguments).
+///
+/// Includes the MFA ticket and a stringified JSON object of the public key credential challenge.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#create-webauthn-authenticator>
+pub struct BeginWebAuthnAuthenticatorCreationReturn {
+    pub ticket: String,
+    /// Stringified JSON public key credential request options challenge
+    pub challenge: String,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A schema for the [crate::instance::ChorusUser::finish_webauthn_authenticator_creation] route (Create WebAuthn Authenticator).
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#create-webauthn-authenticator>
+pub struct FinishWebAuthnAuthenticatorCreationSchema {
+    /// Name of the authenticator to create (1 - 32 characters)
+    pub name: String,
+    /// The MFA ticket returned by the (begin creation)[ChorusUser::being_webauthn_authenticator_creation] endpoint
+    pub ticket: String,
+    /// A stringified JSON object of the public key credential response.
+    pub credential: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A return type for the [crate::instance::ChorusUser::finish_webauthn_authenticator_creation] route (Create WebAuthn Authenticator).
+///
+/// Includes the MFA ticket and a stringified JSON object of the public key credential challenge.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#create-webauthn-authenticator>
+pub struct FinishWebAuthnAuthenticatorCreationReturn {
+    #[serde(flatten)]
+    /// The created authenticator object
+    pub authenticator: MfaAuthenticator,
+    /// A list of MFA backup codes
+    pub backup_codes: Vec<MfaBackupCode>,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A schema for the Modify WebAuthn Authenticator route.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#modify-webauthn-authenticator>
+pub struct ModifyWebAuthnAuthenticatorSchema {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// New name of the authenticator (1 - 32 characters)
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A schema for the Send Backup Codes Challenge route.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#send-backup-codes-challenge>
+pub struct SendBackupCodesChallengeSchema {
+    /// The user's current password
+    pub password: String,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A return type for the Send Backup Codes Challenge route.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#send-backup-codes-challenge>
+pub struct SendBackupCodesChallengeReturn {
+    /// A one-time verification nonce used to view the backup codes
+    ///
+    /// Send this in the [crate::instance::ChorusUser::get_backup_codes] endpoint as the nonce if you want to view
+    /// the existing codes
+    #[serde(rename = "nonce")]
+    pub view_nonce: String,
+    /// A one-time verification nonce used to regenerate the backup codes
+    ///
+    /// Send this in the [crate::instance::ChorusUser::get_backup_codes] endpoint as the nonce if you want to
+    /// regenerate the backup codes
+    pub regenerate_nonce: String,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A schema for the Get Backup Codes route.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/user#get-backup-codes>
+pub struct GetBackupCodesSchema {
+    /// The one-time verification nonce used to view or regenerate the backup codes.
+    ///
+    /// Obtained from the [crate::instance::ChorusUser::send_backup_codes_challenge] route.
+    pub nonce: String,
+    /// The backup verification key received in the email
+    pub key: String,
+    /// Whether or not to regenerate the backup codes
+    ///
+    /// If set to true, nonce should be the regenerate_nonce
+    /// otherwise it should be the view_nonce
+    pub regenerate: bool,
 }
