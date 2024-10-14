@@ -3,13 +3,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![allow(unused_imports)]
+pub use opcode::*;
 pub use regexes::*;
 pub use rights::Rights;
 pub use snowflake::Snowflake;
 
 pub mod jwt;
+pub mod opcode;
 mod regexes;
 mod rights;
-mod snowflake;
 pub mod serde;
-
+mod snowflake;
