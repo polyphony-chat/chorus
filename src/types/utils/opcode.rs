@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::errors::ChorusError;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Deserialize, Serialize)]
+#[non_exhaustive]
 #[repr(u8)]
 /// Gateway opcodes used in the Spacebar Gateway Protocol.
 pub enum Opcode {
