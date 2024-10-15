@@ -637,3 +637,71 @@ async fn test_delete_mfa_webauthn_authenticator() {
 
     assert!(result.is_ok());
 }
+
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg(not(target_arch = "wasm32"))]
+// Tests the send backup codes challenge and get backup codes endpoints
+async fn test_send_mfa_backup_codes() {
+    use chorus::types::{MfaBackupCode, SendBackupCodesChallengeReturn, Snowflake};
+
+    let server = common::create_mock_server();
+    let mut bundle = common::setup_with_mock_server(&server).await;
+
+    server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/auth/verify/view-backup-codes-challenge"),
+            request::headers(contains(("authorization", "faketoken"))),
+            request::body(json_decoded(eq(json!({"password": "test_password"})))),
+        ])
+		  .times(1)
+        .respond_with(json_encoded(json!({"nonce": "test_view_nonce", "regenerate_nonce": "test_regenerate_nonce"}))),
+    );
+
+	 let schema = chorus::types::SendBackupCodesChallengeSchema { password: "test_password".to_string() };
+
+    let result = bundle
+        .user
+        .send_backup_codes_challenge(schema)
+		  .await.unwrap();
+
+	 assert_eq!(result, SendBackupCodesChallengeReturn {view_nonce: "test_view_nonce".to_string(), regenerate_nonce: "test_regenerate_nonce".to_string() });
+
+	 // View routes, assume we got an email key of "test_key"
+	 // View nonce, regenerate = false
+	 server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/users/@me/mfa/codes-verification"),
+            request::headers(contains(("authorization", "faketoken"))),
+            request::body(json_decoded(eq(json!({"key": "test_key", "nonce": "test_view_nonce", "regenerate": false})))),
+        ])
+		  .times(1)
+        .respond_with(json_encoded(json!([{"user_id": "852892297661906993", "code": "zqs8oqxk", "consumed": false}]))),
+    );
+
+	 // Regenerate nonce, regenerate = true
+	 server.expect(
+        Expectation::matching(all_of![
+            request::method("POST"),
+            request::path("/api/users/@me/mfa/codes-verification"),
+            request::headers(contains(("authorization", "faketoken"))),
+            request::body(json_decoded(eq(json!({"key": "test_key", "nonce": "test_regenerate_nonce", "regenerate": true})))),
+        ])
+		  .times(1)
+        .respond_with(json_encoded(json!([{"user_id": "852892297661906993", "code": "oqxk8zqs", "consumed": false}]))),
+    );
+
+	 let schema_view = chorus::types::GetBackupCodesSchema { nonce: result.view_nonce, key: "test_key".to_string(), regenerate: false };
+
+	 let schema_regenerate = chorus::types::GetBackupCodesSchema { nonce: result.regenerate_nonce, key: "test_key".to_string(), regenerate: true };
+
+	 let result_view = bundle.user.get_backup_codes(schema_view).await.unwrap();
+
+	 assert_eq!(result_view, vec![MfaBackupCode {user_id: Snowflake(852892297661906993), code: "zqs8oqxk".to_string(), consumed: false}]);
+
+	 let result_regenerate = bundle.user.get_backup_codes(schema_regenerate).await.unwrap();
+
+	 assert_ne!(result_view, result_regenerate);
+	 assert_eq!(result_regenerate, vec![MfaBackupCode {user_id: Snowflake(852892297661906993), code: "oqxk8zqs".to_string(), consumed: false}]);
+}
