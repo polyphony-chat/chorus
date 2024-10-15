@@ -47,7 +47,12 @@ custom_error! {
     InvalidResponse{error: String} = "The response is malformed and cannot be processed. Error: {error}",
     /// Invalid, insufficient or too many arguments provided.
     InvalidArguments{error: String} = "Invalid arguments were provided. Error: {error}",
-    /// The request requires MFA verification
+    /// The request requires MFA verification.
+     ///
+     /// This error type contains an [crate::types::MfaChallenge], which can be completed
+     /// with [crate::instance::ChorusUser::complete_mfa_challenge].
+     ///
+     /// After verifying, the same request can be retried.
     MfaRequired {error: MfaRequiredSchema} = "Mfa verification is required to perform this action",
     /// The user's account is suspended
     SuspendUser { token: String }  = "Your account has been suspended"

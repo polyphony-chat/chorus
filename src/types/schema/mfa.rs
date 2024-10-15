@@ -7,10 +7,12 @@ use crate::{errors::ChorusError, types::Snowflake};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
+/// Error received when mfa is required
 pub struct MfaRequiredSchema {
     pub message: String,
     pub code: i32,
-    pub mfa: MfaVerificationSchema,
+    #[serde(rename = "mfa")]
+    pub mfa_challenge: MfaChallenge,
 }
 
 impl Display for MfaRequiredSchema {
@@ -18,25 +20,38 @@ impl Display for MfaRequiredSchema {
         f.debug_struct("MfaRequired")
             .field("message", &self.message)
             .field("code", &self.code)
-            .field("mfa", &self.mfa)
+            .field("mfa", &self.mfa_challenge)
             .finish()
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
-pub struct MfaVerificationSchema {
+/// A challenge to verify the local user's identity with mfa.
+///
+/// (Normally returned in [MfaRequiredSchema] as [ChorusError::MfaRequired])
+///
+/// To complete the challenge, see [crate::instance::ChorusUser::complete_mfa_challenge].
+pub struct MfaChallenge {
+    /// A unique ticket which identifies this challenge
     pub ticket: String,
+    /// The ways we can verify the user's identity
     pub methods: Vec<MfaMethod>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
+/// A way we can verify the user's identity, found in [MfaChallenge]
 pub struct MfaMethod {
+    /// The type of authentication we can perform
     #[serde(rename = "type")]
     pub kind: MfaAuthenticationType,
+
+    /// A challenge string unique to this type, [None] if the type does not need a challenge string
     #[serde(skip_serializing_if = "Option::is_none")]
     pub challenge: Option<String>,
+
+    /// Whether or not we can use a backup code for this authentication type
     #[serde(skip_serializing_if = "Option::is_none")]
     pub backup_codes_allowed: Option<bool>,
 }
@@ -168,9 +183,13 @@ pub struct MfaBackupCode {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
+/// A schema used for the [crate::instance::ChorusUser::complete_mfa_challenge] route.
 pub struct MfaVerifySchema {
+    /// Usually obtained from [MfaChallenge]
     pub ticket: String,
+    /// The way we are authenticating
     pub mfa_type: MfaAuthenticationType,
+    /// Data unique to the authentication type (ex. a 6 digit totp code, a password)
     pub data: String,
 }
 
@@ -215,24 +234,12 @@ pub struct EnableTotpMfaSchema {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-/// Internal return schema for the Enable TOTP MFA route
-///
-/// Similar to [EanbleTOTPMFAReturn], except it also includes a token field
-/// that we don't expose to users
-///
-/// # Reference
-/// See <https://docs.discord.sex/resources/user#enable-totp-mfa>
-pub(crate) struct EnableTotpMfaResponse {
-    pub(crate) token: String,
-    pub backup_codes: Vec<MfaBackupCode>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Response type for the Enable TOTP MFA route
 ///
 /// # Reference
 /// See <https://docs.discord.sex/resources/user#enable-totp-mfa>
-pub struct EnableTotpMfaReturn {
+pub struct EnableTotpMfaResponse {
+    pub token: String,
     pub backup_codes: Vec<MfaBackupCode>,
 }
 

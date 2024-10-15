@@ -366,6 +366,8 @@ impl ChorusUser {
     ///
     /// The JWT token expires after 5 minutes.
     ///
+    /// This route is usually used in response to [ChorusError::MfaRequired](crate::ChorusError::MfaRequired).
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/authentication#verify-mfa>
     pub async fn complete_mfa_challenge(

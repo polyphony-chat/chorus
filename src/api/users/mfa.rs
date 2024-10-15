@@ -5,12 +5,11 @@ use crate::{
     instance::{ChorusUser, Token},
     ratelimiter::ChorusRequest,
     types::{
-        BeginWebAuthnAuthenticatorCreationReturn, EnableTotpMfaResponse, EnableTotpMfaReturn,
-        EnableTotpMfaSchema, FinishWebAuthnAuthenticatorCreationReturn,
-        FinishWebAuthnAuthenticatorCreationSchema, GetBackupCodesSchema, LimitType,
-        MfaAuthenticator, MfaBackupCode, ModifyWebAuthnAuthenticatorSchema,
-        SendBackupCodesChallengeReturn, SendBackupCodesChallengeSchema, SmsMfaRouteSchema,
-        Snowflake,
+        BeginWebAuthnAuthenticatorCreationReturn, EnableTotpMfaResponse, EnableTotpMfaSchema,
+        FinishWebAuthnAuthenticatorCreationReturn, FinishWebAuthnAuthenticatorCreationSchema,
+        GetBackupCodesSchema, LimitType, MfaAuthenticator, MfaBackupCode,
+        ModifyWebAuthnAuthenticatorSchema, SendBackupCodesChallengeReturn,
+        SendBackupCodesChallengeSchema, SmsMfaRouteSchema, Snowflake,
     },
 };
 
@@ -27,7 +26,7 @@ impl ChorusUser {
     pub async fn enable_totp_mfa(
         &mut self,
         schema: EnableTotpMfaSchema,
-    ) -> ChorusResult<EnableTotpMfaReturn> {
+    ) -> ChorusResult<EnableTotpMfaResponse> {
         let request = Client::new()
             .post(format!(
                 "{}/users/@me/mfa/totp/enable",
@@ -43,14 +42,14 @@ impl ChorusUser {
 
         let response: EnableTotpMfaResponse = chorus_request.deserialize_response(self).await?;
 
-        self.token = response.token;
+        self.token = response.token.clone();
 
-        Ok(EnableTotpMfaReturn {
-            backup_codes: response.backup_codes,
-        })
+        Ok(response)
     }
 
     /// Disables TOTP based multi-factor authentication for the current user.
+    ///
+    /// Updates the authorization token for the current session and returns the new token.
     ///
     /// # Notes
     /// Requires MFA.
@@ -59,11 +58,9 @@ impl ChorusUser {
     ///
     /// Fires a [`UserUpdate`](crate::types::UserUpdate) gateway event.
     ///
-    /// Updates the authorization token for the current session.
-    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#disable-totp-mfa>
-    pub async fn disable_totp_mfa(&mut self) -> ChorusResult<()> {
+    pub async fn disable_totp_mfa(&mut self) -> ChorusResult<Token> {
         let request = Client::new()
             .post(format!(
                 "{}/users/@me/mfa/totp/disable",
@@ -79,9 +76,9 @@ impl ChorusUser {
 
         let response: Token = chorus_request.deserialize_response(self).await?;
 
-        self.token = response.token;
+        self.token = response.token.clone();
 
-        Ok(())
+        Ok(response)
     }
 
     /// Enables SMS based multi-factor authentication for the current user.
