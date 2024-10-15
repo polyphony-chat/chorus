@@ -359,7 +359,7 @@ impl ChorusUser {
     ) -> ChorusResult<Vec<MfaBackupCode>> {
         let request = Client::new()
             .post(format!(
-                "{}users/@me/mfa/codes-verification",
+                "{}/users/@me/mfa/codes-verification",
                 self.belongs_to.read().unwrap().urls.api,
             ))
             .header("Authorization", self.token())
