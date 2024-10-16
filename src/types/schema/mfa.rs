@@ -3,11 +3,10 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::{
-    errors::{ChorusError, ChorusResult},
-    instance::ChorusUser,
-    types::Snowflake,
-};
+use crate::{types::Snowflake, errors::ChorusError};
+
+#[cfg(feature = "client")]
+use crate::{instance::ChorusUser, ChorusResult};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
@@ -43,6 +42,7 @@ pub struct MfaChallenge {
     pub methods: Vec<MfaMethod>,
 }
 
+#[cfg(feature = "client")]
 impl MfaChallenge {
     /// Attempts to complete the [MfaChallenge] with authentication data from the user.
     ///
@@ -230,6 +230,7 @@ pub struct MfaVerifySchema {
     pub data: String,
 }
 
+#[cfg(feature = "client")]
 impl MfaVerifySchema {
     /// Creates the verify schema from an [MfaChallenge] and data needed to complete it.
     ///
