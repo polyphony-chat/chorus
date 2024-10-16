@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{entities::PermissionOverwrite, ChannelType, DefaultReaction, Snowflake};
 
+// TODO: Needs updating
 #[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
 #[serde(rename_all = "snake_case")]
 pub struct ChannelCreateSchema {
