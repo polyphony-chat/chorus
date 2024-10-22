@@ -83,7 +83,6 @@ impl types::Channel {
             &url,
             None,
             None,
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );

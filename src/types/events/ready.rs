@@ -9,8 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{Guild, User};
 use crate::types::events::{Session, WebSocketEvent};
 use crate::types::{
-    Activity, Channel, ClientStatusObject, GuildMember, PresenceUpdate, Relationship, Snowflake,
-    UserSettings, VoiceState,
+    Activity, Channel, ClientStatusObject, GuildMember, MfaAuthenticatorType, PresenceUpdate, Relationship, Snowflake, UserSettings, VoiceState
 };
 use crate::{UInt32, UInt64, UInt8};
 
@@ -73,7 +72,7 @@ pub struct GatewayReady {
     pub auth_token: Option<String>,
     #[serde(default)]
     /// The types of multi-factor authenticators the user has enabled
-    pub authenticator_types: Vec<AuthenticatorType>,
+    pub authenticator_types: Vec<MfaAuthenticatorType>,
     /// The action a user is required to take before continuing to use Discord
     pub required_action: Option<String>,
     #[serde(default)]
@@ -127,7 +126,7 @@ pub struct GatewayReadyBot {
     pub users: Vec<User>,
     #[serde(default)]
     /// The types of multi-factor authenticators the user has enabled
-    pub authenticator_types: Vec<AuthenticatorType>,
+    pub authenticator_types: Vec<MfaAuthenticatorType>,
     #[serde(default)]
     /// A geo-ordered list of RTC regions that can be used when when setting a voice channel's `rtc_region` or updating the client's voice state
     pub geo_ordered_rtc_regions: Vec<String>,
@@ -161,14 +160,6 @@ impl GatewayReady {
     pub fn to_bot(self) -> GatewayReadyBot {
         self.into()
     }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
-#[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i16))]
-pub enum AuthenticatorType {
-    WebAuthn = 1,
-    Totp = 2,
-    Sms = 3,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]

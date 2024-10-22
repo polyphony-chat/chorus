@@ -2,7 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use chorus::types::{self, Channel, GetChannelMessagesSchema, MessageSendSchema, PermissionFlags, PermissionOverwrite, PermissionOverwriteType, PrivateChannelCreateSchema, RelationshipType, Snowflake};
+use chorus::types::{
+    self, Channel, GetChannelMessagesSchema, MessageSendSchema, PermissionFlags,
+    PermissionOverwrite, PermissionOverwriteType, PrivateChannelCreateSchema, RelationshipType,
+    Snowflake,
+};
 
 mod common;
 
@@ -168,7 +172,8 @@ async fn create_dm() {
         dm_channel
             .recipients
             .as_ref()
-            .unwrap().first()
+            .unwrap()
+            .first()
             .unwrap()
             .read()
             .unwrap()
@@ -241,7 +246,8 @@ async fn remove_add_person_from_to_dm() {
         dm_channel
             .recipients
             .as_ref()
-            .unwrap().first()
+            .unwrap()
+            .first()
             .unwrap()
             .read()
             .unwrap()
