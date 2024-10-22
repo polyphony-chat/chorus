@@ -132,6 +132,7 @@ impl PartialEq for Message {
 /// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
 pub struct MessageReference {
     #[serde(rename = "type")]
+    #[serde(default)]
     pub reference_type: MessageReferenceType,
     pub message_id: Snowflake,
     pub channel_id: Snowflake,
@@ -139,9 +140,11 @@ pub struct MessageReference {
     pub fail_if_not_exists: Option<bool>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd, Copy)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd, Copy, Default)]
+#[repr(u8)]
 pub enum MessageReferenceType {
     /// A standard reference used by replies and system messages
+    #[default]
     Default = 0,
     /// A reference used to point to a message at a point in time
     Forward = 1,
