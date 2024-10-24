@@ -4,6 +4,7 @@
 
 use std::collections::HashMap;
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Guild, User};
@@ -92,6 +93,7 @@ pub struct GatewayReady {
     /// Guild experiment rollouts for the user
     /// TODO: Make Guild Experiments into own struct
     pub guild_experiments: Vec<String>,
+    pub read_state: ReadState,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
@@ -228,4 +230,25 @@ pub struct SupplementalGuild {
     pub voice_states: Option<Vec<VoiceState>>,
     /// Field not documented even unofficially
     pub embedded_activities: Vec<serde_json::Value>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// Not documented even unofficially. Information about this type is likely to be partially incorrect.
+pub struct ReadState {
+    entries: Vec<ReadStateEntry>,
+    partial: bool,
+    version: u32,
+}
+
+#[derive(
+    Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
+)]
+/// Not documented even unofficially. Information about this type is likely to be partially incorrect.
+pub struct ReadStateEntry {
+    flags: u32,
+    id: Snowflake,
+    last_message_id: Option<Snowflake>,
+    last_pin_timestamp: Option<DateTime<Utc>>,
+    last_viewed: Option<DateTime<Utc>>,
+    mention_count: u64,
 }
