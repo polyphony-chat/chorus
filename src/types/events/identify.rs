@@ -78,10 +78,12 @@ pub struct GatewayIdentifyConnectionProps {
     /// ex: "Linux", "Windows", "Mac OS X"
     ///
     /// ex (mobile): "Windows Mobile", "iOS", "Android", "BlackBerry"
+    #[serde(default)]
     pub os: String,
     /// Almost always sent
     ///
     /// ex: "Firefox", "Chrome", "Opera Mini", "Opera", "Blackberry", "Facebook Mobile", "Chrome iOS", "Mobile Safari", "Safari", "Android Chrome", "Android Mobile", "Edge", "Konqueror", "Internet Explorer", "Mozilla", "Discord Client"
+    #[serde(default)]
     pub browser: String,
     /// Sometimes not sent, acceptable to be ""
     ///
@@ -94,14 +96,17 @@ pub struct GatewayIdentifyConnectionProps {
     /// Almost always sent, most commonly en-US
     ///
     /// ex: "en-US"
+    #[serde(default)]
     pub system_locale: String,
     /// Almost always sent
     ///
     /// ex: any user agent, most common is "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
+    #[serde(default)]
     pub browser_user_agent: String,
     /// Almost always sent
     ///
     /// ex: "113.0.0.0"
+    #[serde(default)]
     pub browser_version: String,
     /// Sometimes not sent, acceptable to be ""
     ///
@@ -118,8 +123,10 @@ pub struct GatewayIdentifyConnectionProps {
     #[serde_as(as = "NoneAsEmptyString")]
     pub referrer_current: Option<String>,
     /// Almost always sent, most commonly "stable"
+    #[serde(default)]
     pub release_channel: String,
     /// Almost always sent, identifiable if default is 0, should be around 199933
+    #[serde(default)]
     pub client_build_number: u64,
     //pub client_event_source: Option<?>
 }
