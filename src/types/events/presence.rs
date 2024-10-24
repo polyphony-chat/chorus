@@ -24,12 +24,15 @@ pub struct UpdatePresence {
 /// See <https://discord.com/developers/docs/topics/gateway-events#presence-update-presence-update-event-fields>
 /// (Same structure as <https://docs.discord.sex/resources/presence#presence-object>)
 pub struct PresenceUpdate {
-    pub user: PublicUser,
+    // BUG: `user` should always be present, but the spacebar client does not send it. Temporary fix:
+    // make `user` optional.
+    pub user: Option<PublicUser>,
     #[serde(default)]
     pub guild_id: Option<Snowflake>,
     pub status: UserStatus,
     #[serde(default)]
     pub activities: Vec<Activity>,
-    pub client_status: ClientStatusObject,
+    // BUG: `client_status` should always be present, but the spacebar client does not send it. Temporary fix:
+    // make `client_status` optional.
+    pub client_status: Option<ClientStatusObject>,
 }
-
