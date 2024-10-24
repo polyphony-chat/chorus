@@ -2,9 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::types::events::{PresenceUpdate, WebSocketEvent};
+use crate::types::events::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
+
+use super::GatewayIdentifyPresenceUpdate;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, WebSocketEvent)]
 pub struct GatewayIdentifyPayload {
@@ -18,7 +20,7 @@ pub struct GatewayIdentifyPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shard: Option<Vec<(i32, i32)>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub presence: Option<PresenceUpdate>,
+    pub presence: Option<GatewayIdentifyPresenceUpdate>,
     // What is the difference between these two?
     // Intents is documented, capabilities is used in users
     // I wonder if these are interchangeable...

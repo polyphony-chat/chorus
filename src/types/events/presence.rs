@@ -10,7 +10,8 @@ use serde::{Deserialize, Serialize};
 /// Sent by the client to update its status and presence;
 /// See <https://discord.com/developers/docs/topics/gateway-events#update-presence>
 pub struct UpdatePresence {
-    /// Unix time of when the client went idle, or none if client is not idle.
+    /// Unix time of when the client went idle, or n
+    /// one if client is not idle.
     pub since: Option<u128>,
     /// the client's status (online, invisible, offline, dnd, idle..)
     pub status: UserStatus,
@@ -19,20 +20,37 @@ pub struct UpdatePresence {
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, WebSocketEvent)]
-/// Received to tell the client that a user updated their presence / status
+/// Received to tell the client that a user updated their presence / status. If you are looking for
+/// the PresenceUpdate used in the IDENTIFY gateway event, see
 ///
 /// See <https://discord.com/developers/docs/topics/gateway-events#presence-update-presence-update-event-fields>
 /// (Same structure as <https://docs.discord.sex/resources/presence#presence-object>)
 pub struct PresenceUpdate {
-    // BUG: `user` should always be present, but the spacebar client does not send it. Temporary fix:
-    // make `user` optional.
-    pub user: Option<PublicUser>,
+    pub user: PublicUser,
     #[serde(default)]
     pub guild_id: Option<Snowflake>,
     pub status: UserStatus,
     #[serde(default)]
     pub activities: Vec<Activity>,
-    // BUG: `client_status` should always be present, but the spacebar client does not send it. Temporary fix:
-    // make `client_status` optional.
-    pub client_status: Option<ClientStatusObject>,
+    pub client_status: ClientStatusObject,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, WebSocketEvent)]
+/// Sent to the gateway as part of [GatewayIdentifyPayload](crate::types::GatewayIdentifyPayload)
+pub struct GatewayIdentifyPresenceUpdate {
+    #[serde(default)]
+    pub guild_id: Option<Snowflake>,
+    pub status: UserStatus,
+    #[serde(default)]
+    pub activities: Vec<Activity>,
+}
+
+impl From<PresenceUpdate> for GatewayIdentifyPresenceUpdate {
+    fn from(value: PresenceUpdate) -> Self {
+        Self {
+            guild_id: value.guild_id,
+            status: value.status,
+            activities: value.activities,
+        }
+    }
 }
