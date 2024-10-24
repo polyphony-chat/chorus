@@ -235,9 +235,9 @@ pub struct SupplementalGuild {
 #[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 /// Not documented even unofficially. Information about this type is likely to be partially incorrect.
 pub struct ReadState {
-    entries: Vec<ReadStateEntry>,
-    partial: bool,
-    version: u32,
+    pub entries: Vec<ReadStateEntry>,
+    pub partial: bool,
+    pub version: u32,
 }
 
 #[derive(
@@ -245,10 +245,10 @@ pub struct ReadState {
 )]
 /// Not documented even unofficially. Information about this type is likely to be partially incorrect.
 pub struct ReadStateEntry {
-    flags: u32,
-    id: Snowflake,
-    last_message_id: Option<Snowflake>,
-    last_pin_timestamp: Option<DateTime<Utc>>,
-    last_viewed: Option<DateTime<Utc>>,
-    mention_count: u64,
+    pub flags: u32,
+    pub id: Snowflake,
+    pub last_message_id: Option<Snowflake>,
+    pub last_pin_timestamp: Option<DateTime<Utc>>,
+    pub last_viewed: Option<DateTime<Utc>>,
+    pub mention_count: u64,
 }
