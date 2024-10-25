@@ -1,6 +1,7 @@
 #![allow(deprecated)] // Required to suppress warnings about deprecated opcodes
 
 use serde::{Deserialize, Serialize};
+#[cfg(not(target = "wasm32-unknown-unknown"))]
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 
 use crate::errors::ChorusError;
@@ -159,6 +160,7 @@ pub enum CloseCode {
     DisallowedIntents = 4014,
 }
 
+#[cfg(not(target = "wasm32-unknown-unknown"))]
 impl CloseCode {
     /// Convert `&self` to a `tokio_tungstenite` [CloseFrame].
     pub fn as_tungstenite_close_frame<'a>(&'a self, reason: &'a str) -> CloseFrame {
@@ -171,6 +173,7 @@ impl CloseCode {
     }
 }
 
+#[cfg(not(target = "wasm32-unknown-unknown"))]
 impl TryFrom<tokio_tungstenite::tungstenite::Message> for CloseCode {
     type Error = ChorusError;
 
@@ -238,6 +241,8 @@ pub enum VoiceCloseCode {
     UnknownEncryptionMode = 4016,
 }
 
+#[cfg(not(target = "wasm32-unknown-unknown"))]
+
 impl VoiceCloseCode {
     /// Convert `&self` to a `tokio_tungstenite` [CloseFrame].
     pub fn as_tungstenite_close_frame<'a>(&'a self, reason: &'a str) -> CloseFrame {
@@ -250,6 +255,7 @@ impl VoiceCloseCode {
     }
 }
 
+#[cfg(not(target = "wasm32-unknown-unknown"))]
 impl TryFrom<tokio_tungstenite::tungstenite::Message> for VoiceCloseCode {
     type Error = ChorusError;
 
