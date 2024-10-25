@@ -1,6 +1,7 @@
 #![allow(deprecated)] // Required to suppress warnings about deprecated opcodes
 
 use serde::{Deserialize, Serialize};
+use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 
 use crate::errors::ChorusError;
 
@@ -158,6 +159,40 @@ pub enum CloseCode {
     DisallowedIntents = 4014,
 }
 
+impl CloseCode {
+    /// Convert `&self` to a `tokio_tungstenite` [CloseFrame].
+    pub fn as_tungstenite_close_frame<'a>(&'a self, reason: &'a str) -> CloseFrame {
+        CloseFrame {
+            code: tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode::Library(
+                *self as u16,
+            ),
+            reason: reason.into(),
+        }
+    }
+}
+
+impl TryFrom<tokio_tungstenite::tungstenite::Message> for CloseCode {
+    type Error = ChorusError;
+
+    fn try_from(value: tokio_tungstenite::tungstenite::Message) -> Result<Self, Self::Error> {
+        match value {
+            tokio_tungstenite::tungstenite::Message::Close(close_frame) => {
+                if close_frame.is_none() {
+                    return Err(ChorusError::InvalidArguments {
+                        error: "No close_frame provided".to_string(),
+                    });
+                }
+                let close_frame = close_frame.unwrap();
+                let close_code = u16::from(close_frame.code);
+                CloseCode::try_from(close_code)
+            }
+            _ => Err(ChorusError::InvalidArguments {
+                error: "value is not a valid CloseCode".to_string(),
+            }),
+        }
+    }
+}
+
 impl TryFrom<u16> for CloseCode {
     type Error = ChorusError;
 
@@ -201,6 +236,40 @@ pub enum VoiceCloseCode {
     DisconnectedChannelDeletedOrKicked = 4014,
     VoiceServerCrashed = 4015,
     UnknownEncryptionMode = 4016,
+}
+
+impl VoiceCloseCode {
+    /// Convert `&self` to a `tokio_tungstenite` [CloseFrame].
+    pub fn as_tungstenite_close_frame<'a>(&'a self, reason: &'a str) -> CloseFrame {
+        CloseFrame {
+            code: tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode::Library(
+                *self as u16,
+            ),
+            reason: reason.into(),
+        }
+    }
+}
+
+impl TryFrom<tokio_tungstenite::tungstenite::Message> for VoiceCloseCode {
+    type Error = ChorusError;
+
+    fn try_from(value: tokio_tungstenite::tungstenite::Message) -> Result<Self, Self::Error> {
+        match value {
+            tokio_tungstenite::tungstenite::Message::Close(close_frame) => {
+                if close_frame.is_none() {
+                    return Err(ChorusError::InvalidArguments {
+                        error: "No close_frame provided".to_string(),
+                    });
+                }
+                let close_frame = close_frame.unwrap();
+                let close_code = u16::from(close_frame.code);
+                VoiceCloseCode::try_from(close_code)
+            }
+            _ => Err(ChorusError::InvalidArguments {
+                error: "value is not a valid VoiceCloseCode".to_string(),
+            }),
+        }
+    }
 }
 
 impl TryFrom<u16> for VoiceCloseCode {
