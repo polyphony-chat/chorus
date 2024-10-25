@@ -136,3 +136,93 @@ impl TryFrom<u8> for Opcode {
         }
     }
 }
+
+#[repr(u16)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Serialize, Deserialize)]
+/// When the gateway server closes your connection, it tells you what happened throught a close code.
+pub enum CloseCode {
+    UnknownError = 4000,
+    UnknownOpcode = 4001,
+    DecodeError = 4002,
+    NotAuthenticated = 4003,
+    AuthenticationFailed = 4004,
+    AlreadyAuthenticated = 4005,
+    SessionNoLongerValid = 4006,
+    InvalidSeq = 4007,
+    RateLimited = 4008,
+    SessionTimeout = 4009,
+    InvalidShard = 4010,
+    ShardingRequired = 4011,
+    InvalidApiVersion = 4012,
+    InvalidIntents = 4013,
+    DisallowedIntents = 4014,
+}
+
+impl TryFrom<u16> for CloseCode {
+    type Error = ChorusError;
+
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        match value {
+            4000 => Ok(CloseCode::UnknownError),
+            4001 => Ok(CloseCode::UnknownOpcode),
+            4002 => Ok(CloseCode::DecodeError),
+            4003 => Ok(CloseCode::NotAuthenticated),
+            4004 => Ok(CloseCode::AuthenticationFailed),
+            4005 => Ok(CloseCode::AlreadyAuthenticated),
+            4006 => Ok(CloseCode::SessionNoLongerValid),
+            4007 => Ok(CloseCode::InvalidSeq),
+            4008 => Ok(CloseCode::RateLimited),
+            4009 => Ok(CloseCode::SessionTimeout),
+            4010 => Ok(CloseCode::InvalidShard),
+            4011 => Ok(CloseCode::ShardingRequired),
+            4012 => Ok(CloseCode::InvalidApiVersion),
+            4013 => Ok(CloseCode::InvalidIntents),
+            4014 => Ok(CloseCode::DisallowedIntents),
+            e => Err(ChorusError::InvalidArguments {
+                error: format!("{e} is not a valid CloseCode"),
+            }),
+        }
+    }
+}
+
+#[repr(u16)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Serialize, Deserialize)]
+/// When the voice gateway server closes your connection, it tells you what happened throught a close code.
+pub enum VoiceCloseCode {
+    UnknownOpcode = 4001,
+    FailedToDecodePayload = 4002,
+    NotAuthenticated = 4003,
+    AuthenticationFailed = 4004,
+    AlreadyAuthenticated = 4005,
+    SessionNoLongerValid = 4006,
+    SessionTimeout = 4009,
+    ServerNotFound = 4011,
+    UnknownProtocol = 4012,
+    DisconnectedChannelDeletedOrKicked = 4014,
+    VoiceServerCrashed = 4015,
+    UnknownEncryptionMode = 4016,
+}
+
+impl TryFrom<u16> for VoiceCloseCode {
+    type Error = ChorusError;
+
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        match value {
+            4001 => Ok(VoiceCloseCode::UnknownOpcode),
+            4002 => Ok(VoiceCloseCode::FailedToDecodePayload),
+            4003 => Ok(VoiceCloseCode::NotAuthenticated),
+            4004 => Ok(VoiceCloseCode::AuthenticationFailed),
+            4005 => Ok(VoiceCloseCode::AlreadyAuthenticated),
+            4006 => Ok(VoiceCloseCode::SessionNoLongerValid),
+            4009 => Ok(VoiceCloseCode::SessionTimeout),
+            4011 => Ok(VoiceCloseCode::ServerNotFound),
+            4012 => Ok(VoiceCloseCode::UnknownProtocol),
+            4014 => Ok(VoiceCloseCode::DisconnectedChannelDeletedOrKicked),
+            4015 => Ok(VoiceCloseCode::VoiceServerCrashed),
+            4016 => Ok(VoiceCloseCode::UnknownEncryptionMode),
+            e => Err(ChorusError::InvalidArguments {
+                error: format!("{e} is not a valid VoiceCloseCode"),
+            }),
+        }
+    }
+}
