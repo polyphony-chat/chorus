@@ -67,6 +67,9 @@ pub struct GatewayReady {
     pub notes: HashMap<Snowflake, String>,
     /// The presences of the user's non-offline friends and implicit relationships (depending on the `NO_AFFINE_USER_IDS` Gateway capability), and any guild presences sent at startup
     pub merged_presences: Option<MergedPresences>,
+    /// The members of the user's guilds, in the same order as the `guilds` array
+    #[serde(default)]
+    pub merged_members: Option<Vec<Vec<GuildMember>>>,
     #[serde(default)]
     /// The deduped users across all objects in the event
     pub users: Vec<User>,
