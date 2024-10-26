@@ -8,7 +8,9 @@ use std::collections::HashMap;
 use std::fmt;
 
 use std::sync::{Arc, RwLock};
+use std::time::Duration;
 
+use chrono::Utc;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +19,8 @@ use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
-    GeneralConfiguration, Limit, LimitType, LimitsConfiguration, Shared, User, UserSettings,
+    GatewayIdentifyPayload, GeneralConfiguration, Limit, LimitType, LimitsConfiguration, MfaToken,
+    MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings,
 };
 use crate::UrlBundle;
 
@@ -258,6 +261,7 @@ impl fmt::Display for Token {
 pub struct ChorusUser {
     pub belongs_to: Shared<Instance>,
     pub token: String,
+    pub mfa_token: Option<MfaToken>,
     pub limits: Option<HashMap<LimitType, Limit>>,
     pub settings: Shared<UserSettings>,
     pub object: Shared<User>,
@@ -289,11 +293,40 @@ impl ChorusUser {
         ChorusUser {
             belongs_to,
             token,
+            mfa_token: None,
             limits,
             settings,
             object,
             gateway,
         }
+    }
+
+    /// Updates a shell user after the login process.
+    ///
+    /// Fetches all the other required data from the api.
+    ///
+    /// If the received_settings can be None, since not all login methods
+    /// return user settings. If this is the case, we'll fetch them via an api route.
+    pub(crate) async fn update_with_login_data(
+        &mut self,
+        token: String,
+        received_settings: Option<Shared<UserSettings>>,
+    ) -> ChorusResult<()> {
+        self.token = token.clone();
+
+        let mut identify = GatewayIdentifyPayload::common();
+        identify.token = token;
+        self.gateway.send_identify(identify).await;
+
+        *self.object.write().unwrap() = self.get_current_user().await?;
+
+        if let Some(passed_settings) = received_settings {
+            self.settings = passed_settings;
+        } else {
+            *self.settings.write().unwrap() = self.get_settings().await?;
+        }
+
+        Ok(())
     }
 
     /// Creates a new 'shell' of a user. The user does not exist as an object, and exists so that you have
@@ -304,12 +337,15 @@ impl ChorusUser {
     pub(crate) async fn shell(instance: Shared<Instance>, token: &str) -> ChorusUser {
         let settings = Arc::new(RwLock::new(UserSettings::default()));
         let object = Arc::new(RwLock::new(User::default()));
+
         let wss_url = &instance.read().unwrap().urls.wss.clone();
         let gateway_options = instance.read().unwrap().gateway_options;
+
         // Dummy gateway object
         let gateway = Gateway::spawn(wss_url, gateway_options).await.unwrap();
         ChorusUser {
             token: token.to_string(),
+            mfa_token: None,
             belongs_to: instance.clone(),
             limits: instance
                 .read()
@@ -321,5 +357,41 @@ impl ChorusUser {
             object,
             gateway,
         }
+    }
+
+    /// Sends a request to complete an MFA challenge.
+    ///
+    /// If successful, the MFA verification JWT returned is set on the current [ChorusUser] executing the
+    /// request.
+    ///
+    /// The JWT token expires after 5 minutes.
+    ///
+    /// This route is usually used in response to [ChorusError::MfaRequired](crate::ChorusError::MfaRequired).
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/authentication#verify-mfa>
+    pub async fn complete_mfa_challenge(
+        &mut self,
+        mfa_verify_schema: MfaVerifySchema,
+    ) -> ChorusResult<()> {
+        let endpoint_url = self.belongs_to.read().unwrap().urls.api.clone() + "/mfa/finish";
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(endpoint_url)
+                .header("Authorization", self.token())
+                .json(&mfa_verify_schema),
+            limit_type: LimitType::Global,
+        };
+
+        let mfa_token_schema = chorus_request
+            .deserialize_response::<MfaTokenSchema>(self)
+            .await?;
+
+        self.mfa_token = Some(MfaToken {
+            token: mfa_token_schema.token,
+            expires_at: Utc::now() + Duration::from_secs(60 * 5),
+        });
+
+        Ok(())
     }
 }

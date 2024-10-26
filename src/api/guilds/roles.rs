@@ -188,7 +188,6 @@ impl types::RoleObject {
             &url,
             None,
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Guild(guild_id),
         );

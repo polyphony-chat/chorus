@@ -152,7 +152,6 @@ impl Message {
             .as_str(),
             None,
             None,
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -183,7 +182,6 @@ impl Message {
             .as_str(),
             None,
             audit_log_reason,
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -210,7 +208,6 @@ impl Message {
             .as_str(),
             None,
             audit_log_reason,
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -259,7 +256,6 @@ impl Message {
             .as_str(),
             Some(to_string(&schema).unwrap()),
             None,
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -293,7 +289,6 @@ impl Message {
             .as_str(),
             Some(to_string(&schema).unwrap()),
             None,
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -322,7 +317,6 @@ impl Message {
             .as_str(),
             None,
             None,
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -347,7 +341,6 @@ impl Message {
         let chorus_request = ChorusRequest::new(
             http::Method::DELETE,
             &url,
-            None,
             None,
             None,
             Some(user),
@@ -383,7 +376,6 @@ impl Message {
             &url,
             Some(to_string(&schema).unwrap()),
             None,
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -410,7 +402,6 @@ impl Message {
             &url,
             None,
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -448,7 +439,6 @@ impl Message {
             .as_str(),
             Some(to_string(&messages).unwrap()),
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -471,7 +461,6 @@ impl Message {
                 channel_id,
             )
             .as_str(),
-            None,
             None,
             None,
             Some(user),
