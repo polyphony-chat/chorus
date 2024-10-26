@@ -229,6 +229,9 @@ impl TryFrom<u16> for CloseCode {
 #[repr(u16)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Serialize, Deserialize)]
 /// When the voice gateway server closes your connection, it tells you what happened throught a close code.
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#voice-close-event-codes>
 pub enum VoiceCloseCode {
     UnknownOpcode = 4001,
     FailedToDecodePayload = 4002,
