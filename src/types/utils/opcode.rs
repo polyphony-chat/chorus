@@ -142,6 +142,9 @@ impl TryFrom<u8> for Opcode {
 #[repr(u16)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Serialize, Deserialize)]
 /// When the gateway server closes your connection, it tells you what happened throught a close code.
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#gateway-close-event-codes>
 pub enum CloseCode {
     UnknownError = 4000,
     UnknownOpcode = 4001,
