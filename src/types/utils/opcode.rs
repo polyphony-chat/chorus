@@ -1,6 +1,8 @@
 #![allow(deprecated)] // Required to suppress warnings about deprecated opcodes
 
 use serde::{Deserialize, Serialize};
+#[cfg(not(target_arch = "wasm32"))]
+use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 
 use crate::errors::ChorusError;
 
@@ -132,6 +134,174 @@ impl TryFrom<u8> for Opcode {
             36 => Ok(Self::RequestChannelStatuses),
             e => Err(ChorusError::InvalidArguments {
                 error: format!("Provided value {e} is not a valid opcode"),
+            }),
+        }
+    }
+}
+
+#[repr(u16)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Serialize, Deserialize)]
+/// When the gateway server closes your connection, it tells you what happened throught a close code.
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#gateway-close-event-codes>
+pub enum CloseCode {
+    UnknownError = 4000,
+    UnknownOpcode = 4001,
+    DecodeError = 4002,
+    NotAuthenticated = 4003,
+    AuthenticationFailed = 4004,
+    AlreadyAuthenticated = 4005,
+    SessionNoLongerValid = 4006,
+    InvalidSeq = 4007,
+    RateLimited = 4008,
+    SessionTimeout = 4009,
+    InvalidShard = 4010,
+    ShardingRequired = 4011,
+    InvalidApiVersion = 4012,
+    InvalidIntents = 4013,
+    DisallowedIntents = 4014,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl CloseCode {
+    /// Convert `&self` to a `tokio_tungstenite` [CloseFrame].
+    pub fn as_tungstenite_close_frame<'a>(&'a self, reason: &'a str) -> CloseFrame {
+        CloseFrame {
+            code: tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode::Library(
+                *self as u16,
+            ),
+            reason: reason.into(),
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl TryFrom<tokio_tungstenite::tungstenite::Message> for CloseCode {
+    type Error = ChorusError;
+
+    fn try_from(value: tokio_tungstenite::tungstenite::Message) -> Result<Self, Self::Error> {
+        match value {
+            tokio_tungstenite::tungstenite::Message::Close(close_frame) => {
+                if close_frame.is_none() {
+                    return Err(ChorusError::InvalidArguments {
+                        error: "No close_frame provided".to_string(),
+                    });
+                }
+                let close_frame = close_frame.unwrap();
+                let close_code = u16::from(close_frame.code);
+                CloseCode::try_from(close_code)
+            }
+            _ => Err(ChorusError::InvalidArguments {
+                error: "value is not a valid CloseCode".to_string(),
+            }),
+        }
+    }
+}
+
+impl TryFrom<u16> for CloseCode {
+    type Error = ChorusError;
+
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        match value {
+            4000 => Ok(CloseCode::UnknownError),
+            4001 => Ok(CloseCode::UnknownOpcode),
+            4002 => Ok(CloseCode::DecodeError),
+            4003 => Ok(CloseCode::NotAuthenticated),
+            4004 => Ok(CloseCode::AuthenticationFailed),
+            4005 => Ok(CloseCode::AlreadyAuthenticated),
+            4006 => Ok(CloseCode::SessionNoLongerValid),
+            4007 => Ok(CloseCode::InvalidSeq),
+            4008 => Ok(CloseCode::RateLimited),
+            4009 => Ok(CloseCode::SessionTimeout),
+            4010 => Ok(CloseCode::InvalidShard),
+            4011 => Ok(CloseCode::ShardingRequired),
+            4012 => Ok(CloseCode::InvalidApiVersion),
+            4013 => Ok(CloseCode::InvalidIntents),
+            4014 => Ok(CloseCode::DisallowedIntents),
+            e => Err(ChorusError::InvalidArguments {
+                error: format!("{e} is not a valid CloseCode"),
+            }),
+        }
+    }
+}
+
+#[repr(u16)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Serialize, Deserialize)]
+/// When the voice gateway server closes your connection, it tells you what happened throught a close code.
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#voice-close-event-codes>
+pub enum VoiceCloseCode {
+    UnknownOpcode = 4001,
+    FailedToDecodePayload = 4002,
+    NotAuthenticated = 4003,
+    AuthenticationFailed = 4004,
+    AlreadyAuthenticated = 4005,
+    SessionNoLongerValid = 4006,
+    SessionTimeout = 4009,
+    ServerNotFound = 4011,
+    UnknownProtocol = 4012,
+    DisconnectedChannelDeletedOrKicked = 4014,
+    VoiceServerCrashed = 4015,
+    UnknownEncryptionMode = 4016,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl VoiceCloseCode {
+    /// Convert `&self` to a `tokio_tungstenite` [CloseFrame].
+    pub fn as_tungstenite_close_frame<'a>(&'a self, reason: &'a str) -> CloseFrame {
+        CloseFrame {
+            code: tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode::Library(
+                *self as u16,
+            ),
+            reason: reason.into(),
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl TryFrom<tokio_tungstenite::tungstenite::Message> for VoiceCloseCode {
+    type Error = ChorusError;
+
+    fn try_from(value: tokio_tungstenite::tungstenite::Message) -> Result<Self, Self::Error> {
+        match value {
+            tokio_tungstenite::tungstenite::Message::Close(close_frame) => {
+                if close_frame.is_none() {
+                    return Err(ChorusError::InvalidArguments {
+                        error: "No close_frame provided".to_string(),
+                    });
+                }
+                let close_frame = close_frame.unwrap();
+                let close_code = u16::from(close_frame.code);
+                VoiceCloseCode::try_from(close_code)
+            }
+            _ => Err(ChorusError::InvalidArguments {
+                error: "value is not a valid VoiceCloseCode".to_string(),
+            }),
+        }
+    }
+}
+
+impl TryFrom<u16> for VoiceCloseCode {
+    type Error = ChorusError;
+
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        match value {
+            4001 => Ok(VoiceCloseCode::UnknownOpcode),
+            4002 => Ok(VoiceCloseCode::FailedToDecodePayload),
+            4003 => Ok(VoiceCloseCode::NotAuthenticated),
+            4004 => Ok(VoiceCloseCode::AuthenticationFailed),
+            4005 => Ok(VoiceCloseCode::AlreadyAuthenticated),
+            4006 => Ok(VoiceCloseCode::SessionNoLongerValid),
+            4009 => Ok(VoiceCloseCode::SessionTimeout),
+            4011 => Ok(VoiceCloseCode::ServerNotFound),
+            4012 => Ok(VoiceCloseCode::UnknownProtocol),
+            4014 => Ok(VoiceCloseCode::DisconnectedChannelDeletedOrKicked),
+            4015 => Ok(VoiceCloseCode::VoiceServerCrashed),
+            4016 => Ok(VoiceCloseCode::UnknownEncryptionMode),
+            e => Err(ChorusError::InvalidArguments {
+                error: format!("{e} is not a valid VoiceCloseCode"),
             }),
         }
     }
