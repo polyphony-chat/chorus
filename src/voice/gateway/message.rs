@@ -28,7 +28,7 @@ impl VoiceGatewayMessage {
             "authentication failed" | "4004" => Some(VoiceGatewayError::AuthenticationFailed),
             "already authenticated" | "4005" => Some(VoiceGatewayError::AlreadyAuthenticated),
             "session is no longer valid" | "4006" => Some(VoiceGatewayError::SessionNoLongerValid),
-            "session timeout" | "4009" => Some(VoiceGatewayError::SessionTimeout),
+            "session timeout" | "4009" => Some(VoiceGatewayError::SessionTimedOut),
             "server not found" | "4011" => Some(VoiceGatewayError::ServerNotFound),
             "unknown protocol" | "4012" => Some(VoiceGatewayError::UnknownProtocol),
             "disconnected" | "4014" => Some(VoiceGatewayError::Disconnected),
