@@ -9,12 +9,16 @@ use futures_util::{
 };
 use tokio::net::TcpStream;
 use tokio_tungstenite::{
-    connect_async_tls_with_config, connect_async_with_config, tungstenite, Connector,
-    MaybeTlsStream, WebSocketStream,
+    connect_async_tls_with_config, connect_async_with_config,
+    tungstenite::{self, protocol::CloseFrame},
+    Connector, MaybeTlsStream, WebSocketStream,
 };
 use url::Url;
 
-use crate::gateway::{GatewayMessage, RawGatewayMessage};
+use crate::{
+    gateway::{GatewayCommunication, GatewayMessage, RawGatewayMessage},
+    types::CloseCode,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct TungsteniteBackend;
@@ -112,12 +116,27 @@ impl From<RawGatewayMessage> for tungstenite::Message {
     }
 }
 
-impl From<tungstenite::Message> for RawGatewayMessage {
+impl From<tungstenite::Message> for GatewayCommunication {
     fn from(value: tungstenite::Message) -> Self {
         match value {
-            tungstenite::Message::Binary(bytes) => RawGatewayMessage::Bytes(bytes),
-            tungstenite::Message::Text(text) => RawGatewayMessage::Text(text),
-            _ => RawGatewayMessage::Text(value.to_string()),
+            tungstenite::Message::Binary(bytes) => {
+                GatewayCommunication::Message(RawGatewayMessage::Bytes(bytes))
+            }
+            tungstenite::Message::Text(text) => {
+                GatewayCommunication::Message(RawGatewayMessage::Text(text))
+            }
+            tungstenite::Message::Close(close_frame) => {
+                if close_frame.is_none() {
+                    return GatewayCommunication::Error(CloseCode::UnknownError);
+                }
+
+                let close_code = u16::from(close_frame.unwrap().code);
+
+                GatewayCommunication::Error(
+                    CloseCode::try_from(close_code).unwrap_or(CloseCode::UnknownError),
+                )
+            }
+            _ => GatewayCommunication::Error(CloseCode::UnknownError),
         }
     }
 }

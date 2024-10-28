@@ -7,4 +7,3 @@ pub mod tungstenite;
 
 #[cfg(all(target_arch = "wasm32", feature = "voice_gateway"))]
 pub mod wasm;
-

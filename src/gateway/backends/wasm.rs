@@ -11,20 +11,23 @@ use ws_stream_wasm::*;
 
 use crate::gateway::{GatewayMessage, RawGatewayMessage};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct WasmBackend;
 
 // These could be made into inherent associated types when that's stabilized
 pub type WasmSink = SplitSink<WsStream, WsMessage>;
-pub type WasmStream = SplitStream<WsStream>;
+/// Note: this includes WsMeta so we can subscribe to events as well
+pub type WasmStream = (SplitStream<WsStream>, WsMeta);
 
 impl WasmBackend {
     pub async fn connect(
         websocket_url: &str,
     ) -> Result<(WasmSink, WasmStream), ws_stream_wasm::WsErr> {
-        let (_, websocket_stream) = WsMeta::connect(websocket_url, None).await?;
+        let (meta, websocket_stream) = WsMeta::connect(websocket_url, None).await?;
 
-        Ok(websocket_stream.split())
+        let (sink, stream) = websocket_stream.split();
+
+        Ok((sink, (stream, meta)))
     }
 }
 

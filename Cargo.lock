@@ -260,6 +260,7 @@ dependencies = [
  "jsonwebtoken",
  "lazy_static",
  "log",
+ "pharos",
  "poem",
  "pubserve",
  "rand",

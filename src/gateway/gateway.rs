@@ -16,10 +16,14 @@ use super::*;
 use super::{Sink, Stream};
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
-    ChannelUpdate, GatewayInvalidSession, GatewayReconnect, Guild, GuildRoleCreate,
+    ChannelUpdate, CloseCode, GatewayInvalidSession, GatewayReconnect, Guild, GuildRoleCreate,
     GuildRoleUpdate, JsonField, RoleObject, SourceUrlField, ThreadUpdate, UpdateMessage,
     WebSocketEvent,
 };
+
+// Needed to observe close codes
+#[cfg(target_arch = "wasm32")]
+use pharos::Observable;
 
 /// Tells us we have received enough of the buffer to decompress it
 const ZLIB_SUFFIX: [u8; 4] = [0, 0, 255, 255];
@@ -72,9 +76,21 @@ impl Gateway {
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
         #[cfg(not(target_arch = "wasm32"))]
-        let received: RawGatewayMessage = websocket_receive.next().await.unwrap().unwrap().into();
+        let received: RawGatewayMessage = {
+            // Note: The tungstenite backend handles close codes as messages, while the ws_stream_wasm one handles them differently.
+            //
+            // Hence why wasm receives straight RawGatewayMessages, and tungstenite receives
+            // GatewayCommunications.
+            let communication: GatewayCommunication =
+                websocket_receive.next().await.unwrap().unwrap().into();
+
+            match communication {
+                GatewayCommunication::Message(message) => message,
+                GatewayCommunication::Error(error) => return Err(error.into()),
+            }
+        };
         #[cfg(target_arch = "wasm32")]
-        let received: RawGatewayMessage = websocket_receive.next().await.unwrap().into();
+        let received: RawGatewayMessage = websocket_receive.0.next().await.unwrap().into();
 
         let message: GatewayMessage;
 
@@ -138,11 +154,11 @@ impl Gateway {
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
         #[cfg(not(target_arch = "wasm32"))]
         task::spawn(async move {
-            gateway.gateway_listen_task().await;
+            gateway.gateway_listen_task_tungstenite().await;
         });
         #[cfg(target_arch = "wasm32")]
         wasm_bindgen_futures::spawn_local(async move {
-            gateway.gateway_listen_task().await;
+            gateway.gateway_listen_task_wasm().await;
         });
 
         Ok(GatewayHandle {
@@ -154,8 +170,9 @@ impl Gateway {
         })
     }
 
-    /// The main gateway listener task;
-    async fn gateway_listen_task(&mut self) {
+    /// The main gateway listener task for a tungstenite based gateway;
+    #[cfg(not(target_arch = "wasm32"))]
+    async fn gateway_listen_task_tungstenite(&mut self) {
         loop {
             let msg;
 
@@ -169,13 +186,75 @@ impl Gateway {
                 }
             }
 
-            // PRETTYFYME: Remove inline conditional compiling
-            #[cfg(not(target_arch = "wasm32"))]
+            // Note: The tungstenite backend handles close codes as messages, while the ws_stream_wasm one handles them differently.
+            //
+            // Hence why wasm receives straight RawGatewayMessages, and tungstenite receives
+            // GatewayCommunications.
             if let Some(Ok(message)) = msg {
-                self.handle_raw_message(message.into()).await;
+                let communication: GatewayCommunication = message.into();
+
+                match communication {
+                    GatewayCommunication::Message(raw_message) => {
+                        self.handle_raw_message(raw_message).await
+                    }
+                    GatewayCommunication::Error(close_code) => {
+                        self.handle_close_code(close_code).await
+                    }
+                }
+
                 continue;
             }
-            #[cfg(target_arch = "wasm32")]
+
+            // We couldn't receive the next message or it was an error, something is wrong with the websocket, close
+            warn!("GW: Websocket is broken, stopping gateway");
+            break;
+        }
+    }
+
+    /// The main gateway listener task for a wasm based gateway;
+    ///
+    /// Wasm handles close codes and events differently, and so we must change the listener logic a
+    /// bit
+    #[cfg(target_arch = "wasm32")]
+    async fn gateway_listen_task_wasm(&mut self) {
+        // Initiate the close event listener
+        let mut close_events = self
+            .websocket_receive
+            .1
+            .observe(pharos::Filter::Pointer(ws_stream_wasm::WsEvent::is_closed).into())
+            .await
+            .unwrap();
+
+        loop {
+            let msg;
+
+            tokio::select! {
+                 Ok(_) = self.kill_receive.recv() => {
+                      log::trace!("GW: Closing listener task");
+                      break;
+                 }
+                 message = self.websocket_receive.0.next() => {
+                      msg = message;
+                 }
+                 maybe_event = close_events.next() => {
+                      if let Some(event) = maybe_event {
+                              match event {
+                                    ws_stream_wasm::WsEvent::Closed(closed_event) => {
+                                        let close_code = CloseCode::try_from(closed_event.code).unwrap_or(CloseCode::UnknownError);
+                                        self.handle_close_code(close_code).await;
+                                        break;
+                                    }
+                                    _ => unreachable!() // Should be impossible, we filtered close events
+                              }
+                      }
+                      continue;
+                }
+            }
+
+            // Note: The tungstenite backend handles close codes as messages, while the ws_stream_wasm one handles them as a seperate receiver.
+            //
+            // Hence why wasm receives RawGatewayMessages, and tungstenite receives
+            // GatewayCommunications.
             if let Some(message) = msg {
                 self.handle_raw_message(message.into()).await;
                 continue;
@@ -191,6 +270,17 @@ impl Gateway {
     async fn close(&mut self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();
+    }
+
+    /// Handles receiving a [CloseCode].
+    ///
+    /// Closes the connection and publishes an error event.
+    async fn handle_close_code(&mut self, code: CloseCode) {
+        let error = GatewayError::from(code);
+
+        warn!("GW: Received error {:?}, connection will close..", error);
+        self.close().await;
+        self.events.lock().await.error.publish(error).await;
     }
 
     /// Deserializes and updates a dispatched event, when we already know its type;
@@ -211,7 +301,7 @@ impl Gateway {
     }
 
     /// Takes a [RawGatewayMessage], converts it to [GatewayMessage] based
-    /// of connection options and calls handle_message
+    /// of connection options and calls [Self::handle_message]
     async fn handle_raw_message(&mut self, raw_message: RawGatewayMessage) {
         let message;
 
@@ -251,16 +341,10 @@ impl Gateway {
         }
 
         let Ok(gateway_payload) = msg.payload() else {
-            if let Some(error) = msg.error() {
-                warn!("GW: Received error {:?}, connection will close..", error);
-                self.close().await;
-                self.events.lock().await.error.publish(error).await;
-            } else {
-                warn!(
-                    "Message unrecognised: {:?}, please open an issue on the chorus github",
-                    msg.0
-                );
-            }
+            warn!(
+                "Message unrecognised: {:?}, please open an issue on the chorus github",
+                msg.0
+            );
             return;
         };
 
