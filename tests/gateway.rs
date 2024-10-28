@@ -103,10 +103,10 @@ async fn test_gateway_authenticate() {
     common::teardown(bundle).await
 }
 
-//#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-//#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 /// Tests establishing a connection and receiving errors
-/*async fn test_gateway_errors() {
+async fn test_gateway_errors() {
     let bundle = common::setup().await;
 
     let gateway: GatewayHandle = Gateway::spawn(&bundle.urls.wss, GatewayOptions::default())
@@ -126,8 +126,7 @@ async fn test_gateway_authenticate() {
 
     gateway.send_identify(identify.clone()).await;
 
-    // Wait a bit, then identify again, so we should receive already authenticated
-    sleep(Duration::from_secs(2)).await;
+    // Identify again, so we should receive already authenticated
     gateway.send_identify(identify).await;
 
     tokio::select! {
@@ -143,7 +142,7 @@ async fn test_gateway_authenticate() {
     }
 
     common::teardown(bundle).await
-}*/
+}
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
