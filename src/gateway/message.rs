@@ -57,7 +57,7 @@ impl RawGatewayMessage {
 /// This will usually be a [GatewayReceivePayload].
 ///
 /// This struct is used internally when handling messages.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GatewayMessage(pub String);
 
 impl GatewayMessage {

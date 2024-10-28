@@ -342,7 +342,7 @@ impl Gateway {
 
         let Ok(gateway_payload) = msg.payload() else {
             warn!(
-                "Message unrecognised: {:?}, please open an issue on the chorus github",
+                "GW: Message unrecognised: {:?}, please open an issue on the chorus github",
                 msg.0
             );
             return;
