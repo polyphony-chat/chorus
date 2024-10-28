@@ -32,6 +32,10 @@ use crate::{
 
 use super::{events::VoiceEvents, heartbeat::VoiceHeartbeatHandler, VoiceGatewayHandle};
 
+// Needed to observe close codes
+#[cfg(target_arch = "wasm32")]
+use pharos::Observable;
+
 #[derive(Debug)]
 pub struct VoiceGateway {
     events: Arc<Mutex<VoiceEvents>>,
@@ -82,7 +86,7 @@ impl VoiceGateway {
         };
 
         #[cfg(target_arch = "wasm32")]
-        let msg: VoiceGatewayMessage = websocket_receive.next().await.unwrap().into();
+        let msg: VoiceGatewayMessage = websocket_receive.0.next().await.unwrap().into();
         let gateway_payload: VoiceGatewayReceivePayload = serde_json::from_str(&msg.0).unwrap();
 
         if gateway_payload.op_code != VOICE_HELLO {
@@ -203,7 +207,7 @@ impl VoiceGateway {
                       if let Some(event) = maybe_event {
                               match event {
                                     ws_stream_wasm::WsEvent::Closed(closed_event) => {
-                                        let close_code = VoiceCloseCode::try_from(closed_event.code).unwrap_or(VoiceCloseCode::UnknownError);
+                                        let close_code = VoiceCloseCode::try_from(closed_event.code).unwrap_or(VoiceCloseCode::FailedToDecodePayload);
                                         self.handle_close_code(close_code).await;
                                         break;
                                     }
