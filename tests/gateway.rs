@@ -109,9 +109,34 @@ async fn test_gateway_authenticate() {
 async fn test_gateway_errors() {
     let bundle = common::setup().await;
 
+    // FIXME: Without this, this test does not work
+    //
+    // Can WASM handle multiple gateway existing simulatinously?
+    // This reminds of when my very old laptop couldn't handle multiple connections
+    // with the ammount of tasks
+    //
+    // Anyway, if you have a free weekend to spend debugging wasm, you're welcome to have a crack
+    // at this
+    bundle.user.gateway.close().await;
+
     let gateway: GatewayHandle = Gateway::spawn(&bundle.urls.wss, GatewayOptions::default())
         .await
         .unwrap();
+
+    // First we'll authenticate, wait for ready, and then authenticate again to get AlreadyAuthenticated
+    let (ready_send, mut ready_receive) = tokio::sync::mpsc::channel(1);
+
+    let observer = Arc::new(GatewayReadyObserver {
+        channel: ready_send,
+    });
+
+    gateway
+        .events
+        .lock()
+        .await
+        .session
+        .ready
+        .subscribe(observer);
 
     let (error_send, mut error_receive) = tokio::sync::mpsc::channel(1);
 
@@ -119,12 +144,30 @@ async fn test_gateway_errors() {
         channel: error_send,
     });
 
-    gateway.events.lock().await.error.subscribe(observer);
+    bundle
+        .user
+        .gateway
+        .events
+        .lock()
+        .await
+        .error
+        .subscribe(observer);
 
     let mut identify = types::GatewayIdentifyPayload::common();
     identify.token = bundle.user.token.clone();
 
+    // Identify and wait to receive ready
     gateway.send_identify(identify.clone()).await;
+
+    tokio::select! {
+        // Fail, we timed out waiting for it
+        () = sleep(Duration::from_secs(20)) => {
+            println!("Timed out waiting for ready, failing..");
+            assert!(false);
+        }
+        // Success, we have received it
+        Some(_) = ready_receive.recv() => {}
+    }
 
     // Identify again, so we should receive already authenticated
     gateway.send_identify(identify).await;
@@ -132,7 +175,6 @@ async fn test_gateway_errors() {
     tokio::select! {
         // Fail, we timed out waiting for it
         () = sleep(Duration::from_secs(20)) => {
-            println!("Timed out waiting for error, failing..");
             assert!(false);
         }
         // Success, we have received it
@@ -141,7 +183,7 @@ async fn test_gateway_errors() {
           }
     }
 
-    common::teardown(bundle).await
+    common::teardown(bundle).await;
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
