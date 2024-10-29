@@ -144,14 +144,7 @@ async fn test_gateway_errors() {
         channel: error_send,
     });
 
-    bundle
-        .user
-        .gateway
-        .events
-        .lock()
-        .await
-        .error
-        .subscribe(observer);
+    gateway.events.lock().await.error.subscribe(observer);
 
     let mut identify = types::GatewayIdentifyPayload::common();
     identify.token = bundle.user.token.clone();
