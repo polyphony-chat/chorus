@@ -10,7 +10,7 @@ use futures_util::{
 use tokio::net::TcpStream;
 use tokio_tungstenite::{
     connect_async_tls_with_config, connect_async_with_config,
-    tungstenite::{self, protocol::CloseFrame},
+    tungstenite::self,
     Connector, MaybeTlsStream, WebSocketStream,
 };
 use url::Url;
