@@ -10,7 +10,8 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{Guild, User};
 use crate::types::events::{Session, WebSocketEvent};
 use crate::types::{
-    Activity, Channel, ClientStatusObject, GuildMember, MfaAuthenticatorType, PresenceUpdate, Relationship, Snowflake, UserSettings, VoiceState
+    Activity, Channel, ClientStatusObject, GuildMember, MfaAuthenticatorType, PresenceUpdate,
+    Relationship, Snowflake, UserSettings, VoiceState,
 };
 use crate::{UInt32, UInt64, UInt8};
 
@@ -239,10 +240,12 @@ pub struct ReadState {
 )]
 /// Not documented even unofficially. Information about this type is likely to be partially incorrect.
 pub struct ReadStateEntry {
-    pub flags: u32,
+    /// Spacebar servers do not have flags in this entity at all (??)
+    pub flags: Option<u32>,
     pub id: Snowflake,
     pub last_message_id: Option<Snowflake>,
     pub last_pin_timestamp: Option<DateTime<Utc>>,
     pub last_viewed: Option<DateTime<Utc>>,
-    pub mention_count: u64,
+    // Temporary adding Option to fix Spacebar servers, they have mention count as a nullable
+    pub mention_count: Option<u64>,
 }
