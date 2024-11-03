@@ -4,9 +4,26 @@
 
 use std::string::FromUtf8Error;
 
-use crate::types;
+use crate::types::{CloseCode, GatewayReceivePayload};
 
 use super::*;
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+/// Defines a communication received from the gateway, being either an optionally compressed
+/// [RawGatewayMessage] or a [CloseCode].
+///
+/// Used only for a tungstenite gateway, since our underlying wasm backend handles close codes
+/// differently.
+pub(crate) enum GatewayCommunication {
+    Message(RawGatewayMessage),
+    Error(CloseCode),
+}
+
+impl From<RawGatewayMessage> for GatewayCommunication {
+    fn from(value: RawGatewayMessage) -> Self {
+        Self::Message(value)
+    }
+}
 
 /// Defines a raw gateway message, being either string json or bytes
 ///
@@ -36,42 +53,17 @@ impl RawGatewayMessage {
 }
 
 /// Represents a json message received from the gateway.
-/// This will be either a [types::GatewayReceivePayload], containing events, or a [GatewayError].
+///
+/// This will usually be a [GatewayReceivePayload].
+///
 /// This struct is used internally when handling messages.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GatewayMessage(pub String);
 
 impl GatewayMessage {
-    /// Parses the message as an error;
-    /// Returns the error if successfully parsed, None if the message isn't an error
-    pub fn error(&self) -> Option<GatewayError> {
-        // Some error strings have dots on the end, which we don't care about
-        let processed_content = self.0.to_lowercase().replace('.', "");
-
-        match processed_content.as_str() {
-            "unknown error" | "4000" => Some(GatewayError::Unknown),
-            "unknown opcode" | "4001" => Some(GatewayError::UnknownOpcode),
-            "decode error" | "error while decoding payload" | "4002" => Some(GatewayError::Decode),
-            "not authenticated" | "4003" => Some(GatewayError::NotAuthenticated),
-            "authentication failed" | "4004" => Some(GatewayError::AuthenticationFailed),
-            "already authenticated" | "4005" => Some(GatewayError::AlreadyAuthenticated),
-            "invalid seq" | "4007" => Some(GatewayError::InvalidSequenceNumber),
-            "rate limited" | "4008" => Some(GatewayError::RateLimited),
-            "session timed out" | "4009" => Some(GatewayError::SessionTimedOut),
-            "invalid shard" | "4010" => Some(GatewayError::InvalidShard),
-            "sharding required" | "4011" => Some(GatewayError::ShardingRequired),
-            "invalid api version" | "4012" => Some(GatewayError::InvalidAPIVersion),
-            "invalid intent(s)" | "invalid intent" | "4013" => Some(GatewayError::InvalidIntents),
-            "disallowed intent(s)" | "disallowed intents" | "4014" => {
-                Some(GatewayError::DisallowedIntents)
-            }
-            _ => None,
-        }
-    }
-
     /// Parses the message as a payload;
     /// Returns a result of deserializing
-    pub fn payload(&self) -> Result<types::GatewayReceivePayload, serde_json::Error> {
+    pub fn payload(&self) -> Result<GatewayReceivePayload, serde_json::Error> {
         serde_json::from_str(&self.0)
     }
 
@@ -90,7 +82,6 @@ impl GatewayMessage {
         bytes: &[u8],
         inflate: &mut flate2::Decompress,
     ) -> Result<GatewayMessage, std::io::Error> {
-
         // Note: is there a better way to handle the size of this output buffer?
         //
         // This used to be 10, I measured it at 11.5, so a safe bet feels like 20

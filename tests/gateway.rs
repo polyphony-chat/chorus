@@ -49,6 +49,18 @@ impl Subscriber<GatewayReady> for GatewayReadyObserver {
     }
 }
 
+#[derive(Debug)]
+struct GatewayErrorObserver {
+    channel: tokio::sync::mpsc::Sender<GatewayError>,
+}
+
+#[async_trait]
+impl Subscriber<GatewayError> for GatewayErrorObserver {
+    async fn update(&self, data: &GatewayError) {
+        self.channel.send(data.clone()).await.unwrap();
+    }
+}
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 /// Tests establishing a connection and authenticating
@@ -89,6 +101,82 @@ async fn test_gateway_authenticate() {
     }
 
     common::teardown(bundle).await
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+/// Tests establishing a connection and receiving errors
+async fn test_gateway_errors() {
+    let bundle = common::setup().await;
+
+    // FIXME: Without this, this test does not work
+    //
+    // Can WASM handle multiple gateway existing simulatinously?
+    // This reminds of when my very old laptop couldn't handle multiple connections
+    // with the ammount of tasks
+    //
+    // Anyway, if you have a free weekend to spend debugging wasm, you're welcome to have a crack
+    // at this
+    bundle.user.gateway.close().await;
+
+    let gateway: GatewayHandle = Gateway::spawn(&bundle.urls.wss, GatewayOptions::default())
+        .await
+        .unwrap();
+
+    // First we'll authenticate, wait for ready, and then authenticate again to get AlreadyAuthenticated
+    let (ready_send, mut ready_receive) = tokio::sync::mpsc::channel(1);
+
+    let observer = Arc::new(GatewayReadyObserver {
+        channel: ready_send,
+    });
+
+    gateway
+        .events
+        .lock()
+        .await
+        .session
+        .ready
+        .subscribe(observer);
+
+    let (error_send, mut error_receive) = tokio::sync::mpsc::channel(1);
+
+    let observer = Arc::new(GatewayErrorObserver {
+        channel: error_send,
+    });
+
+    gateway.events.lock().await.error.subscribe(observer);
+
+    let mut identify = types::GatewayIdentifyPayload::common();
+    identify.token = bundle.user.token.clone();
+
+    // Identify and wait to receive ready
+    gateway.send_identify(identify.clone()).await;
+
+    tokio::select! {
+        // Fail, we timed out waiting for it
+        () = sleep(Duration::from_secs(20)) => {
+            println!("Timed out waiting for ready, failing..");
+            assert!(false);
+        }
+        // Success, we have received it
+        Some(_) = ready_receive.recv() => {}
+    }
+
+    // Identify again, so we should receive already authenticated
+    gateway.send_identify(identify).await;
+
+    tokio::select! {
+        // Fail, we timed out waiting for it
+        () = sleep(Duration::from_secs(20)) => {
+            assert!(false);
+        }
+        // Success, we have received it
+        Some(error) = error_receive.recv() => {
+                assert_eq!(error, GatewayError::AlreadyAuthenticated);
+          }
+    }
+
+    common::teardown(bundle).await;
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
@@ -209,93 +297,4 @@ async fn test_recursive_self_updating_structs() {
     let guild_role_inner = guild_roles.first().unwrap().read().unwrap().clone();
     assert_eq!(guild_role_inner.name, "yippieee".to_string());
     common::teardown(bundle).await;
-}
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-#[cfg_attr(not(target_arch = "wasm32"), test)]
-fn test_error() {
-    let error = GatewayMessage("4000".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::Unknown);
-    let error = GatewayMessage("4001".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::UnknownOpcode);
-    let error = GatewayMessage("4002".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::Decode);
-    let error = GatewayMessage("4003".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::NotAuthenticated);
-    let error = GatewayMessage("4004".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::AuthenticationFailed);
-    let error = GatewayMessage("4005".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::AlreadyAuthenticated);
-    let error = GatewayMessage("4007".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::InvalidSequenceNumber);
-    let error = GatewayMessage("4008".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::RateLimited);
-    let error = GatewayMessage("4009".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::SessionTimedOut);
-    let error = GatewayMessage("4010".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::InvalidShard);
-    let error = GatewayMessage("4011".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::ShardingRequired);
-    let error = GatewayMessage("4012".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::InvalidAPIVersion);
-    let error = GatewayMessage("4013".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::InvalidIntents);
-    let error = GatewayMessage("4014".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::DisallowedIntents);
-}
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-#[cfg_attr(not(target_arch = "wasm32"), test)]
-fn test_error_message() {
-    let error = GatewayMessage("Unknown Error".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::Unknown);
-    let error = GatewayMessage("Unknown Opcode".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::UnknownOpcode);
-    let error = GatewayMessage("Decode Error".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::Decode);
-    let error = GatewayMessage("Not Authenticated".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::NotAuthenticated);
-    let error = GatewayMessage("Authentication Failed".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::AuthenticationFailed);
-    let error = GatewayMessage("Already Authenticated".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::AlreadyAuthenticated);
-    let error = GatewayMessage("Invalid Seq".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::InvalidSequenceNumber);
-    let error = GatewayMessage("Rate Limited".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::RateLimited);
-    let error = GatewayMessage("Session Timed Out".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::SessionTimedOut);
-    let error = GatewayMessage("Invalid Shard".to_string()).error().unwrap();
-    assert_eq!(error, GatewayError::InvalidShard);
-    let error = GatewayMessage("Sharding Required".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::ShardingRequired);
-    let error = GatewayMessage("Invalid API Version".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::InvalidAPIVersion);
-    let error = GatewayMessage("Invalid Intent(s)".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::InvalidIntents);
-    let error = GatewayMessage("Disallowed Intent(s)".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::DisallowedIntents);
-    // Also test the dot thing
-    let error = GatewayMessage("Invalid Intent(s).".to_string())
-        .error()
-        .unwrap();
-    assert_eq!(error, GatewayError::InvalidIntents);
 }

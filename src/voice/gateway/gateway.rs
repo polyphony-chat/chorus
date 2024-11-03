@@ -18,16 +18,23 @@ use crate::gateway::WebSocketBackend;
 use crate::{
     errors::VoiceGatewayError,
     types::{
-        VoiceGatewayReceivePayload, VoiceHelloData, WebSocketEvent, VOICE_BACKEND_VERSION,
-        VOICE_CLIENT_CONNECT_FLAGS, VOICE_CLIENT_CONNECT_PLATFORM, VOICE_CLIENT_DISCONNECT,
-        VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK, VOICE_HELLO, VOICE_IDENTIFY, VOICE_MEDIA_SINK_WANTS,
-        VOICE_READY, VOICE_RESUME, VOICE_SELECT_PROTOCOL, VOICE_SESSION_DESCRIPTION,
-        VOICE_SESSION_UPDATE, VOICE_SPEAKING, VOICE_SSRC_DEFINITION,
+        VoiceCloseCode, VoiceGatewayReceivePayload, VoiceHelloData, WebSocketEvent,
+        VOICE_BACKEND_VERSION, VOICE_CLIENT_CONNECT_FLAGS, VOICE_CLIENT_CONNECT_PLATFORM,
+        VOICE_CLIENT_DISCONNECT, VOICE_HEARTBEAT, VOICE_HEARTBEAT_ACK, VOICE_HELLO, VOICE_IDENTIFY,
+        VOICE_MEDIA_SINK_WANTS, VOICE_READY, VOICE_RESUME, VOICE_SELECT_PROTOCOL,
+        VOICE_SESSION_DESCRIPTION, VOICE_SESSION_UPDATE, VOICE_SPEAKING, VOICE_SSRC_DEFINITION,
     },
-    voice::gateway::{heartbeat::VoiceHeartbeatThreadCommunication, VoiceGatewayMessage},
+    voice::gateway::{
+        heartbeat::VoiceHeartbeatThreadCommunication, VoiceGatewayCommunication,
+        VoiceGatewayMessage,
+    },
 };
 
 use super::{events::VoiceEvents, heartbeat::VoiceHeartbeatHandler, VoiceGatewayHandle};
+
+// Needed to observe close codes
+#[cfg(target_arch = "wasm32")]
+use pharos::Observable;
 
 #[derive(Debug)]
 pub struct VoiceGateway {
@@ -64,9 +71,22 @@ impl VoiceGateway {
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
         #[cfg(not(target_arch = "wasm32"))]
-        let msg: VoiceGatewayMessage = websocket_receive.next().await.unwrap().unwrap().into();
+        let msg: VoiceGatewayMessage = {
+            // Note: The tungstenite backend handles close codes as messages, while the ws_stream_wasm one handles them differently.
+            //
+            // Hence why wasm receives straight VoiceGatewayMessages, and tungstenite receives
+            // VoiceGatewayCommunications.
+            let communication: VoiceGatewayCommunication =
+                websocket_receive.next().await.unwrap().unwrap().into();
+
+            match communication {
+                VoiceGatewayCommunication::Message(message) => message,
+                VoiceGatewayCommunication::Error(error) => return Err(error.into()),
+            }
+        };
+
         #[cfg(target_arch = "wasm32")]
-        let msg: VoiceGatewayMessage = websocket_receive.next().await.unwrap().into();
+        let msg: VoiceGatewayMessage = websocket_receive.0.next().await.unwrap().into();
         let gateway_payload: VoiceGatewayReceivePayload = serde_json::from_str(&msg.0).unwrap();
 
         if gateway_payload.op_code != VOICE_HELLO {
@@ -102,11 +122,11 @@ impl VoiceGateway {
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
         #[cfg(not(target_arch = "wasm32"))]
         tokio::task::spawn(async move {
-            gateway.gateway_listen_task().await;
+            gateway.gateway_listen_task_tungstenite().await;
         });
         #[cfg(target_arch = "wasm32")]
         wasm_bindgen_futures::spawn_local(async move {
-            gateway.gateway_listen_task().await;
+            gateway.gateway_listen_task_wasm().await;
         });
 
         Ok(VoiceGatewayHandle {
@@ -117,8 +137,9 @@ impl VoiceGateway {
         })
     }
 
-    /// The main gateway listener task;
-    pub async fn gateway_listen_task(&mut self) {
+    /// The main gateway listener task for a tungstenite based gateway;
+    #[cfg(not(target_arch = "wasm32"))]
+    async fn gateway_listen_task_tungstenite(&mut self) {
         loop {
             let msg;
 
@@ -132,13 +153,75 @@ impl VoiceGateway {
                 }
             }
 
-            // PRETTYFYME: Remove inline conditional compiling
-            #[cfg(not(target_arch = "wasm32"))]
+            // Note: The tungstenite backend handles close codes as messages, while the ws_stream_wasm one handles them differently.
+            //
+            // Hence why wasm receives straight RawGatewayMessages, and tungstenite receives
+            // GatewayCommunications.
             if let Some(Ok(message)) = msg {
-                self.handle_message(message.into()).await;
+                let communication: VoiceGatewayCommunication = message.into();
+
+                match communication {
+                    VoiceGatewayCommunication::Message(message) => {
+                        self.handle_message(message).await
+                    }
+                    VoiceGatewayCommunication::Error(close_code) => {
+                        self.handle_close_code(close_code).await
+                    }
+                }
+
                 continue;
             }
-            #[cfg(target_arch = "wasm32")]
+
+            // We couldn't receive the next message or it was an error, something is wrong with the websocket, close
+            warn!("VGW: Websocket is broken, stopping gateway");
+            break;
+        }
+    }
+
+    /// The main gateway listener task for a wasm based gateway;
+    ///
+    /// Wasm handles close codes and events differently, and so we must change the listener logic a
+    /// bit
+    #[cfg(target_arch = "wasm32")]
+    async fn gateway_listen_task_wasm(&mut self) {
+        // Initiate the close event listener
+        let mut close_events = self
+            .websocket_receive
+            .1
+            .observe(pharos::Filter::Pointer(ws_stream_wasm::WsEvent::is_closed).into())
+            .await
+            .unwrap();
+
+        loop {
+            let msg;
+
+            tokio::select! {
+                 Ok(_) = self.kill_receive.recv() => {
+                      log::trace!("VGW: Closing listener task");
+                      break;
+                 }
+                 message = self.websocket_receive.0.next() => {
+                      msg = message;
+                 }
+                 maybe_event = close_events.next() => {
+                      if let Some(event) = maybe_event {
+                              match event {
+                                    ws_stream_wasm::WsEvent::Closed(closed_event) => {
+                                        let close_code = VoiceCloseCode::try_from(closed_event.code).unwrap_or(VoiceCloseCode::FailedToDecodePayload);
+                                        self.handle_close_code(close_code).await;
+                                        break;
+                                    }
+                                    _ => unreachable!() // Should be impossible, we filtered close events
+                              }
+                      }
+                      continue;
+                }
+            }
+
+            // Note: The tungstenite backend handles close codes as messages, while the ws_stream_wasm one handles them as a seperate receiver.
+            //
+            // Hence why wasm receives VoiceGatewayMessages, and tungstenite receives
+            // VoiceGatewayCommunications.
             if let Some(message) = msg {
                 self.handle_message(message.into()).await;
                 continue;
@@ -154,6 +237,17 @@ impl VoiceGateway {
     async fn close(&mut self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();
+    }
+
+    /// Handles receiving a [VoiceCloseCode].
+    ///
+    /// Closes the connection and publishes an error event.
+    async fn handle_close_code(&mut self, code: VoiceCloseCode) {
+        let error = VoiceGatewayError::from(code);
+
+        warn!("VGW: Received error {:?}, connection will close..", error);
+        self.close().await;
+        self.events.lock().await.error.publish(error).await;
     }
 
     /// Deserializes and updates a dispatched event, when we already know its type;
@@ -179,16 +273,10 @@ impl VoiceGateway {
         }
 
         let Ok(gateway_payload) = msg.payload() else {
-            if let Some(error) = msg.error() {
-                warn!("GW: Received error {:?}, connection will close..", error);
-                self.close().await;
-                self.events.lock().await.error.publish(error).await;
-            } else {
-                warn!(
-                    "Message unrecognised: {:?}, please open an issue on the chorus github",
-                    msg.0
-                );
-            }
+            warn!(
+                "VGW: Message unrecognised: {:?}, please open an issue on the chorus github",
+                msg.0
+            );
             return;
         };
 

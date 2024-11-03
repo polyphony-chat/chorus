@@ -2,8 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ws_stream_wasm::WsMessage;
 use crate::voice::gateway::VoiceGatewayMessage;
+use ws_stream_wasm::WsMessage;
 
 impl From<VoiceGatewayMessage> for WsMessage {
     fn from(message: VoiceGatewayMessage) -> Self {
@@ -23,4 +23,3 @@ impl From<WsMessage> for VoiceGatewayMessage {
         }
     }
 }
-
