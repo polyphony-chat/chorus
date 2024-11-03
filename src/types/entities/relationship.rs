@@ -9,7 +9,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use crate::errors::ChorusError;
 use crate::types::{Shared, Snowflake};
 
-use super::{arc_rwlock_ptr_eq, PublicUser};
+use super::{option_arc_rwlock_ptr_eq, PublicUser};
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -25,7 +25,11 @@ pub struct Relationship {
     pub nickname: Option<String>,
     #[cfg_attr(feature = "sqlx", sqlx(skip))] // Can be derived from the user id
     /// The target user
-    pub user: Shared<PublicUser>,
+    ///
+    /// Note: on Discord.com, this is not sent in select places, such as READY payload.
+    ///
+    /// In such a case, you should refer to the id field and seperately fetch the user's data
+    pub user: Option<Shared<PublicUser>>,
     /// When the user requested a relationship
     pub since: Option<DateTime<Utc>>,
 }
@@ -36,7 +40,7 @@ impl PartialEq for Relationship {
         self.id == other.id
             && self.relationship_type == other.relationship_type
             && self.nickname == other.nickname
-            && arc_rwlock_ptr_eq(&self.user, &other.user)
+            && option_arc_rwlock_ptr_eq(&self.user, &other.user)
             && self.since == other.since
     }
 }
