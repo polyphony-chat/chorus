@@ -244,7 +244,7 @@ pub struct GuildMembersChunk {
     pub chunk_index: u16,
     pub chunk_count: u16,
     pub not_found: Option<Vec<Snowflake>>,
-    pub presences: Option<PresenceUpdate>,
+    pub presences: Option<Vec<PresenceUpdate>>,
     pub nonce: Option<String>,
 }
 
