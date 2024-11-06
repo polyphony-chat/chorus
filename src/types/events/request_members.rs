@@ -5,7 +5,7 @@
 use crate::types::{events::WebSocketEvent, OneOrMoreSnowflakes};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, WebSocketEvent, Clone)]
+#[derive(Debug, Deserialize, Default, Serialize, WebSocketEvent, Clone)]
 /// Used to request members for a guild or a list of guilds.
 ///
 /// Fires multiple [crate::types::events::GuildMembersChunk] events (each with up to 1000 members)

@@ -153,6 +153,14 @@ pub enum OneOrMoreSnowflakes {
 	More(Vec<Snowflake>)
 }
 
+// Note: allows us to have Default on the events
+// that use this type
+impl Default for OneOrMoreSnowflakes {
+    fn default() -> Self {
+        Snowflake::default().into()
+    }
+}
+
 impl Display for OneOrMoreSnowflakes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		  match self {
