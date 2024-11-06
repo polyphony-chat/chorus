@@ -7,6 +7,8 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
+use serde::{Serialize, Deserialize};
+
 use chrono::{DateTime, TimeZone, Utc};
 
 /// 2015-01-01
@@ -138,9 +140,66 @@ impl<'d> sqlx::Decode<'d, sqlx::Postgres> for Snowflake {
     }
 }
 
+/// A type representing either a single [Snowflake] or a [Vec] of [Snowflake]s.
+///
+/// Useful for e.g. [RequestGuildMembers](crate::types::events::GatewayRequestGuildMembers), to
+/// select either one specific user or multiple users.
+///
+/// Should (de)serialize either as a single [Snowflake] or as an array.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[serde(untagged)]
+pub enum OneOrMoreSnowflakes {
+	One(Snowflake),
+	More(Vec<Snowflake>)
+}
+
+impl Display for OneOrMoreSnowflakes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		  match self {
+			OneOrMoreSnowflakes::One(snowflake) => write!(f, "{}", snowflake.0),
+			// Display as you would debug a vec of u64s
+			OneOrMoreSnowflakes::More(snowflake_vec) => write!(f, "{:?}", snowflake_vec.iter().map(|x| x.0)),
+		  }
+    }
+}
+
+impl From<Snowflake> for OneOrMoreSnowflakes {
+    fn from(item: Snowflake) -> Self {
+        Self::One(item)
+    }
+}
+
+impl From<Vec<Snowflake>> for OneOrMoreSnowflakes {
+    fn from(item: Vec<Snowflake>) -> Self {
+		  if item.len() == 1 {
+			 return Self::One(item[0]);
+		  }
+
+        Self::More(item)
+    }
+}
+
+impl From<u64> for OneOrMoreSnowflakes {
+    fn from(item: u64) -> Self {
+        Self::One(item.into())
+    }
+}
+
+impl From<Vec<u64>> for OneOrMoreSnowflakes {
+    fn from(item: Vec<u64>) -> Self {
+		  if item.len() == 1 {
+			 return Self::One(item[0].into());
+		  }
+
+        Self::More(item.into_iter().map(|x| x.into()).collect())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use chrono::{DateTime, Utc};
+
+    use crate::types::utils::snowflake::OneOrMoreSnowflakes;
 
     use super::Snowflake;
 
@@ -157,4 +216,29 @@ mod test {
         let timestamp = "2016-04-30 11:18:25.796Z".parse::<DateTime<Utc>>().unwrap();
         assert_eq!(snow.timestamp(), timestamp);
     }
+
+	 #[test]
+	 fn serialize() {
+		  let snowflake = Snowflake(1303390110099968072_u64);
+		  let serialized = serde_json::to_string(&snowflake).unwrap();
+
+		  assert_eq!(serialized, "\"1303390110099968072\"".to_string());
+	 }
+
+	 #[test]
+	 fn serialize_one_or_more() {
+		  let snowflake = Snowflake(1303390110099968072_u64);
+		  let one_snowflake: OneOrMoreSnowflakes = snowflake.into();
+
+		  let serialized = serde_json::to_string(&one_snowflake).unwrap();
+
+		  assert_eq!(serialized, "\"1303390110099968072\"".to_string());
+
+		  let more_snowflakes: OneOrMoreSnowflakes = vec![snowflake, snowflake, snowflake].into();
+
+		  let serialized = serde_json::to_string(&more_snowflakes).unwrap();
+
+		  assert_eq!(serialized, "[\"1303390110099968072\",\"1303390110099968072\",\"1303390110099968072\"]".to_string());
+
+	 }
 }
