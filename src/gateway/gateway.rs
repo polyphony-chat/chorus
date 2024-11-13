@@ -17,7 +17,7 @@ use super::{Sink, Stream};
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
     ChannelUpdate, CloseCode, GatewayInvalidSession, GatewayReconnect, Guild, GuildRoleCreate,
-    GuildRoleUpdate, JsonField, RoleObject, SourceUrlField, ThreadUpdate, UpdateMessage,
+    GuildRoleUpdate, JsonField, Opcode, RoleObject, SourceUrlField, ThreadUpdate, UpdateMessage,
     WebSocketEvent,
 };
 
@@ -117,13 +117,14 @@ impl Gateway {
         let gateway_payload: types::GatewayReceivePayload =
             serde_json::from_str(&message.0).unwrap();
 
-        if gateway_payload.op_code != GATEWAY_HELLO {
+        if gateway_payload.op_code != (Opcode::Hello as u8) {
+			   warn!("GW: Received a non-hello opcode ({}) on gateway init", gateway_payload.op_code);
             return Err(GatewayError::NonHelloOnInitiate {
                 opcode: gateway_payload.op_code,
             });
         }
 
-        info!("GW: Received Hello");
+        debug!("GW: Received Hello");
 
         let gateway_hello: types::HelloData =
             serde_json::from_str(gateway_payload.event_data.unwrap().get()).unwrap();
@@ -348,16 +349,25 @@ impl Gateway {
             return;
         };
 
-        // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
-        match gateway_payload.op_code {
+        let op_code_res = Opcode::try_from(gateway_payload.op_code);
+
+        if op_code_res.is_err() {
+            warn!("Received unrecognized gateway op code ({})! Please open an issue on the chorus github so we can implement it", gateway_payload.op_code);
+            trace!("Event data: {:?}", gateway_payload);
+            return;
+        }
+
+		  let op_code = op_code_res.unwrap();
+
+        match op_code {
             // An event was dispatched, we need to look at the gateway event name t
-            GATEWAY_DISPATCH => {
+            Opcode::Dispatch => {
                 let Some(event_name) = gateway_payload.event_name else {
-                    warn!("Gateway dispatch op without event_name");
+                    warn!("GW: Received dispatch without event_name");
                     return;
                 };
 
-                trace!("Gateway: Received {event_name}");
+                trace!("GW: Received {event_name}");
 
                 macro_rules! handle {
                     ($($name:literal => $($path:ident).+ $( $message_type:ty: $update_type:ty)?),*) => {
@@ -483,6 +493,7 @@ impl Gateway {
                     "INTERACTION_CREATE" => interaction.create, // TODO
                     "INVITE_CREATE" => invite.create, // TODO
                     "INVITE_DELETE" => invite.delete, // TODO
+                    "LAST_MESSAGES" => message.last_messages,
                     "MESSAGE_CREATE" => message.create,
                     "MESSAGE_UPDATE" => message.update, // TODO
                     "MESSAGE_DELETE" => message.delete,
@@ -511,14 +522,13 @@ impl Gateway {
             }
             // We received a heartbeat from the server
             // "Discord may send the app a Heartbeat (opcode 1) event, in which case the app should send a Heartbeat event immediately."
-            GATEWAY_HEARTBEAT => {
+            Opcode::Heartbeat => {
                 trace!("GW: Received Heartbeat // Heartbeat Request");
 
                 // Tell the heartbeat handler it should send a heartbeat right away
-
                 let heartbeat_communication = HeartbeatThreadCommunication {
                     sequence_number: gateway_payload.sequence_number,
-                    op_code: Some(GATEWAY_HEARTBEAT),
+                    op_code: Some(Opcode::Heartbeat),
                 };
 
                 self.heartbeat_handler
@@ -527,7 +537,22 @@ impl Gateway {
                     .await
                     .unwrap();
             }
-            GATEWAY_RECONNECT => {
+            Opcode::HeartbeatAck => {
+                trace!("GW: Received Heartbeat ACK");
+
+                // Tell the heartbeat handler we received an ack
+                let heartbeat_communication = HeartbeatThreadCommunication {
+                    sequence_number: gateway_payload.sequence_number,
+                    op_code: Some(Opcode::HeartbeatAck),
+                };
+
+                self.heartbeat_handler
+                    .send
+                    .send(heartbeat_communication)
+                    .await
+                    .unwrap();
+            }
+            Opcode::Reconnect => {
                 trace!("GW: Received Reconnect");
 
                 let reconnect = GatewayReconnect {};
@@ -540,7 +565,7 @@ impl Gateway {
                     .publish(reconnect)
                     .await;
             }
-            GATEWAY_INVALID_SESSION => {
+            Opcode::InvalidSession => {
                 trace!("GW: Received Invalid Session");
 
                 let mut resumable: bool = false;
@@ -566,44 +591,19 @@ impl Gateway {
                     .await;
             }
             // Starts our heartbeat
-            // We should have already handled this in gateway init
-            GATEWAY_HELLO => {
+            // We should have already handled this
+            Opcode::Hello => {
                 warn!("Received hello when it was unexpected");
             }
-            GATEWAY_HEARTBEAT_ACK => {
-                trace!("GW: Received Heartbeat ACK");
-
-                // Tell the heartbeat handler we received an ack
-
-                let heartbeat_communication = HeartbeatThreadCommunication {
-                    sequence_number: gateway_payload.sequence_number,
-                    op_code: Some(GATEWAY_HEARTBEAT_ACK),
-                };
-
-                self.heartbeat_handler
-                    .send
-                    .send(heartbeat_communication)
-                    .await
-                    .unwrap();
-            }
-            GATEWAY_IDENTIFY
-            | GATEWAY_UPDATE_PRESENCE
-            | GATEWAY_UPDATE_VOICE_STATE
-            | GATEWAY_RESUME
-            | GATEWAY_REQUEST_GUILD_MEMBERS
-            | GATEWAY_CALL_SYNC
-            | GATEWAY_LAZY_REQUEST => {
-                info!(
-                    "Received unexpected opcode ({}) for current state. This might be due to a faulty server implementation and is likely not the fault of chorus.",
+            _ => {
+                warn!(
+                    "Received unexpected opcode ({}) for current state. This might be due to a faulty server implementation, but you can open an issue on the chorus github anyway",
                     gateway_payload.op_code
                 );
             }
-            _ => {
-                warn!("Received unrecognized gateway op code ({})! Please open an issue on the chorus github so we can implement it", gateway_payload.op_code);
-            }
         }
 
-        // If we we received a seq number we should let it know
+        // If we we received a sequence number we should let the heartbeat thread know
         if let Some(seq_num) = gateway_payload.sequence_number {
             let heartbeat_communication = HeartbeatThreadCommunication {
                 sequence_number: Some(seq_num),

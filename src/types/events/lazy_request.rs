@@ -20,6 +20,7 @@ use super::WebSocketEvent;
 ///
 /// {"op":14,"d":{"guild_id":"848582562217590824","typing":true,"activities":true,"threads":true}}
 pub struct LazyRequest {
+	 /// The guild id to request
     pub guild_id: Snowflake,
     pub typing: bool,
     pub activities: bool,

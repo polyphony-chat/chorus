@@ -23,13 +23,13 @@ use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::task;
 
 use super::*;
-use crate::types;
+use crate::types::{self, Opcode};
 
 /// The amount of time we wait for a heartbeat ack before resending our heartbeat in ms
 pub const HEARTBEAT_ACK_TIMEOUT: u64 = 2000;
 
 /// Handles sending heartbeats to the gateway in another thread
-#[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is used
+#[allow(dead_code)] // FIXME: Remove this, once HeartbeatHandler is "used"
 #[derive(Debug)]
 pub(super) struct HeartbeatHandler {
     /// How ofter heartbeats need to be sent at a minimum
@@ -98,11 +98,11 @@ impl HeartbeatHandler {
 
                     if let Some(op_code) = communication.op_code {
                         match op_code {
-                            GATEWAY_HEARTBEAT => {
+                            Opcode::Heartbeat => {
                                 // As per the api docs, if the server sends us a Heartbeat, that means we need to respond with a heartbeat immediately
                                 should_send = true;
                             }
-                            GATEWAY_HEARTBEAT_ACK => {
+                            Opcode::HeartbeatAck => {
                                 // The server received our heartbeat
                                 last_heartbeat_acknowledged = true;
                             }
@@ -120,7 +120,7 @@ impl HeartbeatHandler {
                 trace!("GW: Sending Heartbeat..");
 
                 let heartbeat = types::GatewayHeartbeat {
-                    op: GATEWAY_HEARTBEAT,
+                    op: (Opcode::Heartbeat as u8),
                     d: last_seq_number,
                 };
 
@@ -147,7 +147,7 @@ impl HeartbeatHandler {
 #[derive(Clone, Copy, Debug)]
 pub(super) struct HeartbeatThreadCommunication {
     /// The opcode for the communication we received, if relevant
-    pub(super) op_code: Option<u8>,
+    pub(super) op_code: Option<Opcode>,
     /// The sequence number we got from discord, if any
     pub(super) sequence_number: Option<u64>,
 }

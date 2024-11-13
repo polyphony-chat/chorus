@@ -72,6 +72,7 @@ pub struct Message {
     pub reaction_remove_emoji: Publisher<types::MessageReactionRemoveEmoji>,
     pub recent_mention_delete: Publisher<types::RecentMentionDelete>,
     pub ack: Publisher<types::MessageACK>,
+    pub last_messages: Publisher<types::LastMessages>,
 }
 
 #[derive(Default, Debug)]
