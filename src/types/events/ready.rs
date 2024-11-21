@@ -254,7 +254,8 @@ pub struct ReadStateEntry {
     pub id: Snowflake,
     pub last_message_id: Option<Snowflake>,
     pub last_pin_timestamp: Option<DateTime<Utc>>,
-    pub last_viewed: Option<DateTime<Utc>>,
+	 /// A value that is incremented each time the read state is read
+    pub last_viewed: Option<u32>,
     // Temporary adding Option to fix Spacebar servers, they have mention count as a nullable
     pub mention_count: Option<u64>,
 }
