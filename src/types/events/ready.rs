@@ -10,7 +10,8 @@ use serde::{Deserialize, Serialize};
 use crate::types::entities::{Guild, User};
 use crate::types::events::{Session, WebSocketEvent};
 use crate::types::{
-    Activity, Channel, ClientStatusObject, GuildMember, MfaAuthenticatorType, PresenceUpdate, Relationship, Snowflake, UserSettings, VoiceState
+    Activity, Channel, ClientStatusObject, GuildMember, MfaAuthenticatorType, PresenceUpdate,
+    Relationship, Snowflake, UserSettings, VoiceState,
 };
 use crate::{UInt32, UInt64, UInt8};
 
@@ -89,12 +90,21 @@ pub struct GatewayReady {
     pub api_code_version: UInt8,
     #[serde(default)]
     /// User experiment rollouts for the user
+    ///
     /// TODO: Make User Experiments into own struct
-    pub experiments: Vec<String>,
+    // Note: this is a pain to parse! We need a way to parse arrays into structs via the index of
+    // their feilds
+    //
+    // ex: [4130837190, 0, 10, -1, 0, 1932, 0, 0]
+    // needs to be parsed into a struct with fields corresponding to the first, second.. value in
+    // the array
+    pub experiments: Vec<serde_json::value::Value>,
     #[serde(default)]
     /// Guild experiment rollouts for the user
+    ///
     /// TODO: Make Guild Experiments into own struct
-    pub guild_experiments: Vec<String>,
+    // Note: this is a pain to parse! See the above TODO
+    pub guild_experiments: Vec<serde_json::value::Value>,
     pub read_state: ReadState,
 }
 
@@ -239,10 +249,13 @@ pub struct ReadState {
 )]
 /// Not documented even unofficially. Information about this type is likely to be partially incorrect.
 pub struct ReadStateEntry {
-    pub flags: u32,
+    /// Spacebar servers do not have flags in this entity at all (??)
+    pub flags: Option<u32>,
     pub id: Snowflake,
     pub last_message_id: Option<Snowflake>,
     pub last_pin_timestamp: Option<DateTime<Utc>>,
-    pub last_viewed: Option<DateTime<Utc>>,
-    pub mention_count: u64,
+	 /// A value that is incremented each time the read state is read
+    pub last_viewed: Option<u32>,
+    // Temporary adding Option to fix Spacebar servers, they have mention count as a nullable
+    pub mention_count: Option<u64>,
 }

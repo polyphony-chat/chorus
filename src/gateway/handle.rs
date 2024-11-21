@@ -8,7 +8,7 @@ use log::*;
 use std::fmt::Debug;
 
 use super::{events::Events, *};
-use crate::types::{self, Composite, Shared};
+use crate::types::{self, Composite, Opcode, Shared};
 
 /// Represents a handle to a Gateway connection.
 ///
@@ -105,70 +105,90 @@ impl GatewayHandle {
         object
     }
 
-    /// Sends an identify event to the gateway
+    /// Sends an identify event ([types::GatewayIdentifyPayload]) to the gateway
     pub async fn send_identify(&self, to_send: types::GatewayIdentifyPayload) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         trace!("GW: Sending Identify..");
 
-        self.send_json_event(GATEWAY_IDENTIFY, to_send_value).await;
+        self.send_json_event(Opcode::Identify as u8, to_send_value).await;
     }
 
-    /// Sends a resume event to the gateway
+    /// Sends a resume event ([types::GatewayResume]) to the gateway
     pub async fn send_resume(&self, to_send: types::GatewayResume) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         trace!("GW: Sending Resume..");
 
-        self.send_json_event(GATEWAY_RESUME, to_send_value).await;
+        self.send_json_event(Opcode::Resume as u8, to_send_value).await;
     }
 
-    /// Sends an update presence event to the gateway
+    /// Sends an update presence event ([types::UpdatePresence]) to the gateway
     pub async fn send_update_presence(&self, to_send: types::UpdatePresence) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         trace!("GW: Sending Update Presence..");
 
-        self.send_json_event(GATEWAY_UPDATE_PRESENCE, to_send_value)
+        self.send_json_event(Opcode::PresenceUpdate as u8, to_send_value)
             .await;
     }
 
-    /// Sends a request guild members to the server
+    /// Sends a request guild members ([types::GatewayRequestGuildMembers]) to the server
     pub async fn send_request_guild_members(&self, to_send: types::GatewayRequestGuildMembers) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         trace!("GW: Sending Request Guild Members..");
 
-        self.send_json_event(GATEWAY_REQUEST_GUILD_MEMBERS, to_send_value)
+        self.send_json_event(Opcode::RequestGuildMembers as u8, to_send_value)
             .await;
     }
 
-    /// Sends an update voice state to the server
+    /// Sends an update voice state ([types::UpdateVoiceState]) to the server
     pub async fn send_update_voice_state(&self, to_send: types::UpdateVoiceState) {
         let to_send_value = serde_json::to_value(to_send).unwrap();
 
         trace!("GW: Sending Update Voice State..");
 
-        self.send_json_event(GATEWAY_UPDATE_VOICE_STATE, to_send_value)
+        self.send_json_event(Opcode::VoiceStateUpdate as u8, to_send_value)
             .await;
     }
 
-    /// Sends a call sync to the server
+    /// Sends a call sync ([types::CallSync]) to the server
     pub async fn send_call_sync(&self, to_send: types::CallSync) {
         let to_send_value = serde_json::to_value(to_send).unwrap();
 
         trace!("GW: Sending Call Sync..");
 
-        self.send_json_event(GATEWAY_CALL_SYNC, to_send_value).await;
+        self.send_json_event(Opcode::CallConnect as u8, to_send_value).await;
     }
 
-    /// Sends a Lazy Request
+	 /// Sends a request call connect event (aka [types::CallSync]) to the server
+	 ///
+	 /// # Notes
+	 /// Alias of [Self::send_call_sync]
+    pub async fn send_request_call_connect(&self, to_send: types::CallSync) {
+		 self.send_call_sync(to_send).await
+    }
+
+    /// Sends a Lazy Request ([types::LazyRequest]) to the server
     pub async fn send_lazy_request(&self, to_send: types::LazyRequest) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         trace!("GW: Sending Lazy Request..");
 
-        self.send_json_event(GATEWAY_LAZY_REQUEST, to_send_value)
+        self.send_json_event(Opcode::GuildSubscriptions as u8, to_send_value)
+            .await;
+    }
+
+	 /// Sends a Request Last Messages ([types::RequestLastMessages]) to the server
+	 ///
+	 /// The server should respond with a [types::LastMessages] event
+    pub async fn send_request_last_messages(&self, to_send: types::RequestLastMessages) {
+        let to_send_value = serde_json::to_value(&to_send).unwrap();
+
+        trace!("GW: Sending Request Last Messages..");
+
+        self.send_json_event(Opcode::RequestLastMessages as u8, to_send_value)
             .await;
     }
 

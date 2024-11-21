@@ -6,7 +6,7 @@
 pub use opcode::*;
 pub use regexes::*;
 pub use rights::Rights;
-pub use snowflake::Snowflake;
+pub use snowflake::{Snowflake, OneOrMoreSnowflakes};
 
 pub mod jwt;
 pub mod opcode;
