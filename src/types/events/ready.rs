@@ -90,12 +90,21 @@ pub struct GatewayReady {
     pub api_code_version: UInt8,
     #[serde(default)]
     /// User experiment rollouts for the user
+    ///
     /// TODO: Make User Experiments into own struct
-    pub experiments: Vec<String>,
+    // Note: this is a pain to parse! We need a way to parse arrays into structs via the index of
+    // their feilds
+    //
+    // ex: [4130837190, 0, 10, -1, 0, 1932, 0, 0]
+    // needs to be parsed into a struct with fields corresponding to the first, second.. value in
+    // the array
+    pub experiments: Vec<serde_json::value::Value>,
     #[serde(default)]
     /// Guild experiment rollouts for the user
+    ///
     /// TODO: Make Guild Experiments into own struct
-    pub guild_experiments: Vec<String>,
+    // Note: this is a pain to parse! See the above TODO
+    pub guild_experiments: Vec<serde_json::value::Value>,
     pub read_state: ReadState,
 }
 
