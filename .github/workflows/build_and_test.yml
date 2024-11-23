@@ -93,6 +93,12 @@ jobs:
           npm run setup
           npm run start &
         working-directory: ./server
+        # Note: see
+        # https://github.com/polyphony-chat/chorus/pull/579,
+        # https://github.com/rustwasm/wasm-bindgen/issues/4274
+        # https://github.com/rustwasm/wasm-bindgen/issues/4274#issuecomment-2493497388
+      - name: Install rust toolchain 1.81.0
+        uses: dtolnay/rust-toolchain@1.81.0
       - uses: Swatinem/rust-cache@v2
         with:
           cache-all-crates: "true"
@@ -123,6 +129,12 @@ jobs:
           npm run setup
           npm run start &
         working-directory: ./server
+        # Note: see
+        # https://github.com/polyphony-chat/chorus/pull/579,
+        # https://github.com/rustwasm/wasm-bindgen/issues/4274
+        # https://github.com/rustwasm/wasm-bindgen/issues/4274#issuecomment-2493497388
+      - name: Install rust toolchain 1.81.0
+        uses: dtolnay/rust-toolchain@1.81.0
       - uses: Swatinem/rust-cache@v2
         with:
           cache-all-crates: "true"
