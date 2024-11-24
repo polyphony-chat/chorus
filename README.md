@@ -45,7 +45,7 @@ To get started with Chorus, import it into your project by adding the following 
 
 ```toml
 [dependencies]
-chorus = "0.17.0"
+chorus = "0.18.0"
 ```
 
 ### Establishing a Connection
