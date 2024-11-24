@@ -45,7 +45,7 @@ To get started with Chorus, import it into your project by adding the following 
 
 ```toml
 [dependencies]
-chorus = "0.17.0"
+chorus = "0.18.0"
 ```
 
 ### Establishing a Connection
@@ -143,7 +143,11 @@ to run the tests for wasm.
 
 ## Versioning
 
-This crate uses Semantic Versioning 2.0.0 as its versioning scheme. You can read the specification [here](https://semver.org/spec/v2.0.0.html).
+Like other cargo crates, this crate uses Semantic Versioning 2.0.0 as its versioning scheme.
+You can read the specification [here](https://semver.org/spec/v2.0.0.html).
+
+Code gated behind the `backend` feature is not considered part of the public API and can change without
+affecting semver compatibility. The `backend` feature is explicitly meant for use in [`symfonia`](https://github.com/polyphony-chat/symfonia)
 
 ## Contributing
 

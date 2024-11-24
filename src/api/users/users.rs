@@ -87,6 +87,9 @@ impl ChorusUser {
 
     /// Modifies the current user's representation. (See [`User`])
     ///
+    /// # Notes
+    /// This route requires MFA.
+    ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/user#modify-current-user>
     pub async fn modify(&mut self, modify_schema: UserModifySchema) -> ChorusResult<User> {
@@ -109,10 +112,13 @@ impl ChorusUser {
             .body(to_string(&modify_schema).unwrap())
             .header("Authorization", self.token())
             .header("Content-Type", "application/json");
+
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_maybe_mfa(&self.mfa_token);
+
         chorus_request.deserialize_response::<User>(self).await
     }
 
@@ -123,7 +129,7 @@ impl ChorusUser {
     /// Requires the user's current password (if any)
     ///
     /// # Notes
-    /// Requires MFA
+    /// This route requires MFA.
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#disable-user>
@@ -135,10 +141,13 @@ impl ChorusUser {
             ))
             .header("Authorization", self.token())
             .json(&schema);
+
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_maybe_mfa(&self.mfa_token);
+
         chorus_request.handle_request_as_result(self).await
     }
 
@@ -147,7 +156,7 @@ impl ChorusUser {
     /// Requires the user's current password (if any)
     ///
     /// # Notes
-    /// Requires MFA
+    /// This route requires MFA.
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#delete-user>
@@ -159,10 +168,13 @@ impl ChorusUser {
             ))
             .header("Authorization", self.token())
             .json(&schema);
+
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_maybe_mfa(&self.mfa_token);
+
         chorus_request.handle_request_as_result(self).await
     }
 
@@ -524,9 +536,9 @@ impl ChorusUser {
 
     /// Returns a mapping of user IDs ([Snowflake]s) to notes ([String]s) for the current user.
     ///
-	 /// # Notes
+    /// # Notes
     /// As of 2024/08/21, Spacebar does not yet implement this endpoint.
-	 ///
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-notes>
     pub async fn get_user_notes(&mut self) -> ChorusResult<HashMap<Snowflake, String>> {

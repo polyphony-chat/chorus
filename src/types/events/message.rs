@@ -178,3 +178,28 @@ pub struct MessageACK {
     pub flags: Option<serde_json::Value>,
     pub channel_id: Snowflake,
 }
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
+/// Used to request the last messages from channels.
+///
+/// Fires a [LastMessages] events with up to 100 messages that match the request.
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/gateway-events#request-last-messages>
+pub struct RequestLastMessages {
+	/// The ID of the guild the channels are in
+	pub guild_id: Snowflake,
+	/// The IDs of the channels to request last messages for (max 100)
+	pub channel_ids: Vec<Snowflake>
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
+/// Sent as a response to [RequestLastMessages].
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/gateway-events#last-messages>
+pub struct LastMessages {
+	/// The ID of the guild the channels are in
+	pub guild_id: Snowflake,
+	pub messages: Vec<Message>
+}

@@ -4,13 +4,14 @@
 
 use std::collections::HashMap;
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Guild, User};
 use crate::types::events::{Session, WebSocketEvent};
 use crate::types::{
-    Activity, Channel, ClientStatusObject, GuildMember, PresenceUpdate, Relationship, Snowflake,
-    UserSettings, VoiceState,
+    Activity, Channel, ClientStatusObject, GuildMember, MfaAuthenticatorType, PresenceUpdate,
+    Relationship, Snowflake, UserSettings, VoiceState,
 };
 use crate::{UInt32, UInt64, UInt8};
 
@@ -38,6 +39,8 @@ pub struct GatewayReady {
     pub guilds: Vec<Guild>,
     /// The presences of the user's non-offline friends and implicit relationships (depending on the `NO_AFFINE_USER_IDS` Gateway capability).
     pub presences: Option<Vec<PresenceUpdate>>,
+    /// Undocumented. Seems to be a list of sessions the user is currently connected with.
+    /// On Discord.com, this includes the current session.
     pub sessions: Option<Vec<Session>>,
     /// Unique session ID, used for resuming connections
     pub session_id: String,
@@ -64,6 +67,9 @@ pub struct GatewayReady {
     pub notes: HashMap<Snowflake, String>,
     /// The presences of the user's non-offline friends and implicit relationships (depending on the `NO_AFFINE_USER_IDS` Gateway capability), and any guild presences sent at startup
     pub merged_presences: Option<MergedPresences>,
+    /// The members of the user's guilds, in the same order as the `guilds` array
+    #[serde(default)]
+    pub merged_members: Option<Vec<Vec<GuildMember>>>,
     #[serde(default)]
     /// The deduped users across all objects in the event
     pub users: Vec<User>,
@@ -71,7 +77,7 @@ pub struct GatewayReady {
     pub auth_token: Option<String>,
     #[serde(default)]
     /// The types of multi-factor authenticators the user has enabled
-    pub authenticator_types: Vec<AuthenticatorType>,
+    pub authenticator_types: Vec<MfaAuthenticatorType>,
     /// The action a user is required to take before continuing to use Discord
     pub required_action: Option<String>,
     #[serde(default)]
@@ -84,12 +90,22 @@ pub struct GatewayReady {
     pub api_code_version: UInt8,
     #[serde(default)]
     /// User experiment rollouts for the user
+    ///
     /// TODO: Make User Experiments into own struct
-    pub experiments: Vec<String>,
+    // Note: this is a pain to parse! We need a way to parse arrays into structs via the index of
+    // their feilds
+    //
+    // ex: [4130837190, 0, 10, -1, 0, 1932, 0, 0]
+    // needs to be parsed into a struct with fields corresponding to the first, second.. value in
+    // the array
+    pub experiments: Vec<serde_json::value::Value>,
     #[serde(default)]
     /// Guild experiment rollouts for the user
+    ///
     /// TODO: Make Guild Experiments into own struct
-    pub guild_experiments: Vec<String>,
+    // Note: this is a pain to parse! See the above TODO
+    pub guild_experiments: Vec<serde_json::value::Value>,
+    pub read_state: ReadState,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
@@ -125,7 +141,7 @@ pub struct GatewayReadyBot {
     pub users: Vec<User>,
     #[serde(default)]
     /// The types of multi-factor authenticators the user has enabled
-    pub authenticator_types: Vec<AuthenticatorType>,
+    pub authenticator_types: Vec<MfaAuthenticatorType>,
     #[serde(default)]
     /// A geo-ordered list of RTC regions that can be used when when setting a voice channel's `rtc_region` or updating the client's voice state
     pub geo_ordered_rtc_regions: Vec<String>,
@@ -159,14 +175,6 @@ impl GatewayReady {
     pub fn to_bot(self) -> GatewayReadyBot {
         self.into()
     }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
-#[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i16))]
-pub enum AuthenticatorType {
-    WebAuthn = 1,
-    Totp = 2,
-    Sms = 3,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
@@ -226,4 +234,28 @@ pub struct SupplementalGuild {
     pub voice_states: Option<Vec<VoiceState>>,
     /// Field not documented even unofficially
     pub embedded_activities: Vec<serde_json::Value>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// Not documented even unofficially. Information about this type is likely to be partially incorrect.
+pub struct ReadState {
+    pub entries: Vec<ReadStateEntry>,
+    pub partial: bool,
+    pub version: u32,
+}
+
+#[derive(
+    Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
+)]
+/// Not documented even unofficially. Information about this type is likely to be partially incorrect.
+pub struct ReadStateEntry {
+    /// Spacebar servers do not have flags in this entity at all (??)
+    pub flags: Option<u32>,
+    pub id: Snowflake,
+    pub last_message_id: Option<Snowflake>,
+    pub last_pin_timestamp: Option<DateTime<Utc>>,
+	 /// A value that is incremented each time the read state is read
+    pub last_viewed: Option<u32>,
+    // Temporary adding Option to fix Spacebar servers, they have mention count as a nullable
+    pub mention_count: Option<u64>,
 }

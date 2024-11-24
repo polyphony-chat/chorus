@@ -16,10 +16,14 @@ use super::*;
 use super::{Sink, Stream};
 use crate::types::{
     self, AutoModerationRule, AutoModerationRuleUpdate, Channel, ChannelCreate, ChannelDelete,
-    ChannelUpdate, GatewayInvalidSession, GatewayReconnect, Guild, GuildRoleCreate,
-    GuildRoleUpdate, JsonField, RoleObject, SourceUrlField, ThreadUpdate, UpdateMessage,
+    ChannelUpdate, CloseCode, GatewayInvalidSession, GatewayReconnect, Guild, GuildRoleCreate,
+    GuildRoleUpdate, JsonField, Opcode, RoleObject, SourceUrlField, ThreadUpdate, UpdateMessage,
     WebSocketEvent,
 };
+
+// Needed to observe close codes
+#[cfg(target_arch = "wasm32")]
+use pharos::Observable;
 
 /// Tells us we have received enough of the buffer to decompress it
 const ZLIB_SUFFIX: [u8; 4] = [0, 0, 255, 255];
@@ -72,9 +76,21 @@ impl Gateway {
         // Wait for the first hello and then spawn both tasks so we avoid nested tasks
         // This automatically spawns the heartbeat task, but from the main thread
         #[cfg(not(target_arch = "wasm32"))]
-        let received: RawGatewayMessage = websocket_receive.next().await.unwrap().unwrap().into();
+        let received: RawGatewayMessage = {
+            // Note: The tungstenite backend handles close codes as messages, while the ws_stream_wasm one handles them differently.
+            //
+            // Hence why wasm receives straight RawGatewayMessages, and tungstenite receives
+            // GatewayCommunications.
+            let communication: GatewayCommunication =
+                websocket_receive.next().await.unwrap().unwrap().into();
+
+            match communication {
+                GatewayCommunication::Message(message) => message,
+                GatewayCommunication::Error(error) => return Err(error.into()),
+            }
+        };
         #[cfg(target_arch = "wasm32")]
-        let received: RawGatewayMessage = websocket_receive.next().await.unwrap().into();
+        let received: RawGatewayMessage = websocket_receive.0.next().await.unwrap().into();
 
         let message: GatewayMessage;
 
@@ -101,13 +117,14 @@ impl Gateway {
         let gateway_payload: types::GatewayReceivePayload =
             serde_json::from_str(&message.0).unwrap();
 
-        if gateway_payload.op_code != GATEWAY_HELLO {
+        if gateway_payload.op_code != (Opcode::Hello as u8) {
+			   warn!("GW: Received a non-hello opcode ({}) on gateway init", gateway_payload.op_code);
             return Err(GatewayError::NonHelloOnInitiate {
                 opcode: gateway_payload.op_code,
             });
         }
 
-        info!("GW: Received Hello");
+        debug!("GW: Received Hello");
 
         let gateway_hello: types::HelloData =
             serde_json::from_str(gateway_payload.event_data.unwrap().get()).unwrap();
@@ -138,11 +155,11 @@ impl Gateway {
         // Now we can continuously check for messages in a different task, since we aren't going to receive another hello
         #[cfg(not(target_arch = "wasm32"))]
         task::spawn(async move {
-            gateway.gateway_listen_task().await;
+            gateway.gateway_listen_task_tungstenite().await;
         });
         #[cfg(target_arch = "wasm32")]
         wasm_bindgen_futures::spawn_local(async move {
-            gateway.gateway_listen_task().await;
+            gateway.gateway_listen_task_wasm().await;
         });
 
         Ok(GatewayHandle {
@@ -154,8 +171,9 @@ impl Gateway {
         })
     }
 
-    /// The main gateway listener task;
-    async fn gateway_listen_task(&mut self) {
+    /// The main gateway listener task for a tungstenite based gateway;
+    #[cfg(not(target_arch = "wasm32"))]
+    async fn gateway_listen_task_tungstenite(&mut self) {
         loop {
             let msg;
 
@@ -169,13 +187,75 @@ impl Gateway {
                 }
             }
 
-            // PRETTYFYME: Remove inline conditional compiling
-            #[cfg(not(target_arch = "wasm32"))]
+            // Note: The tungstenite backend handles close codes as messages, while the ws_stream_wasm one handles them differently.
+            //
+            // Hence why wasm receives straight RawGatewayMessages, and tungstenite receives
+            // GatewayCommunications.
             if let Some(Ok(message)) = msg {
-                self.handle_raw_message(message.into()).await;
+                let communication: GatewayCommunication = message.into();
+
+                match communication {
+                    GatewayCommunication::Message(raw_message) => {
+                        self.handle_raw_message(raw_message).await
+                    }
+                    GatewayCommunication::Error(close_code) => {
+                        self.handle_close_code(close_code).await
+                    }
+                }
+
                 continue;
             }
-            #[cfg(target_arch = "wasm32")]
+
+            // We couldn't receive the next message or it was an error, something is wrong with the websocket, close
+            warn!("GW: Websocket is broken, stopping gateway");
+            break;
+        }
+    }
+
+    /// The main gateway listener task for a wasm based gateway;
+    ///
+    /// Wasm handles close codes and events differently, and so we must change the listener logic a
+    /// bit
+    #[cfg(target_arch = "wasm32")]
+    async fn gateway_listen_task_wasm(&mut self) {
+        // Initiate the close event listener
+        let mut close_events = self
+            .websocket_receive
+            .1
+            .observe(pharos::Filter::Pointer(ws_stream_wasm::WsEvent::is_closed).into())
+            .await
+            .unwrap();
+
+        loop {
+            let msg;
+
+            tokio::select! {
+                 Ok(_) = self.kill_receive.recv() => {
+                      log::trace!("GW: Closing listener task");
+                      break;
+                 }
+                 message = self.websocket_receive.0.next() => {
+                      msg = message;
+                 }
+                 maybe_event = close_events.next() => {
+                      if let Some(event) = maybe_event {
+                              match event {
+                                    ws_stream_wasm::WsEvent::Closed(closed_event) => {
+                                        let close_code = CloseCode::try_from(closed_event.code).unwrap_or(CloseCode::UnknownError);
+                                        self.handle_close_code(close_code).await;
+                                        break;
+                                    }
+                                    _ => unreachable!() // Should be impossible, we filtered close events
+                              }
+                      }
+                      continue;
+                }
+            }
+
+            // Note: The tungstenite backend handles close codes as messages, while the ws_stream_wasm one handles them as a seperate receiver.
+            //
+            // Hence why wasm receives RawGatewayMessages, and tungstenite receives
+            // GatewayCommunications.
             if let Some(message) = msg {
                 self.handle_raw_message(message.into()).await;
                 continue;
@@ -191,6 +271,17 @@ impl Gateway {
     async fn close(&mut self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();
+    }
+
+    /// Handles receiving a [CloseCode].
+    ///
+    /// Closes the connection and publishes an error event.
+    async fn handle_close_code(&mut self, code: CloseCode) {
+        let error = GatewayError::from(code);
+
+        warn!("GW: Received error {:?}, connection will close..", error);
+        self.close().await;
+        self.events.lock().await.error.publish(error).await;
     }
 
     /// Deserializes and updates a dispatched event, when we already know its type;
@@ -211,7 +302,7 @@ impl Gateway {
     }
 
     /// Takes a [RawGatewayMessage], converts it to [GatewayMessage] based
-    /// of connection options and calls handle_message
+    /// of connection options and calls [Self::handle_message]
     async fn handle_raw_message(&mut self, raw_message: RawGatewayMessage) {
         let message;
 
@@ -251,29 +342,32 @@ impl Gateway {
         }
 
         let Ok(gateway_payload) = msg.payload() else {
-            if let Some(error) = msg.error() {
-                warn!("GW: Received error {:?}, connection will close..", error);
-                self.close().await;
-                self.events.lock().await.error.publish(error).await;
-            } else {
-                warn!(
-                    "Message unrecognised: {:?}, please open an issue on the chorus github",
-                    msg.0
-                );
-            }
+            warn!(
+                "GW: Message unrecognised: {:?}, please open an issue on the chorus github",
+                msg.0
+            );
             return;
         };
 
-        // See https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
-        match gateway_payload.op_code {
+        let op_code_res = Opcode::try_from(gateway_payload.op_code);
+
+        if op_code_res.is_err() {
+            warn!("Received unrecognized gateway op code ({})! Please open an issue on the chorus github so we can implement it", gateway_payload.op_code);
+            trace!("Event data: {:?}", gateway_payload);
+            return;
+        }
+
+		  let op_code = op_code_res.unwrap();
+
+        match op_code {
             // An event was dispatched, we need to look at the gateway event name t
-            GATEWAY_DISPATCH => {
+            Opcode::Dispatch => {
                 let Some(event_name) = gateway_payload.event_name else {
-                    warn!("Gateway dispatch op without event_name");
+                    warn!("GW: Received dispatch without event_name");
                     return;
                 };
 
-                trace!("Gateway: Received {event_name}");
+                trace!("GW: Received {event_name}");
 
                 macro_rules! handle {
                     ($($name:literal => $($path:ident).+ $( $message_type:ty: $update_type:ty)?),*) => {
@@ -354,6 +448,9 @@ impl Gateway {
                     "AUTO_MODERATION_RULE_UPDATE" =>auto_moderation.rule_update AutoModerationRuleUpdate: AutoModerationRule,
                     "AUTO_MODERATION_RULE_DELETE" => auto_moderation.rule_delete,
                     "AUTO_MODERATION_ACTION_EXECUTION" => auto_moderation.action_execution,
+                    "AUTHENTICATOR_CREATE" => mfa.authenticator_create, // TODO
+                    "AUTHENTICATOR_UPDATE" => mfa.authenticator_update, // TODO
+                    "AUTHENTICATOR_DELETE" => mfa.authenticator_delete, // TODO
                     "CHANNEL_CREATE" => channel.create ChannelCreate: Guild,
                     "CHANNEL_UPDATE" => channel.update ChannelUpdate: Channel,
                     "CHANNEL_UNREAD_UPDATE" => channel.unread_update,
@@ -396,6 +493,7 @@ impl Gateway {
                     "INTERACTION_CREATE" => interaction.create, // TODO
                     "INVITE_CREATE" => invite.create, // TODO
                     "INVITE_DELETE" => invite.delete, // TODO
+                    "LAST_MESSAGES" => message.last_messages,
                     "MESSAGE_CREATE" => message.create,
                     "MESSAGE_UPDATE" => message.update, // TODO
                     "MESSAGE_DELETE" => message.delete,
@@ -424,14 +522,13 @@ impl Gateway {
             }
             // We received a heartbeat from the server
             // "Discord may send the app a Heartbeat (opcode 1) event, in which case the app should send a Heartbeat event immediately."
-            GATEWAY_HEARTBEAT => {
+            Opcode::Heartbeat => {
                 trace!("GW: Received Heartbeat // Heartbeat Request");
 
                 // Tell the heartbeat handler it should send a heartbeat right away
-
                 let heartbeat_communication = HeartbeatThreadCommunication {
                     sequence_number: gateway_payload.sequence_number,
-                    op_code: Some(GATEWAY_HEARTBEAT),
+                    op_code: Some(Opcode::Heartbeat),
                 };
 
                 self.heartbeat_handler
@@ -440,7 +537,22 @@ impl Gateway {
                     .await
                     .unwrap();
             }
-            GATEWAY_RECONNECT => {
+            Opcode::HeartbeatAck => {
+                trace!("GW: Received Heartbeat ACK");
+
+                // Tell the heartbeat handler we received an ack
+                let heartbeat_communication = HeartbeatThreadCommunication {
+                    sequence_number: gateway_payload.sequence_number,
+                    op_code: Some(Opcode::HeartbeatAck),
+                };
+
+                self.heartbeat_handler
+                    .send
+                    .send(heartbeat_communication)
+                    .await
+                    .unwrap();
+            }
+            Opcode::Reconnect => {
                 trace!("GW: Received Reconnect");
 
                 let reconnect = GatewayReconnect {};
@@ -453,7 +565,7 @@ impl Gateway {
                     .publish(reconnect)
                     .await;
             }
-            GATEWAY_INVALID_SESSION => {
+            Opcode::InvalidSession => {
                 trace!("GW: Received Invalid Session");
 
                 let mut resumable: bool = false;
@@ -479,44 +591,19 @@ impl Gateway {
                     .await;
             }
             // Starts our heartbeat
-            // We should have already handled this in gateway init
-            GATEWAY_HELLO => {
+            // We should have already handled this
+            Opcode::Hello => {
                 warn!("Received hello when it was unexpected");
             }
-            GATEWAY_HEARTBEAT_ACK => {
-                trace!("GW: Received Heartbeat ACK");
-
-                // Tell the heartbeat handler we received an ack
-
-                let heartbeat_communication = HeartbeatThreadCommunication {
-                    sequence_number: gateway_payload.sequence_number,
-                    op_code: Some(GATEWAY_HEARTBEAT_ACK),
-                };
-
-                self.heartbeat_handler
-                    .send
-                    .send(heartbeat_communication)
-                    .await
-                    .unwrap();
-            }
-            GATEWAY_IDENTIFY
-            | GATEWAY_UPDATE_PRESENCE
-            | GATEWAY_UPDATE_VOICE_STATE
-            | GATEWAY_RESUME
-            | GATEWAY_REQUEST_GUILD_MEMBERS
-            | GATEWAY_CALL_SYNC
-            | GATEWAY_LAZY_REQUEST => {
-                info!(
-                    "Received unexpected opcode ({}) for current state. This might be due to a faulty server implementation and is likely not the fault of chorus.",
+            _ => {
+                warn!(
+                    "Received unexpected opcode ({}) for current state. This might be due to a faulty server implementation, but you can open an issue on the chorus github anyway",
                     gateway_payload.op_code
                 );
             }
-            _ => {
-                warn!("Received unrecognized gateway op code ({})! Please open an issue on the chorus github so we can implement it", gateway_payload.op_code);
-            }
         }
 
-        // If we we received a seq number we should let it know
+        // If we we received a sequence number we should let the heartbeat thread know
         if let Some(seq_num) = gateway_payload.sequence_number {
             let heartbeat_communication = HeartbeatThreadCommunication {
                 sequence_number: Some(seq_num),

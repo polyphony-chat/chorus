@@ -11,32 +11,42 @@ use chorus_macros::WebSocketEvent;
 /// Officially Undocumented;
 /// Is sent to a client by the server to signify a new call being created;
 ///
-/// Ex: {"t":"CALL_CREATE","s":2,"op":0,"d":{"voice_states":[],"ringing":[],"region":"milan","message_id":"1107187514906775613","embedded_activities":[],"channel_id":"837609115475771392"}}
+/// # Reference
+/// See <https://docs.discord.sex/topics/gateway-events#call-create>
 pub struct CallCreate {
-    pub voice_states: Vec<VoiceState>,
-    /// Seems like a vec of channel ids
-    pub ringing: Vec<String>,
-    pub region: String,
-    // milan
-    pub message_id: Snowflake,
-    /// What is this?
-    pub embedded_activities: Vec<serde_json::Value>,
+    /// Id of the private channel this call is in
     pub channel_id: Snowflake,
+    /// Id of the messsage which created the call
+    pub message_id: Snowflake,
+
+    /// The IDs of users that are being rung to join the call
+    pub ringing: Vec<Snowflake>,
+
+    // milan
+    pub region: String,
+
+    /// The voice states of the users already in the call
+    pub voice_states: Vec<VoiceState>,
+    // What is this?
+    //pub embedded_activities: Vec<serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, WebSocketEvent)]
-/// Officially Undocumented;
-/// Updates the client on which calls are ringing, along with a specific call?;
+/// Updates the client when metadata about a call changes.
 ///
-/// Ex: {"t":"CALL_UPDATE","s":5,"op":0,"d":{"ringing":["837606544539254834"],"region":"milan","message_id":"1107191540234846308","guild_id":null,"channel_id":"837609115475771392"}}
+/// # Reference
+/// See <https://docs.discord.sex/topics/gateway-events#call-update>
 pub struct CallUpdate {
-    /// Seems like a vec of channel ids
-    pub ringing: Vec<Snowflake>,
-    pub region: String,
-    // milan
-    pub message_id: Snowflake,
-    pub guild_id: Option<Snowflake>,
+    /// Id of the private channel this call is in
     pub channel_id: Snowflake,
+    /// Id of the messsage which created the call
+    pub message_id: Snowflake,
+
+    /// The IDs of users that are being rung to join the call
+    pub ringing: Vec<Snowflake>,
+
+    // milan
+    pub region: String,
 }
 
 #[derive(
@@ -52,11 +62,14 @@ pub struct CallUpdate {
     PartialOrd,
     Ord,
 )]
-/// Officially Undocumented;
-/// Deletes a ringing call;
-/// Ex: {"t":"CALL_DELETE","s":8,"op":0,"d":{"channel_id":"837609115475771392"}}
+/// Sent when a call is deleted, or becomes unavailable due to an outage.
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/gateway-events#call-delete>
 pub struct CallDelete {
     pub channel_id: Snowflake,
+	 /// Whether the call is unavailable due to an outage
+	 pub unavailable: Option<bool>,
 }
 
 #[derive(
@@ -72,10 +85,13 @@ pub struct CallDelete {
     PartialOrd,
     Ord,
 )]
-/// Officially Undocumented;
-/// See <https://unofficial-discord-docs.vercel.app/gateway/op13>;
+/// Used to request a private channel's pre-existing call data,
+/// created before the connection was established.
 ///
-/// Ex: {"op":13,"d":{"channel_id":"837609115475771392"}}
+/// Fires a [CallCreate] event if a call is found.
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/gateway-events#request-call-connect>;
 pub struct CallSync {
     pub channel_id: Snowflake,
 }

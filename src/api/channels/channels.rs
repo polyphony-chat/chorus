@@ -30,7 +30,6 @@ impl Channel {
             ),
             None,
             None,
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -61,7 +60,6 @@ impl Channel {
             &url,
             None,
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Channel(self.id),
         );
@@ -101,7 +99,6 @@ impl Channel {
             &url,
             Some(to_string(&modify_data).unwrap()),
             audit_log_reason.as_deref(),
-            None,
             Some(user),
             LimitType::Channel(channel_id),
         );
@@ -132,7 +129,6 @@ impl Channel {
         let mut chorus_request = ChorusRequest::new(
             http::Method::GET,
             &url,
-            None,
             None,
             None,
             Some(user),
@@ -196,7 +192,6 @@ impl Channel {
             &url,
             None,
             None,
-            None,
             Some(user),
             LimitType::Channel(self.id),
         );
@@ -224,7 +219,6 @@ impl Channel {
             http::Method::PATCH,
             &url,
             Some(to_string(&schema).unwrap()),
-            None,
             None,
             Some(user),
             LimitType::Guild(guild_id),

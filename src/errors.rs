@@ -5,7 +5,7 @@
 //! Contains all the errors that can be returned by the library.
 use custom_error::custom_error;
 
-use crate::types::WebSocketEvent;
+use crate::types::{CloseCode, MfaRequiredSchema, VoiceCloseCode, WebSocketEvent};
 use chorus_macros::WebSocketEvent;
 
 custom_error! {
@@ -46,7 +46,16 @@ custom_error! {
     /// Malformed or unexpected response.
     InvalidResponse{error: String} = "The response is malformed and cannot be processed. Error: {error}",
     /// Invalid, insufficient or too many arguments provided.
-    InvalidArguments{error: String} = "Invalid arguments were provided. Error: {error}"
+    InvalidArguments{error: String} = "Invalid arguments were provided. Error: {error}",
+    /// The request requires MFA verification.
+     ///
+     /// This error type contains an [crate::types::MfaChallenge], which can be completed
+     /// with [crate::instance::ChorusUser::complete_mfa_challenge].
+     ///
+     /// After verifying, the same request can be retried.
+    MfaRequired {error: MfaRequiredSchema} = "Mfa verification is required to perform this action",
+    /// The user's account is suspended
+    SuspendUser { token: String }  = "Your account has been suspended"
 }
 
 impl From<reqwest::Error> for ChorusError {
@@ -100,6 +109,32 @@ custom_error! {
     UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
 }
 
+impl From<CloseCode> for GatewayError {
+    fn from(value: CloseCode) -> Self {
+        match value {
+            CloseCode::UnknownError => GatewayError::Unknown,
+            CloseCode::UnknownOpcode => GatewayError::UnknownOpcode,
+            CloseCode::DecodeError => GatewayError::Decode,
+            CloseCode::NotAuthenticated => GatewayError::NotAuthenticated,
+            CloseCode::AuthenticationFailed => GatewayError::AuthenticationFailed,
+            CloseCode::AlreadyAuthenticated => GatewayError::AlreadyAuthenticated,
+            CloseCode::InvalidSeq => GatewayError::InvalidSequenceNumber,
+            CloseCode::RateLimited => GatewayError::RateLimited,
+            CloseCode::SessionTimeout => GatewayError::SessionTimedOut,
+            // Note: this case is
+            // deprecated, it
+            // should never actually
+            // be received anymore
+            CloseCode::SessionNoLongerValid => GatewayError::SessionTimedOut,
+            CloseCode::InvalidShard => GatewayError::InvalidShard,
+            CloseCode::ShardingRequired => GatewayError::ShardingRequired,
+            CloseCode::InvalidApiVersion => GatewayError::InvalidAPIVersion,
+            CloseCode::InvalidIntents => GatewayError::InvalidIntents,
+            CloseCode::DisallowedIntents => GatewayError::DisallowedIntents,
+        }
+    }
+}
+
 custom_error! {
     /// Voice Gateway errors
     ///
@@ -116,7 +151,7 @@ custom_error! {
     AuthenticationFailed = "The token you sent in your identify payload is incorrect",
     AlreadyAuthenticated = "You sent more than one identify payload",
     SessionNoLongerValid = "Your session is no longer valid",
-    SessionTimeout = "Your session has timed out",
+    SessionTimedOut = "Your session has timed out",
     ServerNotFound = "We can't find the server you're trying to connect to",
     UnknownProtocol = "We didn't recognize the protocol you sent",
     Disconnected = "Channel was deleted, you were kicked, voice server changed, or the main gateway session was dropped. Should not reconnect.",
@@ -129,6 +164,25 @@ custom_error! {
 
     // Other misc errors
     UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
+}
+
+impl From<VoiceCloseCode> for VoiceGatewayError {
+    fn from(value: VoiceCloseCode) -> Self {
+        match value {
+            VoiceCloseCode::UnknownOpcode => VoiceGatewayError::UnknownOpcode,
+            VoiceCloseCode::FailedToDecodePayload => VoiceGatewayError::FailedToDecodePayload,
+            VoiceCloseCode::NotAuthenticated => VoiceGatewayError::NotAuthenticated,
+            VoiceCloseCode::AuthenticationFailed => VoiceGatewayError::AuthenticationFailed,
+            VoiceCloseCode::AlreadyAuthenticated => VoiceGatewayError::AlreadyAuthenticated,
+            VoiceCloseCode::SessionTimeout => VoiceGatewayError::SessionTimedOut,
+            VoiceCloseCode::SessionNoLongerValid => VoiceGatewayError::SessionNoLongerValid,
+            VoiceCloseCode::ServerNotFound => VoiceGatewayError::ServerNotFound,
+            VoiceCloseCode::UnknownProtocol => VoiceGatewayError::UnknownProtocol,
+            VoiceCloseCode::DisconnectedChannelDeletedOrKicked => VoiceGatewayError::Disconnected,
+            VoiceCloseCode::VoiceServerCrashed => VoiceGatewayError::VoiceServerCrashed,
+            VoiceCloseCode::UnknownEncryptionMode => VoiceGatewayError::UnknownEncryptionMode,
+        }
+    }
 }
 
 custom_error! {
@@ -151,4 +205,3 @@ custom_error! {
     CannotBind{error: String} = "Cannot bind socket due to a UDP error: {error}",
     CannotConnect{error: String} = "Cannot connect due to a UDP error: {error}",
 }
-

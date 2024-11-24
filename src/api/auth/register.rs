@@ -43,18 +43,8 @@ impl Instance {
             .deserialize_response::<Token>(&mut user)
             .await?
             .token;
-      
-        user.set_token(&token);
 
-        let object = User::get_current(&mut user).await?;
-        let settings = User::get_settings(&mut user).await?;
-
-        *user.object.write().unwrap() = object;
-        *user.settings.write().unwrap() = settings;
-
-        let mut identify = GatewayIdentifyPayload::common();
-        identify.token = user.token();
-        user.gateway.send_identify(identify).await;
+        user.update_with_login_data(token, None).await?;
 
         Ok(user)
     }

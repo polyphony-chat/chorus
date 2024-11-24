@@ -25,6 +25,7 @@ pub struct Events {
     pub call: Call,
     pub voice: Voice,
     pub webhooks: Webhooks,
+    pub mfa: Mfa,
     pub gateway_identify_payload: Publisher<types::GatewayIdentifyPayload>,
     pub gateway_resume: Publisher<types::GatewayResume>,
     pub error: Publisher<GatewayError>,
@@ -71,6 +72,7 @@ pub struct Message {
     pub reaction_remove_emoji: Publisher<types::MessageReactionRemoveEmoji>,
     pub recent_mention_delete: Publisher<types::RecentMentionDelete>,
     pub ack: Publisher<types::MessageACK>,
+    pub last_messages: Publisher<types::LastMessages>,
 }
 
 #[derive(Default, Debug)]
@@ -168,4 +170,11 @@ pub struct Voice {
 #[derive(Default, Debug)]
 pub struct Webhooks {
     pub update: Publisher<types::WebhooksUpdate>,
+}
+
+#[derive(Default, Debug)]
+pub struct Mfa {
+    pub authenticator_create: Publisher<types::AuthenticatorCreate>,
+    pub authenticator_update: Publisher<types::AuthenticatorUpdate>,
+    pub authenticator_delete: Publisher<types::AuthenticatorDelete>,
 }

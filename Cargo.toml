@@ -1,7 +1,7 @@
 [package]
 name = "chorus"
 description = "A library for interacting with multiple Spacebar-compatible Instances at once."
-version = "0.17.0"
+version = "0.18.0"
 license = "MPL-2.0"
 edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
@@ -67,7 +67,7 @@ rand = "0.8.5"
 flate2 = { version = "1.0.33", optional = true }
 webpki-roots = "0.26.3"
 pubserve = { version = "1.1.0", features = ["async", "send"] }
-sqlx-pg-uint = { version = "0.7.2", features = ["serde"], optional = true }
+sqlx-pg-uint = { version = "0.8.0", features = ["serde"], optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rustls = "0.21.12"
@@ -80,14 +80,22 @@ getrandom = { version = "0.2.15" }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.15", features = ["js"] }
 ws_stream_wasm = "0.7.4"
+pharos = "*" # This is a dependency of ws_stream_wasm, we are including it to interface with that library
 wasm-bindgen-futures = "0.4.43"
-wasmtimer = "0.2.0"
+wasmtimer = "0.4.0"
 
 [dev-dependencies]
 lazy_static = "1.5.0"
 wasm-bindgen-test = "0.3.43"
-wasm-bindgen = "0.2.93"
+wasm-bindgen = "0.2.95"
 simple_logger = { version = "5.0.0", default-features = false }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+httptest = "0.16.1"
 
 [lints.rust]
 unexpected_cfgs = { level = "allow", check-cfg = ['cfg(tarpaulin_include)'] }
+
+# See https://github.com/whizsid/wasmtimer-rs/issues/18#issuecomment-2420144039
+[package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+debug-js-glue = false
