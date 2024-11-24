@@ -80,7 +80,7 @@ getrandom = { version = "0.2.15" }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.15", features = ["js"] }
 ws_stream_wasm = "0.7.4"
-pharos = "*" # This is a dependency of ws_stream_wasm, we are including it to interface with that library
+pharos = "0.5.3" # This is a dependency of ws_stream_wasm, we are including it to interface with that library
 wasm-bindgen-futures = "0.4.43"
 wasmtimer = "0.4.0"
 
