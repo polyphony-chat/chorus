@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use base64::Engine;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
@@ -355,6 +356,13 @@ impl ClientProperties {
     pub fn common() -> Self {
         Self::common_desktop_windows()
     }
+
+    /// Encodes self to base64, for the X-Super-Properties header
+    pub fn to_base64(&self) -> String {
+        let as_json = serde_json::to_string(self).unwrap();
+
+        base64::prelude::BASE64_STANDARD.encode(as_json)
+    }
 }
 
 /// The operating system the client is running on.
@@ -664,7 +672,7 @@ impl Default for ClientBrowser {
 /// See <https://docs.discord.sex/reference#browser-type>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
-pub struct ClientUserAgent(String);
+pub struct ClientUserAgent(pub(crate) String);
 
 impl From<String> for ClientUserAgent {
     fn from(value: String) -> Self {
@@ -792,7 +800,7 @@ impl Default for ClientUserAgent {
 ///
 /// # Reference
 /// See <https://docs.discord.sex/reference#client-properties-structure>
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Copy, Clone, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct ClientBuildNumber(u64);
 

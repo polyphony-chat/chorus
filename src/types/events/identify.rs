@@ -31,7 +31,16 @@ pub struct GatewayIdentifyPayload {
 
 impl Default for GatewayIdentifyPayload {
     fn default() -> Self {
-        Self::common()
+        Self {
+            token: String::new(),
+            properties: ClientProperties::default(),
+            compress: None,
+            large_threshold: None,
+            shard: None,
+            presence: None,
+            intents: None,
+            capabilities: None,
+        }
     }
 }
 
@@ -63,4 +72,3 @@ impl GatewayIdentifyPayload {
         }
     }
 }
-

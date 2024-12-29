@@ -13,7 +13,10 @@ use serde_json::from_str;
 use crate::{
     errors::{ChorusError, ChorusResult},
     instance::ChorusUser,
-    types::{types::subconfigs::limits::rates::RateLimits, Limit, LimitType, LimitsConfiguration, MfaRequiredSchema},
+    types::{
+        types::subconfigs::limits::rates::RateLimits, Limit, LimitType, LimitsConfiguration,
+        MfaRequiredSchema,
+    },
 };
 
 /// Chorus' request struct. This struct is used to send rate-limited requests to the Spacebar server.
@@ -34,7 +37,7 @@ impl ChorusRequest {
     ///     * [`http::Method::DELETE`]
     ///     * [`http::Method::PATCH`]
     ///     * [`http::Method::HEAD`]
-    #[allow(unused_variables)] 
+    #[allow(unused_variables)]
     pub fn new(
         method: http::Method,
         url: &str,
@@ -83,8 +86,13 @@ impl ChorusRequest {
                 bucket: format!("{:?}", self.limit_type),
             });
         }
+
+        let request = self
+            .request
+            .header("User-Agent", user.client_properties.user_agent.clone().0);
+
         let client = user.belongs_to.read().unwrap().client.clone();
-        let result = match client.execute(self.request.build().unwrap()).await {
+        let result = match client.execute(request.build().unwrap()).await {
             Ok(result) => {
                 log::trace!("Request successful: {:?}", result);
                 result
