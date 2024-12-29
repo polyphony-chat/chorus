@@ -8,9 +8,11 @@ pub use connected_account::*;
 pub use guild_welcome_screen::*;
 pub use interaction::*;
 pub use status::*;
+pub use client_properties::*;
 
 mod activity;
 mod connected_account;
 mod guild_welcome_screen;
 mod interaction;
 mod status;
+mod client_properties;
