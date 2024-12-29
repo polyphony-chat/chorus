@@ -6,6 +6,8 @@ use std::string::FromUtf8Error;
 
 use crate::types::{CloseCode, GatewayReceivePayload};
 
+use super::*;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// Defines a communication received from the gateway, being either an optionally compressed
 /// [RawGatewayMessage] or a [CloseCode].
