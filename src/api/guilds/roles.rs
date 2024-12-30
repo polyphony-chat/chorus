@@ -28,15 +28,16 @@ impl types::RoleObject {
             user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
+
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).header("Authorization", user.token()),
+            request: Client::new().get(url),
             limit_type: LimitType::Guild(guild_id),
-        };
-        let roles = chorus_request
+        }
+        .with_headers_for(user);
+
+        chorus_request
             .deserialize_response::<Vec<RoleObject>>(user)
             .await
-            .unwrap();
-        Ok(roles)
     }
 
     /// Retrieves a single role for a given guild.
@@ -54,10 +55,13 @@ impl types::RoleObject {
             guild_id,
             role_id
         );
+
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).header("Authorization", user.token()),
+            request: Client::new().get(url),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_headers_for(user);
+
         chorus_request
             .deserialize_response::<RoleObject>(user)
             .await
@@ -79,19 +83,13 @@ impl types::RoleObject {
             user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
-        let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
-            ChorusError::FormCreation {
-                error: e.to_string(),
-            }
-        })?;
+
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(url)
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(body),
+            request: Client::new().post(url).json(&role_create_schema),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_headers_for(user);
+
         chorus_request
             .deserialize_response::<RoleObject>(user)
             .await
@@ -113,18 +111,13 @@ impl types::RoleObject {
             user.belongs_to.read().unwrap().urls.api,
             guild_id
         );
-        let body =
-            to_string(&role_position_update_schema).map_err(|e| ChorusError::FormCreation {
-                error: e.to_string(),
-            })?;
+
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .patch(url)
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(body),
+            request: Client::new().patch(url).json(&role_position_update_schema),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_headers_for(user);
+
         chorus_request
             .deserialize_response::<RoleObject>(user)
             .await
@@ -148,19 +141,13 @@ impl types::RoleObject {
             guild_id,
             role_id
         );
-        let body = to_string::<RoleCreateModifySchema>(&role_create_schema).map_err(|e| {
-            ChorusError::FormCreation {
-                error: e.to_string(),
-            }
-        })?;
+
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .patch(url)
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(body),
+            request: Client::new().patch(url).json(&role_create_schema),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_headers_for(user);
+
         chorus_request
             .deserialize_response::<RoleObject>(user)
             .await
@@ -183,14 +170,13 @@ impl types::RoleObject {
             role_id
         );
 
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            &url,
-            None,
-            audit_log_reason.as_deref(),
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
         request.handle_request_as_result(user).await
     }
 }

@@ -52,6 +52,7 @@ impl TestBundle {
     }
     pub(crate) async fn clone_user_without_gateway(&self) -> ChorusUser {
         ChorusUser {
+			   client_properties: Default::default(),
             belongs_to: self.user.belongs_to.clone(),
             token: self.user.token.clone(),
             mfa_token: None,

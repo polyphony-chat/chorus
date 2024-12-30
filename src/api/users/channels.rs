@@ -23,12 +23,10 @@ impl ChorusUser {
             self.belongs_to.read().unwrap().urls.api
         );
         ChorusRequest {
-            request: Client::new()
-                .get(url)
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json"),
+            request: Client::new().get(url),
             limit_type: LimitType::Global,
         }
+        .with_headers_for(self)
         .deserialize_response::<Vec<Channel>>(self)
         .await
     }
@@ -49,13 +47,10 @@ impl ChorusUser {
             self.belongs_to.read().unwrap().urls.api
         );
         ChorusRequest {
-            request: Client::new()
-                .post(url)
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&create_private_channel_schema).unwrap()),
+            request: Client::new().post(url).json(&create_private_channel_schema),
             limit_type: LimitType::Global,
         }
+        .with_headers_for(self)
         .deserialize_response::<Channel>(self)
         .await
     }

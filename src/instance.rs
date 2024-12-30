@@ -19,8 +19,8 @@ use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
-    GatewayIdentifyPayload, GeneralConfiguration, Limit, LimitType, LimitsConfiguration, MfaToken,
-    MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings,
+    ClientProperties, GatewayIdentifyPayload, GeneralConfiguration, Limit, LimitType,
+    LimitsConfiguration, MfaToken, MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings,
 };
 use crate::UrlBundle;
 
@@ -256,15 +256,35 @@ impl fmt::Display for Token {
 
 #[derive(Debug, Clone)]
 /// A ChorusUser is a representation of an authenticated user on an [Instance].
+///
 /// It is used for most authenticated actions on a Spacebar server.
+///
 /// It also has its own [Gateway] connection.
 pub struct ChorusUser {
+    /// A reference to the [Instance] the user is registered on
     pub belongs_to: Shared<Instance>,
+
+    /// The user's authentication token
     pub token: String,
+
+    /// Telemetry data sent to the instance.
+    ///
+    /// See [ClientProperties] for more information
+    pub client_properties: ClientProperties,
+
+    /// A token for bypassing mfa, if any
     pub mfa_token: Option<MfaToken>,
+
+    /// Ratelimit data
     pub limits: Option<HashMap<LimitType, Limit>>,
+
+    /// The user's settings
     pub settings: Shared<UserSettings>,
+
+    /// Information about the user
     pub object: Shared<User>,
+
+    /// The user's connection to the gateway
     pub gateway: GatewayHandle,
 }
 
@@ -285,6 +305,7 @@ impl ChorusUser {
     pub fn new(
         belongs_to: Shared<Instance>,
         token: String,
+        client_properties: ClientProperties,
         limits: Option<HashMap<LimitType, Limit>>,
         settings: Shared<UserSettings>,
         object: Shared<User>,
@@ -293,6 +314,7 @@ impl ChorusUser {
         ChorusUser {
             belongs_to,
             token,
+            client_properties,
             mfa_token: None,
             limits,
             settings,
@@ -305,7 +327,7 @@ impl ChorusUser {
     ///
     /// Fetches all the other required data from the api.
     ///
-    /// If the received_settings can be None, since not all login methods
+    /// The received_settings can be None, since not all login methods
     /// return user settings. If this is the case, we'll fetch them via an api route.
     pub(crate) async fn update_with_login_data(
         &mut self,
@@ -314,8 +336,9 @@ impl ChorusUser {
     ) -> ChorusResult<()> {
         self.token = token.clone();
 
-        let mut identify = GatewayIdentifyPayload::common();
+        let mut identify = GatewayIdentifyPayload::default_w_client_capabilities();
         identify.token = token;
+        identify.properties = self.client_properties.clone();
         self.gateway.send_identify(identify).await;
 
         *self.object.write().unwrap() = self.get_current_user().await?;
@@ -345,6 +368,7 @@ impl ChorusUser {
         let gateway = Gateway::spawn(wss_url, gateway_options).await.unwrap();
         ChorusUser {
             token: token.to_string(),
+            client_properties: ClientProperties::default(),
             mfa_token: None,
             belongs_to: instance.clone(),
             limits: instance

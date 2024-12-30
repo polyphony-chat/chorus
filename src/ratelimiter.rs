@@ -13,7 +13,10 @@ use serde_json::from_str;
 use crate::{
     errors::{ChorusError, ChorusResult},
     instance::ChorusUser,
-    types::{types::subconfigs::limits::rates::RateLimits, Limit, LimitType, LimitsConfiguration, MfaRequiredSchema},
+    types::{
+        types::subconfigs::limits::rates::RateLimits, Limit, LimitType, LimitsConfiguration,
+        MfaRequiredSchema,
+    },
 };
 
 /// Chorus' request struct. This struct is used to send rate-limited requests to the Spacebar server.
@@ -25,53 +28,6 @@ pub struct ChorusRequest {
 }
 
 impl ChorusRequest {
-    /// Makes a new [`ChorusRequest`].
-    /// # Arguments
-    /// * `method` - The HTTP method to use. Must be one of the following:
-    ///     * [`http::Method::GET`]
-    ///     * [`http::Method::POST`]
-    ///     * [`http::Method::PUT`]
-    ///     * [`http::Method::DELETE`]
-    ///     * [`http::Method::PATCH`]
-    ///     * [`http::Method::HEAD`]
-    #[allow(unused_variables)] 
-    pub fn new(
-        method: http::Method,
-        url: &str,
-        body: Option<String>,
-        audit_log_reason: Option<&str>,
-        chorus_user: Option<&mut ChorusUser>,
-        limit_type: LimitType,
-    ) -> ChorusRequest {
-        let request = Client::new();
-        let mut request = match method {
-            http::Method::GET => request.get(url),
-            http::Method::POST => request.post(url),
-            http::Method::PUT => request.put(url),
-            http::Method::DELETE => request.delete(url),
-            http::Method::PATCH => request.patch(url),
-            http::Method::HEAD => request.head(url),
-            _ => panic!("Illegal state: Method not supported."),
-        };
-        if let Some(user) = chorus_user {
-            request = request.header("Authorization", user.token());
-        }
-        if let Some(body) = body {
-            // ONCE TOLD ME THE WORLD WAS GONNA ROLL ME
-            request = request
-                .body(body)
-                .header("Content-Type", "application/json");
-        }
-        if let Some(reason) = audit_log_reason {
-            request = request.header("X-Audit-Log-Reason", reason);
-        }
-
-        ChorusRequest {
-            request,
-            limit_type,
-        }
-    }
-
     /// Sends a [`ChorusRequest`]. Checks if the user is rate limited, and if not, sends the request.
     /// If the user is not rate limited and the instance has rate limits enabled, it will update the
     /// rate limits.
@@ -83,8 +39,13 @@ impl ChorusRequest {
                 bucket: format!("{:?}", self.limit_type),
             });
         }
+
+        let request = self
+            .request
+            .header("User-Agent", user.client_properties.user_agent.clone().0);
+
         let client = user.belongs_to.read().unwrap().client.clone();
-        let result = match client.execute(self.request.build().unwrap()).await {
+        let result = match client.execute(request.build().unwrap()).await {
             Ok(result) => {
                 log::trace!("Request successful: {:?}", result);
                 result
@@ -523,6 +484,56 @@ impl ChorusRequest {
             }
         };
         Ok(object)
+    }
+
+    /// Adds an audit log reason to the request.
+    ///
+    /// Sets the X-Audit-Log-Reason header
+    pub(crate) fn with_audit_log_reason(self, reason: String) -> ChorusRequest {
+        let mut request = self;
+
+        request.request = request.request.header("X-Audit-Log-Reason", reason);
+        request
+    }
+
+    /// Adds an audit log reason to the request, if it is [Some]
+    ///
+    /// Sets the X-Audit-Log-Reason header
+    pub(crate) fn with_maybe_audit_log_reason(self, reason: Option<String>) -> ChorusRequest {
+        if let Some(reason_some) = reason {
+            return self.with_audit_log_reason(reason_some);
+        }
+
+        self
+    }
+
+    /// Adds an authorization token to the request.
+    ///
+    /// Sets the Authorization header
+    pub(crate) fn with_authorization(self, token: &String) -> ChorusRequest {
+        let mut request = self;
+
+        request.request = request.request.header("Authorization", token);
+        request
+    }
+
+    /// Adds authorization for a [ChorusUser] to the request.
+    ///
+    /// Sets the Authorization header
+    pub(crate) fn with_authorization_for(self, user: &ChorusUser) -> ChorusRequest {
+        self.with_authorization(&user.token)
+    }
+
+    /// Adds user-specific headers for a [ChorusUser] to the request.
+    ///
+    /// Adds authorization and telemetry; for specific details see
+    /// [Self::with_authorization_for] and [Self::with_client_properties_for]
+    ///
+    /// If a route you're adding involves authorization as the user, you
+    /// should likely use this method.
+    pub(crate) fn with_headers_for(self, user: &ChorusUser) -> ChorusRequest {
+        self.with_authorization_for(user)
+            .with_client_properties_for(user)
     }
 }
 

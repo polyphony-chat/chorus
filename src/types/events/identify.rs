@@ -2,16 +2,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::types::events::WebSocketEvent;
+use crate::types::{events::WebSocketEvent, ClientProperties};
 use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
 
 use super::GatewayIdentifyPresenceUpdate;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, WebSocketEvent)]
 pub struct GatewayIdentifyPayload {
     pub token: String,
-    pub properties: GatewayIdentifyConnectionProps,
+    pub properties: ClientProperties,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub compress: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,29 +31,31 @@ pub struct GatewayIdentifyPayload {
 
 impl Default for GatewayIdentifyPayload {
     fn default() -> Self {
-        Self::common()
-    }
-}
-
-impl GatewayIdentifyPayload {
-    /// Uses the most common, 25% data along with client capabilities
-    ///
-    /// Basically pretends to be an official client on Windows 10, with Chrome 113.0.0.0
-    pub fn common() -> Self {
         Self {
-            token: "".to_string(),
-            properties: GatewayIdentifyConnectionProps::default(),
-            compress: Some(false),
+            token: String::new(),
+            properties: ClientProperties::default(),
+            compress: None,
             large_threshold: None,
             shard: None,
             presence: None,
             intents: None,
-            capabilities: Some(8189),
+            capabilities: None,
         }
     }
 }
 
 impl GatewayIdentifyPayload {
+    /// Uses the most common data along with client capabilities
+    ///
+    /// Basically pretends to be an official client on Windows 10
+    pub fn common() -> Self {
+        Self {
+            properties: ClientProperties::default(),
+            capabilities: Some(8189),
+            ..Self::default()
+        }
+    }
+
     /// Creates an identify payload with the same default capabilities as the official client
     pub fn default_w_client_capabilities() -> Self {
         Self {
@@ -68,111 +69,6 @@ impl GatewayIdentifyPayload {
         Self {
             capabilities: Some(i32::MAX), // Since discord uses bitwise for capabilities, this has almost every bit as 1, so all capabilities
             ..Self::default()
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
-#[serde_as]
-pub struct GatewayIdentifyConnectionProps {
-    /// Almost always sent
-    ///
-    /// ex: "Linux", "Windows", "Mac OS X"
-    ///
-    /// ex (mobile): "Windows Mobile", "iOS", "Android", "BlackBerry"
-    #[serde(default)]
-    pub os: String,
-    /// Almost always sent
-    ///
-    /// ex: "Firefox", "Chrome", "Opera Mini", "Opera", "Blackberry", "Facebook Mobile", "Chrome iOS", "Mobile Safari", "Safari", "Android Chrome", "Android Mobile", "Edge", "Konqueror", "Internet Explorer", "Mozilla", "Discord Client"
-    #[serde(default)]
-    pub browser: String,
-    /// Sometimes not sent, acceptable to be ""
-    ///
-    /// Speculation:
-    /// Only sent for mobile devices
-    ///
-    /// ex: "BlackBerry", "Windows Phone", "Android", "iPhone", "iPad", ""
-    #[serde_as(as = "NoneAsEmptyString")]
-    pub device: Option<String>,
-    /// Almost always sent, most commonly en-US
-    ///
-    /// ex: "en-US"
-    #[serde(default)]
-    pub system_locale: String,
-    /// Almost always sent
-    ///
-    /// ex: any user agent, most common is "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
-    #[serde(default)]
-    pub browser_user_agent: String,
-    /// Almost always sent
-    ///
-    /// ex: "113.0.0.0"
-    #[serde(default)]
-    pub browser_version: String,
-    /// Sometimes not sent, acceptable to be ""
-    ///
-    /// ex: "10" (For os = "Windows")
-    #[serde_as(as = "NoneAsEmptyString")]
-    pub os_version: Option<String>,
-    /// Sometimes not sent, acceptable to be ""
-    #[serde_as(as = "NoneAsEmptyString")]
-    pub referrer: Option<String>,
-    /// Sometimes not sent, acceptable to be ""
-    #[serde_as(as = "NoneAsEmptyString")]
-    pub referring_domain: Option<String>,
-    /// Sometimes not sent, acceptable to be ""
-    #[serde_as(as = "NoneAsEmptyString")]
-    pub referrer_current: Option<String>,
-    /// Almost always sent, most commonly "stable"
-    #[serde(default)]
-    pub release_channel: String,
-    /// Almost always sent, identifiable if default is 0, should be around 199933
-    #[serde(default)]
-    pub client_build_number: u64,
-    //pub client_event_source: Option<?>
-}
-
-impl Default for GatewayIdentifyConnectionProps {
-    /// Uses the most common, 25% data
-    fn default() -> Self {
-        Self::common()
-    }
-}
-
-impl GatewayIdentifyConnectionProps {
-    /// Returns a minimal, least data possible default
-    fn minimal() -> Self {
-        Self {
-            os: String::new(),
-            browser: String::new(),
-            device: None,
-            system_locale: String::from("en-US"),
-            browser_user_agent: String::new(),
-            browser_version: String::new(),
-            os_version: None,
-            referrer: None,
-            referring_domain: None,
-            referrer_current: None,
-            release_channel: String::from("stable"),
-            client_build_number: 0,
-        }
-    }
-
-    /// Returns the most common connection props so we can't be tracked
-    pub fn common() -> Self {
-        Self {
-            // See https://www.useragents.me/#most-common-desktop-useragents
-            // 25% of the web
-            //default.browser_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36".to_string();
-            browser: String::from("Chrome"),
-            browser_version: String::from("126.0.0.0"),
-            system_locale: String::from("en-US"),
-            os: String::from("Windows"),
-            os_version: Some(String::from("10")),
-            client_build_number: 222963,
-            release_channel: String::from("stable"),
-            ..Self::minimal()
         }
     }
 }
