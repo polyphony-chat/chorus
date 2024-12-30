@@ -8,7 +8,12 @@ use log::*;
 use std::fmt::Debug;
 
 use super::{events::Events, *};
-use crate::types::{self, Composite, Opcode, Shared};
+use crate::types::{self, Composite, GuildMembersChunk, Opcode, Shared, VoiceStateUpdate};
+
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::sleep;
+#[cfg(target_arch = "wasm32")]
+use wasmtimer::tokio::sleep;
 
 /// Represents a handle to a Gateway connection.
 ///
@@ -106,21 +111,115 @@ impl GatewayHandle {
     }
 
     /// Sends an identify event ([types::GatewayIdentifyPayload]) to the gateway
+    ///
+    /// Fires off a [types::GatewayReady] event
     pub async fn send_identify(&self, to_send: types::GatewayIdentifyPayload) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         trace!("GW: Sending Identify..");
 
-        self.send_json_event(Opcode::Identify as u8, to_send_value).await;
+        self.send_json_event(Opcode::Identify as u8, to_send_value)
+            .await;
+    }
+
+    /// Sends an identify event ([types::GatewayIdentifyPayload]) to the gateway and
+    /// waits to receive a [types::GatewayReady] event.
+    ///
+    /// Returns [GatewayError::NoResponse] if the server sends no response after 5 seconds of
+    /// waiting
+    pub async fn identify(
+        &self,
+        to_send: types::GatewayIdentifyPayload,
+    ) -> Result<types::GatewayReady, GatewayError> {
+        self.send_identify(to_send).await;
+
+        let (observer, receiver) = OneshotEventObserver::<types::GatewayReady>::new();
+
+        self.events
+            .lock()
+            .await
+            .session
+            .ready
+            .subscribe(observer.clone());
+
+        loop {
+            tokio::select! {
+                  () = sleep(std::time::Duration::from_secs(5)) => {
+                      // Timeout
+                      self.events.lock().await.session.ready.unsubscribe(observer);
+                      return Err(GatewayError::NoResponse);
+                  }
+                  result = receiver => {
+                      match result {
+                          Ok(event) => {
+                              self.events.lock().await.session.ready.unsubscribe(observer);
+                              return Ok(event);
+                          }
+                          Err(e) => {
+                              warn!("Gateway in-place-events receive error: {:?}", e);
+                              self.events.lock().await.session.ready.unsubscribe(observer);
+                              return Err(GatewayError::Unknown);
+                          }
+                      }
+                  }
+            }
+        }
     }
 
     /// Sends a resume event ([types::GatewayResume]) to the gateway
+    ///
+    /// Fires off a [types::GatewayResumed] event after replaying missed events
     pub async fn send_resume(&self, to_send: types::GatewayResume) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
         trace!("GW: Sending Resume..");
 
-        self.send_json_event(Opcode::Resume as u8, to_send_value).await;
+        self.send_json_event(Opcode::Resume as u8, to_send_value)
+            .await;
+    }
+
+    /// Sends a resume event ([types::GatewayResume]) to the gateway and
+    /// waits to receive a [types::GatewayResumed] event.
+    ///
+    /// Returns [GatewayError::NoResponse] if the server sends no response after 5 seconds of
+    /// waiting
+    pub async fn resume(
+        &self,
+        to_send: types::GatewayResume,
+    ) -> Result<types::GatewayResumed, GatewayError> {
+        self.send_resume(to_send).await;
+
+        let (observer, receiver) = OneshotEventObserver::<types::GatewayResumed>::new();
+
+        self.events
+            .lock()
+            .await
+            .session
+            .resumed
+            .subscribe(observer.clone());
+
+        loop {
+            tokio::select! {
+                  () = sleep(std::time::Duration::from_secs(5)) => {
+                      // Timeout
+                      self.events.lock().await.session.resumed.unsubscribe(observer);
+                      return Err(GatewayError::NoResponse);
+                  }
+                  result = receiver => {
+                      match result {
+                          Ok(event) => {
+                              self.events.lock().await.session.resumed.unsubscribe(observer);
+                              return Ok(event);
+                          }
+                          Err(e) => {
+                              warn!("Gateway in-place-events receive error: {:?}", e);
+                              self.events.lock().await.session.resumed.unsubscribe(observer);
+                              return Err(GatewayError::Unknown);
+                          }
+                      }
+                  }
+            }
+        }
     }
 
     /// Sends an update presence event ([types::UpdatePresence]) to the gateway
@@ -133,7 +232,9 @@ impl GatewayHandle {
             .await;
     }
 
-    /// Sends a request guild members ([types::GatewayRequestGuildMembers]) to the server
+    /// Sends a request guild members ([types::GatewayRequestGuildMembers]) event to the server
+    ///
+    /// Fires off one or more [types::GuildMembersChunk]
     pub async fn send_request_guild_members(&self, to_send: types::GatewayRequestGuildMembers) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
@@ -143,7 +244,61 @@ impl GatewayHandle {
             .await;
     }
 
-    /// Sends an update voice state ([types::UpdateVoiceState]) to the server
+    /// Sends a request guild members ([types::GatewayRequestGuildMembers]) event to the server and
+    /// waits to receive all [types::GuildMembersChunk]s
+    ///
+    /// Returns [GatewayError::NoResponse] if the server sends no response after 5 seconds of
+    /// waiting
+    pub async fn request_guild_members(
+        &self,
+        to_send: types::GatewayRequestGuildMembers,
+    ) -> Result<Vec<GuildMembersChunk>, GatewayError> {
+        self.send_request_guild_members(to_send).await;
+
+        let (observer, mut receiver) = BroadcastEventObserver::<GuildMembersChunk>::new(32);
+
+        self.events
+            .lock()
+            .await
+            .guild
+            .members_chunk
+            .subscribe(observer.clone());
+
+        let mut chunks = Vec::new();
+
+        loop {
+            tokio::select! {
+                  () = sleep(std::time::Duration::from_secs(5)) => {
+                      // Timeout
+                      self.events.lock().await.guild.members_chunk.unsubscribe(observer);
+                      return Err(GatewayError::NoResponse);
+                  }
+                  result = receiver.recv() => {
+                      match result {
+                          Ok(event) => {
+                              let remaining = event.chunk_count - (event.chunk_index + 1);
+
+                              chunks.push(event);
+
+                              if remaining < 1 {
+                                  self.events.lock().await.guild.members_chunk.unsubscribe(observer);
+                                  return Ok(chunks);
+                              }
+                          }
+                          Err(e) => {
+                              warn!("Gateway in-place-events receive error: {:?}", e);
+                              self.events.lock().await.guild.members_chunk.unsubscribe(observer);
+                              return Err(GatewayError::Unknown);
+                          }
+                      }
+                  }
+            }
+        }
+    }
+
+    /// Sends an update voice state ([types::UpdateVoiceState]) event to the server
+    ///
+    /// Fires a [types::VoiceStateUpdate] event if the user left or joined a different channel
     pub async fn send_update_voice_state(&self, to_send: types::UpdateVoiceState) {
         let to_send_value = serde_json::to_value(to_send).unwrap();
 
@@ -153,21 +308,69 @@ impl GatewayHandle {
             .await;
     }
 
+    /// Sends an update voice state ([types::UpdateVoiceState]) event to the server and
+    /// waits to receive a [types::VoiceStateUpdate] event
+    ///
+    /// Returns [None] if the server sends no response after a second of
+    /// waiting
+    ///
+    /// Note that not receiving a response is normal behaviour if the user didn't leave or join a
+    /// new voice channel
+    pub async fn update_voice_state(
+        &self,
+        to_send: types::UpdateVoiceState,
+    ) -> Option<VoiceStateUpdate> {
+        self.send_update_voice_state(to_send).await;
+
+        let (observer, receiver) = OneshotEventObserver::<VoiceStateUpdate>::new();
+
+        self.events
+            .lock()
+            .await
+            .voice
+            .state_update
+            .subscribe(observer.clone());
+
+        loop {
+            tokio::select! {
+                  () = sleep(std::time::Duration::from_secs(1)) => {
+                      // Timeout
+                      self.events.lock().await.voice.state_update.unsubscribe(observer);
+                      return None;
+                  }
+                  result = receiver => {
+                      match result {
+                          Ok(event) => {
+                              self.events.lock().await.voice.state_update.unsubscribe(observer);
+                              return Some(event);
+                          }
+                          Err(e) => {
+                              warn!("Gateway in-place-events receive error: {:?}", e);
+                              self.events.lock().await.voice.state_update.unsubscribe(observer);
+                              return None;
+                          }
+                      }
+                  }
+            }
+        }
+    }
+
     /// Sends a call sync ([types::CallSync]) to the server
     pub async fn send_call_sync(&self, to_send: types::CallSync) {
         let to_send_value = serde_json::to_value(to_send).unwrap();
 
         trace!("GW: Sending Call Sync..");
 
-        self.send_json_event(Opcode::CallConnect as u8, to_send_value).await;
+        self.send_json_event(Opcode::CallConnect as u8, to_send_value)
+            .await;
     }
 
-	 /// Sends a request call connect event (aka [types::CallSync]) to the server
-	 ///
-	 /// # Notes
-	 /// Alias of [Self::send_call_sync]
+    /// Sends a request call connect event (aka [types::CallSync]) to the server
+    ///
+    /// # Notes
+    /// Alias of [Self::send_call_sync]
     pub async fn send_request_call_connect(&self, to_send: types::CallSync) {
-		 self.send_call_sync(to_send).await
+        self.send_call_sync(to_send).await
     }
 
     /// Sends a Lazy Request ([types::LazyRequest]) to the server
@@ -180,9 +383,9 @@ impl GatewayHandle {
             .await;
     }
 
-	 /// Sends a Request Last Messages ([types::RequestLastMessages]) to the server
-	 ///
-	 /// The server should respond with a [types::LastMessages] event
+    /// Sends a Request Last Messages ([types::RequestLastMessages]) to the server
+    ///
+    /// Fires off a [types::LastMessages] event
     pub async fn send_request_last_messages(&self, to_send: types::RequestLastMessages) {
         let to_send_value = serde_json::to_value(&to_send).unwrap();
 
@@ -192,9 +395,53 @@ impl GatewayHandle {
             .await;
     }
 
-    /// Closes the websocket connection and stops all gateway tasks;
+    /// Sends a Request Last Messages ([types::RequestLastMessages]) event to the server and
+    /// waits to receive a [types::LastMessages] event
     ///
-    /// Essentially pulls the plug on the gateway, leaving it possible to resume;
+    /// Returns [None] if the server sends no response after 5 seconds of
+    /// waiting
+    pub async fn request_last_messages(
+        &self,
+        to_send: types::RequestLastMessages,
+    ) -> Result<types::LastMessages, GatewayError> {
+        self.send_request_last_messages(to_send).await;
+
+        let (observer, receiver) = OneshotEventObserver::<types::LastMessages>::new();
+
+        self.events
+            .lock()
+            .await
+            .message
+            .last_messages
+            .subscribe(observer.clone());
+
+        loop {
+            tokio::select! {
+                  () = sleep(std::time::Duration::from_secs(5)) => {
+                      // Timeout
+                      self.events.lock().await.message.last_messages.unsubscribe(observer);
+                      return Err(GatewayError::NoResponse);
+                  }
+                  result = receiver => {
+                      match result {
+                          Ok(event) => {
+                              self.events.lock().await.message.last_messages.unsubscribe(observer);
+                              return Ok(event);
+                          }
+                          Err(e) => {
+                              warn!("Gateway in-place-events receive error: {:?}", e);
+                              self.events.lock().await.message.last_messages.unsubscribe(observer);
+                              return Err(GatewayError::Unknown);
+                          }
+                      }
+                  }
+            }
+        }
+    }
+
+    /// Closes the websocket connection and stops all gateway tasks.
+    ///
+    /// Essentially pulls the plug on the gateway, leaving it possible to resume
     pub async fn close(&self) {
         self.kill_send.send(()).unwrap();
         self.websocket_send.lock().await.close().await.unwrap();
