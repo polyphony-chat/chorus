@@ -11,7 +11,74 @@ use pubserve::Subscriber;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-/// Observes an event once and sends it via a [tokio::sync::oneshot] channel
+/// Observes an event once and sends it via a [tokio::sync::oneshot] channel.
+///
+/// # Examples
+/// ```
+/// let handle: GatewayHandle; // Get this either by user.gateway or by manually opening a connection
+///
+/// // Let's say we want to wait until the next MessageCreate event
+/// // Create the observer and receiver
+/// let (observer, receiver) = OneshotEventObserver::<types::MessageCreate>::new();
+///
+/// // Subscribe the observer, so it receives events
+/// // Note that we clone the reference so we can later unsubscribe the observer
+/// handle.events.lock().await.message.create.subscribe(observer.clone());
+///
+/// // Await the event
+/// let result = receiver.await;
+///
+/// match result {
+///	Ok(event) => {
+///		println!("Yay! we received the event!");
+///	}
+///	Err(e) => {
+///		println!("We sadly encountered an error: {:?}", e);
+///	}
+/// }
+///
+/// // The observer has now served its purpose, unsubscribe it
+/// handle.events.lock().await.message.create.unsubscribe(observer);
+///
+/// // Since we dropped all the references to the observer,
+/// // it is now deleted
+/// ```
+///
+/// We can also use [tokio::select] to await with a timeout:
+///
+/// ```
+/// let handle: GatewayHandle; // Get this either by user.gateway or by manually opening a connection
+///
+/// // Let's say we want to wait until the next MessageCreate event, if it happens in the next 10 seconds
+/// // Create the observer and receiver
+/// let (observer, receiver) = OneshotEventObserver::<types::MessageCreate>::new();
+///
+/// // Subscribe the observer, so it receives events
+/// // Note that we clone the reference so we can later unsubscribe the observer
+/// handle.events.lock().await.message.create.subscribe(observer.clone());
+///
+/// tokio::select! {
+///	() = sleep(Duration::from_secs(10)) => {
+///		// No event happened in 10 seconds
+///	}
+///	result = receiver => {
+///		match result {
+///			Ok(event) => {
+///				println!("Yay! we received the event!");
+///			}
+///			Err(e) => {
+///				println!("We sadly encountered an error: {:?}", e);
+///			}
+///		}
+///	}
+/// }
+///
+/// // The observer has now served its purpose, unsubscribe it
+/// handle.events.lock().await.message.create.unsubscribe(observer);
+///
+/// // Since we dropped all the references to the observer,
+/// // it is now deleted
+/// ```
 #[derive(Debug)]
 pub struct OneshotEventObserver<T>
 where
@@ -64,6 +131,79 @@ where
 }
 
 /// Observes an event indefinitely and sends it via a [tokio::sync::broadcast] channel
+///
+/// # Examples
+/// ```
+/// let handle: GatewayHandle; // Get this either by user.gateway or by manually opening a connection
+///
+/// // Let's say we want to wait for every MessageCreate event
+/// // Create the observer and receiver
+/// let (observer, receiver) = BroadcastEventObserver::<types::MessageCreate>::new();
+///
+/// // Subscribe the observer, so it receives events
+/// // Note that we clone the reference so we can later unsubscribe the observer
+/// handle.events.lock().await.message.create.subscribe(observer.clone());
+///
+/// loop {
+///	let result = receiver.recv().await;
+///
+///	match result {
+///		Ok(event) => {
+///			println!("Yay! we received the event!");
+///		}
+///		Err(e) => {
+///			println!("We sadly encountered an error: {:?}", e);
+///			break;
+///		}
+///	}
+/// }
+///
+/// // The observer has now served its purpose, unsubscribe it
+/// handle.events.lock().await.message.create.unsubscribe(observer);
+///
+/// // Since we dropped all the references to the observer,
+/// // it is now deleted
+/// ```
+///
+/// We can also use [tokio::select] to await with a timeout:
+///
+/// ```
+/// let handle: GatewayHandle; // Get this either by user.gateway or by manually opening a connection
+///
+/// // Let's say we want to wait for every MessageCreate event, if it takes less than 10 seconds
+/// // Create the observer and receiver
+/// let (observer, receiver) = BroadcastEventObserver::<types::MessageCreate>::new();
+///
+/// // Subscribe the observer, so it receives events
+/// // Note that we clone the reference so we can later unsubscribe the observer
+/// handle.events.lock().await.message.create.subscribe(observer.clone());
+///
+/// loop {
+///   tokio::select! {
+///		() = sleep(Duration::from_secs(10)) => {
+///			println!("Waited for 10 seconds with no message, stopping");
+///			break;
+///		}
+///		result = receiver.recv() => {
+///			match result {
+///				Ok(event) => {
+///					println!("Yay! we received the event!");
+///				}
+///				Err(e) => {
+///					println!("We sadly encountered an error: {:?}", e);
+///					break;
+///				}
+///			}
+///		}
+///   }
+/// }
+///
+/// // The observer has now served its purpose, unsubscribe it
+/// handle.events.lock().await.message.create.unsubscribe(observer);
+///
+/// // Since we dropped all the references to the observer,
+/// // it is now deleted
+/// ```
 #[derive(Debug)]
 pub struct BroadcastEventObserver<T>
 where
