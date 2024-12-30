@@ -26,9 +26,8 @@ impl ChorusUser {
                     self.belongs_to.read().unwrap().urls.api,
                     guild_id
                 ))
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&lurking).unwrap()),
+                // FIXME not how you serialize this
+                .json(&lurking),
             limit_type: LimitType::Guild(*guild_id),
         }
         .handle_request_as_result(self)
@@ -44,12 +43,10 @@ impl ChorusUser {
         &mut self,
         query: Option<GetUserGuildSchema>,
     ) -> ChorusResult<Vec<Guild>> {
-
         let query_parameters = {
             if let Some(query_some) = query {
                 query_some.to_query()
-            }
-            else {
+            } else {
                 Vec::new()
             }
         };
@@ -59,14 +56,12 @@ impl ChorusUser {
             self.belongs_to.read().unwrap().urls.api,
         );
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .get(url)
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json")
-                .query(&query_parameters),
+            request: Client::new().get(url).query(&query_parameters),
 
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(self);
+
         chorus_request
             .deserialize_response::<Vec<Guild>>(self)
             .await

@@ -23,15 +23,18 @@ impl ChorusUser {
         session_id: Option<&str>,
     ) -> ChorusResult<Invite> {
         let mut request = ChorusRequest {
-            request: Client::new()
-                .post(format!(
-                    "{}/invites/{}",
-                    self.belongs_to.read().unwrap().urls.api,
-                    invite_code
-                ))
-                .header("Authorization", self.token()),
+            request: Client::new().post(format!(
+                "{}/invites/{}",
+                self.belongs_to.read().unwrap().urls.api,
+                invite_code
+            )),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(self);
+
+        // FIXME: Not how this is serialized!
+        //
+        // It should be as """{"session_id": "something"}"""
         if let Some(session_id) = session_id {
             request.request = request
                 .request
@@ -54,11 +57,10 @@ impl ChorusUser {
                     "{}/users/@me/invites",
                     self.belongs_to.read().unwrap().urls.api
                 ))
-                .body(to_string(&code).unwrap())
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json"),
+                .json(&code),
             limit_type: LimitType::Global,
         }
+        .with_headers_for(self)
         .deserialize_response::<Invite>(self)
         .await
     }
@@ -82,11 +84,10 @@ impl ChorusUser {
                     self.belongs_to.read().unwrap().urls.api,
                     channel_id
                 ))
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&create_channel_invite_schema).unwrap()),
+                .json(&create_channel_invite_schema),
             limit_type: LimitType::Channel(channel_id),
         }
+        .with_headers_for(self)
         .deserialize_response::<GuildInvite>(self)
         .await
     }

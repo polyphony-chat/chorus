@@ -12,8 +12,9 @@ use crate::gateway::Gateway;
 use crate::instance::{ChorusUser, Instance};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
-    MfaAuthenticationType, GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema,
-    SendMfaSmsResponse, SendMfaSmsSchema, User, VerifyMFALoginResponse, VerifyMFALoginSchema,
+    ClientProperties, GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema,
+    MfaAuthenticationType, SendMfaSmsResponse, SendMfaSmsSchema, User, VerifyMFALoginResponse,
+    VerifyMFALoginSchema,
 };
 
 impl Instance {
@@ -24,12 +25,11 @@ impl Instance {
     pub async fn login_account(&mut self, login_schema: LoginSchema) -> ChorusResult<ChorusUser> {
         let endpoint_url = self.urls.api.clone() + "/auth/login";
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(endpoint_url)
-                .body(to_string(&login_schema).unwrap())
-                .header("Content-Type", "application/json"),
+            request: Client::new().post(endpoint_url).json(&login_schema),
             limit_type: LimitType::AuthLogin,
-        };
+        }
+        // Note: yes, this is still sent even for login and register
+        .with_client_properties(&ClientProperties::default());
 
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since login is an instance wide limit), which is why we are just cloning the
@@ -58,12 +58,11 @@ impl Instance {
         let endpoint_url = self.urls.api.clone() + "/auth/mfa/" + &authenticator.to_string();
 
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(endpoint_url)
-                .header("Content-Type", "application/json")
-                .json(&schema),
+            request: Client::new().post(endpoint_url).json(&schema),
             limit_type: LimitType::AuthLogin,
-        };
+        }
+        // Note: yes, this is still sent even for login and register
+        .with_client_properties(&ClientProperties::default());
 
         let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
 
@@ -94,7 +93,7 @@ impl Instance {
     ///
     /// # Reference
     /// See <https://docs.discord.sex/authentication#send-mfa-sms>
-    // FIXME: This uses ChorusUser::shell, when it *really* shoudln't, but
+    // FIXME: This uses ChorusUser::shell, when it *really* shouldn't, but
     // there is no other way to send a ratelimited request
     pub async fn send_mfa_sms(
         &mut self,

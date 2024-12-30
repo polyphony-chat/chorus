@@ -25,7 +25,7 @@ impl Instance {
     pub async fn login_with_token(&mut self, token: &str) -> ChorusResult<ChorusUser> {
         let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
 
-		  user.update_with_login_data(token.to_string(), None).await?;
+        user.update_with_login_data(token.to_string(), None).await?;
 
         Ok(user)
     }
