@@ -47,7 +47,7 @@ use crate::{instance::ChorusUser, ratelimiter::ChorusRequest};
 ///
 /// # Disabling
 ///
-/// By setting [ClientProperties.send_telemetry_headers] to false, it is possible to disable
+/// By setting [ClientProperties::send_telemetry_headers] to false, it is possible to disable
 /// sending these properties via headers in the HTTP API.
 ///
 /// (Sending them via the gateway is required, since it is a non-optional field in the schema)
