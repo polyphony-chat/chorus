@@ -6,6 +6,9 @@ use base64::Engine;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
+#[cfg(feature = "client")]
+use crate::{instance::ChorusUser, ratelimiter::ChorusRequest};
+
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde_as]
 /// Tracking information for the current client, which is sent to
@@ -362,6 +365,64 @@ impl ClientProperties {
         let as_json = serde_json::to_string(self).unwrap();
 
         base64::prelude::BASE64_STANDARD.encode(as_json)
+    }
+}
+
+#[cfg(feature = "client")]
+impl ChorusRequest {
+    /// Adds client telemetry data to the request.
+    ///
+    /// Sets the X-Super-Properties, X-Discord-Locale and X-Debug-Options headers
+    ///
+    /// For more info, see [ClientProperties]
+    pub(crate) fn with_client_properties(self, properties: &ClientProperties) -> ChorusRequest {
+        let mut request = self;
+
+        let properties_as_b64 = properties.to_base64();
+
+        request.request = request
+            .request
+            .header("X-Super-Properties", properties_as_b64);
+
+        // Fake discord locale as being the same as system locale
+        request.request = request
+            .request
+            .header("X-Discord-Locale", &properties.system_locale.0);
+        request.request = request
+            .request
+            .header("X-Debug-Options", "bugReporterEnabled");
+
+        // TODO: X-Discord-Timezone
+        //
+        // Does spoofing this have any real effect?
+        //
+        // Also, there is no clear "most common" option
+        // the most populous is UTC+08, but who's to say
+        // it's discord's most common one
+        //
+        // The US has the biggest market share per country (30%),
+        // which makes something like eastern time an option
+        //
+        // My speculation however is that just sending EST still
+        // sticks out, since most users will send a timezone like
+        // America/Toronto
+        //
+        // koza, 30/12/2024
+
+        // Note: User-Agent is set in ChorusRequest::send_request, since
+        // we want to send it for every request, even if it isn't
+        // to discord's servers directly
+
+        request
+    }
+
+    /// Adds client telemetry data for a [ChorusUser] to the request.
+    ///
+    /// Sets the X-Super-Properties, X-Discord-Locale and X-Debug-Options headers
+    ///
+    /// For more info, see [ClientProperties]
+    pub(crate) fn with_client_properties_for(self, user: &ChorusUser) -> ChorusRequest {
+        self.with_client_properties(&user.client_properties)
     }
 }
 

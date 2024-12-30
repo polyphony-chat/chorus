@@ -532,6 +532,56 @@ impl ChorusRequest {
         };
         Ok(object)
     }
+
+    /// Adds an audit log reason to the request.
+    ///
+    /// Sets the X-Audit-Log-Reason header
+    pub(crate) fn with_audit_log_reason(self, reason: String) -> ChorusRequest {
+        let mut request = self;
+
+        request.request = request.request.header("X-Audit-Log-Reason", reason);
+        request
+    }
+
+    /// Adds an audit log reason to the request, if it is [Some]
+    ///
+    /// Sets the X-Audit-Log-Reason header
+    pub(crate) fn with_maybe_audit_log_reason(self, reason: Option<String>) -> ChorusRequest {
+        if let Some(reason_some) = reason {
+            return self.with_audit_log_reason(reason_some);
+        }
+
+        self
+    }
+
+    /// Adds an authorization token to the request.
+    ///
+    /// Sets the Authorization header
+    pub(crate) fn with_authorization(self, token: &String) -> ChorusRequest {
+        let mut request = self;
+
+        request.request = request.request.header("Authorization", token);
+        request
+    }
+
+    /// Adds authorization for a [ChorusUser] to the request.
+    ///
+    /// Sets the Authorization header
+    pub(crate) fn with_authorization_for(self, user: &ChorusUser) -> ChorusRequest {
+        self.with_authorization(&user.token)
+    }
+
+    /// Adds user-specific headers for a [ChorusUser] to the request.
+    ///
+    /// Adds authorization and telemetry; for specific details see
+    /// [Self::with_authorization_for] and [Self::with_client_properties_for]
+    ///
+    /// If a route you're adding involves authorization as the user, you
+    /// should likely use this method.
+    pub(crate) fn with_headers_for(self, user: &ChorusUser) -> ChorusRequest {
+        self.with_authorization_for(user)
+            .with_client_properties_for(user)
+    }
 }
 
 enum LimitOrigin {
