@@ -45,6 +45,16 @@ use crate::{instance::ChorusUser, ratelimiter::ChorusRequest};
 /// Sadly, tracking data is also the most common way distinguish between real users
 /// and poorly made self-bots abusing the user api.
 ///
+/// # Disabling
+///
+/// By setting [ClientProperties.send_telemetry_headers] to false, it is possible to disable
+/// sending these properties via headers in the HTTP API.
+///
+/// (Sending them via the gateway is required, since it is a non-optional field in the schema)
+///
+/// **Note that unless connecting to a server you specifically know doesn't care about these
+/// headers, it is recommended to leave them enabled.**
+///
 /// # Profiles
 ///
 /// Chorus contains a bunch of premade profiles:
@@ -60,6 +70,16 @@ use crate::{instance::ChorusUser, ratelimiter::ChorusRequest};
 /// # Reference
 /// See <https://docs.discord.sex/reference#client-properties>
 pub struct ClientProperties {
+    /// **Not part of the sent data**
+    ///
+    /// If set to false, disables sending X-Super-Properties, X-Discord-Locale and X-Debug-Options
+    /// headers in the HTTP API.
+    ///
+    /// Note that unless connecting to a server you specifically know doesn't care about these
+    /// headers, it is recommended to leave them enabled.
+    #[serde(skip_serializing)]
+    pub send_telemetry_headers: bool,
+
     /// Always sent, must be provided
     ///
     /// See [ClientOs] for more details
@@ -246,6 +266,7 @@ impl ClientProperties {
     /// If creating your own profile, use `..Self::minimal()` instead of `..Self::default()`
     pub fn minimal() -> Self {
         Self {
+            send_telemetry_headers: true,
             os: ClientOs::custom(String::new()),
             os_version: ClientOsVersion::custom(String::new()),
             browser: ClientBrowser::custom(String::new()),
@@ -376,6 +397,11 @@ impl ChorusRequest {
     ///
     /// For more info, see [ClientProperties]
     pub(crate) fn with_client_properties(self, properties: &ClientProperties) -> ChorusRequest {
+        // If they are specifically disabled, just return the unmodified request
+        if !properties.send_telemetry_headers {
+            return self;
+        }
+
         let mut request = self;
 
         let properties_as_b64 = properties.to_base64();
