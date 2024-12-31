@@ -146,18 +146,18 @@ impl GatewayHandle {
               () = sleep(std::time::Duration::from_secs(5)) => {
                   // Timeout
                   self.events.lock().await.session.ready.unsubscribe(observer);
-                  return Err(GatewayError::NoResponse);
+                  Err(GatewayError::NoResponse)
               }
               result = receiver => {
                   match result {
                       Ok(event) => {
                           self.events.lock().await.session.ready.unsubscribe(observer);
-                          return Ok(event);
+                          Ok(event)
                       }
                       Err(e) => {
                           warn!("Gateway in-place-events receive error: {:?}", e);
                           self.events.lock().await.session.ready.unsubscribe(observer);
-                          return Err(GatewayError::Unknown);
+                          Err(GatewayError::Unknown)
                       }
                   }
               }
@@ -200,18 +200,18 @@ impl GatewayHandle {
               () = sleep(std::time::Duration::from_secs(5)) => {
                   // Timeout
                   self.events.lock().await.session.resumed.unsubscribe(observer);
-                  return Err(GatewayError::NoResponse);
+                  Err(GatewayError::NoResponse)
               }
               result = receiver => {
                   match result {
                       Ok(event) => {
                           self.events.lock().await.session.resumed.unsubscribe(observer);
-                          return Ok(event);
+                          Ok(event)
                       }
                       Err(e) => {
                           warn!("Gateway in-place-events receive error: {:?}", e);
                           self.events.lock().await.session.resumed.unsubscribe(observer);
-                          return Err(GatewayError::Unknown);
+                          Err(GatewayError::Unknown)
                       }
                   }
               }
@@ -331,18 +331,18 @@ impl GatewayHandle {
               () = sleep(std::time::Duration::from_secs(1)) => {
                   // Timeout
                   self.events.lock().await.voice.state_update.unsubscribe(observer);
-                  return None;
+                  None
               }
               result = receiver => {
                   match result {
                       Ok(event) => {
                           self.events.lock().await.voice.state_update.unsubscribe(observer);
-                          return Some(event);
+                          Some(event)
                       }
                       Err(e) => {
                           warn!("Gateway in-place-events receive error: {:?}", e);
                           self.events.lock().await.voice.state_update.unsubscribe(observer);
-                          return None;
+                          None
                       }
                   }
               }
@@ -413,18 +413,18 @@ impl GatewayHandle {
               () = sleep(std::time::Duration::from_secs(5)) => {
                   // Timeout
                   self.events.lock().await.message.last_messages.unsubscribe(observer);
-                  return Err(GatewayError::NoResponse);
+                  Err(GatewayError::NoResponse)
               }
               result = receiver => {
                   match result {
                       Ok(event) => {
                           self.events.lock().await.message.last_messages.unsubscribe(observer);
-                          return Ok(event);
+                          Ok(event)
                       }
                       Err(e) => {
                           warn!("Gateway in-place-events receive error: {:?}", e);
                           self.events.lock().await.message.last_messages.unsubscribe(observer);
-                          return Err(GatewayError::Unknown);
+                          Err(GatewayError::Unknown)
                       }
                   }
               }
