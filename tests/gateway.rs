@@ -11,8 +11,8 @@ use async_trait::async_trait;
 use chorus::errors::GatewayError;
 use chorus::gateway::*;
 use chorus::types::{
-    self, Channel, ChannelCreateSchema, ChannelModifySchema, GatewayReady, IntoShared,
-    RoleCreateModifySchema, RoleObject,
+    self, Channel, ChannelCreateSchema, ChannelModifySchema, IntoShared, RoleCreateModifySchema,
+    RoleObject,
 };
 use pubserve::Subscriber;
 #[cfg(target_arch = "wasm32")]
@@ -38,18 +38,6 @@ async fn test_gateway_establish() {
 }
 
 #[derive(Debug)]
-struct GatewayReadyObserver {
-    channel: tokio::sync::mpsc::Sender<()>,
-}
-
-#[async_trait]
-impl Subscriber<GatewayReady> for GatewayReadyObserver {
-    async fn update(&self, _data: &GatewayReady) {
-        self.channel.send(()).await.unwrap();
-    }
-}
-
-#[derive(Debug)]
 struct GatewayErrorObserver {
     channel: tokio::sync::mpsc::Sender<GatewayError>,
 }
@@ -71,33 +59,15 @@ async fn test_gateway_authenticate() {
         .await
         .unwrap();
 
-    let (ready_send, mut ready_receive) = tokio::sync::mpsc::channel(1);
-
-    let observer = Arc::new(GatewayReadyObserver {
-        channel: ready_send,
-    });
-
-    gateway
-        .events
-        .lock()
-        .await
-        .session
-        .ready
-        .subscribe(observer);
-
     let mut identify = types::GatewayIdentifyPayload::common();
     identify.token = bundle.user.token.clone();
 
-    gateway.send_identify(identify).await;
-
-    tokio::select! {
-        // Fail, we timed out waiting for it
-        () = sleep(Duration::from_secs(20)) => {
-            println!("Timed out waiting for event, failing..");
+    match gateway.identify(identify).await {
+        Ok(_) => {}
+        Err(e) => {
+            println!("Failed to identify with error {}, failing", e);
             assert!(false);
         }
-        // Success, we have received it
-        Some(_) = ready_receive.recv() => {}
     }
 
     common::teardown(bundle).await
@@ -123,20 +93,7 @@ async fn test_gateway_errors() {
         .await
         .unwrap();
 
-    // First we'll authenticate, wait for ready, and then authenticate again to get AlreadyAuthenticated
-    let (ready_send, mut ready_receive) = tokio::sync::mpsc::channel(1);
-
-    let observer = Arc::new(GatewayReadyObserver {
-        channel: ready_send,
-    });
-
-    gateway
-        .events
-        .lock()
-        .await
-        .session
-        .ready
-        .subscribe(observer);
+    // First we'll authenticate, then authenticate again to get AlreadyAuthenticated
 
     let (error_send, mut error_receive) = tokio::sync::mpsc::channel(1);
 
@@ -149,24 +106,19 @@ async fn test_gateway_errors() {
     let mut identify = types::GatewayIdentifyPayload::common();
     identify.token = bundle.user.token.clone();
 
-    // Identify and wait to receive ready
-    gateway.send_identify(identify.clone()).await;
-
-    tokio::select! {
-        // Fail, we timed out waiting for it
-        () = sleep(Duration::from_secs(20)) => {
-            println!("Timed out waiting for ready, failing..");
+    match gateway.identify(identify.clone()).await {
+        Ok(_) => {}
+        Err(e) => {
+            println!("Failed to identify with error {}, failing", e);
             assert!(false);
         }
-        // Success, we have received it
-        Some(_) = ready_receive.recv() => {}
     }
 
     // Identify again, so we should receive already authenticated
     gateway.send_identify(identify).await;
 
     tokio::select! {
-        // Fail, we timed out waiting for it
+        // Fail, we timed out waiting for the error
         () = sleep(Duration::from_secs(20)) => {
             assert!(false);
         }

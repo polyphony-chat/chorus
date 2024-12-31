@@ -105,6 +105,10 @@ custom_error! {
     CannotConnect{error: String} = "Cannot connect due to a websocket error: {error}",
     NonHelloOnInitiate{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
 
+     // Errors for the in-place-events api
+     /// Server did not respond to our request in time
+     NoResponse = "Server did not respond in time",
+
     // Other misc errors
     UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",
 }

@@ -10,6 +10,7 @@ pub mod gateway;
 pub mod handle;
 pub mod heartbeat;
 pub mod message;
+pub mod observers;
 pub mod options;
 
 pub use backends::*;
@@ -17,6 +18,7 @@ pub use gateway::*;
 pub use handle::*;
 use heartbeat::*;
 pub use message::*;
+pub use observers::*;
 pub use options::*;
 
 use crate::errors::GatewayError;
