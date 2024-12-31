@@ -29,12 +29,12 @@ use tokio::sync::Mutex;
 /// let result = receiver.await;
 ///
 /// match result {
-///	Ok(event) => {
-///		println!("Yay! we received the event!");
-///	}
-///	Err(e) => {
-///		println!("We sadly encountered an error: {:?}", e);
-///	}
+///   Ok(event) => {
+///      println!("Yay! we received the event!");
+///   }
+///   Err(e) => {
+///      println!("We sadly encountered an error: {:?}", e);
+///   }
 /// }
 ///
 /// // The observer has now served its purpose, unsubscribe it
@@ -58,19 +58,19 @@ use tokio::sync::Mutex;
 /// handle.events.lock().await.message.create.subscribe(observer.clone());
 ///
 /// tokio::select! {
-///	() = sleep(Duration::from_secs(10)) => {
-///		// No event happened in 10 seconds
-///	}
-///	result = receiver => {
-///		match result {
-///			Ok(event) => {
-///				println!("Yay! we received the event!");
-///			}
-///			Err(e) => {
-///				println!("We sadly encountered an error: {:?}", e);
-///			}
-///		}
-///	}
+///   () = sleep(Duration::from_secs(10)) => {
+///      // No event happened in 10 seconds
+///   }
+///   result = receiver => {
+///      match result {
+///         Ok(event) => {
+///            println!("Yay! we received the event!");
+///         }
+///         Err(e) => {
+///            println!("We sadly encountered an error: {:?}", e);
+///         }
+///      }
+///   }
 /// }
 ///
 /// // The observer has now served its purpose, unsubscribe it
@@ -145,17 +145,17 @@ where
 /// handle.events.lock().await.message.create.subscribe(observer.clone());
 ///
 /// loop {
-///	let result = receiver.recv().await;
+///   let result = receiver.recv().await;
 ///
-///	match result {
-///		Ok(event) => {
-///			println!("Yay! we received the event!");
-///		}
-///		Err(e) => {
-///			println!("We sadly encountered an error: {:?}", e);
-///			break;
-///		}
-///	}
+///   match result {
+///      Ok(event) => {
+///         println!("Yay! we received the event!");
+///      }
+///      Err(e) => {
+///         println!("We sadly encountered an error: {:?}", e);
+///         break;
+///      }
+///   }
 /// }
 ///
 /// // The observer has now served its purpose, unsubscribe it
@@ -180,21 +180,21 @@ where
 ///
 /// loop {
 ///   tokio::select! {
-///		() = sleep(Duration::from_secs(10)) => {
-///			println!("Waited for 10 seconds with no message, stopping");
-///			break;
-///		}
-///		result = receiver.recv() => {
-///			match result {
-///				Ok(event) => {
-///					println!("Yay! we received the event!");
-///				}
-///				Err(e) => {
-///					println!("We sadly encountered an error: {:?}", e);
-///					break;
-///				}
-///			}
-///		}
+///      () = sleep(Duration::from_secs(10)) => {
+///         println!("Waited for 10 seconds with no message, stopping");
+///         break;
+///      }
+///      result = receiver.recv() => {
+///         match result {
+///            Ok(event) => {
+///               println!("Yay! we received the event!");
+///            }
+///            Err(e) => {
+///               println!("We sadly encountered an error: {:?}", e);
+///               break;
+///            }
+///         }
+///      }
 ///   }
 /// }
 ///

@@ -142,27 +142,25 @@ impl GatewayHandle {
             .ready
             .subscribe(observer.clone());
 
-        loop {
-            tokio::select! {
-                  () = sleep(std::time::Duration::from_secs(5)) => {
-                      // Timeout
-                      self.events.lock().await.session.ready.unsubscribe(observer);
-                      return Err(GatewayError::NoResponse);
-                  }
-                  result = receiver => {
-                      match result {
-                          Ok(event) => {
-                              self.events.lock().await.session.ready.unsubscribe(observer);
-                              return Ok(event);
-                          }
-                          Err(e) => {
-                              warn!("Gateway in-place-events receive error: {:?}", e);
-                              self.events.lock().await.session.ready.unsubscribe(observer);
-                              return Err(GatewayError::Unknown);
-                          }
+        tokio::select! {
+              () = sleep(std::time::Duration::from_secs(5)) => {
+                  // Timeout
+                  self.events.lock().await.session.ready.unsubscribe(observer);
+                  return Err(GatewayError::NoResponse);
+              }
+              result = receiver => {
+                  match result {
+                      Ok(event) => {
+                          self.events.lock().await.session.ready.unsubscribe(observer);
+                          return Ok(event);
+                      }
+                      Err(e) => {
+                          warn!("Gateway in-place-events receive error: {:?}", e);
+                          self.events.lock().await.session.ready.unsubscribe(observer);
+                          return Err(GatewayError::Unknown);
                       }
                   }
-            }
+              }
         }
     }
 
@@ -198,27 +196,25 @@ impl GatewayHandle {
             .resumed
             .subscribe(observer.clone());
 
-        loop {
-            tokio::select! {
-                  () = sleep(std::time::Duration::from_secs(5)) => {
-                      // Timeout
-                      self.events.lock().await.session.resumed.unsubscribe(observer);
-                      return Err(GatewayError::NoResponse);
-                  }
-                  result = receiver => {
-                      match result {
-                          Ok(event) => {
-                              self.events.lock().await.session.resumed.unsubscribe(observer);
-                              return Ok(event);
-                          }
-                          Err(e) => {
-                              warn!("Gateway in-place-events receive error: {:?}", e);
-                              self.events.lock().await.session.resumed.unsubscribe(observer);
-                              return Err(GatewayError::Unknown);
-                          }
+        tokio::select! {
+              () = sleep(std::time::Duration::from_secs(5)) => {
+                  // Timeout
+                  self.events.lock().await.session.resumed.unsubscribe(observer);
+                  return Err(GatewayError::NoResponse);
+              }
+              result = receiver => {
+                  match result {
+                      Ok(event) => {
+                          self.events.lock().await.session.resumed.unsubscribe(observer);
+                          return Ok(event);
+                      }
+                      Err(e) => {
+                          warn!("Gateway in-place-events receive error: {:?}", e);
+                          self.events.lock().await.session.resumed.unsubscribe(observer);
+                          return Err(GatewayError::Unknown);
                       }
                   }
-            }
+              }
         }
     }
 
@@ -331,27 +327,25 @@ impl GatewayHandle {
             .state_update
             .subscribe(observer.clone());
 
-        loop {
-            tokio::select! {
-                  () = sleep(std::time::Duration::from_secs(1)) => {
-                      // Timeout
-                      self.events.lock().await.voice.state_update.unsubscribe(observer);
-                      return None;
-                  }
-                  result = receiver => {
-                      match result {
-                          Ok(event) => {
-                              self.events.lock().await.voice.state_update.unsubscribe(observer);
-                              return Some(event);
-                          }
-                          Err(e) => {
-                              warn!("Gateway in-place-events receive error: {:?}", e);
-                              self.events.lock().await.voice.state_update.unsubscribe(observer);
-                              return None;
-                          }
+        tokio::select! {
+              () = sleep(std::time::Duration::from_secs(1)) => {
+                  // Timeout
+                  self.events.lock().await.voice.state_update.unsubscribe(observer);
+                  return None;
+              }
+              result = receiver => {
+                  match result {
+                      Ok(event) => {
+                          self.events.lock().await.voice.state_update.unsubscribe(observer);
+                          return Some(event);
+                      }
+                      Err(e) => {
+                          warn!("Gateway in-place-events receive error: {:?}", e);
+                          self.events.lock().await.voice.state_update.unsubscribe(observer);
+                          return None;
                       }
                   }
-            }
+              }
         }
     }
 
@@ -415,27 +409,25 @@ impl GatewayHandle {
             .last_messages
             .subscribe(observer.clone());
 
-        loop {
-            tokio::select! {
-                  () = sleep(std::time::Duration::from_secs(5)) => {
-                      // Timeout
-                      self.events.lock().await.message.last_messages.unsubscribe(observer);
-                      return Err(GatewayError::NoResponse);
-                  }
-                  result = receiver => {
-                      match result {
-                          Ok(event) => {
-                              self.events.lock().await.message.last_messages.unsubscribe(observer);
-                              return Ok(event);
-                          }
-                          Err(e) => {
-                              warn!("Gateway in-place-events receive error: {:?}", e);
-                              self.events.lock().await.message.last_messages.unsubscribe(observer);
-                              return Err(GatewayError::Unknown);
-                          }
+        tokio::select! {
+              () = sleep(std::time::Duration::from_secs(5)) => {
+                  // Timeout
+                  self.events.lock().await.message.last_messages.unsubscribe(observer);
+                  return Err(GatewayError::NoResponse);
+              }
+              result = receiver => {
+                  match result {
+                      Ok(event) => {
+                          self.events.lock().await.message.last_messages.unsubscribe(observer);
+                          return Ok(event);
+                      }
+                      Err(e) => {
+                          warn!("Gateway in-place-events receive error: {:?}", e);
+                          self.events.lock().await.message.last_messages.unsubscribe(observer);
+                          return Err(GatewayError::Unknown);
                       }
                   }
-            }
+              }
         }
     }
 
