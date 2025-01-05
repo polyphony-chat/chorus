@@ -354,9 +354,7 @@ impl QueryGuildMembersSchema {
     pub fn to_query(self) -> Vec<(&'static str, String)> {
         let mut query = Vec::with_capacity(2);
 
-        if let Some(query) = self.query {
-            query.push(("query", query.to_string()));
-        }
+        query.push(("query", self.query));
 
         if let Some(limit) = self.limit {
             query.push(("limit", limit.to_string()));
