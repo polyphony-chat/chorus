@@ -4,9 +4,18 @@ use serde::{Deserialize, Serialize};
 /// Query parameters for the `Get Invite` route.
 ///
 /// # Reference:
-/// Read: <https://docs.discord.sex/resources/invite#query-string-params>
+/// See <https://docs.discord.sex/resources/invite#query-string-params>
 pub struct GetInvitesSchema {
     pub with_counts: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// JSON schema for the [crate::instance::ChorusUser::accept_invite] route
+///
+/// # Reference:
+/// See <https://docs.discord.sex/resources/invite#json-params>
+pub(crate) struct AcceptInviteSchema {
+    pub session_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]

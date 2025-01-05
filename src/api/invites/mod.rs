@@ -8,7 +8,9 @@ use serde_json::to_string;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{CreateChannelInviteSchema, GuildInvite, Invite, LimitType, Snowflake};
+use crate::types::{
+    AcceptInviteSchema, CreateChannelInviteSchema, GuildInvite, Invite, LimitType, Snowflake,
+};
 
 impl ChorusUser {
     /// Accepts an invite to a guild, group DM, or DM.
@@ -20,27 +22,20 @@ impl ChorusUser {
     pub async fn accept_invite(
         &mut self,
         invite_code: &str,
-        session_id: Option<&str>,
+        session_id: Option<String>,
     ) -> ChorusResult<Invite> {
-        let mut request = ChorusRequest {
-            request: Client::new().post(format!(
-                "{}/invites/{}",
-                self.belongs_to.read().unwrap().urls.api,
-                invite_code
-            )),
+        let request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/invites/{}",
+                    self.belongs_to.read().unwrap().urls.api,
+                    invite_code
+                ))
+                .json(&AcceptInviteSchema { session_id }),
             limit_type: LimitType::Global,
         }
         .with_headers_for(self);
 
-        // FIXME: Not how this is serialized!
-        //
-        // It should be as """{"session_id": "something"}"""
-        if let Some(session_id) = session_id {
-            request.request = request
-                .request
-                .header("Content-Type", "application/json")
-                .body(to_string(session_id).unwrap());
-        }
         request.deserialize_response::<Invite>(self).await
     }
 
