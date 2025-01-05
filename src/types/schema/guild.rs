@@ -338,7 +338,7 @@ impl Default for GetGuildMembersSchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
-/// Schema for the [crate::types::Guild::search_members] route
+/// Schema for the [crate::types::Guild::query_members] route
 ///
 /// # Reference
 /// See <https://docs.discord.sex/resources/guild#query-guild-members>
