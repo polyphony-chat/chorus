@@ -8,7 +8,7 @@ use serde_json::to_string;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{GetUserGuildSchema, Guild, LimitType, Snowflake};
+use crate::types::{GetUserGuildSchema, Guild, GuildLeaveSchema, LimitType, Snowflake};
 
 impl ChorusUser {
     /// Leaves a given guild.
@@ -18,7 +18,11 @@ impl ChorusUser {
     // TODO: Docs: What is "lurking" here?
     // It is documented as "Whether the user is lurking in the guild",
     // but that says nothing about what this field actually does / means
-    pub async fn leave_guild(&mut self, guild_id: &Snowflake, lurking: bool) -> ChorusResult<()> {
+    pub async fn leave_guild(
+        &mut self,
+        guild_id: &Snowflake,
+        lurking: Option<bool>,
+    ) -> ChorusResult<()> {
         ChorusRequest {
             request: Client::new()
                 .delete(format!(
@@ -26,8 +30,7 @@ impl ChorusUser {
                     self.belongs_to.read().unwrap().urls.api,
                     guild_id
                 ))
-                // FIXME not how you serialize this
-                .json(&lurking),
+                .json(&GuildLeaveSchema { lurking }),
             limit_type: LimitType::Guild(*guild_id),
         }
         .handle_request_as_result(self)
