@@ -10,23 +10,83 @@ use std::collections::HashMap;
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
 use crate::types::{
-    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, MessageNotificationLevel,
-    Snowflake, Sticker, StickerFormatType, SystemChannelFlags, VerificationLevel,
-    WelcomeScreenChannel,
+    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, MFALevel,
+    MessageNotificationLevel, RoleObject, Snowflake, Sticker, StickerFormatType,
+    SystemChannelFlags, VerificationLevel, WelcomeScreenChannel,
 };
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "snake_case")]
 /// Represents the schema which needs to be sent to create a Guild.
-/// See: <https://docs.spacebar.chat/routes/#cmp--schemas-guildcreateschema>
+///
+/// # Reference
+/// See <https://docs.spacebar.chat/routes/#cmp--schemas-guildcreateschema> and <https://docs.discord.sex/resources/guild#create-guild>
 pub struct GuildCreateSchema {
+    /// The name of the guild (2-100 characters, excluding trailing and leading whitespace)
     pub name: Option<String>,
+
+    /// The main voice region ID of the guild
+    ///
+    /// Note: this field is deprecated
     pub region: Option<String>,
+
+    /// See <https://docs.discord.sex/reference#cdn-data>
     pub icon: Option<String>,
+
+    /// Note: this field is not implemented yet on Spacebar, see <https://github.com/spacebarchat/server/issues/1251>
+    pub verification_level: Option<VerificationLevel>,
+
+    /// The default [MessageNotificationLevel] for members of the guild
+    ///
+    /// Note: this field is not implemented yet on Spacebar, see <https://github.com/spacebarchat/server/issues/1251>
+    pub default_message_notifications: Option<MessageNotificationLevel>,
+
+    /// Whose messages are scanned for explicit content
+    ///
+    /// Note: this field is not implemented yet on Spacebar, see <https://github.com/spacebarchat/server/issues/1251>
+    pub explicit_content_filter: Option<ExplicitContentFilterLevel>,
+
+    /// Roles in the new guild
+    ///
+    /// The first member of the array is used to change properties of the guild's @everyone role.
+    ///
+    /// The id field within each role object is a placeholder, which will be replaced by the server
+    ///
+    /// Note: this field is not implemented yet on Spacebar, see <https://github.com/spacebarchat/server/issues/1251>
+    pub roles: Option<Vec<RoleObject>>,
+
+    /// Channels in the new guild
+    ///
+    /// When set, none of the default channels are created, and the position field is always
+    /// ignored
+    ///
+    /// The id field within each channel object is a placeholder, which will be replaced by the
+    /// server
     pub channels: Option<Vec<Channel>>,
+
+    /// Whether the new guild will only be accessible for instance staff
+    ///
+    /// Can only be set by instance staff
+    ///
+    /// Note: this field is not implemented yet on Spacebar, see <https://github.com/spacebarchat/server/issues/1251>
+    pub staff_only: Option<bool>,
+
+    /// The ID of the channel where system event messages, like member joins and boosts are posted
+    pub system_channel_id: Option<Snowflake>,
+
+    /// Flags that sets which messages are sent in the system channel
+    ///
+    /// Note: this field is not implemented yet on Spacebar, see <https://github.com/spacebarchat/server/issues/1251>
+    pub system_channel_flags: Option<SystemChannelFlags>,
+
+    /// The ID of the channel which contains the guild's rules
+    ///
+    /// Note: it is unclear whether this is an official part of the schema or an addition for
+    /// Spacebar
+    pub rules_channel_id: Option<Snowflake>,
+
+    /// The template code that was used for this guild, used for analytics
     pub guild_template_code: Option<String>,
-    pub system_channel_id: Option<String>,
-    pub rules_channel_id: Option<String>,
 }
 
 #[cfg(not(tarpaulin_include))]
@@ -59,7 +119,7 @@ pub struct GuildBanCreateSchema {
 /// # Reference
 /// See <https://docs.discord.sex/resources/guild#json-params>
 pub(crate) struct GuildLeaveSchema {
-	 /// "Whether the user is lurking in the guild"
+    /// "Whether the user is lurking in the guild"
     pub lurking: Option<bool>,
 }
 
@@ -77,43 +137,117 @@ pub struct GuildBanBulkCreateSchema {
 /// Represents the schema used to modify a guild.
 /// See: <https://docs.discord.sex/resources/guild#modify-guild>
 pub struct GuildModifySchema {
+    /// The name of the guild (2-100 characters, excluding trailing and leading whitespace)
     pub name: Option<String>,
-    pub icon: Option<Vec<u8>>,
-    pub banner: Option<Vec<u8>>,
-    pub home_header: Option<Vec<u8>>,
-    pub splash: Option<Vec<u8>>,
-    pub discovery_splash: Option<Vec<u8>>,
+
+    /// See <https://docs.discord.sex/reference#cdn-data>
+    pub icon: Option<String>,
+
+    /// See <https://docs.discord.sex/reference#cdn-data>
+    pub banner: Option<String>,
+
+    /// The guild's banner
+    ///
+    /// For it tobe shown, the guild must have the BANNER feature
+    ///
+    /// See <https://docs.discord.sex/reference#cdn-data>
+    pub home_header: Option<String>,
+
+    /// The guild's invite splash
+    ///
+    /// For it to be shown, the guild must have the INVITE_SPLASH feature
+    ///
+    /// See <https://docs.discord.sex/reference#cdn-data>
+    pub splash: Option<String>,
+
+    /// The guild's discovery splash
+    pub discovery_splash: Option<String>,
+
+    /// The user ID of the guild's owner (must be the current owner to change)
     pub owner_id: Option<Snowflake>,
+
+    /// The description of the guild
     pub description: Option<String>,
-    /// Deprecated
+
+    /// The main voice region ID of the guild
+    ///
+    /// Note: deprecated
     pub region: Option<String>,
+
+    /// The ID of the guild's AFK channel
+    ///
+    /// This is where members in voice idle for longer than afk_timeout are moved
     pub afk_channel_id: Option<Snowflake>,
+
+    /// The AFK timeout of the guild (one of 60, 300, 900, 1800, 3600, in seconds)
     pub afk_timeout: Option<u16>,
+
     pub verification_level: Option<VerificationLevel>,
+
+    /// The default [MessageNotificationLevel] for members of the guild
     pub default_message_notifications: Option<MessageNotificationLevel>,
+
+    /// Whose messages are scanned for explicit content
     pub explicit_content_filter: Option<ExplicitContentFilterLevel>,
+
     pub features: Option<Vec<GuildFeatures>>,
+
+    /// The ID of the channel where system messages, such as member joins and boosts, are posted
     pub system_channel_id: Option<Snowflake>,
+
+    /// Flags that sets which messages are sent in the system channel
     pub system_channel_flags: Option<SystemChannelFlags>,
+
+    /// The ID of the channel where community guilds display rules
+    ///
     /// If set to Some(1), will create a new #rules channel
     ///
     /// Reference: <https://docs.discord.sex/resources/guild#modify-guild>
     pub rules_channel_id: Option<Snowflake>,
+
+    /// The ID of the channel where admins and moderators of community guilds receive notices from Discord
+    ///
+    /// If set to Some(1), will create a new #moderator-only channel
+    ///
     pub public_updates_channel_id: Option<Snowflake>,
+
+    /// The ID of the channel where admins and moderators of community guilds receive safety alerts from Discord
     pub safety_alerts_channel_id: Option<Snowflake>,
+
+    /// The preferred locale of the guild, used in discovery and notices from Discord
+    ///
+    /// default is "en-US"
     pub preferred_locale: Option<String>,
+
+    /// Whether the guild has the boost progress bar enabled
     pub premium_progress_bar_enabled: Option<bool>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+/// Schema for the [crate::types::Guild::modify_mfa_level] route
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#modify-guild-mfa-level>
+pub(crate) struct GuildModifyMFALevelSchema {
+    pub level: MFALevel,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
-pub struct GetUserGuildSchema {
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-user-guilds>
+pub struct GetUserGuildsSchema {
+    /// Get guilds before this guild id
     pub before: Option<Snowflake>,
+    /// Get guilds after this guild id
     pub after: Option<Snowflake>,
+    /// Max number of guilds to return (1 - 200)
     pub limit: Option<u8>,
+    /// Whether to include approximate member and presence counts (false by default)
     pub with_counts: Option<bool>,
 }
 
-impl GetUserGuildSchema {
+impl GetUserGuildsSchema {
     /// Converts self to query string parameters
     pub fn to_query(self) -> Vec<(&'static str, String)> {
         let mut query = Vec::with_capacity(4);
@@ -138,7 +272,7 @@ impl GetUserGuildSchema {
     }
 }
 
-impl std::default::Default for GetUserGuildSchema {
+impl std::default::Default for GetUserGuildsSchema {
     fn default() -> Self {
         Self {
             before: Default::default(),

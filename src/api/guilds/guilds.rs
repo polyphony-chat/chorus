@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use futures_util::FutureExt;
 use reqwest::Client;
 use serde_json::from_str;
 use serde_json::to_string;
@@ -10,6 +11,8 @@ use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
+use crate::types::GuildModifyMFALevelSchema;
+use crate::types::MFALevel;
 use crate::types::{
     Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildBansQuery, GuildCreateSchema,
     GuildMember, GuildMemberSearchSchema, GuildModifySchema, GuildPreview, LimitType,
@@ -20,10 +23,17 @@ use crate::types::{GuildBan, Snowflake};
 impl Guild {
     /// Fetches a guild by its id.
     ///
+    /// Setting `with_counts` to `true` will make the [Guild] object include approximate member and
+    /// presence counts
+    ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild>
-    pub async fn get(guild_id: Snowflake, user: &mut ChorusUser) -> ChorusResult<Guild> {
-        let chorus_request = ChorusRequest {
+    pub async fn get(
+        guild_id: Snowflake,
+        with_counts: Option<bool>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<Guild> {
+        let mut chorus_request = ChorusRequest {
             request: Client::new().get(format!(
                 "{}/guilds/{}",
                 user.belongs_to.read().unwrap().urls.api,
@@ -33,11 +43,20 @@ impl Guild {
         }
         .with_headers_for(user);
 
+        if let Some(with_counts) = with_counts {
+            chorus_request.request = chorus_request.request.query(&[(
+                "with_counts",
+                serde_json::to_string(&with_counts).unwrap().as_str(),
+            )]);
+        }
+
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
         Ok(response)
     }
 
     /// Creates a new guild.
+    ///
+    /// Fires off a [crate::types::GuildCreate] gateway event
     ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild>
@@ -60,6 +79,8 @@ impl Guild {
     ///
     /// Returns the updated guild.
     ///
+    /// Fires a [GuildUpdate](crate::types::GuildUpdate) gateway event.
+    ///
     /// # Notes
     /// This route requires MFA.
     ///
@@ -68,6 +89,7 @@ impl Guild {
     pub async fn modify(
         guild_id: Snowflake,
         schema: GuildModifySchema,
+        audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<Guild> {
         let chorus_request = ChorusRequest {
@@ -81,10 +103,48 @@ impl Guild {
             limit_type: LimitType::Guild(guild_id),
         }
         .with_maybe_mfa(&user.mfa_token)
+        .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
         Ok(response)
+    }
+
+    /// Modifies the guild's mfa requirement for administrative actions.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// Fires a [GuildUpdate](crate::types::GuildUpdate) gateway event.
+    ///
+    /// # Notes
+    /// This route requires MFA.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#modify-guild-mfa-level>
+    pub async fn modify_mfa_level(
+        guild_id: Snowflake,
+        mfa_level: MFALevel,
+        audit_log_reason: Option<String>,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/guilds/{}/mfa",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id
+                ))
+                .json(&GuildModifyMFALevelSchema { level: mfa_level }),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_mfa(&user.mfa_token)
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
+        chorus_request
+            .deserialize_response::<GuildModifyMFALevelSchema>(user)
+            .await
+            .map(|_x| ())
     }
 
     /// Deletes a guild by its id.
@@ -183,14 +243,14 @@ impl Guild {
     ///
     /// If the user is not in the guild, the guild must be discoverable.
     ///
-    /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-preview>
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-preview>
     pub async fn get_preview(
         guild_id: Snowflake,
         user: &mut ChorusUser,
     ) -> ChorusResult<GuildPreview> {
         let chorus_request = ChorusRequest {
-            request: Client::new().patch(format!(
+            request: Client::new().get(format!(
                 "{}/guilds/{}/preview",
                 user.belongs_to.read().unwrap().urls.api,
                 guild_id,

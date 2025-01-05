@@ -8,10 +8,12 @@ use serde_json::to_string;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{GetUserGuildSchema, Guild, GuildLeaveSchema, LimitType, Snowflake};
+use crate::types::{GetUserGuildsSchema, Guild, GuildLeaveSchema, LimitType, Snowflake};
 
 impl ChorusUser {
     /// Leaves a given guild.
+    ///
+    /// Fires a [crate::types::GuildDelete] and [crate::types::GuildMemberRemove] event
     ///
     /// # Reference:
     /// See <https://discord-userdoccers.vercel.app/resources/guild#leave-guild>
@@ -38,13 +40,16 @@ impl ChorusUser {
     }
 
     /// Returns a list of user guild objects representing the guilds the current user is a member of.
-    /// This endpoint returns 200 guilds by default
+    ///
+    /// This endpoint returns 200 guilds by default (which is the maximum a user account can join)
+    ///
+    /// All parameters are optional
     ///
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/guild#get-user-guilds>
+    /// See <https://docs.discord.sex/resources/guild#get-user-guilds>
     pub async fn get_guilds(
         &mut self,
-        query: Option<GetUserGuildSchema>,
+        query: Option<GetUserGuildsSchema>,
     ) -> ChorusResult<Vec<Guild>> {
         let query_parameters = {
             if let Some(query_some) = query {

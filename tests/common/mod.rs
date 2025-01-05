@@ -89,32 +89,15 @@ pub(crate) async fn setup() -> TestBundle {
     };
     let guild_create_schema = GuildCreateSchema {
         name: Some("Test-Guild!".to_string()),
-        region: None,
-        icon: None,
-        channels: None,
-        guild_template_code: None,
-        system_channel_id: None,
-        rules_channel_id: None,
+		  ..Default::default()
     };
     let channel_create_schema = ChannelCreateSchema {
         name: "testchannel".to_string(),
         channel_type: Some(chorus::types::ChannelType::GuildText),
-        topic: None,
-        icon: None,
-        bitrate: None,
-        user_limit: None,
-        rate_limit_per_user: None,
-        position: None,
-        permission_overwrites: None,
-        parent_id: None,
-        id: None,
         nsfw: Some(false),
-        rtc_region: None,
-        default_auto_archive_duration: None,
-        default_reaction_emoji: None,
         flags: Some(0),
         default_thread_rate_limit_per_user: Some(0),
-        video_quality_mode: None,
+		  ..Default::default()
     };
     let mut user = instance.clone().register_account(reg).await.unwrap();
     let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
