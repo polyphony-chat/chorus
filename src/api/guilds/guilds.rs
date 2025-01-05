@@ -11,11 +11,12 @@ use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
+use crate::types::GetGuildMembersSchema;
 use crate::types::GuildModifyMFALevelSchema;
 use crate::types::MFALevel;
 use crate::types::{
     Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildBansQuery, GuildCreateSchema,
-    GuildMember, GuildMemberSearchSchema, GuildModifySchema, GuildPreview, LimitType,
+    GuildMember, QueryGuildMembersSchema, GuildModifySchema, GuildPreview, LimitType,
     ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema, UserProfileMetadata,
 };
 use crate::types::{GuildBan, Snowflake};
@@ -267,18 +268,25 @@ impl Guild {
 
     /// Returns a list of guild member objects that are members of the guild.
     ///
+    /// # Notes
+    /// This endpoint is not usable by user accounts and is restricted based on the
+    /// GUILD_MEMBERS intent for applications
+    ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-members>
+    /// See <https://docs.discord.sex/resources/guild#get-guild-members>
     pub async fn get_members(
         guild_id: Snowflake,
+        query: GetGuildMembersSchema,
         user: &mut ChorusUser,
     ) -> ChorusResult<Vec<GuildMember>> {
         let request = ChorusRequest {
-            request: Client::new().get(format!(
-                "{}/guilds/{}/members",
-                user.belongs_to.read().unwrap().urls.api,
-                guild_id,
-            )),
+            request: Client::new()
+                .get(format!(
+                    "{}/guilds/{}/members",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .query(&query.to_query()),
             limit_type: LimitType::Guild(guild_id),
         }
         .with_headers_for(user);
@@ -287,27 +295,30 @@ impl Guild {
     }
 
     /// Returns a list of guild member objects whose username or nickname starts with a provided string.
+	 ///
+	 /// Functions identically to the [RequestGuildMembers](crate::types::GatewayRequestGuildMembers) gateway event
+    ///
+    /// # Notes
+    /// This endpoint is not usable by user accounts
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#search-guild-members>
-    pub async fn search_members(
+    /// See <https://docs.discord.sex/resources/guild#query-guild-members>
+    pub async fn query_members(
         guild_id: Snowflake,
-        query: GuildMemberSearchSchema,
+        query: QueryGuildMembersSchema,
         user: &mut ChorusUser,
     ) -> ChorusResult<Vec<GuildMember>> {
-        let mut request = ChorusRequest {
-            request: Client::new().get(format!(
-                "{}/guilds/{}/members/search",
-                user.belongs_to.read().unwrap().urls.api,
-                guild_id,
-            )),
+        let request = ChorusRequest {
+            request: Client::new()
+                .get(format!(
+                    "{}/guilds/{}/members/search",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .query(&query.to_query()),
             limit_type: LimitType::Guild(guild_id),
         }
         .with_headers_for(user);
-
-        request.request = request
-            .request
-            .query(&[("query", to_string(&query).unwrap())]);
 
         request.deserialize_response::<Vec<GuildMember>>(user).await
     }

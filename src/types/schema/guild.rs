@@ -299,13 +299,74 @@ pub struct GuildPreview {
     pub approximate_presence_count: u32,
 }
 
+#[derive(Debug, Deserialize, Serialize, Copy, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// Schema for the [crate::types::Guild::get_members] route
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-guild-members>
+pub struct GetGuildMembersSchema {
+    /// Max number of members to return (1-1000, default 1)
+    pub limit: Option<u16>,
+    /// Get members after this member ID
+    pub after: Option<Snowflake>,
+}
+
+impl GetGuildMembersSchema {
+    /// Converts self to query string parameters
+    pub fn to_query(self) -> Vec<(&'static str, String)> {
+        let mut query = Vec::with_capacity(2);
+
+        if let Some(limit) = self.limit {
+            query.push(("limit", limit.to_string()));
+        }
+
+        if let Some(after) = self.after {
+            query.push(("after", after.to_string()));
+        }
+
+        query
+    }
+}
+
+impl Default for GetGuildMembersSchema {
+    fn default() -> Self {
+        Self {
+            limit: Some(1),
+            after: None,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
-pub struct GuildMemberSearchSchema {
+/// Schema for the [crate::types::Guild::search_members] route
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#query-guild-members>
+pub struct QueryGuildMembersSchema {
+    /// Query to match username(s) and nickname(s) against
     pub query: String,
+    /// Max number of members to return (1-1000, default 1)
     pub limit: Option<u16>,
 }
 
-impl Default for GuildMemberSearchSchema {
+impl QueryGuildMembersSchema {
+    /// Converts self to query string parameters
+    pub fn to_query(self) -> Vec<(&'static str, String)> {
+        let mut query = Vec::with_capacity(2);
+
+        if let Some(query) = self.query {
+            query.push(("query", query.to_string()));
+        }
+
+        if let Some(limit) = self.limit {
+            query.push(("limit", limit.to_string()));
+        }
+
+        query
+    }
+}
+
+impl Default for QueryGuildMembersSchema {
     fn default() -> Self {
         Self {
             query: Default::default(),
