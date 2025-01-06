@@ -277,8 +277,9 @@ impl UrlBundle {
             .build()?;
         let response_wellknown = client.execute(request_wellknown).await?;
         if response_wellknown.status().is_success() {
-            let body = response_wellknown.json::<WellKnownResponse>().await?.api;
-            UrlBundle::from_api_url(&body).await
+            let api_url = response_wellknown.json::<WellKnownResponse>().await?.api;
+
+            UrlBundle::from_api_url(&format!("{}/policies/instance/domains", api_url)).await
         } else {
             if let Ok(response_slash_api) =
                 UrlBundle::from_api_url(&format!("{}/api/policies/instance/domains", parsed)).await
