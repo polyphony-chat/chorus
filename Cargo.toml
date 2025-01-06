@@ -89,6 +89,7 @@ lazy_static = "1.5.0"
 wasm-bindgen-test = "0.3.43"
 wasm-bindgen = "0.2.95"
 simple_logger = { version = "5.0.0", default-features = false }
+tokio-test = "0.4.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 httptest = "0.16.1"

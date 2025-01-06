@@ -22,11 +22,13 @@ impl GatewayHeartbeat {
     /// Quickly create a [GatewayHeartbeat] with the correct `opcode` and the given `sequence_number`.
     ///
     /// Shorthand for
-    /// ```rs
-    /// Self {
+    /// ```
+    /// # use chorus::types::GatewayHeartbeat;
+    /// # let sequence_number: u64 = 1;
+    /// let heatbeat = GatewayHeartbeat {
     ///     op: 1,
     ///     d: Some(sequence_number)
-    /// }
+    /// };
     /// ```
     pub fn new(sequence_number: u64) -> Self {
         Self {

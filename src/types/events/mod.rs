@@ -129,7 +129,7 @@ impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 /// An [`UpdateMessage<T>`] represents a received Gateway Message which contains updated
 /// information for an [`Updateable`] of Type T.
 /// # Example:
-/// ```rs
+/// ```ignore
 /// impl UpdateMessage<Channel> for ChannelUpdate {
 ///     fn update(...) {...}
 ///     fn id(...) {...}

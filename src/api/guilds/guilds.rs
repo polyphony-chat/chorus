@@ -16,8 +16,8 @@ use crate::types::GuildModifyMFALevelSchema;
 use crate::types::MFALevel;
 use crate::types::{
     Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildBansQuery, GuildCreateSchema,
-    GuildMember, QueryGuildMembersSchema, GuildModifySchema, GuildPreview, LimitType,
-    ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema, UserProfileMetadata,
+    GuildMember, GuildModifySchema, GuildPreview, LimitType, ModifyGuildMemberProfileSchema,
+    ModifyGuildMemberSchema, QueryGuildMembersSchema, UserProfileMetadata,
 };
 use crate::types::{GuildBan, Snowflake};
 
@@ -157,14 +157,22 @@ impl Guild {
     ///
     /// # Example
     ///
-    /// ```rs
+    /// ```rust
+    /// # mod tests;
+    /// # tokio_test::block_on(async {
+    /// # let mut bundle = tests::common::setup().await;
+    /// # use chorus::{types::Guild, instance::ChorusUser, types::Snowflake};
     /// let mut user: ChorusUser;
+    /// # user = bundle.user;
     /// let guild_id = Snowflake::from(1234567890);
+    /// # let guild_id = bundle.guild.read().unwrap().id;
     ///
-    /// match Guild::delete(&mut user, guild_id) {
+    /// match Guild::delete(&mut user, guild_id).await {
     ///     Err(e) => println!("Error deleting guild: {:?}", e),
     ///     Ok(_) => println!("Guild deleted successfully"),
     /// }
+    /// # tests::common::teardown(bundle).await;
+    /// # })
     /// ```
     ///
     /// # Reference
@@ -295,8 +303,8 @@ impl Guild {
     }
 
     /// Returns a list of guild member objects whose username or nickname starts with a provided string.
-	 ///
-	 /// Functions identically to the [RequestGuildMembers](crate::types::GatewayRequestGuildMembers) gateway event
+    ///
+    /// Functions identically to the [RequestGuildMembers](crate::types::GatewayRequestGuildMembers) gateway event
     ///
     /// # Notes
     /// This endpoint is not usable by user accounts

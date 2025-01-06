@@ -20,12 +20,14 @@ instead of worrying about the underlying implementation details.
 
 To connect to a Polyphony/Spacebar compatible server, you'll need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
 
-```rs
+```rust
 use chorus::instance::Instance;
 
 #[tokio::main]
 async fn main() {
-    let instance = Instance::new("https://example.com")
+    let url = "https://example.com";
+    # let url = "http://localhost:3001";
+    let instance = Instance::new(url, None)
         .await
         .expect("Failed to connect to the Spacebar server");
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
@@ -41,8 +43,12 @@ This Instance can now be used to log in, register and from there on, interact wi
 Logging in correctly provides you with an instance of `ChorusUser`, with which you can interact with the server and
 manipulate the account. Assuming you already have an account on the server, you can log in like this:
 
-```rs
+```no_run
+# tokio_test::block_on(async {
 use chorus::types::LoginSchema;
+# mod tests::common;
+# let mut bundle = tests::common::setup().await;
+# let instance = bundle.instance;
 // Assume, you already have an account created on this instance. Registering an account works
 // the same way, but you'd use the Register-specific Structs and methods instead.
 let login_schema = LoginSchema {
@@ -58,6 +64,8 @@ let user = instance
     .expect("An error occurred during the login process");
 dbg!(user.belongs_to);
 dbg!(&user.object.read().unwrap().username);
+# tests::common::teardown(bundle).await;
+# })
 ```
 
 ## Supported Platforms
@@ -223,8 +231,9 @@ impl UrlBundle {
     /// If no protocol is given, HTTP (not HTTPS) is assumed.
     ///
     /// # Examples:
-    /// ```rs
-    /// let url = parse_url("localhost:3000");
+    /// ```rust
+    /// # use chorus::UrlBundle;
+    /// let url = UrlBundle::parse_url("localhost:3000");
     /// ```
     /// `-> Outputs "http://localhost:3000".`
     pub fn parse_url(url: &str) -> String {
