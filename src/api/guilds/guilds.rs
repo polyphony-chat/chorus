@@ -14,6 +14,10 @@ use crate::ratelimiter::ChorusRequest;
 use crate::types::GetGuildMembersSchema;
 use crate::types::GuildModifyMFALevelSchema;
 use crate::types::MFALevel;
+use crate::types::SGMReturnNotIndexed;
+use crate::types::SGMReturnOk;
+use crate::types::SearchGuildMembersReturn;
+use crate::types::SearchGuildMembersSchema;
 use crate::types::{
     Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildBansQuery, GuildCreateSchema,
     GuildMember, GuildModifySchema, GuildPreview, LimitType, ModifyGuildMemberProfileSchema,
@@ -329,6 +333,82 @@ impl Guild {
         .with_headers_for(user);
 
         request.deserialize_response::<Vec<GuildMember>>(user).await
+    }
+
+    ///
+    /// # Reference:
+    /// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
+    pub async fn search_guild_members(
+        guild_id: Snowflake,
+        schema: SearchGuildMembersSchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<SearchGuildMembersReturn> {
+        let request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/guilds/{}/members-search",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        let response = request.send_request(user).await?;
+        log::trace!("Got response: {:?}", response);
+
+        let status = response.status();
+
+        match status {
+            http::StatusCode::ACCEPTED | http::StatusCode::OK => {
+                let response_text = match response.text().await {
+                    Ok(string) => string,
+                    Err(e) => {
+                        return Err(ChorusError::InvalidResponse {
+                            error: format!(
+                                "Error while trying to process the HTTP response into a String: {}",
+                                e
+                            ),
+                        });
+                    }
+                };
+
+                match status {
+                    http::StatusCode::ACCEPTED => {
+                        match serde_json::from_str::<SGMReturnNotIndexed>(&response_text) {
+                            Ok(object) => return Ok(SearchGuildMembersReturn::NotIndexed(object)),
+                            Err(e) => {
+                                return Err(ChorusError::InvalidResponse {
+												error: format!(
+												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
+												e, response_text),
+											});
+                            }
+                        };
+                    }
+                    http::StatusCode::OK => {
+                        match serde_json::from_str::<SGMReturnOk>(&response_text) {
+                            Ok(object) => return Ok(SearchGuildMembersReturn::Ok(object)),
+                            Err(e) => {
+                                return Err(ChorusError::InvalidResponse {
+												error: format!(
+												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
+												e, response_text),
+											});
+                            }
+                        };
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            _ => {
+                return Err(ChorusError::ReceivedErrorCode {
+                    error_code: response.status().as_u16(),
+                    error: response.status().to_string(),
+                });
+            }
+        }
     }
 
     /// Removes a member from a guild.

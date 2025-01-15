@@ -3,16 +3,21 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use bitflags::bitflags;
-use chrono::{DateTime, Utc};
+use chrono::{
+    serde::ts_milliseconds_option,
+    DateTime, Utc,
+};
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::collections::HashMap;
 
+use crate::errors::ChorusError;
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
 use crate::types::{
-    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, MFALevel,
+    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, JoinSourceType, MFALevel,
     MessageNotificationLevel, RoleObject, Snowflake, Sticker, StickerFormatType,
-    SystemChannelFlags, VerificationLevel, WelcomeScreenChannel,
+    SupplementalGuildMember, SystemChannelFlags, VerificationLevel, WelcomeScreenChannel,
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
@@ -395,7 +400,7 @@ bitflags! {
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// Represents the flags of a Guild Member.
     ///
-    /// # Reference:
+    /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#guild-member-flags>
     pub struct GuildMemberFlags: u64 {
         const DID_REJOIN = 1 << 0;
@@ -448,7 +453,7 @@ pub type GuildMembersSearchQuery = GenericSearchQueryWithLimit;
 ///
 ///  Certain guilds, such as those that are verified, are exempt from discovery requirements. These guilds will not have a fully populated discovery requirements object, and are guaranteed to receive only sufficient and sufficient_without_grace_period.
 ///
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/discovery#discovery-requirements-object>
 pub struct GuildDiscoveryRequirements {
     pub guild_id: Option<Snowflake>,
@@ -471,7 +476,7 @@ pub struct GuildDiscoveryRequirements {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/discovery#discovery-nsfw-properties-structure>
 pub struct GuildDiscoveryNsfwProperties {
     pub channels: Vec<Snowflake>,
@@ -485,7 +490,7 @@ pub struct GuildDiscoveryNsfwProperties {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Copy)]
 /// Activity metrics are recalculated weekly, as an 8-week rolling average. If they are not yet eligible to be calculated, all fields will be null.
 ///
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/discovery#discovery-health-score-structure>
 pub struct GuildDiscoveryHealthScore {
     pub avg_nonnew_communicators: u64,
@@ -495,7 +500,7 @@ pub struct GuildDiscoveryHealthScore {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/emoji#create-guild-emoji>
 pub struct EmojiCreateSchema {
     pub name: Option<String>,
@@ -507,7 +512,7 @@ pub struct EmojiCreateSchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/emoji#modify-guild-emoji>
 pub struct EmojiModifySchema {
     pub name: Option<String>,
@@ -515,7 +520,7 @@ pub struct EmojiModifySchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/guild#get-guild-prune>
 pub struct GuildPruneQuerySchema {
     pub days: u8,
@@ -527,7 +532,7 @@ pub struct GuildPruneQuerySchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Copy)]
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/guild#get-guild-prune>
 pub struct GuildPruneResult {
     /// Null if compute_prune_count is false
@@ -535,7 +540,7 @@ pub struct GuildPruneResult {
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone, PartialEq)]
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/sticker#create-guild-sticker>
 pub struct GuildCreateStickerSchema {
     pub name: String,
@@ -626,7 +631,7 @@ impl GuildCreateStickerSchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/sticker#modify-guild-sticker>
 pub struct GuildModifyStickerSchema {
     #[serde(default)]
@@ -638,7 +643,7 @@ pub struct GuildModifyStickerSchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
-/// # Reference:
+/// # Reference
 /// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
 pub struct GuildModifyWelcomeScreenSchema {
     pub enabled: Option<bool>,
@@ -655,4 +660,356 @@ pub struct GuildTemplateCreateSchema {
     pub name: String,
     /// Description of the template (max 120 characters)
     pub description: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// Return type for the [ChorusUser::search_guild_members] endpoint.
+///
+/// [ChorusUser]: [crate::instance::ChorusUser]
+///
+/// Possible values are:
+/// - [SGMReturnNotIndexed] - if the guild has not yet been indexed
+/// - [SGMReturnOk] - which returns the search results
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub enum SearchGuildMembersReturn {
+    NotIndexed(SGMReturnNotIndexed),
+    Ok(SGMReturnOk),
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// Return type for the [ChorusUser::search_guild_members] endpoint.
+///
+/// This type is returned when the guild specified is not yet indexed.
+///
+/// You should retry the request after waiting the timeframe specified in `retry_after`.
+///
+/// If that is `0`, you should retry after a short delay.
+///
+/// [ChorusUser]: [crate::instance::ChorusUser]
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMReturnNotIndexed {
+    pub message: String,
+    pub code: u32,
+    pub documents_indexed: u32,
+    /// Number of seconds you should wait until retrying
+    pub retry_after: u16,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// Return type for the [ChorusUser::search_guild_members] endpoint.
+///
+/// This type is returned when the guild specified is not yet indexed.
+///
+/// [ChorusUser]: [crate::instance::ChorusUser]
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMReturnOk {
+    /// The id of the guild searchedd
+    pub guild_id: Snowflake,
+    /// The resulting members
+    pub members: Vec<SupplementalGuildMember>,
+    /// The number of results returned
+    pub page_result_count: u16,
+    /// The number of results found
+    pub total_result_count: u16,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// JSON schema for the [ChorusUser::search_guild_members] endpoint.
+///
+/// [ChorusUser]: [create::instance::ChorusUser]
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SearchGuildMembersSchema {
+    /// Max number of members to return
+    ///
+    /// 0 - 1000, 25 by default
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u16>,
+
+    /// How to sort the returned array
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sort: Option<MemberSortType>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub or_query: Option<SearchGuildMembersFilter>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub and_query: Option<SearchGuildMembersFilter>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub before: Option<SGMPaginationFilter>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub after: Option<SGMPaginationFilter>,
+}
+
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Default,
+    Debug,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
+#[repr(u8)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// How a user joined a guild
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#join-source-type>
+pub enum MemberSortType {
+    #[default]
+    /// Sort by when the user joined the guild, descending (default)
+    JoinedAtDescending = 1,
+    /// Sort by when the user joined the guild, ascending
+    JoinedAtAscending = 2,
+    /// Sort by when the user's account was created, descending
+    UserIdDescending = 3,
+    /// Sort by when the user's account was created, ascending
+    UserIdAscending = 4,
+}
+
+impl TryFrom<u8> for MemberSortType {
+    type Error = ChorusError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(Self::JoinedAtDescending),
+            2 => Ok(Self::JoinedAtAscending),
+            3 => Ok(Self::UserIdDescending),
+            4 => Ok(Self::UserIdAscending),
+            _ => Err(ChorusError::InvalidArguments {
+                error: "Value is not a valid MemberSortType".to_string(),
+            }),
+        }
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::Postgres> for MemberSortType {
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <sqlx_pg_uint::PgU8 as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for MemberSortType {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::from(*self as u8);
+        sqlx_pg_uint.encode_by_ref(buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for MemberSortType {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'r>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        let sqlx_pg_uint = sqlx_pg_uint::PgU8::decode(value)?;
+        MemberSortType::try_from(sqlx_pg_uint.to_uint()).map_err(|e| e.into())
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+/// Part of [SearchGuildMembersSchema]
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMPaginationFilter {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<Snowflake>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(with = "ts_milliseconds_option")]
+    pub guild_joined_at: Option<chrono::DateTime<Utc>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Part of [SearchGuildMembersSchema]
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SearchGuildMembersFilter {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<SGMSnowflakeQuery>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usernames: Option<SGMStringQuery>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role_ids: Option<SGMSnowflakeQuery>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_joined_at: Option<SGMTimestampQuery>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub safety_signals: Option<SGMSafetySignals>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_pending: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub did_rejoin: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub join_source_type: Option<SGMJoinSourceQuery>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_invite_code: Option<SGMStringQuery>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+/// Part of [SearchGuildMembersFilter]
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMSafetySignals {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unusual_dm_activity_until: Option<SGMTimestampQuery>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub communication_disabled_until: Option<SGMTimestampQuery>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unusual_account_activity: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub automod_quarantined_username: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Part of [SearchGuildMembersSchema]
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub enum SearchGuildMembersQuery {
+    Snowflake(SGMSnowflakeQuery),
+    String(SGMStringQuery),
+    Timestamp(SGMTimestampQuery),
+    JoinType(SGMJoinSourceQuery),
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A possible type of [SearchGuildMembersQuery], used for querying with
+/// a [Snowflake] type.
+///
+/// This type is used for querying user and role ids.
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMSnowflakeQuery {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub or_query: Vec<Snowflake>,
+
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub and_query: Vec<Snowflake>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub range: Option<SGMSnowflakeQueryRange>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+/// Part of [SGMSnowflakeQuery]
+///
+/// Used to specify bounds (>=, <=) for [Snowflake] queries
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMSnowflakeQueryRange {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "gte")]
+    /// Inclusive lower bound value to match
+    pub greater_than_or_equal: Option<Snowflake>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "lte")]
+    /// Inclusive upper bound value to match
+    pub less_than_or_equal: Option<Snowflake>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A possible type of [SearchGuildMembersQuery], used for querying with
+/// a [String] type.
+///
+/// This type is used for querying usernames.
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMStringQuery {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub or_query: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+/// A possible type of [SearchGuildMembersQuery], used for querying with
+/// a timestamp as a [chrono::DateTime] type.
+///
+/// This type is used for querying guild join times.
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMTimestampQuery {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub range: Option<SGMSnowflakeQueryRange>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+/// Part of [SGMTimestampQuery]
+///
+/// Used to specify bounds (>=, <=) for timestamp queries
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMTimestampQueryRange {
+    #[serde(with = "ts_milliseconds_option")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "gte")]
+    /// Inclusive lower bound (>=) value to match
+    pub greater_than_or_equal: Option<chrono::DateTime<Utc>>,
+
+    #[serde(with = "ts_milliseconds_option")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "lte")]
+    /// Inclusive upper bound (<=) value to match
+    pub less_than_or_equal: Option<chrono::DateTime<Utc>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// A possible type of [SearchGuildMembersQuery], used for querying with
+/// the [JoinSourceType].
+///
+/// # Reference
+///
+/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+pub struct SGMJoinSourceQuery {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub or_query: Vec<JoinSourceType>,
 }
