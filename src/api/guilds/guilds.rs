@@ -313,7 +313,7 @@ impl Guild {
     /// # Notes
     /// This endpoint is not usable by user accounts
     ///
-    /// # Reference:
+    /// # Reference
     /// See <https://docs.discord.sex/resources/guild#query-guild-members>
     pub async fn query_members(
         guild_id: Snowflake,
@@ -335,10 +335,25 @@ impl Guild {
         request.deserialize_response::<Vec<GuildMember>>(user).await
     }
 
+	 /// Returns [SupplementalGuildMember](crate::types::SupplementalGuildMember) objects that match a specified query.
+	 ///
+	 /// Requires the [PermissionFlags::MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+	 ///
+	 /// # Notes
+	 ///
+	 /// (On the Discord.com client, this
+	 /// endpoint is used for the User Management - Members tab in Server Settings)
+	 ///
+	 /// This endpoint utilizes Elasticsearch to power results.
+	 ///
+	 /// This means that while it is very powerful, it's also tricky to use and reliant on an
+	 /// index.
+	 ///
+	 /// As of 2025/01/15, Spacebar does not yet implement this endpoint.
     ///
-    /// # Reference:
+    /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
-    pub async fn search_guild_members(
+    pub async fn search_members(
         guild_id: Snowflake,
         schema: SearchGuildMembersSchema,
         user: &mut ChorusUser,

@@ -59,8 +59,8 @@ impl PartialEq for GuildMember {
 /// Additional information about a user participating in a guild.
 ///
 /// # See also
-/// - [ChorusUser::get_guild_members_supplemental]
-/// - [ChorusUser::search_guild_members]
+/// - [Guild::get_members_supplemental]
+/// - [Guild::search_members](crate::types::Guild::search_members)
 ///
 /// [ChorusUser]: [crate::instance::ChorusUser]
 ///
@@ -70,15 +70,12 @@ pub struct SupplementalGuildMember {
     /// The ID of the user this member represents
     ///
     /// Note: this field is only included by the
-    /// [ChorusUser::get_guild_members_supplemental] endpoint
-    ///
-    /// [ChorusUser]: [crate::instance::ChorusUser]
+    /// [Guild::get_members_supplemental] endpoint
     pub user_id: Option<Snowflake>,
     /// The associated member object
     ///
-    /// Note: this field is only included by the [ChorusUser::search_guild_members] endpoint
-    ///
-    /// [ChorusUser]: [crate::instance::ChorusUser]
+    /// Note: this field is only included by the
+    /// [Guild::search_members](crate::types::Guild::search_members) endpoint
     pub member: Option<GuildMember>,
     /// How the user joined the guild
     pub join_source_type: JoinSourceType,
