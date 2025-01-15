@@ -1033,3 +1033,13 @@ pub struct SGMJoinSourceQuery {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub or_query: Vec<JoinSourceType>,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// Schema for the [Guild::get_members_supplemental](crate::types::Guild::get_members_supplemental) route
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
+pub struct GetGuildMembersSupplementalSchema {
+	/// The user IDs to fetch supplemental guild member information for (max 200)
+	pub users: Vec<Snowflake>
+}

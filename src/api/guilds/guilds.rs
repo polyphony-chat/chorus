@@ -12,12 +12,14 @@ use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::GetGuildMembersSchema;
+use crate::types::GetGuildMembersSupplementalSchema;
 use crate::types::GuildModifyMFALevelSchema;
 use crate::types::MFALevel;
 use crate::types::SGMReturnNotIndexed;
 use crate::types::SGMReturnOk;
 use crate::types::SearchGuildMembersReturn;
 use crate::types::SearchGuildMembersSchema;
+use crate::types::SupplementalGuildMember;
 use crate::types::{
     Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildBansQuery, GuildCreateSchema,
     GuildMember, GuildModifySchema, GuildPreview, LimitType, ModifyGuildMemberProfileSchema,
@@ -422,6 +424,35 @@ impl Guild {
                 error: response.status().to_string(),
             }),
         }
+    }
+
+    /// Fetches [SupplementalGuildMember] objects for the given user IDs.
+    ///
+    /// Requires the [PermissionFlags::MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// # Notes
+    /// As of 2025/01/15, Spacebar does not yet implement this endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
+    pub async fn get_members_supplemental(
+        guild_id: Snowflake,
+        schema: GetGuildMembersSupplementalSchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<Vec<SupplementalGuildMember>> {
+        let request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/guilds/{}/members/supplemental",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
     }
 
     /// Removes a member from a guild.
