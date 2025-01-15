@@ -335,21 +335,21 @@ impl Guild {
         request.deserialize_response::<Vec<GuildMember>>(user).await
     }
 
-	 /// Returns [SupplementalGuildMember](crate::types::SupplementalGuildMember) objects that match a specified query.
-	 ///
-	 /// Requires the [PermissionFlags::MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
-	 ///
-	 /// # Notes
-	 ///
-	 /// (On the Discord.com client, this
-	 /// endpoint is used for the User Management - Members tab in Server Settings)
-	 ///
-	 /// This endpoint utilizes Elasticsearch to power results.
-	 ///
-	 /// This means that while it is very powerful, it's also tricky to use and reliant on an
-	 /// index.
-	 ///
-	 /// As of 2025/01/15, Spacebar does not yet implement this endpoint.
+    /// Returns [SupplementalGuildMember](crate::types::SupplementalGuildMember) objects that match a specified query.
+    ///
+    /// Requires the [PermissionFlags::MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// # Notes
+    ///
+    /// (On the Discord.com client, this
+    /// endpoint is used for the User Management - Members tab in Server Settings)
+    ///
+    /// This endpoint utilizes Elasticsearch to power results.
+    ///
+    /// This means that while it is very powerful, it's also tricky to use and reliant on an
+    /// index.
+    ///
+    /// As of 2025/01/15, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
@@ -392,37 +392,35 @@ impl Guild {
                 match status {
                     http::StatusCode::ACCEPTED => {
                         match serde_json::from_str::<SGMReturnNotIndexed>(&response_text) {
-                            Ok(object) => return Ok(SearchGuildMembersReturn::NotIndexed(object)),
+                            Ok(object) => Ok(SearchGuildMembersReturn::NotIndexed(object)),
                             Err(e) => {
-                                return Err(ChorusError::InvalidResponse {
+                                Err(ChorusError::InvalidResponse {
 												error: format!(
 												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
 												e, response_text),
-											});
+											})
                             }
-                        };
+                        }
                     }
                     http::StatusCode::OK => {
                         match serde_json::from_str::<SGMReturnOk>(&response_text) {
-                            Ok(object) => return Ok(SearchGuildMembersReturn::Ok(object)),
+                            Ok(object) => Ok(SearchGuildMembersReturn::Ok(object)),
                             Err(e) => {
-                                return Err(ChorusError::InvalidResponse {
+                                Err(ChorusError::InvalidResponse {
 												error: format!(
 												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
 												e, response_text),
-											});
+											})
                             }
-                        };
+                        }
                     }
                     _ => unreachable!(),
                 }
             }
-            _ => {
-                return Err(ChorusError::ReceivedErrorCode {
-                    error_code: response.status().as_u16(),
-                    error: response.status().to_string(),
-                });
-            }
+            _ => Err(ChorusError::ReceivedErrorCode {
+                error_code: response.status().as_u16(),
+                error: response.status().to_string(),
+            }),
         }
     }
 
