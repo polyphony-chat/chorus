@@ -56,7 +56,7 @@ pub struct UserSettings {
     pub disable_games_tab: bool,
     pub enable_tts_command: bool,
     pub explicit_content_filter: UInt8,
-    pub friend_source_flags: FriendSourceFlags,
+    pub friend_source_flags: Option<FriendSourceFlags>,
     pub gateway_connected: Option<bool>,
     pub gif_auto_play: bool,
     pub guild_folders: Vec<GuildFolder>,
@@ -133,9 +133,7 @@ pub struct CustomStatus {
     pub text: Option<String>,
 }
 
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 pub struct FriendSourceFlags {
     pub all: bool,
