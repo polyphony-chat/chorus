@@ -35,26 +35,14 @@ impl types::Channel {
             channel_id,
             overwrite.id
         );
-        let body = match to_string(&overwrite) {
-            Ok(string) => string,
-            Err(e) => {
-                return Err(ChorusError::FormCreation {
-                    error: e.to_string(),
-                });
-            }
-        };
-        let mut request = Client::new()
-            .put(url)
-            .header("Authorization", user.token())
-            .header("Content-Type", "application/json")
-            .body(body);
-        if let Some(reason) = audit_log_reason {
-            request = request.header("X-Audit-Log-Reason", reason);
-        }
+
         let chorus_request = ChorusRequest {
-            request,
+            request: Client::new().put(url).json(&overwrite),
             limit_type: LimitType::Channel(channel_id),
-        };
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
         chorus_request.handle_request_as_result(user).await
     }
 
@@ -78,14 +66,11 @@ impl types::Channel {
             overwrite_id
         );
 
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Channel(channel_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Channel(channel_id),
+        }
+        .with_headers_for(user);
 
         request.handle_request_as_result(user).await
     }

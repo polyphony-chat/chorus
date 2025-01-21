@@ -24,15 +24,15 @@ impl Guild {
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild>
     pub async fn get(guild_id: Snowflake, user: &mut ChorusUser) -> ChorusResult<Guild> {
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .get(format!(
-                    "{}/guilds/{}",
-                    user.belongs_to.read().unwrap().urls.api,
-                    guild_id
-                ))
-                .header("Authorization", user.token()),
+            request: Client::new().get(format!(
+                "{}/guilds/{}",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id
+            )),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_headers_for(user);
+
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
         Ok(response)
     }
@@ -47,13 +47,10 @@ impl Guild {
     ) -> ChorusResult<Guild> {
         let url = format!("{}/guilds", user.belongs_to.read().unwrap().urls.api);
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(url.clone())
-                .header("Authorization", user.token.clone())
-                .header("Content-Type", "application/json")
-                .body(to_string(&guild_create_schema).unwrap()),
+            request: Client::new().post(url.clone()).json(&guild_create_schema),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(user);
         chorus_request.deserialize_response::<Guild>(user).await
     }
 
@@ -80,12 +77,11 @@ impl Guild {
                     user.belongs_to.read().unwrap().urls.api,
                     guild_id,
                 ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&schema).unwrap()),
+                .json(&schema),
             limit_type: LimitType::Guild(guild_id),
         }
-        .with_maybe_mfa(&user.mfa_token);
+        .with_maybe_mfa(&user.mfa_token)
+        .with_headers_for(user);
 
         let response = chorus_request.deserialize_response::<Guild>(user).await?;
         Ok(response)
@@ -120,13 +116,11 @@ impl Guild {
         );
 
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(url.clone())
-                .header("Authorization", user.token.clone())
-                .header("Content-Type", "application/json"),
+            request: Client::new().post(url.clone()),
             limit_type: LimitType::Global,
         }
-        .with_maybe_mfa(&user.mfa_token);
+        .with_maybe_mfa(&user.mfa_token)
+        .with_headers_for(user);
 
         chorus_request.handle_request_as_result(user).await
     }
@@ -157,15 +151,15 @@ impl Guild {
     /// See <https://discord-userdoccers.vercel.app/resources/channel#get-guild-channels>
     pub async fn channels(&self, user: &mut ChorusUser) -> ChorusResult<Vec<Channel>> {
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .get(format!(
-                    "{}/guilds/{}/channels",
-                    user.belongs_to.read().unwrap().urls.api,
-                    self.id
-                ))
-                .header("Authorization", user.token()),
+            request: Client::new().get(format!(
+                "{}/guilds/{}/channels",
+                user.belongs_to.read().unwrap().urls.api,
+                self.id
+            )),
             limit_type: LimitType::Channel(self.id),
-        };
+        }
+        .with_headers_for(user);
+
         let result = chorus_request.send_request(user).await?;
         let stringed_response = match result.text().await {
             Ok(value) => value,
@@ -196,16 +190,15 @@ impl Guild {
         user: &mut ChorusUser,
     ) -> ChorusResult<GuildPreview> {
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .patch(format!(
-                    "{}/guilds/{}/preview",
-                    user.belongs_to.read().unwrap().urls.api,
-                    guild_id,
-                ))
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
+            request: Client::new().patch(format!(
+                "{}/guilds/{}/preview",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id,
+            )),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_headers_for(user);
+
         let response = chorus_request
             .deserialize_response::<GuildPreview>(user)
             .await?;
@@ -220,19 +213,16 @@ impl Guild {
         guild_id: Snowflake,
         user: &mut ChorusUser,
     ) -> ChorusResult<Vec<GuildMember>> {
-        let request = ChorusRequest::new(
-            http::Method::GET,
-            format!(
+        let request = ChorusRequest {
+            request: Client::new().get(format!(
                 "{}/guilds/{}/members",
                 user.belongs_to.read().unwrap().urls.api,
                 guild_id,
-            )
-            .as_str(),
-            None,
-            None,
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+            )),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
         request.deserialize_response::<Vec<GuildMember>>(user).await
     }
 
@@ -245,22 +235,20 @@ impl Guild {
         query: GuildMemberSearchSchema,
         user: &mut ChorusUser,
     ) -> ChorusResult<Vec<GuildMember>> {
-        let mut request = ChorusRequest::new(
-            http::Method::GET,
-            format!(
+        let mut request = ChorusRequest {
+            request: Client::new().get(format!(
                 "{}/guilds/{}/members/search",
                 user.belongs_to.read().unwrap().urls.api,
                 guild_id,
-            )
-            .as_str(),
-            None,
-            None,
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+            )),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
         request.request = request
             .request
             .query(&[("query", to_string(&query).unwrap())]);
+
         request.deserialize_response::<Vec<GuildMember>>(user).await
     }
 
@@ -276,20 +264,18 @@ impl Guild {
         audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            format!(
+        let request = ChorusRequest {
+            request: Client::new().delete(format!(
                 "{}/guilds/{}/members/{}",
                 user.belongs_to.read().unwrap().urls.api,
                 guild_id,
                 member_id,
-            )
-            .as_str(),
-            None,
-            audit_log_reason.as_deref(),
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+            )),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
         request.handle_request_as_result(user).await
     }
 
@@ -305,20 +291,20 @@ impl Guild {
         audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<GuildMember> {
-        let request = ChorusRequest::new(
-            http::Method::PATCH,
-            format!(
-                "{}/guilds/{}/members/{}",
-                user.belongs_to.read().unwrap().urls.api,
-                guild_id,
-                member_id,
-            )
-            .as_str(),
-            Some(to_string(&schema).unwrap()),
-            audit_log_reason.as_deref(),
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/guilds/{}/members/{}",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                    member_id,
+                ))
+                .json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
         request.deserialize_response::<GuildMember>(user).await
     }
 
@@ -332,19 +318,19 @@ impl Guild {
         audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<GuildMember> {
-        let request = ChorusRequest::new(
-            http::Method::PATCH,
-            format!(
-                "{}/guilds/{}/members/@me",
-                user.belongs_to.read().unwrap().urls.api,
-                guild_id,
-            )
-            .as_str(),
-            Some(to_string(&schema).unwrap()),
-            audit_log_reason.as_deref(),
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/guilds/{}/members/@me",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
         request.deserialize_response::<GuildMember>(user).await
     }
 
@@ -357,19 +343,18 @@ impl Guild {
         schema: ModifyGuildMemberProfileSchema,
         user: &mut ChorusUser,
     ) -> ChorusResult<UserProfileMetadata> {
-        let request = ChorusRequest::new(
-            http::Method::PATCH,
-            format!(
-                "{}/guilds/{}/profile/@me",
-                user.belongs_to.read().unwrap().urls.api,
-                guild_id,
-            )
-            .as_str(),
-            Some(to_string(&schema).unwrap()),
-            None,
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new()
+                .patch(format!(
+                    "{}/guilds/{}/profile/@me",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
         request
             .deserialize_response::<UserProfileMetadata>(user)
             .await
@@ -392,17 +377,16 @@ impl Guild {
             guild_id,
         );
 
-        let mut request = ChorusRequest::new(
-            http::Method::GET,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+        let mut request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
         if let Some(query) = query {
             request.request = request.request.query(&to_string(&query).unwrap());
         }
+
         request.deserialize_response::<Vec<GuildBan>>(user).await
     }
 
@@ -424,14 +408,12 @@ impl Guild {
             user_id
         );
 
-        let request = ChorusRequest::new(
-            http::Method::GET,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
         request.deserialize_response::<GuildBan>(user).await
     }
 
@@ -447,20 +429,20 @@ impl Guild {
         user: &mut ChorusUser,
     ) -> ChorusResult<()> {
         // FIXME: Return GuildBan instead of (). Requires <https://github.com/spacebarchat/server/issues/1096> to be resolved.
-        let request = ChorusRequest::new(
-            http::Method::PUT,
-            format!(
-                "{}/guilds/{}/bans/{}",
-                user.belongs_to.read().unwrap().urls.api,
-                guild_id,
-                user_id
-            )
-            .as_str(),
-            Some(to_string(&schema).unwrap()),
-            audit_log_reason.as_deref(),
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new()
+                .put(format!(
+                    "{}/guilds/{}/bans/{}",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                    user_id
+                ))
+                .json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
         request.handle_request_as_result(user).await
     }
 
@@ -483,14 +465,13 @@ impl Guild {
             user_id
         );
 
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            &url,
-            None,
-            audit_log_reason.as_deref(),
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
         request.handle_request_as_result(user).await
     }
 }
@@ -508,22 +489,19 @@ impl Channel {
         audit_log_reason: Option<String>,
         schema: ChannelCreateSchema,
     ) -> ChorusResult<Channel> {
-        let mut request = Client::new()
-            .post(format!(
-                "{}/guilds/{}/channels",
-                user.belongs_to.read().unwrap().urls.api,
-                guild_id
-            ))
-            .header("Authorization", user.token())
-            .header("Content-Type", "application/json")
-            .body(to_string(&schema).unwrap());
-        if let Some(reason) = audit_log_reason {
-            request = request.header("X-Audit-Log-Reason", reason);
-        }
-        let chorus_request = ChorusRequest {
-            request,
+        let request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/guilds/{}/channels",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id
+                ))
+                .json(&schema),
             limit_type: LimitType::Guild(guild_id),
-        };
-        chorus_request.deserialize_response::<Channel>(user).await
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
+        request.deserialize_response::<Channel>(user).await
     }
 }

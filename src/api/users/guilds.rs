@@ -8,7 +8,7 @@ use serde_json::to_string;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{GetUserGuildSchema, Guild, LimitType, Snowflake};
+use crate::types::{GetUserGuildSchema, Guild, GuildLeaveSchema, LimitType, Snowflake};
 
 impl ChorusUser {
     /// Leaves a given guild.
@@ -18,7 +18,11 @@ impl ChorusUser {
     // TODO: Docs: What is "lurking" here?
     // It is documented as "Whether the user is lurking in the guild",
     // but that says nothing about what this field actually does / means
-    pub async fn leave_guild(&mut self, guild_id: &Snowflake, lurking: bool) -> ChorusResult<()> {
+    pub async fn leave_guild(
+        &mut self,
+        guild_id: &Snowflake,
+        lurking: Option<bool>,
+    ) -> ChorusResult<()> {
         ChorusRequest {
             request: Client::new()
                 .delete(format!(
@@ -26,9 +30,7 @@ impl ChorusUser {
                     self.belongs_to.read().unwrap().urls.api,
                     guild_id
                 ))
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&lurking).unwrap()),
+                .json(&GuildLeaveSchema { lurking }),
             limit_type: LimitType::Guild(*guild_id),
         }
         .handle_request_as_result(self)
@@ -44,12 +46,10 @@ impl ChorusUser {
         &mut self,
         query: Option<GetUserGuildSchema>,
     ) -> ChorusResult<Vec<Guild>> {
-
         let query_parameters = {
             if let Some(query_some) = query {
                 query_some.to_query()
-            }
-            else {
+            } else {
                 Vec::new()
             }
         };
@@ -59,14 +59,12 @@ impl ChorusUser {
             self.belongs_to.read().unwrap().urls.api,
         );
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .get(url)
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json")
-                .query(&query_parameters),
+            request: Client::new().get(url).query(&query_parameters),
 
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(self);
+
         chorus_request
             .deserialize_response::<Vec<Guild>>(self)
             .await

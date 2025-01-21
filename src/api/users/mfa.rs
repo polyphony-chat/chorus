@@ -32,13 +32,13 @@ impl ChorusUser {
                 "{}/users/@me/mfa/totp/enable",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         let response: EnableTotpMfaResponse = chorus_request.deserialize_response(self).await?;
 
@@ -61,18 +61,17 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#disable-totp-mfa>
     pub async fn disable_totp_mfa(&mut self) -> ChorusResult<Token> {
-        let request = Client::new()
-            .post(format!(
-                "{}/users/@me/mfa/totp/disable",
-                self.belongs_to.read().unwrap().urls.api
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().post(format!(
+            "{}/users/@me/mfa/totp/disable",
+            self.belongs_to.read().unwrap().urls.api
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         let response: Token = chorus_request.deserialize_response(self).await?;
 
@@ -98,14 +97,14 @@ impl ChorusUser {
                 "{}/users/@me/mfa/sms/enable",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         chorus_request.handle_request_as_result(self).await
     }
@@ -125,14 +124,14 @@ impl ChorusUser {
                 "{}/users/@me/mfa/sms/disable",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         chorus_request.handle_request_as_result(self).await
     }
@@ -143,17 +142,16 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-webauthn-authenticators>
     pub async fn get_webauthn_authenticators(&mut self) -> ChorusResult<Vec<MfaAuthenticator>> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/mfa/webauthn/credentials",
-                self.belongs_to.read().unwrap().urls.api
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/mfa/webauthn/credentials",
+            self.belongs_to.read().unwrap().urls.api
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -177,18 +175,17 @@ impl ChorusUser {
     pub async fn begin_webauthn_authenticator_creation(
         &mut self,
     ) -> ChorusResult<BeginWebAuthnAuthenticatorCreationReturn> {
-        let request = Client::new()
-            .post(format!(
-                "{}/users/@me/mfa/webauthn/credentials",
-                self.belongs_to.read().unwrap().urls.api
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().post(format!(
+            "{}/users/@me/mfa/webauthn/credentials",
+            self.belongs_to.read().unwrap().urls.api
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -221,14 +218,14 @@ impl ChorusUser {
                 "{}/users/@me/mfa/webauthn/credentials",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -256,14 +253,14 @@ impl ChorusUser {
                 self.belongs_to.read().unwrap().urls.api,
                 authenticator_id
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -287,19 +284,18 @@ impl ChorusUser {
         &mut self,
         authenticator_id: Snowflake,
     ) -> ChorusResult<()> {
-        let request = Client::new()
-            .delete(format!(
-                "{}/users/@me/mfa/webauthn/credentials/{}",
-                self.belongs_to.read().unwrap().urls.api,
-                authenticator_id
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().delete(format!(
+            "{}/users/@me/mfa/webauthn/credentials/{}",
+            self.belongs_to.read().unwrap().urls.api,
+            authenticator_id
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         chorus_request.handle_request_as_result(self).await
     }
@@ -323,13 +319,13 @@ impl ChorusUser {
                 "{}/auth/verify/view-backup-codes-challenge",
                 self.belongs_to.read().unwrap().urls.api,
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -359,13 +355,13 @@ impl ChorusUser {
                 "{}/users/@me/mfa/codes-verification",
                 self.belongs_to.read().unwrap().urls.api,
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }

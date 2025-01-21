@@ -52,6 +52,17 @@ pub struct GuildBanCreateSchema {
     pub delete_message_seconds: Option<u32>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+/// Schema for the [crate::instance::ChorusUser::leave_guild] route
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#json-params>
+pub(crate) struct GuildLeaveSchema {
+	 /// "Whether the user is lurking in the guild"
+    pub lurking: Option<bool>,
+}
+
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 /// Represents the schema which needs to be sent to create a Guild Ban.

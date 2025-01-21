@@ -41,15 +41,15 @@ impl ChorusUser {
                 self.belongs_to.read().unwrap().urls.api,
                 connection_type_string
             ))
-            // Note: ommiting this header causes a 401 Unauthorized,
-            // even though discord.sex mentions it as unauthenticated
-            .header("Authorization", self.token())
             .query(&query_parameters);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
+        // Note: ommiting authorization causes a 401 Unauthorized,
+        // even though discord.sex mentions it as unauthenticated
 
         chorus_request
             .deserialize_response::<AuthorizeConnectionReturn>(self)
@@ -81,13 +81,13 @@ impl ChorusUser {
                 self.belongs_to.read().unwrap().urls.api,
                 connection_type_string
             ))
-            .header("Authorization", self.token())
             .json(&json_schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -111,13 +111,13 @@ impl ChorusUser {
                 self.belongs_to.read().unwrap().urls.api,
                 connection_account_id
             ))
-            .header("Authorization", self.token())
             .json(&json_schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -169,18 +169,17 @@ impl ChorusUser {
         &mut self,
         domain: &String,
     ) -> ChorusResult<CreateDomainConnectionReturn> {
-        let request = Client::new()
-            .post(format!(
-                "{}/users/@me/connections/domain/{}",
-                self.belongs_to.read().unwrap().urls.api,
-                domain
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().post(format!(
+            "{}/users/@me/connections/domain/{}",
+            self.belongs_to.read().unwrap().urls.api,
+            domain
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         let result = chorus_request
             .deserialize_response::<Connection>(self)
@@ -217,17 +216,16 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-connections>
     pub async fn get_connections(&mut self) -> ChorusResult<Vec<Connection>> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/connections",
-                self.belongs_to.read().unwrap().urls.api,
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/connections",
+            self.belongs_to.read().unwrap().urls.api,
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -245,19 +243,18 @@ impl ChorusUser {
             .expect("Failed to serialize connection type!")
             .replace('"', "");
 
-        let request = Client::new()
-            .post(format!(
-                "{}/users/@me/connections/{}/{}/refresh",
-                self.belongs_to.read().unwrap().urls.api,
-                connection_type_string,
-                connection_account_id
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().post(format!(
+            "{}/users/@me/connections/{}/{}/refresh",
+            self.belongs_to.read().unwrap().urls.api,
+            connection_type_string,
+            connection_account_id
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.handle_request_as_result(self).await
     }
@@ -286,13 +283,13 @@ impl ChorusUser {
                 connection_type_string,
                 connection_account_id
             ))
-            .header("Authorization", self.token())
             .json(&json_schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -310,19 +307,18 @@ impl ChorusUser {
             .expect("Failed to serialize connection type!")
             .replace('"', "");
 
-        let request = Client::new()
-            .delete(format!(
-                "{}/users/@me/connections/{}/{}",
-                self.belongs_to.read().unwrap().urls.api,
-                connection_type_string,
-                connection_account_id
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().delete(format!(
+            "{}/users/@me/connections/{}/{}",
+            self.belongs_to.read().unwrap().urls.api,
+            connection_type_string,
+            connection_account_id
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.handle_request_as_result(self).await
     }
@@ -342,19 +338,18 @@ impl ChorusUser {
             .expect("Failed to serialize connection type!")
             .replace('"', "");
 
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/connections/{}/{}/access-token",
-                self.belongs_to.read().unwrap().urls.api,
-                connection_type_string,
-                connection_account_id
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/connections/{}/{}/access-token",
+            self.belongs_to.read().unwrap().urls.api,
+            connection_type_string,
+            connection_account_id
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request
             .deserialize_response::<GetConnectionAccessTokenReturn>(self)
@@ -373,18 +368,17 @@ impl ChorusUser {
         &mut self,
         connection_account_id: &String,
     ) -> ChorusResult<Vec<ConnectionSubreddit>> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/connections/reddit/{}/subreddits",
-                self.belongs_to.read().unwrap().urls.api,
-                connection_account_id
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/connections/reddit/{}/subreddits",
+            self.belongs_to.read().unwrap().urls.api,
+            connection_account_id
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }

@@ -8,7 +8,9 @@ use serde_json::to_string;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
-use crate::types::{CreateChannelInviteSchema, GuildInvite, Invite, LimitType, Snowflake};
+use crate::types::{
+    AcceptInviteSchema, CreateChannelInviteSchema, GuildInvite, Invite, LimitType, Snowflake,
+};
 
 impl ChorusUser {
     /// Accepts an invite to a guild, group DM, or DM.
@@ -20,24 +22,20 @@ impl ChorusUser {
     pub async fn accept_invite(
         &mut self,
         invite_code: &str,
-        session_id: Option<&str>,
+        session_id: Option<String>,
     ) -> ChorusResult<Invite> {
-        let mut request = ChorusRequest {
+        let request = ChorusRequest {
             request: Client::new()
                 .post(format!(
                     "{}/invites/{}",
                     self.belongs_to.read().unwrap().urls.api,
                     invite_code
                 ))
-                .header("Authorization", self.token()),
+                .json(&AcceptInviteSchema { session_id }),
             limit_type: LimitType::Global,
-        };
-        if let Some(session_id) = session_id {
-            request.request = request
-                .request
-                .header("Content-Type", "application/json")
-                .body(to_string(session_id).unwrap());
         }
+        .with_headers_for(self);
+
         request.deserialize_response::<Invite>(self).await
     }
 
@@ -54,11 +52,10 @@ impl ChorusUser {
                     "{}/users/@me/invites",
                     self.belongs_to.read().unwrap().urls.api
                 ))
-                .body(to_string(&code).unwrap())
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json"),
+                .json(&code),
             limit_type: LimitType::Global,
         }
+        .with_headers_for(self)
         .deserialize_response::<Invite>(self)
         .await
     }
@@ -82,11 +79,10 @@ impl ChorusUser {
                     self.belongs_to.read().unwrap().urls.api,
                     channel_id
                 ))
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&create_channel_invite_schema).unwrap()),
+                .json(&create_channel_invite_schema),
             limit_type: LimitType::Channel(channel_id),
         }
+        .with_headers_for(self)
         .deserialize_response::<GuildInvite>(self)
         .await
     }

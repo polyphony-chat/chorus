@@ -109,15 +109,14 @@ impl ChorusUser {
                 "{}/users/@me",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .body(to_string(&modify_schema).unwrap())
-            .header("Authorization", self.token())
-            .header("Content-Type", "application/json");
+            .json(&modify_schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         chorus_request.deserialize_response::<User>(self).await
     }
@@ -139,14 +138,14 @@ impl ChorusUser {
                 "{}/users/@me/disable",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         chorus_request.handle_request_as_result(self).await
     }
@@ -166,14 +165,14 @@ impl ChorusUser {
                 "{}/users/@me/delete",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
         }
-        .with_maybe_mfa(&self.mfa_token);
+        .with_maybe_mfa(&self.mfa_token)
+        .with_headers_for(self);
 
         chorus_request.handle_request_as_result(self).await
     }
@@ -226,16 +225,15 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#modify-user-email>
     pub async fn initiate_email_change(&mut self) -> ChorusResult<()> {
-        let request = Client::new()
-            .put(format!(
-                "{}/users/@me/email",
-                self.belongs_to.read().unwrap().urls.api
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().put(format!(
+            "{}/users/@me/email",
+            self.belongs_to.read().unwrap().urls.api
+        ));
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
         chorus_request.handle_request_as_result(self).await
     }
 
@@ -261,12 +259,12 @@ impl ChorusUser {
                 "{}/users/@me/email/verify-code",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             .json(&schema);
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
         chorus_request
             .deserialize_response::<VerifyUserEmailChangeResponse>(self)
             .await
@@ -287,17 +285,16 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-pomelo-suggestions>
     pub async fn get_pomelo_suggestions(&mut self) -> ChorusResult<String> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/pomelo-suggestions",
-                self.belongs_to.read().unwrap().urls.api
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/pomelo-suggestions",
+            self.belongs_to.read().unwrap().urls.api
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
         chorus_request
             .deserialize_response::<GetPomeloSuggestionsReturn>(self)
             .await
@@ -319,7 +316,6 @@ impl ChorusUser {
                 "{}/users/@me/pomelo-attempt",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             // FIXME: should we create a type for this?
             .body(format!(r#"{{ "username": {:?} }}"#, username))
             .header("Content-Type", "application/json");
@@ -327,7 +323,8 @@ impl ChorusUser {
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
         chorus_request
             .deserialize_response::<GetPomeloEligibilityReturn>(self)
             .await
@@ -359,7 +356,6 @@ impl ChorusUser {
                 "{}/users/@me/pomelo",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             // FIXME: should we create a type for this?
             .body(format!(r#"{{ "username": {:?} }}"#, username))
             .header("Content-Type", "application/json");
@@ -367,7 +363,8 @@ impl ChorusUser {
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         let result = chorus_request.deserialize_response::<User>(self).await;
 
@@ -397,13 +394,13 @@ impl ChorusUser {
                 "{}/users/@me/mentions",
                 self.belongs_to.read().unwrap().urls.api
             ))
-            .header("Authorization", self.token())
             .query(&query_parameters);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request
             .deserialize_response::<Vec<crate::types::Message>>(self)
@@ -420,18 +417,17 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#delete-recent-mention>
     pub async fn delete_recent_mention(&mut self, message_id: Snowflake) -> ChorusResult<()> {
-        let request = Client::new()
-            .delete(format!(
-                "{}/users/@me/mentions/{}",
-                self.belongs_to.read().unwrap().urls.api,
-                message_id
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().delete(format!(
+            "{}/users/@me/mentions/{}",
+            self.belongs_to.read().unwrap().urls.api,
+            message_id
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.handle_request_as_result(self).await
     }
@@ -446,17 +442,16 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-harvest>
     pub async fn get_harvest(&mut self) -> ChorusResult<Option<Harvest>> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/harvest",
-                self.belongs_to.read().unwrap().urls.api,
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/harvest",
+            self.belongs_to.read().unwrap().urls.api,
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         // Manual handling, because a 204 with no harvest is a success state
         // TODO: Maybe make this a method on ChorusRequest if we need it a lot
@@ -523,13 +518,13 @@ impl ChorusUser {
                 "{}/users/@me/harvest",
                 self.belongs_to.read().unwrap().urls.api,
             ))
-            .header("Authorization", self.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -542,17 +537,16 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-notes>
     pub async fn get_user_notes(&mut self) -> ChorusResult<HashMap<Snowflake, String>> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/notes",
-                self.belongs_to.read().unwrap().urls.api,
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/notes",
+            self.belongs_to.read().unwrap().urls.api,
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -595,17 +589,16 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-affinities>
     pub async fn get_user_affinities(&mut self) -> ChorusResult<UserAffinities> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/affinities/users",
-                self.belongs_to.read().unwrap().urls.api,
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/affinities/users",
+            self.belongs_to.read().unwrap().urls.api,
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -615,17 +608,16 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-guild-affinities>
     pub async fn get_guild_affinities(&mut self) -> ChorusResult<GuildAffinities> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/affinities/guilds",
-                self.belongs_to.read().unwrap().urls.api,
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/affinities/guilds",
+            self.belongs_to.read().unwrap().urls.api,
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -641,17 +633,16 @@ impl ChorusUser {
     /// # Reference
     /// See <https://docs.discord.sex/resources/user#get-user-premium-usage>
     pub async fn get_premium_usage(&mut self) -> ChorusResult<PremiumUsage> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/premium-usage",
-                self.belongs_to.read().unwrap().urls.api,
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/premium-usage",
+            self.belongs_to.read().unwrap().urls.api,
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -664,17 +655,16 @@ impl ChorusUser {
     /// # Notes
     /// As of 2024/08/18, Spacebar does not yet implement this endpoint.
     pub async fn get_burst_credits(&mut self) -> ChorusResult<BurstCreditsInfo> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/burst-credits",
-                self.belongs_to.read().unwrap().urls.api,
-            ))
-            .header("Authorization", self.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/burst-credits",
+            self.belongs_to.read().unwrap().urls.api,
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(self);
 
         chorus_request.deserialize_response(self).await
     }
@@ -688,13 +678,12 @@ impl User {
     pub async fn get_current(user: &mut ChorusUser) -> ChorusResult<User> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let url = format!("{}/users/@me", url_api);
-        let request = reqwest::Client::new()
-            .get(url)
-            .header("Authorization", user.token());
+        let request = reqwest::Client::new().get(url);
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(user);
         chorus_request.deserialize_response::<User>(user).await
     }
 
@@ -705,13 +694,12 @@ impl User {
     pub async fn get(user: &mut ChorusUser, id: Snowflake) -> ChorusResult<PublicUser> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let url = format!("{}/users/{}", url_api, id);
-        let request = reqwest::Client::new()
-            .get(url)
-            .header("Authorization", user.token());
+        let request = reqwest::Client::new().get(url);
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(user);
         chorus_request
             .deserialize_response::<PublicUser>(user)
             .await
@@ -742,9 +730,7 @@ impl User {
     ) -> ChorusResult<PublicUser> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let url = format!("{}/users/username/{username}", url_api);
-        let mut request = reqwest::Client::new()
-            .get(url)
-            .header("Authorization", user.token());
+        let mut request = reqwest::Client::new().get(url);
 
         if let Some(some_discriminator) = discriminator {
             request = request.query(&[("discriminator", some_discriminator)]);
@@ -753,7 +739,8 @@ impl User {
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(user);
         chorus_request
             .deserialize_response::<PublicUser>(user)
             .await
@@ -765,13 +752,13 @@ impl User {
     /// See <https://luna.gitlab.io/discord-unofficial-docs/docs/user_settings.html#get-usersmesettings>
     pub async fn get_settings(user: &mut ChorusUser) -> ChorusResult<UserSettings> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
-        let request: reqwest::RequestBuilder = Client::new()
-            .get(format!("{}/users/@me/settings", url_api))
-            .header("Authorization", user.token());
+        let request: reqwest::RequestBuilder =
+            Client::new().get(format!("{}/users/@me/settings", url_api));
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(user);
         chorus_request
             .deserialize_response::<UserSettings>(user)
             .await
@@ -797,13 +784,13 @@ impl User {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let request: reqwest::RequestBuilder = Client::new()
             .get(format!("{}/users/{}/profile", url_api, id))
-            .header("Authorization", user.token())
             .query(&query_parameters);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(user);
         chorus_request
             .deserialize_response::<UserProfile>(user)
             .await
@@ -822,12 +809,12 @@ impl User {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let request: reqwest::RequestBuilder = Client::new()
             .patch(format!("{}/users/@me/profile", url_api))
-            .header("Authorization", user.token())
             .json(&schema);
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(user);
         chorus_request
             .deserialize_response::<UserProfileMetadata>(user)
             .await
@@ -844,18 +831,17 @@ impl User {
         user: &mut ChorusUser,
         target_user_id: Snowflake,
     ) -> ChorusResult<UserNote> {
-        let request = Client::new()
-            .get(format!(
-                "{}/users/@me/notes/{}",
-                user.belongs_to.read().unwrap().urls.api,
-                target_user_id
-            ))
-            .header("Authorization", user.token());
+        let request = Client::new().get(format!(
+            "{}/users/@me/notes/{}",
+            user.belongs_to.read().unwrap().urls.api,
+            target_user_id
+        ));
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(user);
 
         chorus_request.deserialize_response(user).await
     }
@@ -879,13 +865,13 @@ impl User {
                 user.belongs_to.read().unwrap().urls.api,
                 target_user_id
             ))
-            .header("Authorization", user.token())
             .json(&schema);
 
         let chorus_request = ChorusRequest {
             request,
             limit_type: LimitType::default(),
-        };
+        }
+        .with_headers_for(user);
 
         chorus_request.handle_request_as_result(user).await
     }

@@ -51,6 +51,7 @@ pub struct Session {
     pub replace: Publisher<types::SessionsReplace>,
     pub reconnect: Publisher<types::GatewayReconnect>,
     pub invalid: Publisher<types::GatewayInvalidSession>,
+    pub resumed: Publisher<types::GatewayResumed>,
 }
 
 #[derive(Default, Debug)]
