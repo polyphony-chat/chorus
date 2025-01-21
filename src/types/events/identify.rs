@@ -60,7 +60,7 @@ impl GatewayIdentifyPayload {
     /// Creates an identify payload with the same default capabilities as the official client
     pub fn default_w_client_capabilities() -> Self {
         Self {
-            capabilities: Some(GatewayCapabilities::default()),
+            capabilities: Some(8189), // Default capabilities for a client
             ..Self::default()
         }
     }
