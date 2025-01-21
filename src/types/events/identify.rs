@@ -40,7 +40,7 @@ impl Default for GatewayIdentifyPayload {
             shard: None,
             presence: None,
             intents: None,
-            capabilities: None,
+            capabilities: Some(GatewayCapabilities::default()),
         }
     }
 }
