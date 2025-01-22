@@ -258,6 +258,7 @@ pub struct GuildCreateResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object>
 pub struct GuildScheduledEvent {
     pub id: Snowflake,
@@ -272,7 +273,9 @@ pub struct GuildScheduledEvent {
     pub status: GuildScheduledEventStatus,
     pub entity_type: GuildScheduledEventEntityType,
     pub entity_id: Option<Snowflake>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub entity_metadata: Option<GuildScheduledEventEntityMetadata>,
+    #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub creator: Option<Shared<User>>,
     pub user_count: Option<UInt64>,
     pub image: Option<String>,
@@ -302,7 +305,7 @@ impl PartialEq for GuildScheduledEvent {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq, Copy)]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i16))]
+#[cfg_attr(feature = "sqlx", repr(i16), derive(sqlx::Type))]
 /// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-privacy-level>
 pub enum GuildScheduledEventPrivacyLevel {
     #[default]
@@ -311,7 +314,7 @@ pub enum GuildScheduledEventPrivacyLevel {
 
 #[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq, Copy)]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i16))]
+#[cfg_attr(feature = "sqlx", repr(i16), derive(sqlx::Type))]
 /// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-status>
 pub enum GuildScheduledEventStatus {
     #[default]
@@ -335,7 +338,7 @@ pub enum GuildScheduledEventStatus {
     Hash,
 )]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
-#[cfg_attr(feature = "sqlx", repr(i16))]
+#[cfg_attr(feature = "sqlx", repr(i16), derive(sqlx::Type))]
 /// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types>
 pub enum GuildScheduledEventEntityType {
     #[default]

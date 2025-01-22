@@ -9,10 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::entities::{Guild, User};
 use crate::types::events::{Session, WebSocketEvent};
-use crate::types::{
-    Activity, Channel, ClientStatusObject, GuildMember, MfaAuthenticatorType, PresenceUpdate,
-    Relationship, Snowflake, UserSettings, VoiceState,
-};
+use crate::types::{Activity, Channel, ClientStatusObject, Emoji, GuildMember, GuildScheduledEvent, MfaAuthenticatorType, PresenceUpdate, Relationship, RoleObject, Snowflake, StageInstance, Sticker, UserSettings, VoiceState};
 use crate::{UInt32, UInt64, UInt8};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
@@ -36,7 +33,7 @@ pub struct GatewayReady {
     pub user: User,
     #[serde(default)]
     /// The guilds the user is in
-    pub guilds: Vec<Guild>,
+    pub guilds: Vec<GatewayGuild>,
     /// The presences of the user's non-offline friends and implicit relationships (depending on the `NO_AFFINE_USER_IDS` Gateway capability).
     pub presences: Option<Vec<PresenceUpdate>>,
     /// Undocumented. Seems to be a list of sessions the user is currently connected with.
@@ -123,7 +120,7 @@ pub struct GatewayReadyBot {
     pub user: User,
     #[serde(default)]
     /// The guilds the bot user is in. Will be `UnavailableGuilds` at first.
-    pub guilds: Vec<Guild>,
+    pub guilds: Vec<GatewayGuild>,
     /// The presences of the user's non-offline friends and implicit relationships (depending on the `NO_AFFINE_USER_IDS` Gateway capability).
     pub presences: Option<Vec<PresenceUpdate>>,
     /// Unique session ID, used for resuming connections
@@ -234,6 +231,38 @@ pub struct SupplementalGuild {
     pub voice_states: Option<Vec<VoiceState>>,
     /// Field not documented even unofficially
     pub embedded_activities: Vec<serde_json::Value>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+pub struct GatewayGuild {
+    pub joined_at: DateTime<Utc>,
+    pub large: bool,
+    pub unavailable: bool,
+    #[serde(default)]
+    pub geo_restricted: bool,
+    pub member_count: u64,
+    pub voice_states: Vec<VoiceState>,
+    pub members: Vec<GuildMember>,
+    pub channels: Vec<Channel>,
+    pub threads: Vec<Channel>,
+    pub presences: Vec<PresenceUpdate>,
+    pub stage_instances: Vec<StageInstance>,
+    pub guild_scheduled_events: Vec<GuildScheduledEvent>,
+    pub data_mode: GuildDataMode,
+    pub properties: Guild,
+    pub stickers: Vec<Sticker>,
+    pub roles: Vec<RoleObject>,
+    pub emojis: Vec<Emoji>,
+    pub premium_subscription_count: i32,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(rename_all = "lowercase")]
+pub enum GuildDataMode {
+    Full,
+    Partial,
+    #[default]
+    Unavailable,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
