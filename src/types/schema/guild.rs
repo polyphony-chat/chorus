@@ -12,9 +12,7 @@ use crate::errors::ChorusError;
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
 use crate::types::{
-    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, JoinSourceType, MFALevel,
-    MessageNotificationLevel, RoleObject, Snowflake, Sticker, StickerFormatType,
-    SupplementalGuildMember, SystemChannelFlags, VerificationLevel, WelcomeScreenChannel,
+    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, GuildMember, JoinSourceType, MFALevel, MessageNotificationLevel, RoleObject, Snowflake, Sticker, StickerFormatType, SupplementalGuildMember, SystemChannelFlags, ThemeColors, VerificationLevel, WelcomeScreenChannel
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
@@ -382,13 +380,59 @@ pub struct GuildGetMembersQuery {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// Schema for the [Guild::modify_member](crate::types::Guild::modify_member) route.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#modify-guild-member>
 pub struct ModifyGuildMemberSchema {
-    pub nick: Option<String>,
+    #[serde(rename = "nick")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The user's nickname in the guild (1 - 32 characters)
+    ///
+    /// Requires the [MANAGE_NICKNAMES](crate::types::PermissionFlags::MANAGE_NICKNAMES) permission.
+    pub nickname: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The IDs of roles assigned to this member
+    ///
+    /// Requires the [MANAGE_ROLES](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     pub roles: Option<Vec<Snowflake>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Whether the member is server-muted in voice channels.
+    ///
+    /// Requires the [MUTE_MEMBERS](crate::types::PermissionFlags::MUTE_MEMBERS) permission.
     pub mute: Option<bool>,
-    pub deaf: Option<bool>,
-    pub channel_id: Option<Snowflake>,
+
+    #[serde(rename = "deaf")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Whether the user is server-deafened in voice channels.
+    ///
+    /// Requires the [DEAFEN_MEMBERS](crate::types::PermissionFlags::DEAFEN_MEMBERS) permission.
+    pub deafen: Option<bool>,
+
+    #[serde(rename = "channel_id")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The ID of the voice channel the member is currently connected to.
+    ///
+    /// Requires the [MOVE_MEMBERS](crate::types::PermissionFlags::MOVE_MEMBERS) permission.
+    pub connected_voice_channel_id: Option<Snowflake>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// When the user's timeout will expire and they will be able to communicate in the guild again
+    ///
+    /// Up to 28 days in the future
+    ///
+    /// Requires the [MODERATE_MEMBERS](crate::types::PermissionFlags::MODERATE_MEMBERS) permission.
     pub communication_disabled_until: Option<DateTime<Utc>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's flags.
+    ///
+    /// Only [BYPASSES_VERIFICATION](GuildMemberFlags::BYPASSES_VERIFICATION) can be set.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission or all
+    /// of ([MODERATE_MEMBERS](crate::types::PermissionFlags::MODERATE_MEMBERS), [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) and [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS)) permissions.
     pub flags: Option<GuildMemberFlags>,
 }
 
@@ -411,22 +455,96 @@ bitflags! {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// Schema for the [Guild::modify_current_member](crate::types::Guild::modify_current_member) route.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#modify-current-guild-member>
 pub struct ModifyCurrentGuildMemberSchema {
-    pub nick: Option<String>,
+	 #[serde(rename = "nick")]
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The nickname of the member (1-32 characters)
+	 ///
+    /// Requires the [CHANGE_NICKNAME](crate::types::PermissionFlags::CHANGE_NICKNAME) permission.
+    pub nickname: Option<String>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild avatar.
+	 ///
+	 /// Can only be changed for premium users
     pub avatar: Option<String>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The ID of the member's avatar decoration
+	 pub avatar_decoration_id: Option<Snowflake>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The SKU ID of the member's avatar decoration
+	 pub avatar_decoration_sku_id: Option<Snowflake>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild pronouns (up to 40 characters)
+	 pub pronouns: Option<String>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild bio.
+	 ///
+	 /// Can only be changed for premium users
     pub bio: Option<String>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild banner.
+	 ///
+	 /// Can only be changed for premium users
     pub banner: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+/// Schema for the
+/// [Guild::modify_current_member_profile](crate::types::Guild::modify_current_member_profile) route.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#modify-guild-member-profile>
 pub struct ModifyGuildMemberProfileSchema {
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild pronouns (up to 40 characters)
     pub pronouns: Option<String>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild bio (max 190 characters)
+	 ///
+	 /// Can only be changed for premium users
     pub bio: Option<String>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild banner
+	 ///
+	 /// Can only be changed for premium users
     pub banner: Option<String>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild accent color as a hexadecimal integer
+	 ///
+	 /// Can only be changed for premium users
     pub accent_color: Option<String>,
-    pub theme_colors: Option<Vec<i32>>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's two guild theme colors
+	 ///
+	 /// Can only be changed for premium users
+    pub theme_colors: Option<ThemeColors>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild profile popout animation particle type
     pub popout_animation_particle_type: Option<Snowflake>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild profile emoji ID
     pub emoji_id: Option<Snowflake>,
+
+	 #[serde(skip_serializing_if = "Option::is_none")]
+	 /// The member's guild profile effect ID
+    pub profile_effect_id: Option<Snowflake>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Copy, Hash)]
@@ -1040,6 +1158,65 @@ pub struct SGMJoinSourceQuery {
 /// # Reference
 /// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
 pub struct GetGuildMembersSupplementalSchema {
-	/// The user IDs to fetch supplemental guild member information for (max 200)
-	pub users: Vec<Snowflake>
+    /// The user IDs to fetch supplemental guild member information for (max 200)
+    pub users: Vec<Snowflake>,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// Schema for the [Guild::add_member](crate::types::Guild::add_member) endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#add-guild-member>
+pub struct AddGuildMemberSchema {
+    /// The OAuth2 access token granted with guilds.join to the bot's application for the user you want to add
+    pub access_token: String,
+
+    /// The guild-specific nickname to set for the member
+    /// (1 - 32 characters)
+    ///
+    /// Requires the [MANAGE_NICKNAMES](crate::types::PermissionFlags::MANAGE_NICKNAMES) permission.
+    #[serde(rename = "nick")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nickname: Option<String>,
+
+    /// The IDs of roles to assign to this member
+    ///
+    /// Requires the [MANAGE_ROLES](crate::types::PermissionFlags::MANAGE_ROLES) permission.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub roles: Option<Snowflake>,
+
+    /// Whether to server-mute this new member
+    ///
+    /// Requires the [MUTE_MEMBERS](crate::types::PermissionFlags::MUTE_MEMBERS) permission.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mute: Option<bool>,
+
+    /// Whether to server-deafen this new member
+    ///
+    /// Requires the [DEAFEN_MEMBERS](crate::types::PermissionFlags::DEAFEN_MEMBERS) permission.
+    #[serde(rename = "deaf")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deafen: Option<bool>,
+
+    /// Flags to set for this new member
+    ///
+    /// Only [BYPASSES_VERIFICATION](GuildMemberFlags::BYPASSES_VERIFICATION) can be set.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission or all
+    /// of ([MODERATE_MEMBERS](crate::types::PermissionFlags::MODERATE_MEMBERS), [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) and [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS)) permissions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flags: Option<GuildMemberFlags>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+/// Return object for the [Guild::add_member](crate::types::Guild::add_member) route.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#add-guild-member>
+pub enum AddGuildMemberReturn {
+    /// The request succeeded, and the user is now a member
+    Joined(GuildMember),
+
+    /// The user was already a member of the guild
+    AlreadyAMember,
 }

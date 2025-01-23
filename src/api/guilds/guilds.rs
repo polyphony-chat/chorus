@@ -455,119 +455,11 @@ impl Guild {
         request.deserialize_response(user).await
     }
 
-    /// Removes a member from a guild.
-    ///
-    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
-    ///
-    /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member>
-    pub async fn remove_member(
-        guild_id: Snowflake,
-        member_id: Snowflake,
-        audit_log_reason: Option<String>,
-        user: &mut ChorusUser,
-    ) -> ChorusResult<()> {
-        let request = ChorusRequest {
-            request: Client::new().delete(format!(
-                "{}/guilds/{}/members/{}",
-                user.belongs_to.read().unwrap().urls.api,
-                guild_id,
-                member_id,
-            )),
-            limit_type: LimitType::Guild(guild_id),
-        }
-        .with_maybe_audit_log_reason(audit_log_reason)
-        .with_headers_for(user);
-
-        request.handle_request_as_result(user).await
-    }
-
-    /// Modifies attributes of a guild member. Returns the updated guild member object on success.
-    /// For required Permissions and an API reference, see:
-    ///
-    /// # Reference:
-    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member>
-    pub async fn modify_member(
-        guild_id: Snowflake,
-        member_id: Snowflake,
-        schema: ModifyGuildMemberSchema,
-        audit_log_reason: Option<String>,
-        user: &mut ChorusUser,
-    ) -> ChorusResult<GuildMember> {
-        let request = ChorusRequest {
-            request: Client::new()
-                .patch(format!(
-                    "{}/guilds/{}/members/{}",
-                    user.belongs_to.read().unwrap().urls.api,
-                    guild_id,
-                    member_id,
-                ))
-                .json(&schema),
-            limit_type: LimitType::Guild(guild_id),
-        }
-        .with_maybe_audit_log_reason(audit_log_reason)
-        .with_headers_for(user);
-
-        request.deserialize_response::<GuildMember>(user).await
-    }
-
-    /// Modifies the current user's member in the guild.
-    ///
-    /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-current-guild-member>
-    pub async fn modify_current_member(
-        guild_id: Snowflake,
-        schema: ModifyGuildMemberSchema,
-        audit_log_reason: Option<String>,
-        user: &mut ChorusUser,
-    ) -> ChorusResult<GuildMember> {
-        let request = ChorusRequest {
-            request: Client::new()
-                .patch(format!(
-                    "{}/guilds/{}/members/@me",
-                    user.belongs_to.read().unwrap().urls.api,
-                    guild_id,
-                ))
-                .json(&schema),
-            limit_type: LimitType::Guild(guild_id),
-        }
-        .with_maybe_audit_log_reason(audit_log_reason)
-        .with_headers_for(user);
-
-        request.deserialize_response::<GuildMember>(user).await
-    }
-
-    /// Modifies the current user's profile in the guild.
-    ///
-    /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member-profile>
-    pub async fn modify_current_member_profile(
-        guild_id: Snowflake,
-        schema: ModifyGuildMemberProfileSchema,
-        user: &mut ChorusUser,
-    ) -> ChorusResult<UserProfileMetadata> {
-        let request = ChorusRequest {
-            request: Client::new()
-                .patch(format!(
-                    "{}/guilds/{}/profile/@me",
-                    user.belongs_to.read().unwrap().urls.api,
-                    guild_id,
-                ))
-                .json(&schema),
-            limit_type: LimitType::Guild(guild_id),
-        }
-        .with_headers_for(user);
-
-        request
-            .deserialize_response::<UserProfileMetadata>(user)
-            .await
-    }
-
     /// Returns a list of ban objects for the guild.
     ///
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
-    /// # Reference:
+    /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-bans>
     pub async fn get_bans(
         user: &mut ChorusUser,
@@ -597,7 +489,7 @@ impl Guild {
     ///
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
-    /// # Reference:
+    /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-ban>
     pub async fn get_ban(
         user: &mut ChorusUser,
@@ -624,6 +516,8 @@ impl Guild {
     ///
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
+	 /// # Reference
+	 /// See <https://docs.discord.sex/resources/guild#create-guild-ban>
     pub async fn create_ban(
         guild_id: Snowflake,
         user_id: Snowflake,
