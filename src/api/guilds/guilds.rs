@@ -516,8 +516,8 @@ impl Guild {
     ///
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
-	 /// # Reference
-	 /// See <https://docs.discord.sex/resources/guild#create-guild-ban>
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#create-guild-ban>
     pub async fn create_ban(
         guild_id: Snowflake,
         user_id: Snowflake,

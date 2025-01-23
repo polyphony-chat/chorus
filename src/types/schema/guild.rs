@@ -1208,7 +1208,7 @@ pub struct AddGuildMemberSchema {
     pub flags: Option<GuildMemberFlags>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// Return object for the [Guild::add_member](crate::types::Guild::add_member) route.
 ///
 /// # Reference

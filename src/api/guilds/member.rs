@@ -9,7 +9,9 @@ use crate::{
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{
-        self, AddGuildMemberReturn, AddGuildMemberSchema, Guild, GuildMember, LimitType, ModifyCurrentGuildMemberSchema, ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema, Snowflake, UserProfileMetadata
+        self, AddGuildMemberReturn, AddGuildMemberSchema, Guild, GuildMember, LimitType,
+        ModifyCurrentGuildMemberSchema, ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema,
+        Snowflake, UserProfileMetadata,
     },
 };
 
@@ -334,12 +336,12 @@ impl types::GuildMember {
         Guild::remove_member(guild_id, member_id, audit_log_reason, user).await
     }
 
-	 /// Modifies a [GuildMember] object.
+    /// Modifies a [GuildMember] object.
     ///
     /// Returns the updated object on success.
-	 ///
-	 /// # Notes
-	 /// This is an alias of [Guild::modify_member]
+    ///
+    /// # Notes
+    /// This is an alias of [Guild::modify_member]
     ///
     /// # Reference
     /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member>
@@ -350,14 +352,14 @@ impl types::GuildMember {
         audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<GuildMember> {
-		 Guild::modify_member(guild_id, member_id, schema, audit_log_reason, user).await
+        Guild::modify_member(guild_id, member_id, schema, audit_log_reason, user).await
     }
 
-	 /// Modifies the current user's member object in the guild.
+    /// Modifies the current user's member object in the guild.
     ///
-	 /// # Notes
-	 /// This is an alias of [Guild::modify_current_member]
-	 ///
+    /// # Notes
+    /// This is an alias of [Guild::modify_current_member]
+    ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-current-guild-member>
     pub async fn modify_current(
@@ -366,14 +368,14 @@ impl types::GuildMember {
         audit_log_reason: Option<String>,
         user: &mut ChorusUser,
     ) -> ChorusResult<GuildMember> {
-		 Guild::modify_current_member(guild_id, schema, audit_log_reason, user).await
+        Guild::modify_current_member(guild_id, schema, audit_log_reason, user).await
     }
 
-	 /// Modifies the current user's profile in the guild.
+    /// Modifies the current user's profile in the guild.
     ///
-	 /// # Notes
-	 /// This is an alias of [Guild::modify_current_member_profile]
-	 ///
+    /// # Notes
+    /// This is an alias of [Guild::modify_current_member_profile]
+    ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member-profile>
     pub async fn modify_current_profile(
@@ -381,16 +383,16 @@ impl types::GuildMember {
         schema: ModifyGuildMemberProfileSchema,
         user: &mut ChorusUser,
     ) -> ChorusResult<UserProfileMetadata> {
-		 Guild::modify_current_member_profile(guild_id, schema, user).await
+        Guild::modify_current_member_profile(guild_id, schema, user).await
     }
 
-	 /// Adds a role to a guild member.
+    /// Adds a role to a guild member.
     ///
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
-	 /// # Notes
-	 /// This is an alias of [Guild::add_member_role]
-	 ///
+    /// # Notes
+    /// This is an alias of [Guild::add_member_role]
+    ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#add-guild-member-role>
     pub async fn add_role(
@@ -400,16 +402,16 @@ impl types::GuildMember {
         member_id: Snowflake,
         role_id: Snowflake,
     ) -> ChorusResult<()> {
-		 Guild::add_member_role(user, audit_log_reason, guild_id, member_id, role_id).await
+        Guild::add_member_role(user, audit_log_reason, guild_id, member_id, role_id).await
     }
 
-	 /// Removes a role from a guild member.
+    /// Removes a role from a guild member.
     ///
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
-	 /// # Notes
-	 /// This is an alias of [Guild::remove_member_role]
-	 ///
+    /// # Notes
+    /// This is an alias of [Guild::remove_member_role]
+    ///
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member-role>
     pub async fn remove_role(
@@ -419,6 +421,6 @@ impl types::GuildMember {
         member_id: Snowflake,
         role_id: Snowflake,
     ) -> Result<(), crate::errors::ChorusError> {
-		 Guild::remove_member_role(user, audit_log_reason, guild_id, member_id, role_id).await
+        Guild::remove_member_role(user, audit_log_reason, guild_id, member_id, role_id).await
     }
 }
