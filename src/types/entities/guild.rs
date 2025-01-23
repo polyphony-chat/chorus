@@ -536,3 +536,13 @@ bitflags! {
         const SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATIONS_REPLIES = 1 << 5;
     }
 }
+
+#[derive(
+    Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash, Serialize_repr, Deserialize_repr,
+)]
+#[repr(u8)]
+pub enum HubType {
+    Default = 0,
+    HighSchool = 1,
+    College = 2,
+}

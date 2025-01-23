@@ -13,7 +13,7 @@ use crate::types::config::types::subconfigs::guild::{
 };
 use crate::types::{Error, GuildError};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
+#[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum GuildFeatures {
     ActivitiesAlpha,
@@ -69,7 +69,7 @@ pub enum GuildFeatures {
     GuildOnboardingAdminOnly,
     GuildOnboardingEverEnabled,
     GuildOnboardingHasPrompts,
-    GuildRoleSubscription,
+    GuildRoleSubscriptions,
     GuildRoleSubscriptionPurchaseFeedbackLoop,
     GuildRoleSubscriptionTrials,
     GuildServerGuide,
@@ -134,7 +134,7 @@ pub enum GuildFeatures {
     InvitesClosed,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq, Hash)]
+#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Default, Serialize, Deserialize, Eq, Hash)]
 pub struct GuildFeaturesList(Vec<GuildFeatures>);
 
 impl Deref for GuildFeaturesList {
@@ -281,7 +281,7 @@ impl FromStr for GuildFeatures {
             "GUILD_ONBOARDING_ADMIN_ONLY" => Ok(GuildFeatures::GuildOnboardingAdminOnly),
             "GUILD_ONBOARDING_EVER_ENABLED" => Ok(GuildFeatures::GuildOnboardingEverEnabled),
             "GUILD_ONBOARDING_HAS_PROMPTS" => Ok(GuildFeatures::GuildOnboardingHasPrompts),
-            "GUILD_ROLE_SUBSCRIPTION" => Ok(GuildFeatures::GuildRoleSubscription),
+            "GUILD_ROLE_SUBSCRIPTIONS" => Ok(GuildFeatures::GuildRoleSubscriptions),
             "GUILD_ROLE_SUBSCRIPTION_PURCHASE_FEEDBACK_LOOP" => {
                 Ok(GuildFeatures::GuildRoleSubscriptionPurchaseFeedbackLoop)
             }
@@ -436,7 +436,7 @@ impl GuildFeatures {
             GuildFeatures::GuildOnboardingAdminOnly => "GUILD_ONBOARDING_ADMIN_ONLY",
             GuildFeatures::GuildOnboardingEverEnabled => "GUILD_ONBOARDING_EVER_ENABLED",
             GuildFeatures::GuildOnboardingHasPrompts => "GUILD_ONBOARDING_HAS_PROMPTS",
-            GuildFeatures::GuildRoleSubscription => "GUILD_ROLE_SUBSCRIPTION",
+            GuildFeatures::GuildRoleSubscriptions => "GUILD_ROLE_SUBSCRIPTIONS",
             GuildFeatures::GuildRoleSubscriptionPurchaseFeedbackLoop => {
                 "GUILD_ROLE_SUBSCRIPTION_PURCHASE_FEEDBACK_LOOP"
             }

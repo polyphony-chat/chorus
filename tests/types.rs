@@ -287,8 +287,8 @@ mod config {
                 GuildFeatures::GuildOnboardingHasPrompts
             );
             assert_eq!(
-                GuildFeatures::from_str("GUILD_ROLE_SUBSCRIPTION").unwrap(),
-                GuildFeatures::GuildRoleSubscription
+                GuildFeatures::from_str("GUILD_ROLE_SUBSCRIPTIONS").unwrap(),
+                GuildFeatures::GuildRoleSubscriptions
             );
             assert_eq!(
                 GuildFeatures::from_str("GUILD_ROLE_SUBSCRIPTION_PURCHASE_FEEDBACK_LOOP").unwrap(),
@@ -697,8 +697,8 @@ mod config {
                 "GUILD_ONBOARDING_HAS_PROMPTS"
             );
             assert_eq!(
-                GuildFeatures::GuildRoleSubscription.to_str(),
-                "GUILD_ROLE_SUBSCRIPTION"
+                GuildFeatures::GuildRoleSubscriptions.to_str(),
+                "GUILD_ROLE_SUBSCRIPTIONS"
             );
             assert_eq!(
                 GuildFeatures::GuildRoleSubscriptionPurchaseFeedbackLoop.to_str(),
