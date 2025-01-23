@@ -77,7 +77,7 @@ pub struct ClientProperties {
     ///
     /// Note that unless connecting to a server you specifically know doesn't care about these
     /// headers, it is recommended to leave them enabled.
-    #[serde(skip_serializing)]
+    #[serde(skip)]
     pub send_telemetry_headers: bool,
 
     /// Always sent, must be provided
