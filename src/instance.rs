@@ -7,7 +7,7 @@
 use std::collections::HashMap;
 use std::fmt;
 
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 
 use chrono::Utc;
@@ -15,7 +15,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::ChorusResult;
-use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
+use crate::gateway::{events::Events, Gateway, GatewayHandle, GatewayOptions};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
@@ -25,18 +25,43 @@ use crate::types::{
 use crate::UrlBundle;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-/// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
+/// Represents a Spacebar-compatible [`Instance`].
+///
+/// This struct is most commonly used for [`Instance::login_account`],
+/// [`Instance::login_with_token`] and [`Instance::register_account`].
 ///
 /// If `limits_information` is `None`, then the instance will not be rate limited.
 pub struct Instance {
+    /// The URLs of the instance
     pub urls: UrlBundle,
+
+    /// General information about the instance,
+    /// including its name, description, image, ...
+    ///
+    /// (This is set by the instance admins)
     pub instance_info: GeneralConfiguration,
+
     pub(crate) software: InstanceSoftware,
+
+    /// Ratelimit information about the instance.
+    ///
+    /// If this field is `None`, then the instance will not be rate limited.
     pub limits_information: Option<LimitsInformation>,
+
     #[serde(skip)]
+    /// The reqwest HTTP request client
     pub client: Client,
+
     #[serde(skip)]
     pub(crate) gateway_options: GatewayOptions,
+
+    #[serde(skip)]
+    /// The default gateway [`Events`] new gateway connections will inherit.
+    ///
+    /// This field can be used to subscribe to events that are received before we get access to the
+    /// gateway handle object on new [ChorusUser]s created with [Instance::login_account],
+    /// [Instance::login_with_token] and [Instance::register_account]
+    pub default_gateway_events: Events,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Eq)]
@@ -104,6 +129,7 @@ impl Instance {
             gateway_options: options.unwrap_or_default(),
             // Will also be detected soon
             software: InstanceSoftware::Other,
+            default_gateway_events: Events::default(),
         };
 
         instance.instance_info = match instance.general_configuration_schema().await {
@@ -335,6 +361,13 @@ impl ChorusUser {
         received_settings: Option<Shared<UserSettings>>,
     ) -> ChorusResult<()> {
         self.token = token.clone();
+
+        *self.gateway.events.lock().await = self
+            .belongs_to
+            .read()
+            .unwrap()
+            .default_gateway_events
+            .clone();
 
         let mut identify = GatewayIdentifyPayload::default_w_client_capabilities();
         identify.token = token;
