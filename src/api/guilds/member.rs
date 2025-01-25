@@ -2,6 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::collections::HashMap;
+
 use reqwest::Client;
 
 use crate::{
@@ -9,9 +11,7 @@ use crate::{
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{
-        self, AddGuildMemberReturn, AddGuildMemberSchema, Guild, GuildMember, LimitType,
-        ModifyCurrentGuildMemberSchema, ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema,
-        Snowflake, UserProfileMetadata,
+        self, AddGuildMemberReturn, AddGuildMemberSchema, AddRoleMembersSchema, Guild, GuildMember, LimitType, ModifyCurrentGuildMemberSchema, ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema, Snowflake, UserProfileMetadata
     },
 };
 
@@ -261,7 +261,7 @@ impl Guild {
         guild_id: Snowflake,
         member_id: Snowflake,
         role_id: Snowflake,
-    ) -> Result<(), crate::errors::ChorusError> {
+    ) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/members/{}/roles/{}",
             user.belongs_to.read().unwrap().urls.api,
@@ -279,6 +279,61 @@ impl Guild {
 
         chorus_request.handle_request_as_result(user).await
     }
+
+    /// Retrieves a mapping of role IDs to their respective member counts.
+    ///
+    /// # Notes
+    /// This method is wrapper around
+    /// [RoleObject::get_all_member_counts](crate::types::RoleObject::get_all_member_counts)
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-role-member-counts>
+    pub async fn get_role_member_counts(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<HashMap<Snowflake, usize>> {
+        crate::types::RoleObject::get_all_member_counts(user, guild_id).await
+    }
+
+    /// Returns a list of member IDs that have the specified role, up to a maximum of 100.
+    ///
+    /// (This endpoint does not return results for the @everyone role)
+    ///
+    /// # Notes
+    /// This method is wrapper around
+    /// [RoleObject::get_all_member_counts](crate::types::RoleObject::get_all_member_counts)
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-role-members>
+    pub async fn get_role_members(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+		  role_id: Snowflake
+    ) -> ChorusResult<Vec<Snowflake>> {
+        crate::types::RoleObject::get_members(user, guild_id, role_id).await
+    }
+
+	 /// Adds multiple guild members to a role.
+    ///
+    /// Requires the [MANAGE_ROLES](crate::types::PermissionFlags::MANAGE_ROLES) permission.
+    ///
+    /// Returns a mapping of member IDs to guild member objects.
+	 ///
+	 /// # Notes
+	 /// This method is wrapper around
+	 /// [RoleObject::add_members](crate::types::RoleObject::add_members)
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#add-guild-role-members>
+    pub async fn add_role_members(
+        user: &mut ChorusUser,
+        audit_log_reason: Option<String>,
+        guild_id: Snowflake,
+        role_id: Snowflake,
+        schema: AddRoleMembersSchema,
+    ) -> ChorusResult<HashMap<Snowflake, GuildMember>> {
+		crate::types::RoleObject::add_members(user, audit_log_reason, guild_id, role_id, schema).await
+	 }
 }
 
 impl types::GuildMember {

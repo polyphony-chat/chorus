@@ -11,19 +11,23 @@ use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::ratelimiter::ChorusRequest;
+use crate::types::BulkGuildBanReturn;
+use crate::types::BulkGuildBanSchema;
 use crate::types::GetGuildMembersSchema;
 use crate::types::GetGuildMembersSupplementalSchema;
 use crate::types::GuildModifyMFALevelSchema;
 use crate::types::MFALevel;
 use crate::types::SGMReturnNotIndexed;
 use crate::types::SGMReturnOk;
+use crate::types::SearchGuildBansQuery;
 use crate::types::SearchGuildMembersReturn;
 use crate::types::SearchGuildMembersSchema;
 use crate::types::SupplementalGuildMember;
 use crate::types::{
-    Channel, ChannelCreateSchema, Guild, GuildBanCreateSchema, GuildBansQuery, GuildCreateSchema,
-    GuildMember, GuildModifySchema, GuildPreview, LimitType, ModifyGuildMemberProfileSchema,
-    ModifyGuildMemberSchema, QueryGuildMembersSchema, UserProfileMetadata,
+    Channel, ChannelCreateSchema, GetGuildBansQuery, Guild, GuildBanCreateSchema,
+    GuildCreateSchema, GuildMember, GuildModifySchema, GuildPreview, LimitType,
+    ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema, QueryGuildMembersSchema,
+    UserProfileMetadata,
 };
 use crate::types::{GuildBan, Snowflake};
 
@@ -464,7 +468,7 @@ impl Guild {
     pub async fn get_bans(
         user: &mut ChorusUser,
         guild_id: Snowflake,
-        query: Option<GuildBansQuery>,
+        query: Option<GetGuildBansQuery>,
     ) -> ChorusResult<Vec<GuildBan>> {
         let url = format!(
             "{}/guilds/{}/bans",
@@ -479,8 +483,36 @@ impl Guild {
         .with_headers_for(user);
 
         if let Some(query) = query {
-            request.request = request.request.query(&to_string(&query).unwrap());
+            request.request = request.request.query(&query.to_query());
         }
+
+        request.deserialize_response::<Vec<GuildBan>>(user).await
+    }
+
+    /// Returns a list of ban objects whose usernames or display names contains a provided string.
+    ///
+    /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#search-guild-bans>
+    pub async fn search_bans(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        query: SearchGuildBansQuery,
+    ) -> ChorusResult<Vec<GuildBan>> {
+        let url = format!(
+            "{}/guilds/{}/bans/search",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let mut request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.request = request.request.query(&query.to_query());
 
         request.deserialize_response::<Vec<GuildBan>>(user).await
     }
@@ -490,7 +522,7 @@ impl Guild {
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-ban>
+    /// See <https://docs.discord.sex/resources/guild#get-guild-ban>
     pub async fn get_ban(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -512,7 +544,7 @@ impl Guild {
         request.deserialize_response::<GuildBan>(user).await
     }
 
-    /// Creates a ban from the guild.
+    /// Creates a ban for the guild - bans a user from the guild.
     ///
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
@@ -541,6 +573,38 @@ impl Guild {
         .with_headers_for(user);
 
         request.handle_request_as_result(user).await
+    }
+
+    /// Creates multiple bans for the guild.
+    ///
+    /// Requires both the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) and [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permissions.
+    ///
+	 /// # Notes
+    /// This route requires MFA.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#bulk-guild-ban>
+    pub async fn bulk_create_ban(
+        guild_id: Snowflake,
+        audit_log_reason: Option<String>,
+        schema: BulkGuildBanSchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<BulkGuildBanReturn> {
+        let request = ChorusRequest {
+            request: Client::new()
+                .post(format!(
+                    "{}/guilds/{}/bulk-ban",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_maybe_mfa(&user.mfa_token)
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
     }
 
     /// Removes the ban for a user.

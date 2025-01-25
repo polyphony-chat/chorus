@@ -12,7 +12,10 @@ use crate::errors::ChorusError;
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
 use crate::types::{
-    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, GuildMember, JoinSourceType, MFALevel, MessageNotificationLevel, RoleObject, Snowflake, Sticker, StickerFormatType, SupplementalGuildMember, SystemChannelFlags, ThemeColors, VerificationLevel, WelcomeScreenChannel
+    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, GuildMember, JoinSourceType,
+    MFALevel, MessageNotificationLevel, RoleObject, Snowflake, Sticker, StickerFormatType,
+    SupplementalGuildMember, SystemChannelFlags, ThemeColors, VerificationLevel,
+    WelcomeScreenChannel,
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
@@ -105,10 +108,11 @@ impl PartialEq for GuildCreateSchema {
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Copy, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 /// Represents the schema which needs to be sent to create a Guild Ban.
-/// See: <https://discord-userdoccers.vercel.app/resources/guild#create-guild-ban>
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild-ban>
 pub struct GuildBanCreateSchema {
-    /// Deprecated
-    pub delete_message_days: Option<u8>,
+    /// Number of seconds to delete messages for (0-604800, default 0)
     pub delete_message_seconds: Option<u32>,
 }
 
@@ -125,11 +129,46 @@ pub(crate) struct GuildLeaveSchema {
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
-/// Represents the schema which needs to be sent to create a Guild Ban.
-/// See: <https://discord-userdoccers.vercel.app/resources/guild#create-guild-ban>
-pub struct GuildBanBulkCreateSchema {
+/// Schema for the bulk guild ban endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#json-params>
+pub struct BulkGuildBanSchema {
+    /// The user IDs to ban (max 200)
     pub user_ids: Vec<Snowflake>,
+    /// Number of seconds to delete messages for (0-604800, default 0)
     pub delete_message_seconds: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+/// Return type for the bulk guild ban endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#response-body>
+pub struct BulkGuildBanReturn {
+    /// The user IDs that were successfully banned
+    pub banned_users: Vec<Snowflake>,
+
+    /// The user IDs that were not banned
+    ///
+    /// They may have failed because:
+    /// - the user is already banned
+    /// - the user has a higher role than the current user
+    /// - the user is the owner of the guild
+    /// - the user is the current user
+    pub failed_users: Vec<Snowflake>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+/// Schema for the Add Guild Role Members endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#add-guild-role-members>
+pub struct AddRoleMembersSchema {
+    /// The member IDs to assign the role to (max 30)
+    pub member_ids: Vec<Snowflake>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
@@ -460,41 +499,41 @@ bitflags! {
 /// # Reference
 /// See <https://docs.discord.sex/resources/guild#modify-current-guild-member>
 pub struct ModifyCurrentGuildMemberSchema {
-	 #[serde(rename = "nick")]
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The nickname of the member (1-32 characters)
-	 ///
+    #[serde(rename = "nick")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The nickname of the member (1-32 characters)
+    ///
     /// Requires the [CHANGE_NICKNAME](crate::types::PermissionFlags::CHANGE_NICKNAME) permission.
     pub nickname: Option<String>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild avatar.
-	 ///
-	 /// Can only be changed for premium users
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild avatar.
+    ///
+    /// Can only be changed for premium users
     pub avatar: Option<String>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The ID of the member's avatar decoration
-	 pub avatar_decoration_id: Option<Snowflake>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The ID of the member's avatar decoration
+    pub avatar_decoration_id: Option<Snowflake>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The SKU ID of the member's avatar decoration
-	 pub avatar_decoration_sku_id: Option<Snowflake>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The SKU ID of the member's avatar decoration
+    pub avatar_decoration_sku_id: Option<Snowflake>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild pronouns (up to 40 characters)
-	 pub pronouns: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild pronouns (up to 40 characters)
+    pub pronouns: Option<String>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild bio.
-	 ///
-	 /// Can only be changed for premium users
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild bio.
+    ///
+    /// Can only be changed for premium users
     pub bio: Option<String>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild banner.
-	 ///
-	 /// Can only be changed for premium users
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild banner.
+    ///
+    /// Can only be changed for premium users
     pub banner: Option<String>,
 }
 
@@ -505,54 +544,106 @@ pub struct ModifyCurrentGuildMemberSchema {
 /// # Reference
 /// See <https://docs.discord.sex/resources/guild#modify-guild-member-profile>
 pub struct ModifyGuildMemberProfileSchema {
-
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild pronouns (up to 40 characters)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild pronouns (up to 40 characters)
     pub pronouns: Option<String>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild bio (max 190 characters)
-	 ///
-	 /// Can only be changed for premium users
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild bio (max 190 characters)
+    ///
+    /// Can only be changed for premium users
     pub bio: Option<String>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild banner
-	 ///
-	 /// Can only be changed for premium users
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild banner
+    ///
+    /// Can only be changed for premium users
     pub banner: Option<String>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild accent color as a hexadecimal integer
-	 ///
-	 /// Can only be changed for premium users
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild accent color as a hexadecimal integer
+    ///
+    /// Can only be changed for premium users
     pub accent_color: Option<String>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's two guild theme colors
-	 ///
-	 /// Can only be changed for premium users
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's two guild theme colors
+    ///
+    /// Can only be changed for premium users
     pub theme_colors: Option<ThemeColors>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild profile popout animation particle type
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild profile popout animation particle type
     pub popout_animation_particle_type: Option<Snowflake>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild profile emoji ID
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild profile emoji ID
     pub emoji_id: Option<Snowflake>,
 
-	 #[serde(skip_serializing_if = "Option::is_none")]
-	 /// The member's guild profile effect ID
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The member's guild profile effect ID
     pub profile_effect_id: Option<Snowflake>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Copy, Hash)]
-/// The limit argument is a number between 1 and 1000.
-pub struct GuildBansQuery {
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-guild-bans>
+pub struct GetGuildBansQuery {
+    /// Get bans before this user ID
     pub before: Option<Snowflake>,
+    /// Get bans after this user ID
     pub after: Option<Snowflake>,
+    /// Max number of bans to return (1-1000, default all or 1000)
     pub limit: Option<u16>,
+}
+
+impl GetGuildBansQuery {
+    /// Converts self to query string parameters
+    pub fn to_query(self) -> Vec<(&'static str, String)> {
+        let mut query = Vec::with_capacity(3);
+
+        if let Some(before) = self.before {
+            query.push(("before", before.to_string()));
+        }
+
+        if let Some(after) = self.after {
+            query.push(("after", after.to_string()));
+        }
+
+        if let Some(limit) = self.limit {
+            query.push(("limit", limit.to_string()));
+        }
+
+        query
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#search-guild-bans>
+pub struct SearchGuildBansQuery {
+    /// Query to match username(s) and display name(s) against
+    ///
+    /// (1 - 32 characters)
+    pub query: String,
+
+    /// Max number of bans to return (1-10, default 10)
+    pub limit: Option<u16>,
+}
+
+impl SearchGuildBansQuery {
+    /// Converts self to query string parameters
+    pub fn to_query(self) -> Vec<(&'static str, String)> {
+        let mut query = Vec::with_capacity(2);
+
+        query.push(("query", self.query));
+
+        if let Some(limit) = self.limit {
+            query.push(("limit", limit.to_string()));
+        }
+
+        query
+    }
 }
 
 /// Max query length is 32 characters.
