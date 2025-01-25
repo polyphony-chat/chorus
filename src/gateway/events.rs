@@ -7,7 +7,7 @@ use pubserve::Publisher;
 use super::*;
 use crate::types;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Events {
     pub application: Application,
     pub auto_moderation: AutoModeration,
@@ -31,12 +31,12 @@ pub struct Events {
     pub error: Publisher<GatewayError>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Application {
     pub command_permissions_update: Publisher<types::ApplicationCommandPermissionsUpdate>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct AutoModeration {
     pub rule_create: Publisher<types::AutoModerationRuleCreate>,
     pub rule_update: Publisher<types::AutoModerationRuleUpdate>,
@@ -44,7 +44,7 @@ pub struct AutoModeration {
     pub action_execution: Publisher<types::AutoModerationActionExecution>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Session {
     pub ready: Publisher<types::GatewayReady>,
     pub ready_supplemental: Publisher<types::GatewayReadySupplemental>,
@@ -54,14 +54,14 @@ pub struct Session {
     pub resumed: Publisher<types::GatewayResumed>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct StageInstance {
     pub create: Publisher<types::StageInstanceCreate>,
     pub update: Publisher<types::StageInstanceUpdate>,
     pub delete: Publisher<types::StageInstanceDelete>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Message {
     pub create: Publisher<types::MessageCreate>,
     pub update: Publisher<types::MessageUpdate>,
@@ -76,7 +76,7 @@ pub struct Message {
     pub last_messages: Publisher<types::LastMessages>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct User {
     pub update: Publisher<types::UserUpdate>,
     pub connections_update: Publisher<types::UserConnectionsUpdate>,
@@ -86,13 +86,13 @@ pub struct User {
     pub typing_start: Publisher<types::TypingStartEvent>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Relationship {
     pub add: Publisher<types::RelationshipAdd>,
     pub remove: Publisher<types::RelationshipRemove>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Channel {
     pub create: Publisher<types::ChannelCreate>,
     pub update: Publisher<types::ChannelUpdate>,
@@ -101,7 +101,7 @@ pub struct Channel {
     pub pins_update: Publisher<types::ChannelPinsUpdate>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Thread {
     pub create: Publisher<types::ThreadCreate>,
     pub update: Publisher<types::ThreadUpdate>,
@@ -111,7 +111,7 @@ pub struct Thread {
     pub members_update: Publisher<types::ThreadMembersUpdate>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Guild {
     pub create: Publisher<types::GuildCreate>,
     pub update: Publisher<types::GuildUpdate>,
@@ -137,43 +137,43 @@ pub struct Guild {
     pub passive_update_v1: Publisher<types::PassiveUpdateV1>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Invite {
     pub create: Publisher<types::InviteCreate>,
     pub delete: Publisher<types::InviteDelete>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Integration {
     pub create: Publisher<types::IntegrationCreate>,
     pub update: Publisher<types::IntegrationUpdate>,
     pub delete: Publisher<types::IntegrationDelete>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Interaction {
     pub create: Publisher<types::InteractionCreate>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Call {
     pub create: Publisher<types::CallCreate>,
     pub update: Publisher<types::CallUpdate>,
     pub delete: Publisher<types::CallDelete>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Voice {
     pub state_update: Publisher<types::VoiceStateUpdate>,
     pub server_update: Publisher<types::VoiceServerUpdate>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Webhooks {
     pub update: Publisher<types::WebhooksUpdate>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Mfa {
     pub authenticator_create: Publisher<types::AuthenticatorCreate>,
     pub authenticator_update: Publisher<types::AuthenticatorUpdate>,
