@@ -7,7 +7,7 @@
 use std::collections::HashMap;
 use std::fmt;
 
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use chrono::Utc;
@@ -362,12 +362,9 @@ impl ChorusUser {
     ) -> ChorusResult<()> {
         self.token = token.clone();
 
-        *self.gateway.events.lock().await = self
-            .belongs_to
-            .read()
-            .unwrap()
-            .default_gateway_events
-            .clone();
+		  let instance_default_events = self.belongs_to.read().unwrap().default_gateway_events.clone();
+
+        *self.gateway.events.lock().await = instance_default_events;
 
         let mut identify = GatewayIdentifyPayload::default_w_client_capabilities();
         identify.token = token;
