@@ -132,6 +132,9 @@ pub enum GuildFeatures {
     CrossChannelReplies,
     IrcLikeCategoryNames,
     InvitesClosed,
+    /// Old feature, used only on spacebar
+    ThreeDayThreadArchive,
+    SevenDayThreadArchive,
 }
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq, Hash)]
@@ -355,6 +358,8 @@ impl FromStr for GuildFeatures {
             "CROSS_CHANNEL_REPLIES" => Ok(GuildFeatures::CrossChannelReplies),
             "IRC_LIKE_CATEGORY_NAMES" => Ok(GuildFeatures::IrcLikeCategoryNames),
             "INVITES_CLOSED" => Ok(GuildFeatures::InvitesClosed),
+            "THREE_DAY_THREAD_ARCHIVE" => Ok(GuildFeatures::ThreeDayThreadArchive),
+            "SEVEN_DAY_THREAD_ARCHIVE" => Ok(GuildFeatures::SevenDayThreadArchive),
             _ => Err(Error::Guild(GuildError::InvalidGuildFeature)),
         }
     }
@@ -510,6 +515,8 @@ impl GuildFeatures {
             GuildFeatures::CrossChannelReplies => "CROSS_CHANNEL_REPLIES",
             GuildFeatures::IrcLikeCategoryNames => "IRC_LIKE_CATEGORY_NAMES",
             GuildFeatures::InvitesClosed => "INVITES_CLOSED",
+            GuildFeatures::ThreeDayThreadArchive => "THREE_DAY_THREAD_ARCHIVE",
+            GuildFeatures::SevenDayThreadArchive => "SEVEN_DAY_THREAD_ARCHIVE",
         }
     }
 }
