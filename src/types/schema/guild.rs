@@ -719,7 +719,7 @@ pub struct EmojiCreateSchema {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/emoji#modify-guild-emoji>
+///  See <https://docs.discord.sex/resources/emoji#modify-guild-emoji>
 pub struct EmojiModifySchema {
     pub name: Option<String>,
     pub roles: Option<Vec<Snowflake>>,
@@ -737,11 +737,81 @@ pub struct GuildPruneQuerySchema {
     pub include_roles: Vec<Snowflake>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Default)]
+/// Parameters used to specify which guild members to prune.
+///
+/// Is itself a query parameter schema for the [Guild::get_prune](crate::types::Guild::get_prune) endpoint and
+/// a part of [GuildPruneSchema].
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#query-string-params>
+pub struct GuildPruneParameters {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Number of inactive days to count prune for.
+    ///
+    /// (1 - 30, default is 7)
+    pub days: Option<u8>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Additional roles that can be pruned
+    pub include_roles: Option<Vec<Snowflake>>,
+}
+
+impl GuildPruneParameters {
+    /// Converts self to query string parameters
+    pub fn to_query(self) -> Vec<(&'static str, String)> {
+
+        let mut query = Vec::with_capacity(1);
+
+        if let Some(days) = self.days {
+            query.push(("days", days.to_string()));
+        }
+
+        if let Some(include_roles) = self.include_roles {
+            // FIXME: is discord happy with this?
+            // how are arrays meant to be encoded?
+            for role in include_roles {
+                query.push(("include_roles", role.to_string()));
+            }
+        }
+
+        query
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Default)]
+/// Schema for the [Guild::prune](crate::types::Guild::prune) endpoint
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#query-string-params>
+pub struct GuildPruneSchema {
+    #[serde(flatten)]
+    /// Parameters which set how to prune the guild
+    pub parameters: GuildPruneParameters,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Whether to wait for the prune to be completed before responding
+    ///
+    /// (true by default)
+    pub compute_prune_count: Option<bool>,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Copy)]
+/// Return schema for the [Guild::get_prune](crate::types::Guild::get_prune) endpoint
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#response-body>
+pub struct GetGuildPruneResult {
+    pub pruned: usize,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Copy)]
+/// Return schema for the [Guild::prune](crate::types::Guild::prune) endpoint
+///
 /// # Reference
 /// See <https://docs.discord.sex/resources/guild#get-guild-prune>
 pub struct GuildPruneResult {
-    /// Null if compute_prune_count is false
+    /// `None` if `compute_prune_count` is `false`
     pub pruned: Option<usize>,
 }
 
@@ -1310,4 +1380,36 @@ pub enum AddGuildMemberReturn {
 
     /// The user was already a member of the guild
     AlreadyAMember,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq)]
+/// Return schema for the [Guild::get_widget_settings](crate::types::Guild::get_widget_settings) endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-settings-structure>
+pub struct GuildWidgetSettings {
+	/// Whether the widget is enabled
+	pub enabled: bool,
+
+	/// The channel ID that we widget will generate an invite to, if any
+	pub channel_id: Option<Snowflake>
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq)]
+/// Schema for the [Guild::modify_widget](crate::types::Guild::modify_widget) endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#json-params>
+pub struct ModifyGuildWidgetSchema {
+
+   #[serde(skip_serializing_if = "Option::is_none")]
+	/// Whether the widget is enabled
+	pub enabled: Option<bool>,
+
+   #[serde(skip_serializing_if = "Option::is_none")]
+	/// The channel ID that we widget will generate an invite to, if any
+	///
+	/// Note that the first `Option` represents whether we want to modify
+	/// the field, and the second allows us to set it to `None` or `Some`
+	pub channel_id: Option<Option<Snowflake>>
 }

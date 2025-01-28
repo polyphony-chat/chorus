@@ -15,8 +15,14 @@ use crate::types::BulkGuildBanReturn;
 use crate::types::BulkGuildBanSchema;
 use crate::types::GetGuildMembersSchema;
 use crate::types::GetGuildMembersSupplementalSchema;
+use crate::types::GetGuildPruneResult;
 use crate::types::GuildModifyMFALevelSchema;
+use crate::types::GuildPruneParameters;
+use crate::types::GuildPruneResult;
+use crate::types::GuildPruneSchema;
+use crate::types::GuildWidgetSettings;
 use crate::types::MFALevel;
+use crate::types::ModifyGuildWidgetSchema;
 use crate::types::SGMReturnNotIndexed;
 use crate::types::SGMReturnOk;
 use crate::types::SearchGuildBansQuery;
@@ -579,7 +585,7 @@ impl Guild {
     ///
     /// Requires both the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) and [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permissions.
     ///
-	 /// # Notes
+    /// # Notes
     /// This route requires MFA.
     ///
     /// # Reference
@@ -634,6 +640,132 @@ impl Guild {
         .with_headers_for(user);
 
         request.handle_request_as_result(user).await
+    }
+
+    /// Returns the number of members that would be removed in a prune operation.
+    ///
+    /// Requires both the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) and [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permissions.
+    ///
+    /// By default, a prune will not remove users with roles.
+    ///
+    /// You can optionally include specific roles by providing the `include_roles` parameter.
+    ///
+    /// Any inactive user that has a subset of the provided roles will be counted in the prune and
+    /// user with additional roles will not.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-prune>
+    pub async fn get_prune(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: GuildPruneParameters,
+    ) -> ChorusResult<GetGuildPruneResult> {
+        let url = format!(
+            "{}/guilds/{}/prune",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url).query(&schema.to_query()),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Begins a prune operation.
+    ///
+    /// Requires both the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) and [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permissions.
+    ///
+    /// For large guilds, it's recommended to set the `compute_prune_count` field to `false`,
+    /// allowing the request to reqturn before all members are pruned.
+    ///
+    /// By default, a prune will not remove users with roles.
+    ///
+    /// You can optionally include specific roles by providing the `include_roles` parameter.
+    ///
+    /// Any inactive user that has a subset of the provided roles will be counted in the prune and
+    /// user with additional roles will not.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#prune-guild>
+    pub async fn prune(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        audit_log_reason: Option<String>,
+        schema: GuildPruneSchema,
+    ) -> ChorusResult<GuildPruneResult> {
+        let url = format!(
+            "{}/guilds/{}/prune",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().post(url).json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Returns the [GuildWidgetSettings] for a guild.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-widget-settings>
+    pub async fn get_widget_settings(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<GuildWidgetSettings> {
+        let url = format!(
+            "{}/guilds/{}/widget",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Modifies the [GuildWidgetSettings] for a guild.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// Returns the updated object on success.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-widget-settings>
+    pub async fn modify_widget(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        audit_log_reason: Option<String>,
+        schema: ModifyGuildWidgetSchema,
+    ) -> ChorusResult<GuildWidgetSettings> {
+        let url = format!(
+            "{}/guilds/{}/widget",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().patch(url).json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
     }
 }
 
