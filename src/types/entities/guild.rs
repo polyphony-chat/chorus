@@ -19,7 +19,7 @@ use crate::types::{
 };
 use crate::UInt64;
 
-use super::{option_arc_rwlock_ptr_eq, vec_arc_rwlock_ptr_eq, PublicUser};
+use super::{option_arc_rwlock_ptr_eq, vec_arc_rwlock_ptr_eq, PublicUser, UserStatus};
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
@@ -255,6 +255,101 @@ pub struct UnavailableGuild {
 )]
 pub struct GuildCreateResponse {
     pub id: Snowflake,
+}
+
+/// An embeddable widget for a guild.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-object>
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct GuildWidget {
+    /// The ID of the guild the widget is for
+    pub id: Snowflake,
+
+    /// The name of the guild the widget is for
+    pub name: String,
+
+    /// The invite URL for the guild's widget channel, if any
+    pub instant_invite: Option<String>,
+
+    /// Approximate count of non-offline members in the guild
+    pub presence_count: usize,
+
+    /// The public voice and stage channels in the guild
+    pub channels: Vec<GuildWidgetChannel>,
+
+    /// The non-offline guild members (max 100)
+    pub members: Vec<GuildWidgetMember>,
+}
+
+/// A channel, as provided in [GuildWidget]
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-channel-structure>
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct GuildWidgetChannel {
+    /// The ID of the channel
+    pub id: Snowflake,
+
+    /// The name of the channel (1 - 100 characters)
+    pub name: String,
+
+    /// The sorting position of the channel
+    pub position: i32,
+}
+
+/// A guild member, as provided in [GuildWidget]
+///
+/// Due to privacy concerns, `id`, `discriminator` and `avatar` are anonymized.
+///
+/// `id` is replaced with an incrementing integer, `discriminator` is always `0000`,
+/// and `avatar` is always `null` (replaced with an encrypted `avatar_url` field).
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-member-structure>
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct GuildWidgetMember {
+    /// The incrementing ID of the member
+    pub id: Snowflake,
+
+    /// The display name or censored username of the member
+    pub username: String,
+
+    pub avatar_url: String,
+
+    /// The status of the user
+    pub status: UserStatus,
+
+    /// The primary activity the member is participating in
+    pub activity: Option<GuildWidgetMemberActivity>,
+
+    /// The ID of the voice or stage channel the member is in
+    pub channel_id: Option<Snowflake>,
+
+    /// Whether the member is server-deafened
+    pub deaf: Option<bool>,
+
+    /// Whether the member is server-muted
+    pub mute: Option<bool>,
+
+    /// Whether the member is locally deafened
+    pub self_deaf: Option<bool>,
+
+    /// Whether the member is locally muted
+    pub self_mute: Option<bool>,
+
+    /// Whether the member's permission to speak is denied
+    pub suppress: Option<bool>,
+}
+
+/// An activity, as provided in [GuildWidgetMember]
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-member-activity-structure>
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct GuildWidgetMemberActivity {
+    /// The name of the activity
+    pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]

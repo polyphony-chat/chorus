@@ -10,6 +10,7 @@ use serde_json::to_string;
 use crate::errors::ChorusError;
 use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
+use crate::instance::Instance;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::BulkGuildBanReturn;
 use crate::types::BulkGuildBanSchema;
@@ -20,6 +21,7 @@ use crate::types::GuildModifyMFALevelSchema;
 use crate::types::GuildPruneParameters;
 use crate::types::GuildPruneResult;
 use crate::types::GuildPruneSchema;
+use crate::types::GuildWidget;
 use crate::types::GuildWidgetSettings;
 use crate::types::MFALevel;
 use crate::types::ModifyGuildWidgetSchema;
@@ -766,6 +768,59 @@ impl Guild {
         .with_headers_for(user);
 
         request.deserialize_response(user).await
+    }
+
+    /// Returns the [GuildWidget] for the given guild ID.
+    ///
+    /// This endpoint is unauthenticated.
+    ///
+    /// (The guild must have the widget enabled.)
+    ///
+    /// If a widget channel is set and a usable invite for it does not already exist,
+    /// fetching the widget will create one. Subsequent calls will attempt to reuse the generated
+    /// invite.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-widget>
+    pub async fn get_widget(instance: &Instance, guild_id: Snowflake) -> ChorusResult<GuildWidget> {
+        let url = format!("{}/guilds/{}/widget.json", instance.urls.api, guild_id,);
+
+        let client = Client::new().get(url.clone());
+
+        let response = match client.send().await {
+            Ok(result) => result,
+            Err(e) => {
+                return Err(ChorusError::RequestFailed {
+                    url,
+                    error: e.to_string(),
+                });
+            }
+        };
+
+        if !response.status().as_str().starts_with('2') {
+            return Err(ChorusError::ReceivedErrorCode {
+                error_code: response.status().as_u16(),
+                error: response.text().await.unwrap(),
+            });
+        }
+
+        let response_text = match response.text().await {
+            Ok(string) => string,
+            Err(e) => {
+                return Err(ChorusError::InvalidResponse {
+                    error: format!(
+                        "Error while trying to process the HTTP response into a String: {}",
+                        e
+                    ),
+                });
+            }
+        };
+
+        match from_str::<GuildWidget>(&response_text) {
+			Ok(return_value) => Ok(return_value),
+			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into response type T: {}. JSON Response: {}",
+                        e, response_text) })
+		  }
     }
 }
 
