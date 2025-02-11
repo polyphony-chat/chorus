@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use bytes::Bytes;
 use futures_util::FutureExt;
 use reqwest::Client;
 use serde_json::from_str;
@@ -18,10 +19,13 @@ use crate::types::GetGuildMembersSchema;
 use crate::types::GetGuildMembersSupplementalSchema;
 use crate::types::GetGuildPruneResult;
 use crate::types::GuildModifyMFALevelSchema;
+use crate::types::GuildModifyVanityInviteSchema;
 use crate::types::GuildPruneParameters;
 use crate::types::GuildPruneResult;
 use crate::types::GuildPruneSchema;
+use crate::types::GuildVanityInviteInfo;
 use crate::types::GuildWidget;
+use crate::types::GuildWidgetImageStyle;
 use crate::types::GuildWidgetSettings;
 use crate::types::MFALevel;
 use crate::types::ModifyGuildWidgetSchema;
@@ -821,6 +825,132 @@ impl Guild {
 			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into response type T: {}. JSON Response: {}",
                         e, response_text) })
 		  }
+    }
+
+    /// Returns a widget image for the given guild ID.
+    ///
+    /// This endpoint is unauthenticated.
+    ///
+    /// (The guild must have the widget enabled.)
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-widget-image>
+    pub async fn get_widget_image(
+        instance: &Instance,
+        guild_id: Snowflake,
+        style: Option<GuildWidgetImageStyle>,
+    ) -> ChorusResult<Bytes> {
+        let url = format!("{}/guilds/{}/widget.png", instance.urls.api, guild_id,);
+
+        let mut client = Client::new().get(url.clone());
+
+        if let Some(style_some) = style {
+            match serde_json::to_string(&style_some) {
+                Err(e) => {
+                    return Err(ChorusError::FormCreation {
+                        error: format!("Failed to serialize: {}", e),
+                    })
+                }
+                Ok(string) => {
+                    client = client.query(&("style".to_string(), string.replace('"', "")));
+                }
+            }
+        }
+
+        let response = match client.send().await {
+            Ok(result) => result,
+            Err(e) => {
+                return Err(ChorusError::RequestFailed {
+                    url,
+                    error: e.to_string(),
+                });
+            }
+        };
+
+        if !response.status().as_str().starts_with('2') {
+            return Err(ChorusError::ReceivedErrorCode {
+                error_code: response.status().as_u16(),
+                error: response.text().await.unwrap(),
+            });
+        }
+
+        let response_bytes = match response.bytes().await {
+            Ok(string) => string,
+            Err(e) => {
+                return Err(ChorusError::InvalidResponse {
+                    error: format!(
+                        "Error while trying to process the HTTP response into Bytes: {}",
+                        e
+                    ),
+                });
+            }
+        };
+
+        Ok(response_bytes)
+    }
+
+    /// Fetches [GuildVanityInviteInfo] for a given guild.
+    ///
+    /// The guild must have the [VANITY_URL](crate::types::types::guild_configuration::GuildFeatures::VanityUrl) or [GUILD_WEB_PAGE_VANITY_URL](crate::types::types::guild_configuration::GuildFeatures::GuildWebPageVanityURL) feature.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-vanity-invite>
+    pub async fn get_vanity_invite(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<GuildVanityInviteInfo> {
+        let url = format!(
+            "{}/guilds/{}/vanity-url",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Modifies the guild vanity invite code for a given guild.
+    ///
+    /// The guild must have the [VANITY_URL](crate::types::types::guild_configuration::GuildFeatures::VanityUrl) or [GUILD_WEB_PAGE_VANITY_URL](crate::types::types::guild_configuration::GuildFeatures::GuildWebPageVanityURL) feature.
+    ///
+    /// Guild without the [VANITY_URL](crate::types::types::guild_configuration::GuildFeatures::VanityUrl) feature can only
+    /// clear their vanity invite.
+    ///
+    /// Requires both the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) and [CREATE_INSTANT_INVITE](crate::types::PermissionFlags::CREATE_INSTANT_INVITE) permissions.
+    ///
+    /// # Notes
+    /// This route requires MFA.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#modify-guild-vanity-invite>
+    pub async fn modify_vanity_invite(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        code: Option<String>,
+    ) -> ChorusResult<GuildVanityInviteInfo> {
+        let url = format!(
+            "{}/guilds/{}/vanity-url",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new()
+                .patch(url)
+                .json(&GuildModifyVanityInviteSchema { code }),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_mfa(&user.mfa_token)
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
     }
 }
 

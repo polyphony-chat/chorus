@@ -760,7 +760,6 @@ pub struct GuildPruneParameters {
 impl GuildPruneParameters {
     /// Converts self to query string parameters
     pub fn to_query(self) -> Vec<(&'static str, String)> {
-
         let mut query = Vec::with_capacity(1);
 
         if let Some(days) = self.days {
@@ -1388,11 +1387,11 @@ pub enum AddGuildMemberReturn {
 /// # Reference
 /// See <https://docs.discord.sex/resources/guild#guild-widget-settings-structure>
 pub struct GuildWidgetSettings {
-	/// Whether the widget is enabled
-	pub enabled: bool,
+    /// Whether the widget is enabled
+    pub enabled: bool,
 
-	/// The channel ID that we widget will generate an invite to, if any
-	pub channel_id: Option<Snowflake>
+    /// The channel ID that we widget will generate an invite to, if any
+    pub channel_id: Option<Snowflake>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -1401,15 +1400,61 @@ pub struct GuildWidgetSettings {
 /// # Reference
 /// See <https://docs.discord.sex/resources/guild#json-params>
 pub struct ModifyGuildWidgetSchema {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Whether the widget is enabled
+    pub enabled: Option<bool>,
 
-   #[serde(skip_serializing_if = "Option::is_none")]
-	/// Whether the widget is enabled
-	pub enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The channel ID that we widget will generate an invite to, if any
+    ///
+    /// Note that the first `Option` represents whether we want to modify
+    /// the field, and the second allows us to set it to `None` or `Some`
+    pub channel_id: Option<Option<Snowflake>>,
+}
 
-   #[serde(skip_serializing_if = "Option::is_none")]
-	/// The channel ID that we widget will generate an invite to, if any
-	///
-	/// Note that the first `Option` represents whether we want to modify
-	/// the field, and the second allows us to set it to `None` or `Some`
-	pub channel_id: Option<Option<Snowflake>>
+#[derive(
+    Serialize, Deserialize, Default, Debug, Clone, Eq, PartialEq, Hash, Copy, PartialOrd, Ord,
+)]
+#[serde(rename_all = "lowercase")]
+/// Different styles of guild widget images, used in the
+/// [Guild::get_widget_image](crate::types::Guild::get_widget_image) endpoint
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-image-style-option>
+pub enum GuildWidgetImageStyle {
+    #[default]
+    /// Shield style widget with instance icon and online count
+    Shield,
+    /// Large image with guild icon, name and online count
+    Banner1,
+    /// Smaller widget style with guild icon, name and online count; split on the right with the instance logo
+    Banner2,
+    /// Large image with guild icon, name and online count
+    Banner3,
+    /// Large instance logo at the top of the widget; guild icon, name and online count in the middle portion of the widget and a "JOIN MY SERVER" button at the bottom
+    Banner4,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// Return schema for the [Guild::get_vanity_invite](crate::types::Guild::get_vanity_invite) endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-guild-vanity-invite>
+pub struct GuildVanityInviteInfo {
+    /// The vanity invite code
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+
+    /// The number of times this invite has been used
+    pub uses: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// Internal schema for the [Guild::modify_vanity_invite](crate::types::Guild::modify_vanity_invite) endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#modify-guild-vanity-invite>
+pub(crate) struct GuildModifyVanityInviteSchema {
+    /// The vanity invite code; None to clear
+    pub code: Option<String>,
 }
