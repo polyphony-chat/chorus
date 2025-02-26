@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::types::events::WebSocketEvent;
 use crate::types::{entities::Channel, JsonField, Snowflake, SourceUrlField};
@@ -20,7 +20,20 @@ use crate::types::IntoShared;
 #[cfg(feature = "client")]
 use crate::types::Guild;
 
-#[derive(Debug, Default, Deserialize, Serialize, WebSocketEvent, Copy, PartialEq, Clone, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug,
+    Default,
+    Deserialize,
+    Serialize,
+    WebSocketEvent,
+    Copy,
+    PartialEq,
+    Clone,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-pins-update>
 pub struct ChannelPinsUpdate {
     pub guild_id: Option<Snowflake>,
@@ -28,7 +41,9 @@ pub struct ChannelPinsUpdate {
     pub last_pin_timestamp: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent)]
+#[derive(
+    Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-create>
 pub struct ChannelCreate {
     #[serde(flatten)]
@@ -53,7 +68,9 @@ impl UpdateMessage<Guild> for ChannelCreate {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent)]
+#[derive(
+    Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-update>
 pub struct ChannelUpdate {
     #[serde(flatten)]
@@ -95,7 +112,9 @@ pub struct ChannelUnreadUpdateObject {
     pub last_pin_timestamp: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent)]
+#[derive(
+    Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#channel-delete>
 pub struct ChannelDelete {
     #[serde(flatten)]
@@ -129,4 +148,3 @@ impl UpdateMessage<Guild> for ChannelDelete {
         }
     }
 }
-
