@@ -657,7 +657,7 @@ pub struct GuildMemberVerification {
 
     /// The guild this member verification is for
     ///
-    /// This field is only included when returned by the [`Guild::get_member_verification`] endpoint with
+    /// This field is only included when returned by the [`Guild::get_member_verification`](crate::types::Guild::get_member_verification) endpoint with
     /// `with_guild set` to `true`.
     #[serde(default)]
     pub guild: Option<GuildMemberVerificationGuild>,
@@ -687,7 +687,7 @@ pub struct GuildMemberVerificationFormField {
     ///
     /// See [the type](GuildMemberVerificationResponse) for related docs on which variant to use.
     ///
-    /// This field is not present when fetched from the [`Guild::get_member_verification`] endpoint.
+    /// This field is not present when fetched from the [`Guild::get_member_verification`](crate::types::Guild::get_member_verification) endpoint.
     #[serde(default)]
     pub response: Option<GuildMemberVerificationResponse>,
 
