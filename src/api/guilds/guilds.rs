@@ -15,9 +15,11 @@ use crate::instance::Instance;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::BulkGuildBanReturn;
 use crate::types::BulkGuildBanSchema;
+use crate::types::GetGuildMemberVerificationQuery;
 use crate::types::GetGuildMembersSchema;
 use crate::types::GetGuildMembersSupplementalSchema;
 use crate::types::GetGuildPruneResult;
+use crate::types::GuildMemberVerification;
 use crate::types::GuildModifyMFALevelSchema;
 use crate::types::GuildModifyVanityInviteSchema;
 use crate::types::GuildPruneParameters;
@@ -28,6 +30,7 @@ use crate::types::GuildWidget;
 use crate::types::GuildWidgetImageStyle;
 use crate::types::GuildWidgetSettings;
 use crate::types::MFALevel;
+use crate::types::ModifyGuildMemberVerificationSchema;
 use crate::types::ModifyGuildWidgetSchema;
 use crate::types::SGMReturnNotIndexed;
 use crate::types::SGMReturnOk;
@@ -948,6 +951,71 @@ impl Guild {
             limit_type: LimitType::Guild(guild_id),
         }
         .with_maybe_mfa(&user.mfa_token)
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Fetches the [GuildMemberVerification] object for a given guild if one is set.
+    ///
+    /// If the user is not in the guild, the guild must be discoverable or have guild previewing
+    /// disabled.
+    ///
+    /// If `with_guild` is set to `true `(it is `false` by default), the object will include
+    /// [GuildMemberVerificationGuild](crate::types::GuildMemberVerificationGuild).
+    ///
+    /// To set it to true, the user must not be a member of the guild and the guild must not be
+    /// full.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-member-verification>
+    pub async fn get_member_verification(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        query: GetGuildMemberVerificationQuery
+    ) -> ChorusResult<GuildMemberVerification> {
+        let url = format!(
+            "{}/guilds/{}/member-verification",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url).query(&query.to_query()),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Modifies the [GuildMemberVerification] object for the guild.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// Returns the updated object.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#modify-guild-member-verification>
+    pub async fn modify_member_verification(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: ModifyGuildMemberVerificationSchema,
+        audit_log_reason: Option<String>,
+    ) -> ChorusResult<GuildMemberVerification> {
+        let url = format!(
+            "{}/guilds/{}/member-verification",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new()
+                .patch(url)
+                .json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
         request.deserialize_response(user).await

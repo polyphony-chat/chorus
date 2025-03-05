@@ -520,13 +520,23 @@ pub enum ExplicitContentFilterLevel {
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#verification-level>
 pub enum VerificationLevel {
     #[default]
+    /// Unrestricted
     None = 0,
+
+    /// Must have a verified email
     Low = 1,
+
+    /// Must be a registered user for longer than 5 minutes
     Medium = 2,
+
+    /// Must be a member of the server for longer than 10 minutes
     High = 3,
+
+    /// Must have a verified phone number
     VeryHigh = 4,
 }
 
@@ -627,4 +637,159 @@ bitflags! {
         const SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATIONS = 1 << 4;
         const SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATIONS_REPLIES = 1 << 5;
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-object>
+pub struct GuildMemberVerification {
+    /// When the verification object was last modified
+    #[serde(default)]
+    pub version: Option<DateTime<Utc>>,
+
+    /// Questions for the applicants to answer (max 5)
+    #[serde(default)]
+    pub form_fields: Vec<GuildMemberVerificationFormField>,
+
+    /// A description of what the guild is about; max 300 characters
+    #[serde(default)]
+    pub description: Option<String>,
+
+    /// The guild this member verification is for
+    ///
+    /// This field is only included when returned by the [`Guild::get_member_verification`] endpoint with
+    /// `with_guild set` to `true`.
+    #[serde(default)]
+    pub guild: Option<GuildMemberVerificationGuild>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// A question in [GuildMemberVerification].
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-form-field-structure>
+pub struct GuildMemberVerificationFormField {
+    /// The type of question
+    pub field_type: GuildMemberVerificationFormFieldType,
+
+    /// The label for the form field (max 300 characters)
+    pub label: String,
+
+    /// Multiple choice answers (1-8, max 150 characters)
+    #[serde(default)]
+    pub choices: Option<Vec<String>>,
+
+    /// The rules that the user must agree to (1-16, max 300 characters)
+    #[serde(default)]
+    pub values: Option<Vec<String>>,
+
+    /// The correct response for this field.
+    ///
+    /// See [the type](GuildMemberVerificationResponse) for related docs on which variant to use.
+    ///
+    /// This field is not present when fetched from the [`Guild::get_member_verification`] endpoint.
+    #[serde(default)]
+    pub response: Option<GuildMemberVerificationResponse>,
+
+    /// Whether this field is required for a successful application
+    pub required: bool,
+
+    /// The subtext of the form field
+    #[serde(default)]
+    pub description: Option<String>,
+
+    /// Unknown (max 300 characters, max 10)
+    #[serde(default)]
+    pub automations: Option<Vec<String>>,
+
+    /// Placeholder text for the field's response area
+    #[serde(default)]
+    pub placeholder: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash, PartialOrd, Ord)]
+#[serde(untagged)]
+/// Types of form responses in [GuildMemberVerificationFormField].
+///
+/// For [GuildMemberVerificationFormFieldType::Terms], this should be [GuildMemberVerificationResponse::Boolean] (with a value of `true`)
+///
+/// For [GuildMemberVerificationFormFieldType::MultipleChoice], this should be [GuildMemberVerificationResponse::Index] (with the index of the selected choice)
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-form-field-type>
+pub enum GuildMemberVerificationResponse {
+    String(String),
+    Index(usize),
+    Boolean(bool),
+}
+
+#[derive(
+    Serialize, Deserialize, Default, Debug, Clone, Eq, PartialEq, Hash, Copy, PartialOrd, Ord,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// Types of form questions in [GuildMemberVerificationFormField].
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-form-field-type>
+pub enum GuildMemberVerificationFormFieldType {
+    /// User must agree to the guild rules
+    #[default]
+    Terms,
+
+    /// User must respond with a short answer (max 150 characters)
+    TextInput,
+
+    /// User must respond with a paragraph (max 1000 characters)
+    Paragraph,
+
+    /// User must select one of the provided choices
+    MultipleChoice,
+
+    /// User must verify their email or phone number
+    ///
+    /// Deprecated
+    Verification,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+/// A guild, as provided in [GuildMemberVerification].
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-guild-structure>
+pub struct GuildMemberVerificationGuild {
+    /// The ID of the guild
+    pub id: Snowflake,
+
+    /// The name of the guild (2-100 characters)
+    pub name: String,
+
+    /// The guild's icon hash
+    pub icon: Option<String>,
+
+    /// The description for the guild (max 300 characters)
+    pub description: Option<String>,
+
+    /// The guild's splash image hash
+    pub splash: Option<String>,
+
+    /// The guild's discovery splash image hash
+    pub discovery_splash: Option<String>,
+
+    /// The guild's home header hash
+    pub home_header: Option<String>,
+
+    /// The [VerificationLevel] required to talk in the guild.
+    pub verification_level: VerificationLevel,
+
+    /// Enabled [GuildFeatures]
+    pub features: GuildFeaturesList,
+
+    /// Custom guild emojis
+    pub emojis: Vec<Emoji>,
+
+    /// Approximate number of total members in the guild
+    pub approximate_member_count: usize,
+
+    /// Approximate number of non-offline members in the guild
+    pub approximate_presence_count: usize,
 }

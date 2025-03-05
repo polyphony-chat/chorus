@@ -12,10 +12,10 @@ use crate::errors::ChorusError;
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
 use crate::types::{
-    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, GuildMember, JoinSourceType,
-    MFALevel, MessageNotificationLevel, RoleObject, Snowflake, Sticker, StickerFormatType,
-    SupplementalGuildMember, SystemChannelFlags, ThemeColors, VerificationLevel,
-    WelcomeScreenChannel,
+    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, GuildMember,
+    GuildMemberVerificationFormField, JoinSourceType, MFALevel, MessageNotificationLevel,
+    RoleObject, Snowflake, Sticker, StickerFormatType, SupplementalGuildMember, SystemChannelFlags,
+    ThemeColors, VerificationLevel, WelcomeScreenChannel,
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
@@ -1457,4 +1457,53 @@ pub struct GuildVanityInviteInfo {
 pub(crate) struct GuildModifyVanityInviteSchema {
     /// The vanity invite code; None to clear
     pub code: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-guild-member-verification>
+pub struct GetGuildMemberVerificationQuery {
+    /// Whether or not to include an object with guild info in the response (false by default)
+    ///
+    /// Requires that the user is not a member of the guild, and that the guild is not full
+    pub with_guild: Option<bool>,
+
+    /// The invite code the verification is fetched from
+    pub invite_code: Option<String>,
+}
+
+impl GetGuildMemberVerificationQuery {
+    /// Converts self to query string parameters
+    pub fn to_query(self) -> Vec<(&'static str, String)> {
+        let mut query = Vec::with_capacity(3);
+
+        if let Some(with_guild) = self.with_guild {
+            query.push(("with_guild", with_guild.to_string()));
+        }
+
+        if let Some(invite_code) = self.invite_code {
+            query.push(("invite_code", invite_code.to_string()));
+        }
+
+        query
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// Schema for the [Guild::modify_member_verification](crate::types::Guild::modify_member_verification) endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#json-params>
+pub struct ModifyGuildMemberVerificationSchema {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Whether the member verification gate is enabled
+    pub enabled: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Questions for the applicants to answer (max 5)
+    pub form_fields: Option<Vec<GuildMemberVerificationFormField>>,
+
+    /// A description of what the guild is about; max 300 characters
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
 }
