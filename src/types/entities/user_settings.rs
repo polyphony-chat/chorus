@@ -21,6 +21,7 @@ pub enum UserStatus {
     Dnd,
     Idle,
     Invisible,
+    Unknown,
 }
 
 impl std::fmt::Display for UserStatus {
