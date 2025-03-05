@@ -781,7 +781,7 @@ pub struct GuildMemberVerificationGuild {
     /// The [VerificationLevel] required to talk in the guild.
     pub verification_level: VerificationLevel,
 
-    /// Enabled [GuildFeatures]
+    /// Enabled [GuildFeatures](crate::types::types::guild_configuration::GuildFeatures)
     pub features: GuildFeaturesList,
 
     /// Custom guild emojis
