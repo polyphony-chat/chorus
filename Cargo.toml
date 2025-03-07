@@ -70,8 +70,8 @@ pubserve = { version = "1.1.0", features = ["async", "send"] }
 sqlx-pg-uint = { version = "0.8.0", features = ["serde"], optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-rustls = "0.23.13"
-tokio-tungstenite = { version = "0.20.1", features = [
+rustls = "0.23.20"
+tokio-tungstenite = { version = "0.26.1", features = [
     "rustls-tls-webpki-roots",
 ] }
 hostname = "0.3.1"
@@ -80,7 +80,7 @@ getrandom = { version = "0.2.15" }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.15", features = ["js"] }
 ws_stream_wasm = "0.7.4"
-pharos = "*" # This is a dependency of ws_stream_wasm, we are including it to interface with that library
+pharos = "0.5.3" # This is a dependency of ws_stream_wasm, we are including it to interface with that library
 wasm-bindgen-futures = "0.4.43"
 wasmtimer = "0.4.0"
 

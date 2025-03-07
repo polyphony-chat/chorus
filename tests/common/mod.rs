@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use std::str::FromStr;
 
@@ -52,6 +52,7 @@ impl TestBundle {
     }
     pub(crate) async fn clone_user_without_gateway(&self) -> ChorusUser {
         ChorusUser {
+			   client_properties: Default::default(),
             belongs_to: self.user.belongs_to.clone(),
             token: self.user.token.clone(),
             mfa_token: None,

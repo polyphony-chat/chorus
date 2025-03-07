@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use reqwest::Client;
 
@@ -27,10 +27,13 @@ impl types::GuildMember {
             guild_id,
             member_id
         );
+
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).header("Authorization", user.token()),
+            request: Client::new().get(url),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_headers_for(user);
+
         chorus_request
             .deserialize_response::<GuildMember>(user)
             .await
@@ -55,13 +58,13 @@ impl types::GuildMember {
             member_id,
             role_id
         );
+
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .put(url)
-                .header("Authorization", user.token())
-                .header("Content-Type", "application/json"),
+            request: Client::new().put(url),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_headers_for(user);
+
         chorus_request.handle_request_as_result(user).await
     }
 
@@ -84,12 +87,13 @@ impl types::GuildMember {
             member_id,
             role_id
         );
+
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(url)
-                .header("Authorization", user.token()),
+            request: Client::new().delete(url),
             limit_type: LimitType::Guild(guild_id),
-        };
+        }
+        .with_headers_for(user);
+
         chorus_request.handle_request_as_result(user).await
     }
 }

@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 //! Instance and ChorusUser objects.
 
@@ -15,28 +15,53 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::ChorusResult;
-use crate::gateway::{Gateway, GatewayHandle, GatewayOptions};
+use crate::gateway::{events::Events, Gateway, GatewayHandle, GatewayOptions};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::types::subconfigs::limits::rates::RateLimits;
 use crate::types::{
-    GatewayIdentifyPayload, GeneralConfiguration, Limit, LimitType, LimitsConfiguration, MfaToken,
-    MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings,
+    ClientProperties, GatewayIdentifyPayload, GeneralConfiguration, Limit, LimitType,
+    LimitsConfiguration, MfaToken, MfaTokenSchema, MfaVerifySchema, Shared, User, UserSettings,
 };
 use crate::UrlBundle;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-/// The [`Instance`]; what you will be using to perform all sorts of actions on the Spacebar server.
+/// Represents a Spacebar-compatible [`Instance`].
+///
+/// This struct is most commonly used for [`Instance::login_account`],
+/// [`Instance::login_with_token`] and [`Instance::register_account`].
 ///
 /// If `limits_information` is `None`, then the instance will not be rate limited.
 pub struct Instance {
+    /// The URLs of the instance
     pub urls: UrlBundle,
+
+    /// General information about the instance,
+    /// including its name, description, image, ...
+    ///
+    /// (This is set by the instance admins)
     pub instance_info: GeneralConfiguration,
+
     pub(crate) software: InstanceSoftware,
+
+    /// Ratelimit information about the instance.
+    ///
+    /// If this field is `None`, then the instance will not be rate limited.
     pub limits_information: Option<LimitsInformation>,
+
     #[serde(skip)]
+    /// The reqwest HTTP request client
     pub client: Client,
+
     #[serde(skip)]
     pub(crate) gateway_options: GatewayOptions,
+
+    #[serde(skip)]
+    /// The default gateway [`Events`] new gateway connections will inherit.
+    ///
+    /// This field can be used to subscribe to events that are received before we get access to the
+    /// gateway handle object on new [ChorusUser]s created with [Instance::login_account],
+    /// [Instance::login_with_token] and [Instance::register_account]
+    pub default_gateway_events: Events,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Eq)]
@@ -104,6 +129,7 @@ impl Instance {
             gateway_options: options.unwrap_or_default(),
             // Will also be detected soon
             software: InstanceSoftware::Other,
+            default_gateway_events: Events::default(),
         };
 
         instance.instance_info = match instance.general_configuration_schema().await {
@@ -256,15 +282,35 @@ impl fmt::Display for Token {
 
 #[derive(Debug, Clone)]
 /// A ChorusUser is a representation of an authenticated user on an [Instance].
+///
 /// It is used for most authenticated actions on a Spacebar server.
+///
 /// It also has its own [Gateway] connection.
 pub struct ChorusUser {
+    /// A reference to the [Instance] the user is registered on
     pub belongs_to: Shared<Instance>,
+
+    /// The user's authentication token
     pub token: String,
+
+    /// Telemetry data sent to the instance.
+    ///
+    /// See [ClientProperties] for more information
+    pub client_properties: ClientProperties,
+
+    /// A token for bypassing mfa, if any
     pub mfa_token: Option<MfaToken>,
+
+    /// Ratelimit data
     pub limits: Option<HashMap<LimitType, Limit>>,
+
+    /// The user's settings
     pub settings: Shared<UserSettings>,
+
+    /// Information about the user
     pub object: Shared<User>,
+
+    /// The user's connection to the gateway
     pub gateway: GatewayHandle,
 }
 
@@ -285,6 +331,7 @@ impl ChorusUser {
     pub fn new(
         belongs_to: Shared<Instance>,
         token: String,
+        client_properties: ClientProperties,
         limits: Option<HashMap<LimitType, Limit>>,
         settings: Shared<UserSettings>,
         object: Shared<User>,
@@ -293,6 +340,7 @@ impl ChorusUser {
         ChorusUser {
             belongs_to,
             token,
+            client_properties,
             mfa_token: None,
             limits,
             settings,
@@ -305,7 +353,7 @@ impl ChorusUser {
     ///
     /// Fetches all the other required data from the api.
     ///
-    /// If the received_settings can be None, since not all login methods
+    /// The received_settings can be None, since not all login methods
     /// return user settings. If this is the case, we'll fetch them via an api route.
     pub(crate) async fn update_with_login_data(
         &mut self,
@@ -314,8 +362,13 @@ impl ChorusUser {
     ) -> ChorusResult<()> {
         self.token = token.clone();
 
-        let mut identify = GatewayIdentifyPayload::common();
+		  let instance_default_events = self.belongs_to.read().unwrap().default_gateway_events.clone();
+
+        *self.gateway.events.lock().await = instance_default_events;
+
+        let mut identify = GatewayIdentifyPayload::default_w_client_capabilities();
         identify.token = token;
+        identify.properties = self.client_properties.clone();
         self.gateway.send_identify(identify).await;
 
         *self.object.write().unwrap() = self.get_current_user().await?;
@@ -345,6 +398,7 @@ impl ChorusUser {
         let gateway = Gateway::spawn(wss_url, gateway_options).await.unwrap();
         ChorusUser {
             token: token.to_string(),
+            client_properties: ClientProperties::default(),
             mfa_token: None,
             belongs_to: instance.clone(),
             limits: instance

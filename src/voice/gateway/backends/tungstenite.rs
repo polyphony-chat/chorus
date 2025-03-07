@@ -1,13 +1,13 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::types::VoiceCloseCode;
 use crate::voice::gateway::{VoiceGatewayCommunication, VoiceGatewayMessage};
 
 impl From<VoiceGatewayMessage> for tokio_tungstenite::tungstenite::Message {
     fn from(message: VoiceGatewayMessage) -> Self {
-        Self::Text(message.0)
+        Self::Text(message.0.into())
     }
 }
 
@@ -21,7 +21,7 @@ impl From<tokio_tungstenite::tungstenite::Message> for VoiceGatewayCommunication
     fn from(value: tokio_tungstenite::tungstenite::Message) -> Self {
         match value {
             tokio_tungstenite::tungstenite::Message::Text(text) => {
-                VoiceGatewayCommunication::Message(VoiceGatewayMessage(text))
+                VoiceGatewayCommunication::Message(VoiceGatewayMessage(text.to_string()))
             }
             tokio_tungstenite::tungstenite::Message::Close(close_frame) => {
                 if close_frame.is_none() {

@@ -1,6 +1,8 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+use reqwest::Client;
 
 use crate::{
     errors::ChorusResult,
@@ -31,14 +33,11 @@ impl ReactionMeta {
             self.message_id
         );
 
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Channel(self.channel_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Channel(self.channel_id),
+        }
+        .with_headers_for(user);
 
         request.handle_request_as_result(user).await
     }
@@ -59,14 +58,11 @@ impl ReactionMeta {
             emoji
         );
 
-        let request = ChorusRequest::new(
-            http::Method::GET,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Channel(self.channel_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Channel(self.channel_id),
+        }
+        .with_headers_for(user);
 
         request.deserialize_response::<Vec<PublicUser>>(user).await
     }
@@ -89,14 +85,11 @@ impl ReactionMeta {
             emoji
         );
 
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Channel(self.channel_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Channel(self.channel_id),
+        }
+        .with_headers_for(user);
 
         request.handle_request_as_result(user).await
     }
@@ -122,14 +115,11 @@ impl ReactionMeta {
             emoji
         );
 
-        let request = ChorusRequest::new(
-            http::Method::PUT,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Channel(self.channel_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().put(url),
+            limit_type: LimitType::Channel(self.channel_id),
+        }
+        .with_headers_for(user);
 
         request.handle_request_as_result(user).await
     }
@@ -150,14 +140,11 @@ impl ReactionMeta {
             emoji
         );
 
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Channel(self.channel_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Channel(self.channel_id),
+        }
+        .with_headers_for(user);
 
         request.handle_request_as_result(user).await
     }
@@ -186,14 +173,11 @@ impl ReactionMeta {
             user_id
         );
 
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Channel(self.channel_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Channel(self.channel_id),
+        }
+        .with_headers_for(user);
 
         request.handle_request_as_result(user).await
     }

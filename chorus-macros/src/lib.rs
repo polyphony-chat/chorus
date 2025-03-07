@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -182,26 +182,6 @@ pub fn sqlx_bitflag_derive(input: TokenStream) -> TokenStream {
             fn decode(value: <sqlx::Postgres as sqlx::Database>::ValueRef<'q>) -> Result<Self, sqlx::error::BoxDynError> {
                 <sqlx_pg_uint::PgU64 as sqlx::Decode<sqlx::Postgres>>::decode(value).map(|v| Self::from_bits_truncate(v.to_uint()))
             }
-        }
-
-        /// Converts a [Vec<u8>] to an unsigned, 64 bit integer. The [u64] is created using [u64::from_be_bytes].
-        ///
-        /// Empty vectors will result in an output of `0_u64`. Only the first 8 values from the vector are
-        /// being processed. Any additional values will be skipped.
-        ///
-        /// Vectors holding less than 8 values will be treated as a vector holding 8 values, where the
-        /// missing values are padded with `0_u8`.
-        fn vec_u8_to_u64(vec: Vec<u8>) -> u64 {
-            let mut buf: [u8; 8] = [0; 8];
-            let mut position = 0;
-            for read in vec.iter() {
-                buf[position] = *read;
-                position += 1;
-                if position > 7 {
-                    break;
-                }
-            }
-            u64::from_be_bytes(buf)
         }
     }
     .into()

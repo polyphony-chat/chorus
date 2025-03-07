@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use bitflags::bitflags;
 use chrono::{DateTime, Utc};
@@ -50,6 +50,17 @@ pub struct GuildBanCreateSchema {
     /// Deprecated
     pub delete_message_days: Option<u8>,
     pub delete_message_seconds: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+/// Schema for the [crate::instance::ChorusUser::leave_guild] route
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#json-params>
+pub(crate) struct GuildLeaveSchema {
+	 /// "Whether the user is lurking in the guild"
+    pub lurking: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]

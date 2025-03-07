@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 //! Contains all the errors that can be returned by the library.
 use custom_error::custom_error;
@@ -104,6 +104,10 @@ custom_error! {
     // Errors when initiating a gateway connection
     CannotConnect{error: String} = "Cannot connect due to a websocket error: {error}",
     NonHelloOnInitiate{opcode: u8} = "Received non hello on initial gateway connection ({opcode}), something is definitely wrong",
+
+     // Errors for the in-place-events api
+     /// Server did not respond to our request in time
+     NoResponse = "Server did not respond in time",
 
     // Other misc errors
     UnexpectedOpcodeReceived{opcode: u8} = "Received an opcode we weren't expecting to receive: {opcode}",

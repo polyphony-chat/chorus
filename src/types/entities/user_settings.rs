@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
@@ -21,6 +21,7 @@ pub enum UserStatus {
     Dnd,
     Idle,
     Invisible,
+    Unknown,
 }
 
 impl std::fmt::Display for UserStatus {
@@ -133,9 +134,7 @@ pub struct CustomStatus {
     pub text: Option<String>,
 }
 
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 pub struct FriendSourceFlags {
     pub all: bool,
