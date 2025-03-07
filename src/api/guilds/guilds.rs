@@ -13,12 +13,19 @@ use crate::errors::ChorusResult;
 use crate::instance::ChorusUser;
 use crate::instance::Instance;
 use crate::ratelimiter::ChorusRequest;
+use crate::types::ActionGuildJoinRequestSchema;
+use crate::types::BulkActionGuildJoinRequestsSchema;
 use crate::types::BulkGuildBanReturn;
 use crate::types::BulkGuildBanSchema;
+use crate::types::CreateGuildJoinRequestSchema;
+use crate::types::GetGuildJoinRequestsQuery;
+use crate::types::GetGuildJoinRequestsReturn;
 use crate::types::GetGuildMemberVerificationQuery;
 use crate::types::GetGuildMembersSchema;
 use crate::types::GetGuildMembersSupplementalSchema;
 use crate::types::GetGuildPruneResult;
+use crate::types::GuildJoinRequest;
+use crate::types::GuildJoinRequestCooldown;
 use crate::types::GuildMemberVerification;
 use crate::types::GuildModifyMFALevelSchema;
 use crate::types::GuildModifyVanityInviteSchema;
@@ -972,7 +979,7 @@ impl Guild {
     pub async fn get_member_verification(
         user: &mut ChorusUser,
         guild_id: Snowflake,
-        query: GetGuildMemberVerificationQuery
+        query: GetGuildMemberVerificationQuery,
     ) -> ChorusResult<GuildMemberVerification> {
         let url = format!(
             "{}/guilds/{}/member-verification",
@@ -1010,15 +1017,347 @@ impl Guild {
         );
 
         let request = ChorusRequest {
-            request: Client::new()
-                .patch(url)
-                .json(&schema),
+            request: Client::new().patch(url).json(&schema),
             limit_type: LimitType::Guild(guild_id),
         }
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
         request.deserialize_response(user).await
+    }
+
+    /// Returns a list of [GuildJoinRequest]s for the guild.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
+    pub async fn get_join_requests(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        query: GetGuildJoinRequestsQuery,
+    ) -> ChorusResult<GetGuildJoinRequestsReturn> {
+        let url = format!(
+            "{}/guilds/{}/requests",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url).query(&query.to_query()),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Returns a specific [GuildJoinRequest].
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission if the
+    /// request is not for the current user.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request>
+    pub async fn get_join_request(
+        user: &mut ChorusUser,
+        request_id: Snowflake,
+    ) -> ChorusResult<GuildJoinRequest> {
+        let url = format!(
+            "{}/join-requests/{}",
+            user.belongs_to.read().unwrap().urls.api,
+            request_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Returns the remaining time until the current user can submit another join request for the
+    /// guild.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
+    pub async fn get_join_request_cooldown(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<GuildJoinRequestCooldown> {
+        let url = format!(
+            "{}/guilds/{}/requests/@me/cooldown",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().put(url),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Submits a request to join a guild.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#create-guild-join-request>
+    pub async fn create_join_request(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: CreateGuildJoinRequestSchema,
+    ) -> ChorusResult<GuildJoinRequest> {
+        let url = format!(
+            "{}/guilds/{}/requests/@me",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().put(url).json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Resets the current user's join request for a guild.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#reset-guild-join-request>
+    pub async fn reset_join_request(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<GuildJoinRequest> {
+        let url = format!(
+            "{}/guilds/{}/requests/@me",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().post(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Acknowledges an approved join request for the current user.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#reset-guild-join-request>
+    pub async fn acknowledge_approved_join_request(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<()> {
+        let url = format!(
+            "{}/guilds/{}/requests/@me/ack",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().post(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.handle_request_as_result(user).await
+    }
+
+    /// If the guild has previewing disabled, deletes the current user's join request.
+    ///
+    /// Otherwise functions the same as [Guild::reset_join_request].
+    ///
+    /// Returns a partial [GuildJoinRequest] if the request was reset or [None] if the deletion was
+    /// successful.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#delete-guild-join-request>
+    pub async fn delete_join_request(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<Option<GuildJoinRequest>> {
+        let url = format!(
+            "{}/guilds/{}/requests/@me",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().delete(&url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        let response = match request.request.send().await {
+            Ok(result) => result,
+            Err(e) => {
+                return Err(ChorusError::RequestFailed {
+                    url,
+                    error: e.to_string(),
+                });
+            }
+        };
+
+        if !response.status().as_str().starts_with('2') {
+            return Err(ChorusError::ReceivedErrorCode {
+                error_code: response.status().as_u16(),
+                error: response.text().await.unwrap(),
+            });
+        }
+
+        // Note: empty response, the request was deleted
+        if response.status().as_u16() == 204 {
+            return Ok(None);
+        }
+
+        // Else the request was successful, and we likely received the join request json
+        let response_text = match response.text().await {
+            Ok(string) => string,
+            Err(e) => {
+                return Err(ChorusError::InvalidResponse {
+                    error: format!(
+                        "Error while trying to process the HTTP response into a String: {}",
+                        e
+                    ),
+                });
+            }
+        };
+
+        match from_str::<GuildJoinRequest>(&response_text) {
+			Ok(return_value) => Ok(Some(return_value)),
+			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into response type T: {}. JSON Response: {}", e, response_text) })
+		  }
+    }
+
+    /// Creates or returns an existing private interview channel for a join request.
+    ///
+    /// Returns a [GroupDm](crate::types::ChannelType::GroupDm) [Channel] object on success.
+    ///
+    /// The channel will have the same id as the join request and will be accessible by the join
+    /// request user and user who used this endpoint.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#create-guild-join-request-interview>
+    pub async fn create_join_request_interview(
+        user: &mut ChorusUser,
+        request_id: Snowflake,
+    ) -> ChorusResult<Channel> {
+        let url = format!(
+            "{}/join-requests/{}/interview",
+            user.belongs_to.read().unwrap().urls.api,
+            request_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().post(url),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Accepts or denies a join request.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
+    pub async fn action_join_request(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        request_id: Snowflake,
+        schema: ActionGuildJoinRequestSchema,
+    ) -> ChorusResult<GuildJoinRequest> {
+        let url = format!(
+            "{}/guilds/{}/requests/id/{}",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+            request_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().patch(url).json(&schema),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Accepts or denies a join request for a given user.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request-by-user>
+    pub async fn action_join_request_by_user(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        user_id: Snowflake,
+        schema: ActionGuildJoinRequestSchema,
+    ) -> ChorusResult<GuildJoinRequest> {
+        let url = format!(
+            "{}/guilds/{}/requests/{}",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+            user_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().patch(url).json(&schema),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Accepts or denies all pending join requests for a guild.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
+    pub async fn bulk_action_join_requests(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: BulkActionGuildJoinRequestsSchema,
+    ) -> ChorusResult<()> {
+        let url = format!(
+            "{}/guilds/{}/requests",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id,
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().patch(url).json(&schema),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(user);
+
+        request.handle_request_as_result(user).await
     }
 }
 
@@ -1049,5 +1388,218 @@ impl Channel {
         .with_headers_for(user);
 
         request.deserialize_response::<Channel>(user).await
+    }
+}
+
+impl GuildJoinRequest {
+    /// Returns a specific [GuildJoinRequest].
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission if the
+    /// request is not for the current user.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::get_join_request]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request>
+    pub async fn get(user: &mut ChorusUser, id: Snowflake) -> ChorusResult<GuildJoinRequest> {
+        Guild::get_join_request(user, id).await
+    }
+
+    /// Returns the remaining time until the current user can submit another join request for the
+    /// guild.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::get_join_request_cooldown]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
+    pub async fn get_cooldown(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<GuildJoinRequestCooldown> {
+        Guild::get_join_request_cooldown(user, guild_id).await
+    }
+
+    /// Submits a request to join a guild.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::create_join_request]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#create-guild-join-request>
+    pub async fn create(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: CreateGuildJoinRequestSchema,
+    ) -> ChorusResult<GuildJoinRequest> {
+        Guild::create_join_request(user, guild_id, schema).await
+    }
+
+    /// Accepts or denies a join request.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::action_join_request]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
+    pub async fn action(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        request_id: Snowflake,
+        schema: ActionGuildJoinRequestSchema,
+    ) -> ChorusResult<GuildJoinRequest> {
+        Guild::action_join_request(user, guild_id, request_id, schema).await
+    }
+
+    /// Accepts or denies a join request for a given user.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::action_join_request_by_user]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request-by-user>
+    pub async fn action_by_user(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        user_id: Snowflake,
+        schema: ActionGuildJoinRequestSchema,
+    ) -> ChorusResult<GuildJoinRequest> {
+        Guild::action_join_request_by_user(user, guild_id, user_id, schema).await
+    }
+
+    /// Accepts or denies all pending join requests for a guild.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::bulk_action_join_requests]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
+    pub async fn bulk_action(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: BulkActionGuildJoinRequestsSchema,
+    ) -> ChorusResult<()> {
+        Guild::bulk_action_join_requests(user, guild_id, schema).await
+    }
+}
+
+impl ChorusUser {
+    /// Returns a specific [GuildJoinRequest].
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission if the
+    /// request is not for the current user.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::get_join_request]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request>
+    pub async fn get_guild_join_request(
+        user: &mut ChorusUser,
+        id: Snowflake,
+    ) -> ChorusResult<GuildJoinRequest> {
+        Guild::get_join_request(user, id).await
+    }
+
+    /// Returns the remaining time until the current user can submit another join request for the
+    /// guild.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::get_join_request_cooldown]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
+    pub async fn get_guild_join_request_cooldown(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<GuildJoinRequestCooldown> {
+        Guild::get_join_request_cooldown(user, guild_id).await
+    }
+
+    /// Submits a request to join a guild.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::create_join_request]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#create-guild-join-request>
+    pub async fn create_guild_join_request(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: CreateGuildJoinRequestSchema,
+    ) -> ChorusResult<GuildJoinRequest> {
+        Guild::create_join_request(user, guild_id, schema).await
+    }
+
+    /// Accepts or denies a join request.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::action_join_request]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
+    pub async fn action_guild_join_request(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        request_id: Snowflake,
+        schema: ActionGuildJoinRequestSchema,
+    ) -> ChorusResult<GuildJoinRequest> {
+        Guild::action_join_request(user, guild_id, request_id, schema).await
+    }
+
+    /// Accepts or denies a join request for a given user.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::action_join_request_by_user]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request-by-user>
+    pub async fn action_guild_join_request_by_user(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        user_id: Snowflake,
+        schema: ActionGuildJoinRequestSchema,
+    ) -> ChorusResult<GuildJoinRequest> {
+        Guild::action_join_request_by_user(user, guild_id, user_id, schema).await
+    }
+
+    /// Accepts or denies all pending join requests for a guild.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::bulk_action_join_requests]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
+    pub async fn bulk_action_guild_join_request(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: BulkActionGuildJoinRequestsSchema,
+    ) -> ChorusResult<()> {
+        Guild::bulk_action_join_requests(user, guild_id, schema).await
     }
 }

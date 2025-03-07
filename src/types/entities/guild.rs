@@ -683,7 +683,7 @@ pub struct GuildMemberVerificationFormField {
     #[serde(default)]
     pub values: Option<Vec<String>>,
 
-    /// The correct response for this field.
+    /// The correct response or the given response for this field.
     ///
     /// See [the type](GuildMemberVerificationResponse) for related docs on which variant to use.
     ///
@@ -792,4 +792,96 @@ pub struct GuildMemberVerificationGuild {
 
     /// Approximate number of non-offline members in the guild
     pub approximate_presence_count: usize,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// [GuildJoinRequest]s are an extension of [member verification](https://docs.discord.sex/resources/guild#member-verification-object).
+///
+/// A join request is created when a user attempts to join a guild with member verification enabled. They must complete the verification process to join the guild.
+///
+/// All join requests are stored for 180 days.
+///
+/// Most join request features require the
+/// [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-join-request-object>
+pub struct GuildJoinRequest {
+    /// The ID of the join request
+    pub id: Snowflake,
+
+    /// When the join request was created
+    pub created_at: DateTime<Utc>,
+
+    /// The status of the join request
+    pub application_status: GuildJoinRequestStatus,
+
+    /// The ID of the guild this join request is for
+    pub guild_id: Snowflake,
+
+    /// Responses to the guild's member verification questions
+    ///
+    /// This field is only included when fetched from the [get_join_request](crate::types::Guild::get_join_request) or [get_join_requests](crate::types::Guild::get_join_requests)
+    /// endpoints.
+    #[serde(default)]
+    pub form_responses: Option<Vec<GuildMemberVerificationFormField>>,
+
+    /// When the request was acknowledged by the user
+    #[serde(default)]
+    pub last_seen: Option<DateTime<Utc>>,
+
+    /// A snowflake representing when the join request was actioned (accepted / rejected)
+    ///
+    /// This field is only included when fetched from the [get_join_request](crate::types::Guild::get_join_request) or [get_join_requests](crate::types::Guild::get_join_requests)
+    /// endpoints.
+    #[serde(default)]
+    pub actioned_at: Option<Snowflake>,
+
+    /// The moderator who actioned (accepted / rejected) the join request
+    ///
+    /// This field is only included when fetched from the [get_join_request](crate::types::Guild::get_join_request) or [get_join_requests](crate::types::Guild::get_join_requests)
+    /// endpoints.
+    #[serde(default)]
+    pub actioned_by_user: Option<PublicUser>,
+
+    /// Why the request was rejected
+    #[serde(default)]
+    pub rejection_reason: Option<String>,
+
+    /// The id of the user who created the request
+    pub user_id: Snowflake,
+
+    /// The user who created this join request.
+    ///
+    /// This field is only included when fetched from the [get_join_request](crate::types::Guild::get_join_request) or [get_join_requests](crate::types::Guild::get_join_requests)
+    /// endpoints and is not sent if the user is the current user.
+    #[serde(default)]
+    pub user: Option<PublicUser>,
+
+    /// The id of a channel where an interview regarding this request may be conducted
+    #[serde(default)]
+    pub interview_channel_id: Option<Snowflake>,
+}
+
+#[derive(
+    Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq, Hash, Copy, PartialOrd, Ord,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// Status of a [GuildJoinRequest].
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-join-request-status>
+pub enum GuildJoinRequestStatus {
+    /// The request is started but is not yet submitted
+    Started,
+
+    /// The request has been submitted
+    #[default]
+    Submitted,
+
+    /// The request has been rejected
+    Rejected,
+
+    /// The request has been approved
+    Approved,
 }

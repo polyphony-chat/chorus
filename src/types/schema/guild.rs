@@ -12,10 +12,11 @@ use crate::errors::ChorusError;
 use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
 use crate::types::{
-    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, GuildMember,
-    GuildMemberVerificationFormField, JoinSourceType, MFALevel, MessageNotificationLevel,
-    RoleObject, Snowflake, Sticker, StickerFormatType, SupplementalGuildMember, SystemChannelFlags,
-    ThemeColors, VerificationLevel, WelcomeScreenChannel,
+    Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, GuildJoinRequest,
+    GuildJoinRequestStatus, GuildMember, GuildMemberVerificationFormField, JoinSourceType,
+    MFALevel, MessageNotificationLevel, RoleObject, Snowflake, Sticker, StickerFormatType,
+    SupplementalGuildMember, SystemChannelFlags, ThemeColors, VerificationLevel,
+    WelcomeScreenChannel,
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
@@ -1475,7 +1476,7 @@ pub struct GetGuildMemberVerificationQuery {
 impl GetGuildMemberVerificationQuery {
     /// Converts self to query string parameters
     pub fn to_query(self) -> Vec<(&'static str, String)> {
-        let mut query = Vec::with_capacity(3);
+        let mut query = Vec::with_capacity(2);
 
         if let Some(with_guild) = self.with_guild {
             query.push(("with_guild", with_guild.to_string()));
@@ -1506,4 +1507,134 @@ pub struct ModifyGuildMemberVerificationSchema {
     /// A description of what the guild is about; max 300 characters
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Default, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
+/// Query parameters for the [Guild::get_join_requests](crate::types::Guild::get_join_requests)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
+pub struct GetGuildJoinRequestsQuery {
+    /// The status of the join requests to filter by
+    pub status: GuildJoinRequestStatus,
+
+    /// Max number of requests to fetch, 1 - 100, 100 by default
+    pub limit: Option<u8>,
+
+    /// Only get requets before this request id
+    pub before: Option<Snowflake>,
+
+    /// Only get requests after this request id
+    pub after: Option<Snowflake>,
+}
+
+impl GetGuildJoinRequestsQuery {
+    /// Converts self to query string parameters
+    pub fn to_query(self) -> Vec<(&'static str, String)> {
+        let mut query = Vec::with_capacity(4);
+
+        query.push(("status", serde_json::to_string(&self.status).expect("Failed to serialize GuildJoinRequestStatus - please open an issue on the Chorus github")));
+
+        if let Some(limit) = self.limit {
+            query.push(("limit", limit.to_string()));
+        }
+
+        if let Some(before) = self.before {
+            query.push(("before", before.to_string()));
+        }
+
+        if let Some(after) = self.after {
+            query.push(("after", after.to_string()));
+        }
+
+        query
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// Return type for the [Guild::get_join_requests](crate::types::Guild::get_join_requests)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#response-body>
+pub struct GetGuildJoinRequestsReturn {
+    /// The join requests for the guild.
+    ///
+    /// An empty array is returned when retrieving requests with the
+    /// [Started](GuildJoinRequestStatus::Started) status.
+    #[serde(default)]
+    pub guild_join_requests: Vec<GuildJoinRequest>,
+
+    /// The total number of join requests that match the query
+    #[serde(default)]
+    pub total: Option<u32>,
+
+    /// The maximum number of join requests returned
+    pub limit: u8,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// Return type for the
+/// [Guild::get_join_request_cooldown](crate::types::Guild::get_join_request_cooldown)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
+pub struct GuildJoinRequestCooldown {
+    /// How long (in seconds) the current user has to wait until they can submit another join request
+    #[serde(rename = "cooldown")]
+    pub cooldown_seconds: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// Schema for the
+/// [Guild::create_join_request](crate::types::Guild::create_join_request)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#json-params>
+pub struct CreateGuildJoinRequestSchema {
+    /// The answered member verification questions.
+    ///
+    /// This field must contain all fields from the guild's
+    /// [GuildMemberVerification](crate::types::GuildMemberVerification) object, with populated
+    /// `response` fields for each required question.
+    pub form_fields: Vec<GuildMemberVerificationFormField>,
+
+    /// When the member verification was last modified, same as `version` in
+    /// [GuildMemberVerification](crate::types::GuildMemberVerification)
+    pub version: Option<DateTime<Utc>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// Schema for the
+/// [Guild::action_join_request](crate::types::Guild::action_join_request)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
+pub struct ActionGuildJoinRequestSchema {
+    /// The action to take on the join request.
+    ///
+    /// Only [GuildJoinRequestStatus::Approved] and [GuildJoinRequestStatus::Rejected] are allowed.
+    pub action: GuildJoinRequestStatus,
+
+    /// The reason for rejecting the join request (max 160 characters)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rejection_reason: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// Schema for the
+/// [Guild::bulk_action_join_request](crate::types::Guild::bulk_action_join_request)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
+pub struct BulkActionGuildJoinRequestsSchema {
+    /// The action to take on the join requests.
+    ///
+    /// Only [GuildJoinRequestStatus::Approved] and [GuildJoinRequestStatus::Rejected] are allowed.
+    pub action: GuildJoinRequestStatus,
 }
