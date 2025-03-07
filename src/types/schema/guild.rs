@@ -1509,7 +1509,9 @@ pub struct ModifyGuildMemberVerificationSchema {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Default, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(
+    Debug, Deserialize, Default, Serialize, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash,
+)]
 /// Query parameters for the [Guild::get_join_requests](crate::types::Guild::get_join_requests)
 /// endpoint.
 ///
@@ -1552,7 +1554,7 @@ impl GetGuildJoinRequestsQuery {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 /// Return type for the [Guild::get_join_requests](crate::types::Guild::get_join_requests)
 /// endpoint.
 ///
@@ -1574,7 +1576,7 @@ pub struct GetGuildJoinRequestsReturn {
     pub limit: u8,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq)]
 /// Return type for the
 /// [Guild::get_join_request_cooldown](crate::types::Guild::get_join_request_cooldown)
 /// endpoint.
@@ -1625,9 +1627,9 @@ pub struct ActionGuildJoinRequestSchema {
     pub rejection_reason: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq)]
 /// Schema for the
-/// [Guild::bulk_action_join_request](crate::types::Guild::bulk_action_join_request)
+/// [Guild::bulk_action_join_requests](crate::types::Guild::bulk_action_join_requests)
 /// endpoint.
 ///
 /// # Reference
