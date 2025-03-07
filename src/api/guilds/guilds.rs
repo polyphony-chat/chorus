@@ -1392,6 +1392,25 @@ impl Channel {
 }
 
 impl GuildJoinRequest {
+    /// Returns a list of [GuildJoinRequest]s for the guild.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::get_join_requests]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
+    pub async fn get_all_for_guild(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        query: GetGuildJoinRequestsQuery,
+    ) -> ChorusResult<GetGuildJoinRequestsReturn> {
+        Guild::get_join_requests(user, guild_id, query).await
+    }
+
     /// Returns a specific [GuildJoinRequest].
     ///
     /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission if the
@@ -1497,6 +1516,25 @@ impl GuildJoinRequest {
 }
 
 impl ChorusUser {
+    /// Returns a list of [GuildJoinRequest]s for the guild.
+    ///
+    /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
+    ///
+    /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// This method is an alias of [Guild::get_join_requests]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
+    pub async fn get_guild_join_requests(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        query: GetGuildJoinRequestsQuery,
+    ) -> ChorusResult<GetGuildJoinRequestsReturn> {
+        Guild::get_join_requests(user, guild_id, query).await
+    }
+
     /// Returns a specific [GuildJoinRequest].
     ///
     /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission if the
