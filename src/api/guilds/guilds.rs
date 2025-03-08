@@ -1270,7 +1270,7 @@ impl Guild {
 
         let request = ChorusRequest {
             request: Client::new().post(url),
-            limit_type: LimitType::Guild(()),
+            limit_type: LimitType::Global,
         }
         .with_headers_for(user);
 
