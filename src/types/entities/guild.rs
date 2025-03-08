@@ -885,3 +885,156 @@ pub enum GuildJoinRequestStatus {
     /// The request has been approved
     Approved,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// A [Guild]'s onboarding flow.
+///
+/// This feature lets users select which roles / channels they will have in a guild by going
+/// through a series of prompts.
+///
+/// # Notes
+/// Onboarding enforces constraints when enabled:
+///
+/// There must be at least 7 default channels and at least 5 of them must allow sending
+/// messages by the @everyone role.
+///
+/// The mode field modifies what is considered when enforcing these constraints.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-object>
+pub struct GuildOnboarding {
+    /// Id of the relevant guild
+    pub guild_id: Snowflake,
+
+    /// The prompts shown during onboarding and in community customization
+    pub prompts: Vec<GuildOnboardingPrompt>,
+
+    /// The channel IDs that members get opted into automatically
+    pub default_channel_ids: Vec<Snowflake>,
+
+    /// Whether onboarding is enabled in the guild
+    pub enabled: bool,
+
+    /// Whether the guild is below the requirements for onboarding
+    pub below_requirements: bool,
+
+    /// The current criteria mode for onboarding
+    pub mode: GuildOnboardingMode,
+}
+
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Default,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// Defines the criteria used to satisfy [GuildOnboarding] constraints.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-mode>
+pub enum GuildOnboardingMode {
+    /// Count only default channels towards constraints
+    #[default]
+    #[serde(rename = "ONBOARDING_DEFAULT")]
+    Default = 0,
+
+    /// Count default channels and questions towards constraints
+    #[serde(rename = "ONBOARDING_ADVANCED")]
+    Advanced = 1,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Part of [GuildOnboarding]; a prompt given to a user to select which roles / channel they will
+/// have in the guild
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-prompt-structure>
+pub struct GuildOnboardingPrompt {
+    /// Id of the prompt
+    pub id: Snowflake,
+
+    /// The type of prompt
+    #[serde(rename = "type")]
+    pub prompt_type: GuildOnboardingPromptType,
+
+    /// Options available within the prompt
+    pub options: Vec<GuildOnboardingPromptOption>,
+
+    /// The title of the prompt
+    pub title: String,
+
+    /// Whether users can only select one option for the prompt
+    pub single_select: bool,
+
+    /// Whether a user must answer the prompt in order to complete the onboarding flow
+    pub required: bool,
+
+    /// Whether the prompt appears in the onboarding flow or only in community customization
+    pub in_onboarding: bool,
+}
+
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Default,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// Type of [GuildOnboardingPrompt]
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-prompt-type>
+pub enum GuildOnboardingPromptType {
+    /// Prompt offers multiple options to select from
+    #[default]
+    MultipleChoice = 0,
+
+    /// Prompt offers a dropdown menu to select from
+    Dropdown = 1,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Part of [GuildOnboardingPrompt]; an individual option in the prompt
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-prompt-option-structure>
+pub struct GuildOnboardingPromptOption {
+    /// The option's unique id
+    pub id: Snowflake,
+
+    /// The option's title
+    pub title: String,
+
+    /// The option's description
+    pub description: Option<String>,
+
+    /// The emoji representing the option
+    pub emoji: Emoji,
+
+    /// The role IDs assigned to a member when the option is selected
+    pub role_ids: Vec<Snowflake>,
+
+    /// The channel IDs a member is added to when the option is selected
+    pub channel_ids: Vec<Snowflake>,
+}

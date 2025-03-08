@@ -13,10 +13,10 @@ use crate::types::entities::Channel;
 use crate::types::types::guild_configuration::GuildFeatures;
 use crate::types::{
     Emoji, ExplicitContentFilterLevel, GenericSearchQueryWithLimit, GuildJoinRequest,
-    GuildJoinRequestStatus, GuildMember, GuildMemberVerificationFormField, JoinSourceType,
-    MFALevel, MessageNotificationLevel, RoleObject, Snowflake, Sticker, StickerFormatType,
-    SupplementalGuildMember, SystemChannelFlags, ThemeColors, VerificationLevel,
-    WelcomeScreenChannel,
+    GuildJoinRequestStatus, GuildMember, GuildMemberVerificationFormField, GuildOnboardingMode,
+    GuildOnboardingPrompt, JoinSourceType, MFALevel, MessageNotificationLevel, RoleObject,
+    Snowflake, Sticker, StickerFormatType, SupplementalGuildMember, SystemChannelFlags,
+    ThemeColors, VerificationLevel, WelcomeScreenChannel,
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
@@ -1649,30 +1649,75 @@ pub struct BulkActionGuildJoinRequestsSchema {
 /// # Reference
 /// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
 pub struct ModifyGuildWelcomeScreenSchema {
-	 /// Whether the welcome screen is enabled.
-	 ///
-	 /// Note that the [Option] here represents whether or not to modify this field.
+    /// Whether the welcome screen is enabled.
+    ///
+    /// Note that the [Option] here represents whether or not to modify this field.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
 
     /// The welcome message shown in the welcome screen (max 140 characters)
-	 ///
-	 /// Note that the outer [Option] here represents whether or not to modify this field, while the inner
-	 /// [Option] is part of the field itself.
-	 ///
-	 /// For example:
-	 ///
-	 /// To not modify the field, use [`None`]
-	 ///
-	 /// To modify the field and set it to [`None`], use `Some(None)`
-	 ///
-	 /// To modify the field and set it to [`Some`], use `Some(Some(String::from(..)))`
+    ///
+    /// Note that the outer [Option] here represents whether or not to modify this field, while the inner
+    /// [Option] is part of the field itself.
+    ///
+    /// For example:
+    ///
+    /// To not modify the field, use [`None`]
+    ///
+    /// To modify the field and set it to [`None`], use `Some(None)`
+    ///
+    /// To modify the field and set it to [`Some`], use `Some(Some(String::from(..)))`
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<Option<String>>,
 
     /// The channels shown in the welcome screen (max 5)
-	 ///
-	 /// Note that the [Option] here represents whether or not to modify this field.
+    ///
+    /// Note that the [Option] here represents whether or not to modify this field.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub welcome_channels: Option<Vec<WelcomeScreenChannel>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+/// Schema for the
+/// [Guild::modify_onboarding](crate::types::Guild::modify_onboarding)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#modify-guild-onboarding>
+pub struct ModifyGuildOnboardingSchema {
+    /// The prompts shown during onboarding and in community customization
+    ///
+    /// Note that the [Option] here represents whether or not to modify this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompts: Option<Vec<GuildOnboardingPrompt>>,
+
+    /// The channel IDs that members get opted into automatically
+    ///
+    /// Note that the [Option] here represents whether or not to modify this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_channel_ids: Option<Vec<Snowflake>>,
+
+    /// Whether onboarding is enabled in the guild.
+    ///
+    /// Note that the [Option] here represents whether or not to modify this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+
+    /// The current criteria mode ([GuildOnboardingMode]) for onboarding.
+    ///
+    /// Note that the [Option] here represents whether or not to modify this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<GuildOnboardingMode>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+/// Return type for the
+/// [Guild::get_admin_community_eligibility](crate::types::Guild::get_admin_community_eligibility)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-admin-community-eligibility>
+pub struct AdminCommunityEligibility {
+    /// Whether the user is eligible to join the Discord Admin Community through the guild
+    pub eligible_for_admin_server: bool,
 }

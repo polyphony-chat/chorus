@@ -14,6 +14,7 @@ use crate::instance::ChorusUser;
 use crate::instance::Instance;
 use crate::ratelimiter::ChorusRequest;
 use crate::types::ActionGuildJoinRequestSchema;
+use crate::types::AdminCommunityEligibility;
 use crate::types::BulkActionGuildJoinRequestsSchema;
 use crate::types::BulkGuildBanReturn;
 use crate::types::BulkGuildBanSchema;
@@ -29,6 +30,7 @@ use crate::types::GuildJoinRequestCooldown;
 use crate::types::GuildMemberVerification;
 use crate::types::GuildModifyMFALevelSchema;
 use crate::types::GuildModifyVanityInviteSchema;
+use crate::types::GuildOnboarding;
 use crate::types::GuildPruneParameters;
 use crate::types::GuildPruneResult;
 use crate::types::GuildPruneSchema;
@@ -38,6 +40,7 @@ use crate::types::GuildWidgetImageStyle;
 use crate::types::GuildWidgetSettings;
 use crate::types::MFALevel;
 use crate::types::ModifyGuildMemberVerificationSchema;
+use crate::types::ModifyGuildOnboardingSchema;
 use crate::types::ModifyGuildWelcomeScreenSchema;
 use crate::types::ModifyGuildWidgetSchema;
 use crate::types::PublicGuildWelcomeScreen;
@@ -1267,7 +1270,7 @@ impl Guild {
 
         let request = ChorusRequest {
             request: Client::new().post(url),
-            limit_type: LimitType::Global,
+            limit_type: LimitType::Guild(()),
         }
         .with_headers_for(user);
 
@@ -1297,7 +1300,7 @@ impl Guild {
 
         let request = ChorusRequest {
             request: Client::new().patch(url).json(&schema),
-            limit_type: LimitType::Global,
+            limit_type: LimitType::Guild(guild_id),
         }
         .with_headers_for(user);
 
@@ -1327,7 +1330,7 @@ impl Guild {
 
         let request = ChorusRequest {
             request: Client::new().patch(url).json(&schema),
-            limit_type: LimitType::Global,
+            limit_type: LimitType::Guild(guild_id),
         }
         .with_headers_for(user);
 
@@ -1355,7 +1358,204 @@ impl Guild {
 
         let request = ChorusRequest {
             request: Client::new().patch(url).json(&schema),
-            limit_type: LimitType::Global,
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.handle_request_as_result(user).await
+    }
+
+    /// Returns the [welcome screen](crate::types::PublicGuildWelcomeScreen) object for the guild.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission if the
+    /// welcome screen is not yet enabled.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-welcome-screen>
+    pub async fn get_welcome_screen(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<PublicGuildWelcomeScreen> {
+        let url = format!(
+            "{}/guilds/{}/welcome-screen",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Modifies a guild's [welcome screen](crate::types::PublicGuildWelcomeScreen) object.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
+    pub async fn modify_welcome_screen(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: ModifyGuildWelcomeScreenSchema,
+        audit_log_reason: Option<String>,
+    ) -> ChorusResult<PublicGuildWelcomeScreen> {
+        let url = format!(
+            "{}/guilds/{}/welcome-screen",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().patch(url).json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Returns the [onboarding](crate::types::GuildOnboarding) object for the guild.
+    ///
+    /// User must be a member of the guild.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-onboarding>
+    pub async fn get_onboarding(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<GuildOnboarding> {
+        let url = format!(
+            "{}/guilds/{}/onboarding",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Modifies a guild's [onboarding](crate::types::PublicGuildWelcomeScreen) configuration.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// # Notes
+    /// Onboarding enforces constraints when enabled:
+    ///
+    /// There must be at least 7 default channels and at least 5 of them must allow sending
+    /// messages by the @everyone role.
+    ///
+    /// The mode field modifies what is considered when enforcing these constraints.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#modify-guild-onboarding>
+    pub async fn modify_onboarding(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: ModifyGuildOnboardingSchema,
+        audit_log_reason: Option<String>,
+    ) -> ChorusResult<GuildOnboarding> {
+        let url = format!(
+            "{}/guilds/{}/onboarding",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().put(url).json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    // TODO: once we have documentation on how this works, add PUT /guilds/{guild_id}/onboarding-responses
+
+    /// Checks if the user is eligible to join the Discord Admin Community through the guild.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-admin-community-eligibility>
+    pub async fn get_admin_community_eligibility(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<AdminCommunityEligibility> {
+        let url = format!(
+            "{}/guilds/{}/admin-server-eligibility",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Joins the Discord Admin Community through the guild.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// Returns the joined [Guild] on success.
+    ///
+    /// Also see [Guild::get_admin_community_eligibility].
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#join-admin-community>
+    pub async fn join_admin_community(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<Guild> {
+        let url = format!(
+            "{}/guilds/{}/join-admin-server",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().post(url),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Joins the Wumpus Feedback Squad through the guild.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission and the
+    /// [CLAN](crate::types::types::guild_configuration::GuildFeatures::Clan) guild feature.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#join-wumpus-feedback-squad>
+    pub async fn join_wumpus_feedback_squad(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<()> {
+        let url = format!(
+            "{}/guilds/{}/join-wfs-server",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().post(url),
+            limit_type: LimitType::Guild(guild_id),
         }
         .with_headers_for(user);
 
@@ -1390,60 +1590,6 @@ impl Channel {
         .with_headers_for(user);
 
         request.deserialize_response::<Channel>(user).await
-    }
-
-    /// Returns the [welcome screen](crate::types::PublicGuildWelcomeScreen) object for the guild.
-    ///
-    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission if the
-    /// welcome screen is not yet enabled.
-    ///
-    /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-welcome-screen>
-    pub async fn get_welcome_screen(
-        user: &mut ChorusUser,
-        guild_id: Snowflake,
-    ) -> ChorusResult<PublicGuildWelcomeScreen> {
-        let url = format!(
-            "{}/guilds/{}/welcome-screen",
-            user.belongs_to.read().unwrap().urls.api,
-            guild_id
-        );
-
-        let request = ChorusRequest {
-            request: Client::new().get(url),
-            limit_type: LimitType::Global,
-        }
-        .with_headers_for(user);
-
-        request.deserialize_response(user).await
-    }
-
-    /// Modifies a guild's [welcome screen](crate::types::PublicGuildWelcomeScreen) object.
-    ///
-    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
-    ///
-    /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
-    pub async fn modify_welcome_screen(
-        user: &mut ChorusUser,
-        guild_id: Snowflake,
-        schema: ModifyGuildWelcomeScreenSchema,
-        audit_log_reason: Option<String>,
-    ) -> ChorusResult<PublicGuildWelcomeScreen> {
-        let url = format!(
-            "{}/guilds/{}/welcome-screen",
-            user.belongs_to.read().unwrap().urls.api,
-            guild_id
-        );
-
-        let request = ChorusRequest {
-            request: Client::new().patch(url).json(&schema),
-            limit_type: LimitType::Global,
-        }
-        .with_maybe_audit_log_reason(audit_log_reason)
-        .with_headers_for(user);
-
-        request.deserialize_response(user).await
     }
 }
 
