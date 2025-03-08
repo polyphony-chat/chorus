@@ -38,7 +38,9 @@ use crate::types::GuildWidgetImageStyle;
 use crate::types::GuildWidgetSettings;
 use crate::types::MFALevel;
 use crate::types::ModifyGuildMemberVerificationSchema;
+use crate::types::ModifyGuildWelcomeScreenSchema;
 use crate::types::ModifyGuildWidgetSchema;
+use crate::types::PublicGuildWelcomeScreen;
 use crate::types::SGMReturnNotIndexed;
 use crate::types::SGMReturnOk;
 use crate::types::SearchGuildBansQuery;
@@ -1388,6 +1390,60 @@ impl Channel {
         .with_headers_for(user);
 
         request.deserialize_response::<Channel>(user).await
+    }
+
+    /// Returns the [welcome screen](crate::types::PublicGuildWelcomeScreen) object for the guild.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission if the
+    /// welcome screen is not yet enabled.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-welcome-screen>
+    pub async fn get_welcome_screen(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+    ) -> ChorusResult<PublicGuildWelcomeScreen> {
+        let url = format!(
+            "{}/guilds/{}/welcome-screen",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
+    }
+
+    /// Modifies a guild's [welcome screen](crate::types::PublicGuildWelcomeScreen) object.
+    ///
+    /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
+    pub async fn modify_welcome_screen(
+        user: &mut ChorusUser,
+        guild_id: Snowflake,
+        schema: ModifyGuildWelcomeScreenSchema,
+        audit_log_reason: Option<String>,
+    ) -> ChorusResult<PublicGuildWelcomeScreen> {
+        let url = format!(
+            "{}/guilds/{}/welcome-screen",
+            user.belongs_to.read().unwrap().urls.api,
+            guild_id
+        );
+
+        let request = ChorusRequest {
+            request: Client::new().patch(url).json(&schema),
+            limit_type: LimitType::Global,
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
     }
 }
 

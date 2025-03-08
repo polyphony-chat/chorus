@@ -1640,3 +1640,39 @@ pub struct BulkActionGuildJoinRequestsSchema {
     /// Only [GuildJoinRequestStatus::Approved] and [GuildJoinRequestStatus::Rejected] are allowed.
     pub action: GuildJoinRequestStatus,
 }
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// Schema for the
+/// [Guild::modify_welcome_screen](crate::types::Guild::modify_welcome_screen)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
+pub struct ModifyGuildWelcomeScreenSchema {
+	 /// Whether the welcome screen is enabled.
+	 ///
+	 /// Note that the [Option] here represents whether or not to modify this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+
+    /// The welcome message shown in the welcome screen (max 140 characters)
+	 ///
+	 /// Note that the outer [Option] here represents whether or not to modify this field, while the inner
+	 /// [Option] is part of the field itself.
+	 ///
+	 /// For example:
+	 ///
+	 /// To not modify the field, use [`None`]
+	 ///
+	 /// To modify the field and set it to [`None`], use `Some(None)`
+	 ///
+	 /// To modify the field and set it to [`Some`], use `Some(Some(String::from(..)))`
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<Option<String>>,
+
+    /// The channels shown in the welcome screen (max 5)
+	 ///
+	 /// Note that the [Option] here represents whether or not to modify this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub welcome_channels: Option<Vec<WelcomeScreenChannel>>,
+}
