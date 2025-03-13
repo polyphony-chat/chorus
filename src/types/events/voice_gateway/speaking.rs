@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,20 @@ use chorus_macros::WebSocketEvent;
 /// Essentially, what allows us to send UDP data and lights up the green circle around your avatar.
 ///
 /// See <https://discord-userdoccers.vercel.app/topics/voice-connections#speaking-structure>
-#[derive(Debug, Deserialize, Serialize, Clone, Default, WebSocketEvent, PartialEq, Eq, Hash, PartialOrd, Ord, Copy)]
+#[derive(
+    Debug,
+    Deserialize,
+    Serialize,
+    Clone,
+    Default,
+    WebSocketEvent,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    Copy,
+)]
 pub struct Speaking {
     /// Data about the audio we're transmitting.
     ///

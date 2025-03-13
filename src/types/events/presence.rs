@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::types::{events::WebSocketEvent, UserStatus};
 use crate::types::{Activity, ClientStatusObject, PublicUser, Snowflake};
@@ -12,7 +12,7 @@ use serde_with::{serde_as, DefaultOnNull};
 /// See <https://discord.com/developers/docs/topics/gateway-events#update-presence>
 pub struct UpdatePresence {
     /// Unix time of when the client went idle, or none
-	 /// if client is not idle.
+    /// if client is not idle.
     pub since: Option<u128>,
     /// the client's status (online, invisible, offline, dnd, idle..)
     pub status: UserStatus,
@@ -32,7 +32,7 @@ pub struct PresenceUpdate {
     #[serde(default)]
     pub guild_id: Option<Snowflake>,
     pub status: UserStatus,
-	 // This will just result in an empty array, I guess we could also use option
+    // This will just result in an empty array, I guess we could also use option
     #[serde_as(deserialize_as = "DefaultOnNull")]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatusObject,

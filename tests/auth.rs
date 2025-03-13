@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use std::str::FromStr;
 
@@ -654,54 +654,99 @@ async fn test_send_mfa_backup_codes() {
             request::headers(contains(("authorization", "faketoken"))),
             request::body(json_decoded(eq(json!({"password": "test_password"})))),
         ])
-		  .times(1)
-        .respond_with(json_encoded(json!({"nonce": "test_view_nonce", "regenerate_nonce": "test_regenerate_nonce"}))),
+        .times(1)
+        .respond_with(json_encoded(
+            json!({"nonce": "test_view_nonce", "regenerate_nonce": "test_regenerate_nonce"}),
+        )),
     );
 
-	 let schema = chorus::types::SendBackupCodesChallengeSchema { password: "test_password".to_string() };
+    let schema = chorus::types::SendBackupCodesChallengeSchema {
+        password: "test_password".to_string(),
+    };
 
     let result = bundle
         .user
         .send_backup_codes_challenge(schema)
-		  .await.unwrap();
+        .await
+        .unwrap();
 
-	 assert_eq!(result, SendBackupCodesChallengeReturn {view_nonce: "test_view_nonce".to_string(), regenerate_nonce: "test_regenerate_nonce".to_string() });
+    assert_eq!(
+        result,
+        SendBackupCodesChallengeReturn {
+            view_nonce: "test_view_nonce".to_string(),
+            regenerate_nonce: "test_regenerate_nonce".to_string()
+        }
+    );
 
-	 // View routes, assume we got an email key of "test_key"
-	 // View nonce, regenerate = false
-	 server.expect(
+    // View routes, assume we got an email key of "test_key"
+    // View nonce, regenerate = false
+    server.expect(
         Expectation::matching(all_of![
             request::method("POST"),
             request::path("/api/users/@me/mfa/codes-verification"),
             request::headers(contains(("authorization", "faketoken"))),
-            request::body(json_decoded(eq(json!({"key": "test_key", "nonce": "test_view_nonce", "regenerate": false})))),
+            request::body(json_decoded(eq(
+                json!({"key": "test_key", "nonce": "test_view_nonce", "regenerate": false})
+            ))),
         ])
-		  .times(1)
-        .respond_with(json_encoded(json!([{"user_id": "852892297661906993", "code": "zqs8oqxk", "consumed": false}]))),
+        .times(1)
+        .respond_with(json_encoded(
+            json!([{"user_id": "852892297661906993", "code": "zqs8oqxk", "consumed": false}]),
+        )),
     );
 
-	 // Regenerate nonce, regenerate = true
-	 server.expect(
+    // Regenerate nonce, regenerate = true
+    server.expect(
         Expectation::matching(all_of![
             request::method("POST"),
             request::path("/api/users/@me/mfa/codes-verification"),
             request::headers(contains(("authorization", "faketoken"))),
-            request::body(json_decoded(eq(json!({"key": "test_key", "nonce": "test_regenerate_nonce", "regenerate": true})))),
+            request::body(json_decoded(eq(
+                json!({"key": "test_key", "nonce": "test_regenerate_nonce", "regenerate": true})
+            ))),
         ])
-		  .times(1)
-        .respond_with(json_encoded(json!([{"user_id": "852892297661906993", "code": "oqxk8zqs", "consumed": false}]))),
+        .times(1)
+        .respond_with(json_encoded(
+            json!([{"user_id": "852892297661906993", "code": "oqxk8zqs", "consumed": false}]),
+        )),
     );
 
-	 let schema_view = chorus::types::GetBackupCodesSchema { nonce: result.view_nonce, key: "test_key".to_string(), regenerate: false };
+    let schema_view = chorus::types::GetBackupCodesSchema {
+        nonce: result.view_nonce,
+        key: "test_key".to_string(),
+        regenerate: false,
+    };
 
-	 let schema_regenerate = chorus::types::GetBackupCodesSchema { nonce: result.regenerate_nonce, key: "test_key".to_string(), regenerate: true };
+    let schema_regenerate = chorus::types::GetBackupCodesSchema {
+        nonce: result.regenerate_nonce,
+        key: "test_key".to_string(),
+        regenerate: true,
+    };
 
-	 let result_view = bundle.user.get_backup_codes(schema_view).await.unwrap();
+    let result_view = bundle.user.get_backup_codes(schema_view).await.unwrap();
 
-	 assert_eq!(result_view, vec![MfaBackupCode {user_id: Snowflake(852892297661906993), code: "zqs8oqxk".to_string(), consumed: false}]);
+    assert_eq!(
+        result_view,
+        vec![MfaBackupCode {
+            user_id: Snowflake(852892297661906993),
+            code: "zqs8oqxk".to_string(),
+            consumed: false
+        }]
+    );
 
-	 let result_regenerate = bundle.user.get_backup_codes(schema_regenerate).await.unwrap();
+    let result_regenerate = bundle
+        .user
+        .get_backup_codes(schema_regenerate)
+        .await
+        .unwrap();
 
-	 assert_ne!(result_view, result_regenerate);
-	 assert_eq!(result_regenerate, vec![MfaBackupCode {user_id: Snowflake(852892297661906993), code: "oqxk8zqs".to_string(), consumed: false}]);
+    assert_ne!(result_view, result_regenerate);
+    assert_eq!(
+        result_regenerate,
+        vec![MfaBackupCode {
+            user_id: Snowflake(852892297661906993),
+            code: "oqxk8zqs".to_string(),
+            consumed: false
+        }]
+    );
 }
