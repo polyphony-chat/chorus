@@ -1721,3 +1721,57 @@ pub struct AdminCommunityEligibility {
     /// Whether the user is eligible to join the Discord Admin Community through the guild
     pub eligible_for_admin_server: bool,
 }
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq)]
+/// Schema for the
+/// [Guild::get_members_with_unusual_dm_activity](crate::types::Guild::get_members_with_unusual_dm_activity)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-guild-members-with-unusual-dm-activity>
+pub struct GetMembersWithUnusualDmActivitySchema {
+    /// Max number of members to return (max 1000, default 100)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u16>,
+
+    /// Get members after this member id
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub after: Option<Snowflake>,
+}
+
+impl GetMembersWithUnusualDmActivitySchema {
+    /// Converts self to query string parameters
+    pub fn to_query(self) -> Vec<(&'static str, String)> {
+        let mut query = Vec::with_capacity(2);
+
+        if let Some(limit) = self.limit {
+            query.push(("limit", limit.to_string()));
+        }
+
+        if let Some(after) = self.after {
+            query.push(("after", after.to_string()));
+        }
+
+        query
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+/// Return type for the
+/// [Guild::get_members_with_unusual_dm_activity](crate::types::Guild::get_members_with_unusual_dm_activity)
+/// endpoint.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#get-guild-members-with-unusual-dm-activity>
+pub struct GuildMemberUnusualDMActivity {
+    /// The ID of the user with unusual activity
+    pub user_id: Snowflake,
+
+    /// The ID of the guild the user is in
+    pub guild_id: Snowflake,
+
+    /// When the unusual activity flag will expire.
+    ///
+    /// This value can be a time in the past, meaning the flag has expired.
+    pub unusual_dm_activity_until: DateTime<Utc>,
+}

@@ -74,4 +74,26 @@ impl ChorusUser {
             .deserialize_response::<Vec<Guild>>(self)
             .await
     }
+
+    /// Returns a list of partial guild objects representing non-previewable guilds the user has
+    /// pending join requests for.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-join-request-guilds>
+    pub async fn get_join_request_guilds(&mut self) -> ChorusResult<Vec<Guild>> {
+        let url = format!(
+            "{}/users/@me/join-request-guilds",
+            self.belongs_to.read().unwrap().urls.api,
+        );
+
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(self);
+
+        chorus_request
+            .deserialize_response::<Vec<Guild>>(self)
+            .await
+    }
 }

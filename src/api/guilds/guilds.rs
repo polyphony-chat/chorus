@@ -25,8 +25,10 @@ use crate::types::GetGuildMemberVerificationQuery;
 use crate::types::GetGuildMembersSchema;
 use crate::types::GetGuildMembersSupplementalSchema;
 use crate::types::GetGuildPruneResult;
+use crate::types::GetMembersWithUnusualDmActivitySchema;
 use crate::types::GuildJoinRequest;
 use crate::types::GuildJoinRequestCooldown;
+use crate::types::GuildMemberUnusualDMActivity;
 use crate::types::GuildMemberVerification;
 use crate::types::GuildModifyMFALevelSchema;
 use crate::types::GuildModifyVanityInviteSchema;
@@ -157,6 +159,8 @@ impl Guild {
     /// # Notes
     /// This route requires MFA.
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#modify-guild-mfa-level>
     pub async fn modify_mfa_level(
@@ -183,6 +187,33 @@ impl Guild {
             .deserialize_response::<GuildModifyMFALevelSchema>(user)
             .await
             .map(|_x| ())
+    }
+
+    /// Sends a verification code to the guild owner's email address to initiate the guild
+    /// ownership transfer process.
+    ///
+    /// User must be the guild's owner.
+    ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-ownership-transfer-code>
+    pub async fn send_ownership_transfer_code(
+        guild_id: Snowflake,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<()> {
+        let chorus_request = ChorusRequest {
+            request: Client::new().post(format!(
+                "{}/guilds/{}/pincode",
+                user.belongs_to.read().unwrap().urls.api,
+                guild_id
+            )),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        chorus_request.handle_request_as_result(user).await
     }
 
     /// Deletes a guild by its id.
@@ -289,6 +320,9 @@ impl Guild {
     ///
     /// If the user is not in the guild, the guild must be discoverable.
     ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-preview>
     pub async fn get_preview(
@@ -309,6 +343,35 @@ impl Guild {
             .deserialize_response::<GuildPreview>(user)
             .await?;
         Ok(response)
+    }
+
+    /// Returns information about guild members that have ever had unusual DM activity.
+    ///
+    /// (User must be a member of the guild)
+    ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/guild#get-guild-members-with-unusual-dm-activity>
+    pub async fn get_members_with_unusual_dm_activity(
+        guild_id: Snowflake,
+        query: GetMembersWithUnusualDmActivitySchema,
+        user: &mut ChorusUser,
+    ) -> ChorusResult<Vec<GuildMemberUnusualDMActivity>> {
+        let request = ChorusRequest {
+            request: Client::new()
+                .get(format!(
+                    "{}/guilds/{}/members/unusual-dm-activity",
+                    user.belongs_to.read().unwrap().urls.api,
+                    guild_id,
+                ))
+                .query(&query.to_query()),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
+
+        request.deserialize_response(user).await
     }
 
     /// Returns a list of guild member objects that are members of the guild.
@@ -346,6 +409,8 @@ impl Guild {
     /// # Notes
     /// This endpoint is not usable by user accounts
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#query-guild-members>
     pub async fn query_members(
@@ -382,7 +447,7 @@ impl Guild {
     /// This means that while it is very powerful, it's also tricky to use and reliant on an
     /// index.
     ///
-    /// As of 2025/01/15, Spacebar does not yet implement this endpoint.
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
@@ -462,7 +527,7 @@ impl Guild {
     /// Requires the [PermissionFlags::MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
     ///
     /// # Notes
-    /// As of 2025/01/15, Spacebar does not yet implement this endpoint.
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
@@ -519,6 +584,9 @@ impl Guild {
     /// Returns a list of ban objects whose usernames or display names contains a provided string.
     ///
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
+    ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#search-guild-bans>
@@ -1037,6 +1105,9 @@ impl Guild {
     ///
     /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
     ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
     pub async fn get_join_requests(
@@ -1064,6 +1135,9 @@ impl Guild {
     /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission if the
     /// request is not for the current user.
     ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-join-request>
     pub async fn get_join_request(
@@ -1088,6 +1162,9 @@ impl Guild {
     /// Returns the remaining time until the current user can submit another join request for the
     /// guild.
     ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
     pub async fn get_join_request_cooldown(
@@ -1110,6 +1187,9 @@ impl Guild {
     }
 
     /// Submits a request to join a guild.
+    ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#create-guild-join-request>
@@ -1135,6 +1215,9 @@ impl Guild {
 
     /// Resets the current user's join request for a guild.
     ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#reset-guild-join-request>
     pub async fn reset_join_request(
@@ -1157,6 +1240,9 @@ impl Guild {
     }
 
     /// Acknowledges an approved join request for the current user.
+    ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#reset-guild-join-request>
@@ -1185,6 +1271,9 @@ impl Guild {
     ///
     /// Returns a partial [GuildJoinRequest] if the request was reset or [None] if the deletion was
     /// successful.
+    ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#delete-guild-join-request>
@@ -1249,12 +1338,16 @@ impl Guild {
     ///
     /// Returns a [GroupDm](crate::types::ChannelType::GroupDm) [Channel] object on success.
     ///
+    /// # Notes
+    ///
     /// The channel will have the same id as the join request and will be accessible by the join
     /// request user and user who used this endpoint.
     ///
     /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
     ///
     /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#create-guild-join-request-interview>
@@ -1282,6 +1375,9 @@ impl Guild {
     /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
     ///
     /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
@@ -1313,6 +1409,9 @@ impl Guild {
     ///
     /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
     ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#action-guild-join-request-by-user>
     pub async fn action_join_request_by_user(
@@ -1342,6 +1441,9 @@ impl Guild {
     /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
     ///
     /// Also requires that the guild have the [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+    ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
@@ -1423,6 +1525,9 @@ impl Guild {
     ///
     /// User must be a member of the guild.
     ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or onboarding)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-onboarding>
     pub async fn get_onboarding(
@@ -1456,6 +1561,8 @@ impl Guild {
     ///
     /// The mode field modifies what is considered when enforcing these constraints.
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or onboarding)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#modify-guild-onboarding>
     pub async fn modify_onboarding(
@@ -1486,6 +1593,9 @@ impl Guild {
     ///
     /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
     ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-admin-community-eligibility>
     pub async fn get_admin_community_eligibility(
@@ -1515,6 +1625,9 @@ impl Guild {
     ///
     /// Also see [Guild::get_admin_community_eligibility].
     ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#join-admin-community>
     pub async fn join_admin_community(
@@ -1540,6 +1653,9 @@ impl Guild {
     ///
     /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission and the
     /// [CLAN](crate::types::types::guild_configuration::GuildFeatures::Clan) guild feature.
+    ///
+    /// # Notes
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#join-wumpus-feedback-squad>
@@ -1603,6 +1719,8 @@ impl GuildJoinRequest {
     /// # Notes
     /// This method is an alias of [Guild::get_join_requests]
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
     pub async fn get_all_for_guild(
@@ -1621,6 +1739,8 @@ impl GuildJoinRequest {
     /// # Notes
     /// This method is an alias of [Guild::get_join_request]
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-join-request>
     pub async fn get(user: &mut ChorusUser, id: Snowflake) -> ChorusResult<GuildJoinRequest> {
@@ -1632,6 +1752,8 @@ impl GuildJoinRequest {
     ///
     /// # Notes
     /// This method is an alias of [Guild::get_join_request_cooldown]
+    ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
@@ -1646,6 +1768,8 @@ impl GuildJoinRequest {
     ///
     /// # Notes
     /// This method is an alias of [Guild::create_join_request]
+    ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#create-guild-join-request>
@@ -1665,6 +1789,8 @@ impl GuildJoinRequest {
     ///
     /// # Notes
     /// This method is an alias of [Guild::action_join_request]
+    ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
@@ -1686,6 +1812,8 @@ impl GuildJoinRequest {
     /// # Notes
     /// This method is an alias of [Guild::action_join_request_by_user]
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#action-guild-join-request-by-user>
     pub async fn action_by_user(
@@ -1705,6 +1833,8 @@ impl GuildJoinRequest {
     ///
     /// # Notes
     /// This method is an alias of [Guild::bulk_action_join_requests]
+    ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
@@ -1727,6 +1857,8 @@ impl ChorusUser {
     /// # Notes
     /// This method is an alias of [Guild::get_join_requests]
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
     pub async fn get_guild_join_requests(
@@ -1745,6 +1877,8 @@ impl ChorusUser {
     /// # Notes
     /// This method is an alias of [Guild::get_join_request]
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-join-request>
     pub async fn get_guild_join_request(
@@ -1760,6 +1894,8 @@ impl ChorusUser {
     /// # Notes
     /// This method is an alias of [Guild::get_join_request_cooldown]
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
     pub async fn get_guild_join_request_cooldown(
@@ -1773,6 +1909,8 @@ impl ChorusUser {
     ///
     /// # Notes
     /// This method is an alias of [Guild::create_join_request]
+    ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#create-guild-join-request>
@@ -1792,6 +1930,8 @@ impl ChorusUser {
     ///
     /// # Notes
     /// This method is an alias of [Guild::action_join_request]
+    ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
@@ -1813,6 +1953,8 @@ impl ChorusUser {
     /// # Notes
     /// This method is an alias of [Guild::action_join_request_by_user]
     ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
+    ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#action-guild-join-request-by-user>
     pub async fn action_guild_join_request_by_user(
@@ -1832,6 +1974,8 @@ impl ChorusUser {
     ///
     /// # Notes
     /// This method is an alias of [Guild::bulk_action_join_requests]
+    ///
+    /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
