@@ -8,7 +8,7 @@ repository = "https://github.com/polyphony-chat/chorus"
 readme = "README.md"
 keywords = ["spacebar", "discord", "polyphony"]
 website = ["https://discord.com/invite/m3FpcapGDD"]
-rust-version = "1.70.0"
+rust-version = "1.71.1"
 
 
 [features]
