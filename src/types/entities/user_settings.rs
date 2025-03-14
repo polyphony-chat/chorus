@@ -127,10 +127,17 @@ impl Default for UserSettings {
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct CustomStatus {
+    #[serde(default)]
     pub emoji_id: Option<String>,
+
+    #[serde(default)]
     pub emoji_name: Option<String>,
+
     #[serde(with = "ts_milliseconds_option")]
+    #[serde(default)]
     pub expires_at: Option<chrono::DateTime<Utc>>,
+
+    #[serde(default)]
     pub text: Option<String>,
 }
 

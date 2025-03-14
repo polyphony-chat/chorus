@@ -187,7 +187,11 @@ pub struct Tag {
     pub name: String,
     /// Whether this tag can only be added to or removed from threads by members with the [MANAGE_THREADS](crate::types::PermissionFlags::MANAGE_THREADS) permission
     pub moderated: bool,
+
+    #[serde(default)]
     pub emoji_id: Option<Snowflake>,
+
+    #[serde(default)]
     pub emoji_name: Option<String>,
 }
 
@@ -329,6 +333,8 @@ impl PartialEq for ThreadMember {
 pub struct DefaultReaction {
     #[serde(default)]
     pub emoji_id: Option<Snowflake>,
+
+    #[serde(default)]
     pub emoji_name: Option<String>,
 }
 

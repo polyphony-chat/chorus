@@ -105,7 +105,7 @@ pub struct GatewayReady {
     /// TODO: Make Guild Experiments into own struct
     // Note: this is a pain to parse! See the above TODO
     pub guild_experiments: Vec<serde_json::value::Value>,
-    pub read_state: ReadState,
+    pub read_state: Vec<ReadStateEntry>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
@@ -254,7 +254,7 @@ pub struct ReadStateEntry {
     pub id: Snowflake,
     pub last_message_id: Option<Snowflake>,
     pub last_pin_timestamp: Option<DateTime<Utc>>,
-	 /// A value that is incremented each time the read state is read
+    /// A value that is incremented each time the read state is read
     pub last_viewed: Option<u32>,
     // Temporary adding Option to fix Spacebar servers, they have mention count as a nullable
     pub mention_count: Option<u64>,

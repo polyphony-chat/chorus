@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{
     entities::{Emoji, GuildMember, Message, PublicUser},
-    Snowflake, WebSocketEvent,
+    PartialEmoji, Snowflake, WebSocketEvent,
 };
 
 use chorus_macros::WebSocketEvent;
@@ -103,7 +103,7 @@ pub struct MessageReactionAdd {
     pub message_id: Snowflake,
     pub guild_id: Option<Snowflake>,
     pub member: Option<GuildMember>,
-    pub emoji: Emoji,
+    pub emoji: PartialEmoji,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, WebSocketEvent)]
@@ -114,7 +114,7 @@ pub struct MessageReactionRemove {
     pub channel_id: Snowflake,
     pub message_id: Snowflake,
     pub guild_id: Option<Snowflake>,
-    pub emoji: Emoji,
+    pub emoji: PartialEmoji,
 }
 
 #[derive(
@@ -146,7 +146,7 @@ pub struct MessageReactionRemoveEmoji {
     pub channel_id: Snowflake,
     pub message_id: Snowflake,
     pub guild_id: Option<Snowflake>,
-    pub emoji: Emoji,
+    pub emoji: PartialEmoji,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, Copy, WebSocketEvent)]
@@ -187,10 +187,10 @@ pub struct MessageACK {
 /// # Reference
 /// See <https://docs.discord.sex/topics/gateway-events#request-last-messages>
 pub struct RequestLastMessages {
-	/// The ID of the guild the channels are in
-	pub guild_id: Snowflake,
-	/// The IDs of the channels to request last messages for (max 100)
-	pub channel_ids: Vec<Snowflake>
+    /// The ID of the guild the channels are in
+    pub guild_id: Snowflake,
+    /// The IDs of the channels to request last messages for (max 100)
+    pub channel_ids: Vec<Snowflake>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
@@ -199,7 +199,7 @@ pub struct RequestLastMessages {
 /// # Reference
 /// See <https://docs.discord.sex/topics/gateway-events#last-messages>
 pub struct LastMessages {
-	/// The ID of the guild the channels are in
-	pub guild_id: Snowflake,
-	pub messages: Vec<Message>
+    /// The ID of the guild the channels are in
+    pub guild_id: Snowflake,
+    pub messages: Vec<Message>,
 }

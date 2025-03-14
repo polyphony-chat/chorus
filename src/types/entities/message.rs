@@ -285,6 +285,8 @@ pub struct EmbedField {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+/// # Reference
+/// See <https://docs.discord.sex/resources/message#reaction-object>
 pub struct Reaction {
     pub count: UInt32,
     pub burst_count: UInt32,
@@ -293,7 +295,7 @@ pub struct Reaction {
     #[serde(default)]
     pub burst_me: bool,
     pub burst_colors: Vec<String>,
-    pub emoji: Emoji,
+    pub emoji: PartialEmoji,
     #[cfg(feature = "sqlx")]
     #[serde(skip)]
     pub user_ids: Vec<Snowflake>,
@@ -459,11 +461,16 @@ bitflags! {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Default, Serialize, Deserialize)]
+// Note: this is likely used for unicode emojis
 pub struct PartialEmoji {
+    /// Note: if id is None, the name field
+    /// is a unicode emoji (the only data given)
     #[serde(default)]
     pub id: Option<Snowflake>,
+
     pub name: String,
+
     #[serde(default)]
     pub animated: bool,
 }
