@@ -140,8 +140,23 @@ pub struct MessageReference {
     pub fail_if_not_exists: Option<bool>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd, Copy, Default)]
-#[repr(u8)]
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Default,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum MessageReferenceType {
     /// A standard reference used by replies and system messages
     #[default]
@@ -285,6 +300,8 @@ pub struct EmbedField {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+/// # Reference
+/// See <https://docs.discord.sex/resources/message#reaction-object>
 pub struct Reaction {
     pub count: UInt32,
     pub burst_count: UInt32,
@@ -293,15 +310,19 @@ pub struct Reaction {
     #[serde(default)]
     pub burst_me: bool,
     pub burst_colors: Vec<String>,
-    pub emoji: Emoji,
+    pub emoji: PartialEmoji,
     #[cfg(feature = "sqlx")]
     #[serde(skip)]
     pub user_ids: Vec<Snowflake>,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
+#[derive(
+    Serialize_repr, Deserialize_repr, Debug, Clone, Eq, PartialEq, Hash, Copy, PartialOrd, Ord,
+)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Component {
     ActionRow = 1,
     Button = 2,
@@ -459,11 +480,16 @@ bitflags! {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Default, Serialize, Deserialize)]
+// Note: this is likely used for unicode emojis
 pub struct PartialEmoji {
+    /// Note: if id is None, the name field
+    /// is a unicode emoji (the only data given)
     #[serde(default)]
     pub id: Option<Snowflake>,
+
     pub name: String,
+
     #[serde(default)]
     pub animated: bool,
 }
