@@ -14,12 +14,19 @@ use tokio::sync::Mutex;
 /// Observes an event once and sends it via a [tokio::sync::oneshot] channel.
 ///
 /// # Examples
-/// ```
+/// ```no_run
+/// # tokio_test::block_on(async {
+/// # mod tests::common;
+/// # let mut bundle = common::setup().await;
+/// use chorus::gateway::{GatewayHandle, OneshotEventObserver};
+/// use chorus::types::MessageCreate;
+///
 /// let handle: GatewayHandle; // Get this either by user.gateway or by manually opening a connection
+/// # let handle = bundle.user.gateway;
 ///
 /// // Let's say we want to wait until the next MessageCreate event
 /// // Create the observer and receiver
-/// let (observer, receiver) = OneshotEventObserver::<types::MessageCreate>::new();
+/// let (observer, receiver) = OneshotEventObserver::<MessageCreate>::new();
 ///
 /// // Subscribe the observer, so it receives events
 /// // Note that we clone the reference so we can later unsubscribe the observer
@@ -42,16 +49,31 @@ use tokio::sync::Mutex;
 ///
 /// // Since we dropped all the references to the observer,
 /// // it is now deleted
+/// # tests::common::teardown(bundle).await;
+/// # })
 /// ```
 ///
 /// We can also use [tokio::select] to await with a timeout:
 ///
-/// ```
+/// ```no_run
+/// # tokio_test::block_on(async {
+/// # mod tests::common;
+/// # let mut bundle = common::setup().await;
+/// use chorus::gateway::{GatewayHandle, OneshotEventObserver};
+/// use chorus::types::MessageCreate;
+/// use std::time::Duration;
+///
+/// #[cfg(not(target_arch = "wasm32"))]
+/// use tokio::time::sleep;
+/// #[cfg(target_arch = "wasm32")]
+/// use wasmtimer::tokio::sleep;
+///
 /// let handle: GatewayHandle; // Get this either by user.gateway or by manually opening a connection
+/// # let handle = bundle.user.gateway;
 ///
 /// // Let's say we want to wait until the next MessageCreate event, if it happens in the next 10 seconds
 /// // Create the observer and receiver
-/// let (observer, receiver) = OneshotEventObserver::<types::MessageCreate>::new();
+/// let (observer, receiver) = OneshotEventObserver::<MessageCreate>::new();
 ///
 /// // Subscribe the observer, so it receives events
 /// // Note that we clone the reference so we can later unsubscribe the observer
@@ -78,6 +100,8 @@ use tokio::sync::Mutex;
 ///
 /// // Since we dropped all the references to the observer,
 /// // it is now deleted
+/// # tests::common::teardown(bundle).await;
+/// # })
 /// ```
 #[derive(Debug)]
 pub struct OneshotEventObserver<T>
@@ -133,12 +157,19 @@ where
 /// Observes an event indefinitely and sends it via a [tokio::sync::broadcast] channel
 ///
 /// # Examples
-/// ```
+/// ```no_run
+/// # tokio_test::block_on(async {
+/// # mod tests::common;
+/// # let mut bundle = common::setup().await;
+/// use chorus::gateway::{GatewayHandle, BroadcastEventObserver};
+/// use chorus::types::MessageCreate;
+///
 /// let handle: GatewayHandle; // Get this either by user.gateway or by manually opening a connection
+/// # let handle = bundle.user.gateway;
 ///
 /// // Let's say we want to wait for every MessageCreate event
 /// // Create the observer and receiver
-/// let (observer, receiver) = BroadcastEventObserver::<types::MessageCreate>::new();
+/// let (observer, receiver) = BroadcastEventObserver::<MessageCreate>::new();
 ///
 /// // Subscribe the observer, so it receives events
 /// // Note that we clone the reference so we can later unsubscribe the observer
@@ -163,16 +194,31 @@ where
 ///
 /// // Since we dropped all the references to the observer,
 /// // it is now deleted
+/// # tests::common::teardown(bundle).await;
+/// # })
 /// ```
 ///
 /// We can also use [tokio::select] to await with a timeout:
 ///
-/// ```
+/// ```no_run
+/// # tokio_test::block_on(async {
+/// # mod tests::common;
+/// # let mut bundle = common::setup().await;
+/// use chorus::gateway::{GatewayHandle, BroadcastEventObserver};
+/// use chorus::types::MessageCreate;
+/// use std::time::Duration;
+///
+/// #[cfg(not(target_arch = "wasm32"))]
+/// use tokio::time::sleep;
+/// #[cfg(target_arch = "wasm32")]
+/// use wasmtimer::tokio::sleep;
+///
 /// let handle: GatewayHandle; // Get this either by user.gateway or by manually opening a connection
+/// # let handle = bundle.user.gateway;
 ///
 /// // Let's say we want to wait for every MessageCreate event, if it takes less than 10 seconds
 /// // Create the observer and receiver
-/// let (observer, receiver) = BroadcastEventObserver::<types::MessageCreate>::new();
+/// let (observer, receiver) = BroadcastEventObserver::<MessageCreate>::new();
 ///
 /// // Subscribe the observer, so it receives events
 /// // Note that we clone the reference so we can later unsubscribe the observer
@@ -203,6 +249,8 @@ where
 ///
 /// // Since we dropped all the references to the observer,
 /// // it is now deleted
+/// # tests::common::teardown(bundle).await;
+/// # })
 /// ```
 #[derive(Debug)]
 pub struct BroadcastEventObserver<T>

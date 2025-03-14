@@ -141,9 +141,14 @@ impl ChorusUser {
     ///
     /// # Examples
     /// ```no_run
+    /// # tokio_test::block_on(async {
+    /// # use chorus::{instance::ChorusUser, types::CreateDomainConnectionReturn};
+    /// # mod tests::common;
+    /// # let mut bundle = tests::common::setup().await;
     /// let domain = "example.com".to_string();
     ///
     /// let user: ChorusUser; // Get this by registering / logging in
+    /// # let user = bundle.user;
     ///
     /// let result = user.create_domain_connection(&domain).await;
     ///
@@ -165,6 +170,8 @@ impl ChorusUser {
     /// } else {
     ///     println!("Failed to create connection: {:?}", result);
     /// }
+    /// # tests::common::teardown(bundle).await;
+    /// # })
     /// ```
     ///
     /// # Reference
