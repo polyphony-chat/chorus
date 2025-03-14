@@ -140,8 +140,23 @@ pub struct MessageReference {
     pub fail_if_not_exists: Option<bool>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd, Copy, Default)]
-#[repr(u8)]
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Default,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum MessageReferenceType {
     /// A standard reference used by replies and system messages
     #[default]
@@ -301,9 +316,13 @@ pub struct Reaction {
     pub user_ids: Vec<Snowflake>,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, PartialOrd, Ord)]
+#[derive(
+    Serialize_repr, Deserialize_repr, Debug, Clone, Eq, PartialEq, Hash, Copy, PartialOrd, Ord,
+)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Component {
     ActionRow = 1,
     Button = 2,

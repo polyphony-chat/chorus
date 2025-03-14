@@ -424,11 +424,10 @@ pub struct FollowedChannel {
     pub webhook_id: Snowflake,
 }
 
-#[derive(
-    Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord, Default,
-)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq, Copy)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(u8)]
 pub enum DefaultForumLayout {
     #[default]
     Default = 0,
@@ -479,11 +478,10 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for DefaultForumLayout {
     }
 }
 
-#[derive(
-    Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord, Default,
-)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Default, Clone, PartialEq, Copy)]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[repr(u8)]
 pub enum DefaultSortOrder {
     #[default]
     LatestActivity = 0,

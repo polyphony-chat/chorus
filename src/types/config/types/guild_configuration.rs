@@ -15,6 +15,8 @@ use crate::types::{Error, GuildError};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-features>
 pub enum GuildFeatures {
     ActivitiesAlpha,
     ActivitiesEmployee,
@@ -66,7 +68,9 @@ pub enum GuildFeatures {
     DiscoverableDisabled,
     Discoverable,
     EnabledDiscoverableBefore,
+    EnabledModerationExperienceForNonCommunity,
     ExposedToActivitiesWTPExperiment,
+    Featurable,
     GuestsEnabled,
     GuildAutomodDefaultList,
     GuildCommunicationDisabledGuilds,
@@ -106,6 +110,7 @@ pub enum GuildFeatures {
     #[serde(rename = "PREMIUM_TIER_3_OVERRIDE")]
     PremiumTier3Override,
     PreviewEnabled,
+    PrivateThreads,
     RaidAlertsDisabled,
     RelayEnabled,
     RestrictSpamRiskGuild,
@@ -284,6 +289,10 @@ impl FromStr for GuildFeatures {
             "DISCOVERABLE_DISABLED" => Ok(GuildFeatures::DiscoverableDisabled),
             "DISCOVERABLE" => Ok(GuildFeatures::Discoverable),
             "ENABLED_DISCOVERABLE_BEFORE" => Ok(GuildFeatures::EnabledDiscoverableBefore),
+            "ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY" => {
+                Ok(GuildFeatures::EnabledModerationExperienceForNonCommunity)
+            }
+            "FEATURABLE" => Ok(GuildFeatures::Featurable),
             "EXPOSED_TO_ACTIVITIES_WTP_EXPERIMENT" => {
                 Ok(GuildFeatures::ExposedToActivitiesWTPExperiment)
             }
@@ -335,6 +344,7 @@ impl FromStr for GuildFeatures {
             "PARTNERED" => Ok(GuildFeatures::Partnered),
             "PREMIUM_TIER_3_OVERRIDE" => Ok(GuildFeatures::PremiumTier3Override),
             "PREVIEW_ENABLED" => Ok(GuildFeatures::PreviewEnabled),
+            "PRIVATE_THREADS" => Ok(GuildFeatures::PrivateThreads),
             "RAID_ALERTS_DISABLED" => Ok(GuildFeatures::RaidAlertsDisabled),
             "RELAY_ENABLED" => Ok(GuildFeatures::RelayEnabled),
             "RESTRICT_SPAM_RISK_GUILD" => Ok(GuildFeatures::RestrictSpamRiskGuild),
@@ -450,9 +460,13 @@ impl GuildFeatures {
             GuildFeatures::DiscoverableDisabled => "DISCOVERABLE_DISABLED",
             GuildFeatures::Discoverable => "DISCOVERABLE",
             GuildFeatures::EnabledDiscoverableBefore => "ENABLED_DISCOVERABLE_BEFORE",
+            GuildFeatures::EnabledModerationExperienceForNonCommunity => {
+                "ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY"
+            }
             GuildFeatures::ExposedToActivitiesWTPExperiment => {
                 "EXPOSED_TO_ACTIVITIES_WTP_EXPERIMENT"
             }
+            GuildFeatures::Featurable => "FEATURABLE",
             GuildFeatures::GuestsEnabled => "GUESTS_ENABLED",
             GuildFeatures::GuildAutomodDefaultList => "GUILD_AUTOMOD_DEFAULT_LIST",
             GuildFeatures::GuildCommunicationDisabledGuilds => {
@@ -501,6 +515,7 @@ impl GuildFeatures {
             GuildFeatures::Partnered => "PARTNERED",
             GuildFeatures::PremiumTier3Override => "PREMIUM_TIER_3_OVERRIDE",
             GuildFeatures::PreviewEnabled => "PREVIEW_ENABLED",
+            GuildFeatures::PrivateThreads => "PRIVATE_THREADS",
             GuildFeatures::RaidAlertsDisabled => "RAID_ALERTS_DISABLED",
             GuildFeatures::RelayEnabled => "RELAY_ENABLED",
             GuildFeatures::RestrictSpamRiskGuild => "RESTRICT_SPAM_RISK_GUILD",

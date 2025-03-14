@@ -55,8 +55,10 @@ pub struct WelcomeScreenChannel {
     pub description: String,
 
     /// The emoji id, if it is a custom emoji
+    #[serde(default)]
     pub emoji_id: Option<Snowflake>,
 
     /// The emoji name if a custom emoji, the unicode character if a standard emoji or [None] if no emoji is set
+    #[serde(default)]
     pub emoji_name: Option<String>,
 }
