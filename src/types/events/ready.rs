@@ -105,7 +105,7 @@ pub struct GatewayReady {
     /// TODO: Make Guild Experiments into own struct
     // Note: this is a pain to parse! See the above TODO
     pub guild_experiments: Vec<serde_json::value::Value>,
-    pub read_state: Vec<ReadStateEntry>,
+    pub read_state: VersionedReadStateOrEntries,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
@@ -258,4 +258,23 @@ pub struct ReadStateEntry {
     pub last_viewed: Option<u32>,
     // Temporary adding Option to fix Spacebar servers, they have mention count as a nullable
     pub mention_count: Option<u64>,
+}
+
+/// An enum which represents the possible ways of receiving read states.
+///
+/// Discord.com has in recent times switched to just sending a vec of read state entries, while
+/// Spacebar sends a versioned [ReadState] object (as DDC once did)
+///
+/// Note that this api will likely change in the future.
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(untagged)]
+pub enum VersionedReadStateOrEntries {
+    Versioned(ReadState),
+    Entries(Vec<ReadStateEntry>),
+}
+
+impl Default for VersionedReadStateOrEntries {
+    fn default() -> Self {
+        Self::Entries(Vec::new())
+    }
 }
