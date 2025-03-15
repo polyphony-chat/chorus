@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    entities::{Emoji, GuildMember, Message, PublicUser},
+    entities::{GuildMember, Message, PublicUser},
     PartialEmoji, Snowflake, WebSocketEvent,
 };
 

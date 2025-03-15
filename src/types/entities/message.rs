@@ -9,8 +9,8 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::types::{
     entities::{
-        Application, Attachment, Channel, Emoji, GuildMember, PublicUser, RoleSubscriptionData,
-        Sticker, StickerItem, User,
+        Application, Attachment, Channel, GuildMember, PublicUser, RoleSubscriptionData, Sticker,
+        StickerItem, User,
     },
     utils::Snowflake,
     Shared,

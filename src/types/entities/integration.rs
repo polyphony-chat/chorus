@@ -11,7 +11,7 @@ use crate::types::{
     utils::Snowflake,
     Shared,
 };
-use crate::{UInt16, UInt8};
+use crate::UInt16;
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -82,10 +82,8 @@ pub enum IntegrationType {
 /// See <https://docs.discord.sex/resources/integration#integration-expire-behavior>
 pub enum IntegrationExpireBehaviour {
     #[default]
-	 /// Remove the subscriber role from the user
+    /// Remove the subscriber role from the user
     RemoveRole = 0,
-	 /// Kick the user from the guild
-	 Kick = 1,
+    /// Kick the user from the guild
+    Kick = 1,
 }
-
-
