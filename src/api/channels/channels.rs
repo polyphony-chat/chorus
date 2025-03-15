@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use reqwest::Client;
 use serde_json::to_string;
@@ -21,18 +21,15 @@ impl Channel {
     /// # Reference
     /// See <https://discord-userdoccers.vercel.app/resources/channel#get-channel>
     pub async fn get(user: &mut ChorusUser, channel_id: Snowflake) -> ChorusResult<Channel> {
-        let chorus_request = ChorusRequest::new(
-            http::Method::GET,
-            &format!(
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(format!(
                 "{}/channels/{}",
                 user.belongs_to.read().unwrap().urls.api.clone(),
                 channel_id
-            ),
-            None,
-            None,
-            Some(user),
-            LimitType::Channel(channel_id),
-        );
+            )),
+            limit_type: LimitType::Channel(channel_id),
+        }
+        .with_headers_for(user);
 
         chorus_request.deserialize_response::<Channel>(user).await
     }
@@ -55,14 +52,12 @@ impl Channel {
             self.id,
         );
 
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            &url,
-            None,
-            audit_log_reason.as_deref(),
-            Some(user),
-            LimitType::Channel(self.id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Channel(self.id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
 
         request.handle_request_as_result(user).await
     }
@@ -94,14 +89,12 @@ impl Channel {
             channel_id
         );
 
-        let request = ChorusRequest::new(
-            http::Method::PATCH,
-            &url,
-            Some(to_string(&modify_data).unwrap()),
-            audit_log_reason.as_deref(),
-            Some(user),
-            LimitType::Channel(channel_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().patch(url).json(&modify_data),
+            limit_type: LimitType::Channel(channel_id),
+        }
+        .with_maybe_audit_log_reason(audit_log_reason)
+        .with_headers_for(user);
 
         request.deserialize_response::<Channel>(user).await
     }
@@ -126,14 +119,12 @@ impl Channel {
             channel_id
         );
 
-        let mut chorus_request = ChorusRequest::new(
-            http::Method::GET,
-            &url,
-            None,
-            None,
-            Some(user),
-            Default::default(),
-        );
+        let mut chorus_request = ChorusRequest {
+            request: Client::new().get(url),
+            limit_type: Default::default(),
+        }
+        .with_headers_for(user);
+
         chorus_request.request = chorus_request.request.query(&range);
 
         chorus_request
@@ -151,22 +142,22 @@ impl Channel {
         user: &mut ChorusUser,
         add_channel_recipient_schema: Option<AddChannelRecipientSchema>,
     ) -> ChorusResult<()> {
-        let mut request = Client::new()
-            .put(format!(
-                "{}/channels/{}/recipients/{}",
-                user.belongs_to.read().unwrap().urls.api,
-                self.id,
-                recipient_id
-            ))
-            .header("Authorization", user.token())
-            .header("Content-Type", "application/json");
+        let mut request = Client::new().put(format!(
+            "{}/channels/{}/recipients/{}",
+            user.belongs_to.read().unwrap().urls.api,
+            self.id,
+            recipient_id
+        ));
+
         if let Some(schema) = add_channel_recipient_schema {
-            request = request.body(to_string(&schema).unwrap());
+            request = request.json(&schema);
         }
+
         ChorusRequest {
             request,
             limit_type: LimitType::Channel(self.id),
         }
+        .with_headers_for(user)
         .handle_request_as_result(user)
         .await
     }
@@ -187,14 +178,11 @@ impl Channel {
             recipient_id
         );
 
-        let request = ChorusRequest::new(
-            http::Method::DELETE,
-            &url,
-            None,
-            None,
-            Some(user),
-            LimitType::Channel(self.id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Channel(self.id),
+        }
+        .with_headers_for(user);
 
         request.handle_request_as_result(user).await
     }
@@ -215,14 +203,11 @@ impl Channel {
             guild_id
         );
 
-        let request = ChorusRequest::new(
-            http::Method::PATCH,
-            &url,
-            Some(to_string(&schema).unwrap()),
-            None,
-            Some(user),
-            LimitType::Guild(guild_id),
-        );
+        let request = ChorusRequest {
+            request: Client::new().patch(url).json(&schema),
+            limit_type: LimitType::Guild(guild_id),
+        }
+        .with_headers_for(user);
 
         request.handle_request_as_result(user).await
     }

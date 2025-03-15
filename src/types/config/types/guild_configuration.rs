@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use std::fmt::{Display, Formatter};
 use std::ops::{Deref, DerefMut};
@@ -15,10 +15,13 @@ use crate::types::{Error, GuildError};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-features>
 pub enum GuildFeatures {
     ActivitiesAlpha,
     ActivitiesEmployee,
     ActivitiesInternalDev,
+    ActivityFeedDisabledByUser,
     AnimatedBanner,
     AnimatedIcon,
     ApplicationCommandPermissionsV2,
@@ -40,6 +43,14 @@ pub enum GuildFeatures {
     ChannelEmojisGenerated,
     ChannelHighlights,
     ChannelHighlightsDisabled,
+    ChannelIconEmojisGenerated,
+    Clan,
+    ClanDiscoveryDisabled,
+    ClanPilotGenshin,
+    ClanPilotValorant,
+    ClanPrePilotGenshin,
+    ClanPrePilotValorant,
+    ClanSafetyReviewDisabled,
     ClydeEnabled,
     ClydeExperimentEnabled,
     ClydeDisabled,
@@ -57,7 +68,9 @@ pub enum GuildFeatures {
     DiscoverableDisabled,
     Discoverable,
     EnabledDiscoverableBefore,
+    EnabledModerationExperienceForNonCommunity,
     ExposedToActivitiesWTPExperiment,
+    Featurable,
     GuestsEnabled,
     GuildAutomodDefaultList,
     GuildCommunicationDisabledGuilds,
@@ -97,6 +110,7 @@ pub enum GuildFeatures {
     #[serde(rename = "PREMIUM_TIER_3_OVERRIDE")]
     PremiumTier3Override,
     PreviewEnabled,
+    PrivateThreads,
     RaidAlertsDisabled,
     RelayEnabled,
     RestrictSpamRiskGuild,
@@ -132,6 +146,9 @@ pub enum GuildFeatures {
     CrossChannelReplies,
     IrcLikeCategoryNames,
     InvitesClosed,
+    /// Old feature, used only on spacebar
+    ThreeDayThreadArchive,
+    SevenDayThreadArchive,
 }
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Eq, Hash)]
@@ -215,6 +232,7 @@ impl FromStr for GuildFeatures {
             "ACTIVITIES_ALPHA" => Ok(GuildFeatures::ActivitiesAlpha),
             "ACTIVITIES_EMPLOYEE" => Ok(GuildFeatures::ActivitiesEmployee),
             "ACTIVITIES_INTERNAL_DEV" => Ok(GuildFeatures::ActivitiesInternalDev),
+            "ACTIVITY_FEED_DISABLED_BY_USER" => Ok(GuildFeatures::ActivityFeedDisabledByUser),
             "ANIMATED_BANNER" => Ok(GuildFeatures::AnimatedBanner),
             "ANIMATED_ICON" => Ok(GuildFeatures::AnimatedIcon),
             "APPLICATION_COMMAND_PERMISSIONS_V2" => {
@@ -242,6 +260,14 @@ impl FromStr for GuildFeatures {
             "CHANNEL_EMOJIS_GENERATED" => Ok(GuildFeatures::ChannelEmojisGenerated),
             "CHANNEL_HIGHLIGHTS" => Ok(GuildFeatures::ChannelHighlights),
             "CHANNEL_HIGHLIGHTS_DISABLED" => Ok(GuildFeatures::ChannelHighlightsDisabled),
+            "CHANNEL_ICON_EMOJIS_GENERATED" => Ok(GuildFeatures::ChannelIconEmojisGenerated),
+            "CLAN" => Ok(GuildFeatures::Clan),
+            "CLAN_DISCOVERY_DISABLED" => Ok(GuildFeatures::ClanDiscoveryDisabled),
+            "CLAN_PILOT_GENSHIN" => Ok(GuildFeatures::ClanPilotGenshin),
+            "CLAN_PILOT_VALORANT" => Ok(GuildFeatures::ClanPilotValorant),
+            "CLAN_PREPILOT_GENSHIN" => Ok(GuildFeatures::ClanPrePilotGenshin),
+            "CLAN_PREPILOT_VALORANT" => Ok(GuildFeatures::ClanPrePilotValorant),
+            "CLAN_SAFETY_REVIEW_DISABLED" => Ok(GuildFeatures::ClanSafetyReviewDisabled),
             "CLYDE_ENABLED" => Ok(GuildFeatures::ClydeEnabled),
             "CLYDE_EXPERIMENT_ENABLED" => Ok(GuildFeatures::ClydeExperimentEnabled),
             "CLYDE_DISABLED" => Ok(GuildFeatures::ClydeDisabled),
@@ -263,6 +289,10 @@ impl FromStr for GuildFeatures {
             "DISCOVERABLE_DISABLED" => Ok(GuildFeatures::DiscoverableDisabled),
             "DISCOVERABLE" => Ok(GuildFeatures::Discoverable),
             "ENABLED_DISCOVERABLE_BEFORE" => Ok(GuildFeatures::EnabledDiscoverableBefore),
+            "ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY" => {
+                Ok(GuildFeatures::EnabledModerationExperienceForNonCommunity)
+            }
+            "FEATURABLE" => Ok(GuildFeatures::Featurable),
             "EXPOSED_TO_ACTIVITIES_WTP_EXPERIMENT" => {
                 Ok(GuildFeatures::ExposedToActivitiesWTPExperiment)
             }
@@ -314,6 +344,7 @@ impl FromStr for GuildFeatures {
             "PARTNERED" => Ok(GuildFeatures::Partnered),
             "PREMIUM_TIER_3_OVERRIDE" => Ok(GuildFeatures::PremiumTier3Override),
             "PREVIEW_ENABLED" => Ok(GuildFeatures::PreviewEnabled),
+            "PRIVATE_THREADS" => Ok(GuildFeatures::PrivateThreads),
             "RAID_ALERTS_DISABLED" => Ok(GuildFeatures::RaidAlertsDisabled),
             "RELAY_ENABLED" => Ok(GuildFeatures::RelayEnabled),
             "RESTRICT_SPAM_RISK_GUILD" => Ok(GuildFeatures::RestrictSpamRiskGuild),
@@ -355,6 +386,8 @@ impl FromStr for GuildFeatures {
             "CROSS_CHANNEL_REPLIES" => Ok(GuildFeatures::CrossChannelReplies),
             "IRC_LIKE_CATEGORY_NAMES" => Ok(GuildFeatures::IrcLikeCategoryNames),
             "INVITES_CLOSED" => Ok(GuildFeatures::InvitesClosed),
+            "THREE_DAY_THREAD_ARCHIVE" => Ok(GuildFeatures::ThreeDayThreadArchive),
+            "SEVEN_DAY_THREAD_ARCHIVE" => Ok(GuildFeatures::SevenDayThreadArchive),
             _ => Err(Error::Guild(GuildError::InvalidGuildFeature)),
         }
     }
@@ -372,6 +405,7 @@ impl GuildFeatures {
             GuildFeatures::ActivitiesAlpha => "ACTIVITIES_ALPHA",
             GuildFeatures::ActivitiesEmployee => "ACTIVITIES_EMPLOYEE",
             GuildFeatures::ActivitiesInternalDev => "ACTIVITIES_INTERNAL_DEV",
+            GuildFeatures::ActivityFeedDisabledByUser => "ACTIVITY_FEED_DISABLED_BY_USER",
             GuildFeatures::AnimatedBanner => "ANIMATED_BANNER",
             GuildFeatures::AnimatedIcon => "ANIMATED_ICON",
             GuildFeatures::ApplicationCommandPermissionsV2 => "APPLICATION_COMMAND_PERMISSIONS_V2",
@@ -397,6 +431,14 @@ impl GuildFeatures {
             GuildFeatures::ChannelEmojisGenerated => "CHANNEL_EMOJIS_GENERATED",
             GuildFeatures::ChannelHighlights => "CHANNEL_HIGHLIGHTS",
             GuildFeatures::ChannelHighlightsDisabled => "CHANNEL_HIGHLIGHTS_DISABLED",
+            GuildFeatures::ChannelIconEmojisGenerated => "CHANNEL_ICON_EMOJIS_GENERATED",
+            GuildFeatures::Clan => "CLAN",
+            GuildFeatures::ClanDiscoveryDisabled => "CLAN_DISCOVERY_DISABLED",
+            GuildFeatures::ClanPilotGenshin => "CLAN_PILOT_GENSHIN",
+            GuildFeatures::ClanPilotValorant => "CLAN_PILOT_VALORANT",
+            GuildFeatures::ClanPrePilotGenshin => "CLAN_PREPILOT_GENSHIN",
+            GuildFeatures::ClanPrePilotValorant => "CLAN_PREPILOT_VALORANT",
+            GuildFeatures::ClanSafetyReviewDisabled => "CLAN_SAFETY_REVIEW_DISABLED",
             GuildFeatures::ClydeEnabled => "CLYDE_ENABLED",
             GuildFeatures::ClydeExperimentEnabled => "CLYDE_EXPERIMENT_ENABLED",
             GuildFeatures::ClydeDisabled => "CLYDE_DISABLED",
@@ -418,9 +460,13 @@ impl GuildFeatures {
             GuildFeatures::DiscoverableDisabled => "DISCOVERABLE_DISABLED",
             GuildFeatures::Discoverable => "DISCOVERABLE",
             GuildFeatures::EnabledDiscoverableBefore => "ENABLED_DISCOVERABLE_BEFORE",
+            GuildFeatures::EnabledModerationExperienceForNonCommunity => {
+                "ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY"
+            }
             GuildFeatures::ExposedToActivitiesWTPExperiment => {
                 "EXPOSED_TO_ACTIVITIES_WTP_EXPERIMENT"
             }
+            GuildFeatures::Featurable => "FEATURABLE",
             GuildFeatures::GuestsEnabled => "GUESTS_ENABLED",
             GuildFeatures::GuildAutomodDefaultList => "GUILD_AUTOMOD_DEFAULT_LIST",
             GuildFeatures::GuildCommunicationDisabledGuilds => {
@@ -469,6 +515,7 @@ impl GuildFeatures {
             GuildFeatures::Partnered => "PARTNERED",
             GuildFeatures::PremiumTier3Override => "PREMIUM_TIER_3_OVERRIDE",
             GuildFeatures::PreviewEnabled => "PREVIEW_ENABLED",
+            GuildFeatures::PrivateThreads => "PRIVATE_THREADS",
             GuildFeatures::RaidAlertsDisabled => "RAID_ALERTS_DISABLED",
             GuildFeatures::RelayEnabled => "RELAY_ENABLED",
             GuildFeatures::RestrictSpamRiskGuild => "RESTRICT_SPAM_RISK_GUILD",
@@ -510,6 +557,8 @@ impl GuildFeatures {
             GuildFeatures::CrossChannelReplies => "CROSS_CHANNEL_REPLIES",
             GuildFeatures::IrcLikeCategoryNames => "IRC_LIKE_CATEGORY_NAMES",
             GuildFeatures::InvitesClosed => "INVITES_CLOSED",
+            GuildFeatures::ThreeDayThreadArchive => "THREE_DAY_THREAD_ARCHIVE",
+            GuildFeatures::SevenDayThreadArchive => "SEVEN_DAY_THREAD_ARCHIVE",
         }
     }
 }

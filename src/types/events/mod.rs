@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use serde::{Deserialize, Serialize};
 
@@ -129,7 +129,7 @@ impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
 /// An [`UpdateMessage<T>`] represents a received Gateway Message which contains updated
 /// information for an [`Updateable`] of Type T.
 /// # Example:
-/// ```rs
+/// ```ignore
 /// impl UpdateMessage<Channel> for ChannelUpdate {
 ///     fn update(...) {...}
 ///     fn id(...) {...}

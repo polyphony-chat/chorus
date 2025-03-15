@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 use super::{AudioCodec, VideoCodec, VoiceEncryptionMode};
 use crate::types::WebSocketEvent;
 use chorus_macros::WebSocketEvent;
@@ -34,4 +38,3 @@ pub struct SessionUpdate {
     #[serde(rename = "media_session_id")]
     pub new_media_session_id: Option<String>,
 }
-

@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 /*!
 Chorus is a Rust library which poses as an API wrapper for [Spacebar Chat](https://github.com/spacebarchat/),
@@ -20,12 +20,14 @@ instead of worrying about the underlying implementation details.
 
 To connect to a Polyphony/Spacebar compatible server, you'll need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
 
-```rs
+```rust
 use chorus::instance::Instance;
 
 #[tokio::main]
 async fn main() {
-    let instance = Instance::new("https://example.com")
+    let url = "https://example.com";
+    # let url = "http://localhost:3001";
+    let instance = Instance::new(url, None)
         .await
         .expect("Failed to connect to the Spacebar server");
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
@@ -41,8 +43,12 @@ This Instance can now be used to log in, register and from there on, interact wi
 Logging in correctly provides you with an instance of `ChorusUser`, with which you can interact with the server and
 manipulate the account. Assuming you already have an account on the server, you can log in like this:
 
-```rs
+```no_run
+# tokio_test::block_on(async {
 use chorus::types::LoginSchema;
+# mod tests::common;
+# let mut bundle = tests::common::setup().await;
+# let instance = bundle.instance;
 // Assume, you already have an account created on this instance. Registering an account works
 // the same way, but you'd use the Register-specific Structs and methods instead.
 let login_schema = LoginSchema {
@@ -58,6 +64,8 @@ let user = instance
     .expect("An error occurred during the login process");
 dbg!(user.belongs_to);
 dbg!(&user.object.read().unwrap().username);
+# tests::common::teardown(bundle).await;
+# })
 ```
 
 ## Supported Platforms
@@ -88,11 +96,11 @@ We recommend checking out the "examples" directory, as well as the documentation
 
 ## MSRV (Minimum Supported Rust Version)
 
-Rust **1.70.0**. This number might change at any point while Chorus is not yet at version 1.0.0.
+Rust **1.71.1**. This number might change at any point while Chorus is not yet at version 1.0.0.
 
 ## Development Setup
 
-Make sure that you have at least Rust 1.70.0 installed. You can check your Rust version by running `cargo --version`
+Make sure that you have at least Rust 1.71.1 installed. You can check your Rust version by running `cargo --version`
 in your terminal. To compile for `wasm32-unknown-unknown`, you need to install the `wasm32-unknown-unknown` target.
 You can do this by running `rustup target add wasm32-unknown-unknown`.
 
@@ -223,8 +231,9 @@ impl UrlBundle {
     /// If no protocol is given, HTTP (not HTTPS) is assumed.
     ///
     /// # Examples:
-    /// ```rs
-    /// let url = parse_url("localhost:3000");
+    /// ```rust
+    /// # use chorus::UrlBundle;
+    /// let url = UrlBundle::parse_url("localhost:3000");
     /// ```
     /// `-> Outputs "http://localhost:3000".`
     pub fn parse_url(url: &str) -> String {
@@ -268,8 +277,9 @@ impl UrlBundle {
             .build()?;
         let response_wellknown = client.execute(request_wellknown).await?;
         if response_wellknown.status().is_success() {
-            let body = response_wellknown.json::<WellKnownResponse>().await?.api;
-            UrlBundle::from_api_url(&body).await
+            let api_url = response_wellknown.json::<WellKnownResponse>().await?.api;
+
+            UrlBundle::from_api_url(&format!("{}/policies/instance/domains", api_url)).await
         } else {
             if let Ok(response_slash_api) =
                 UrlBundle::from_api_url(&format!("{}/api/policies/instance/domains", parsed)).await

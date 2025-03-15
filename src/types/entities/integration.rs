@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ use crate::types::{
     utils::Snowflake,
     Shared,
 };
-use crate::{UInt16, UInt8};
+use crate::UInt16;
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -82,10 +82,8 @@ pub enum IntegrationType {
 /// See <https://docs.discord.sex/resources/integration#integration-expire-behavior>
 pub enum IntegrationExpireBehaviour {
     #[default]
-	 /// Remove the subscriber role from the user
+    /// Remove the subscriber role from the user
     RemoveRole = 0,
-	 /// Kick the user from the guild
-	 Kick = 1,
+    /// Kick the user from the guild
+    Kick = 1,
 }
-
-

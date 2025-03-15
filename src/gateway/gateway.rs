@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use std::time::Duration;
 
@@ -118,7 +118,10 @@ impl Gateway {
             serde_json::from_str(&message.0).unwrap();
 
         if gateway_payload.op_code != (Opcode::Hello as u8) {
-			   warn!("GW: Received a non-hello opcode ({}) on gateway init", gateway_payload.op_code);
+            warn!(
+                "GW: Received a non-hello opcode ({}) on gateway init",
+                gateway_payload.op_code
+            );
             return Err(GatewayError::NonHelloOnInitiate {
                 opcode: gateway_payload.op_code,
             });
@@ -357,7 +360,7 @@ impl Gateway {
             return;
         }
 
-		  let op_code = op_code_res.unwrap();
+        let op_code = op_code_res.unwrap();
 
         match op_code {
             // An event was dispatched, we need to look at the gateway event name t
@@ -413,7 +416,6 @@ impl Gateway {
                                     }
                                 }
                             },)*
-                            "RESUMED" => (),
                             "SESSIONS_REPLACE" => {
                                 let json = gateway_payload.event_data.unwrap().get();
                                 let result: Result<Vec<types::Session>, serde_json::Error> = serde_json::from_str(json);
@@ -505,6 +507,7 @@ impl Gateway {
                     "RECENT_MENTION_DELETE" => message.recent_mention_delete,
                     "MESSAGE_ACK" => message.ack,
                     "PRESENCE_UPDATE" => user.presence_update, // TODO
+                          "RESUMED" => session.resumed,
                     "RELATIONSHIP_ADD" => relationship.add,
                     "RELATIONSHIP_REMOVE" => relationship.remove,
                     "STAGE_INSTANCE_CREATE" => stage_instance.create,
