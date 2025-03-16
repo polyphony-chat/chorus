@@ -3,7 +3,11 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 //! Contains all the errors that can be returned by the library.
+use core::fmt;
+
 use custom_error::custom_error;
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::types::{CloseCode, MfaRequiredSchema, VoiceCloseCode, WebSocketEvent};
 use chorus_macros::WebSocketEvent;
@@ -23,12 +27,13 @@ custom_error! {
     NoResponse = "Did not receive a response from the Server.",
     /// Reqwest returned an Error instead of a Response object.
     RequestFailed{url:String, error: String} = "An error occurred while trying to GET from {url}: {error}",
-    /// Response received, however, it was not of the successful responses type. Used when no other, special case applies.
-    ReceivedErrorCode{error_code: u16, error: String} = "Received the following error code while requesting from the route: {error_code}",
+    /// Response received as a JSON error type. Used when no other special case applies.
+    ///
+    /// The response text is also provided, since some routes add additional data in the error
+    /// in the error struct, which would be otherwise lost.
+    ReceivedError{error: ApiError, response_text: String} = "Received the following error: {error}",
     /// Used when there is likely something wrong with the instance, the request was directed to.
     CantGetInformation{error:String} = "Something seems to be wrong with the instance. Cannot get information about the instance: {error}",
-    /// The requests form body was malformed/invalid.
-    InvalidFormBody{error_type: String, error:String} = "The server responded with: {error_type}: {error}",
     /// The request has not been processed by the server due to a relevant rate limit bucket being exhausted.
     RateLimited{bucket:String} = "Ratelimited on Bucket {bucket}",
     /// The multipart form could not be created.
@@ -40,19 +45,19 @@ custom_error! {
     /// No permission
     NoPermission = "You do not have the permissions needed to perform this action.",
     /// Resource not found
-    NotFound{error: String} = "The provided resource hasn't been found: {error}",
+    NotFound{error: String} = "Received Not Found error: {error}",
     /// Used when you, for example, try to change your spacebar account password without providing your old password for verification.
     PasswordRequired = "You need to provide your current password to authenticate for this action.",
     /// Malformed or unexpected response.
-    InvalidResponse{error: String} = "The response is malformed and cannot be processed. Error: {error}",
+    InvalidResponse{error: String, http_status: reqwest::StatusCode} = "The response is malformed and cannot be processed. Error: {error} (status {http_status})",
     /// Invalid, insufficient or too many arguments provided.
     InvalidArguments{error: String} = "Invalid arguments were provided. Error: {error}",
     /// The request requires MFA verification.
-     ///
-     /// This error type contains an [crate::types::MfaChallenge], which can be completed
-     /// with [crate::instance::ChorusUser::complete_mfa_challenge].
-     ///
-     /// After verifying, the same request can be retried.
+    ///
+    /// This error type contains an [crate::types::MfaChallenge], which can be completed
+    /// with [crate::instance::ChorusUser::complete_mfa_challenge].
+    ///
+    /// After verifying, the same request can be retried.
     MfaRequired {error: MfaRequiredSchema} = "Mfa verification is required to perform this action",
     /// The user's account is suspended
     SuspendUser { token: String }  = "Your account has been suspended"
@@ -68,6 +73,94 @@ impl From<reqwest::Error> for ChorusError {
             error: value.to_string(),
         }
     }
+}
+
+#[derive(Clone, Hash, Debug, PartialEq, Eq, Error)]
+/// An error received when an API request fails.
+pub struct ApiError {
+    /// More specific error data with a unique code and message
+    ///
+    /// See <https://docs.discord.sex/topics/opcodes-and-status-codes#json>
+    pub json_error: JsonError,
+
+    /// The https response status
+    pub http_status: http::StatusCode,
+}
+
+impl fmt::Display for ApiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(message) = &self.json_error.message {
+            return write!(
+                f,
+                "{} (code {}, status {})",
+                message, self.json_error.code, self.http_status
+            );
+        }
+
+        write!(
+            f,
+            "Unknown error (code {}, status {})",
+            self.json_error.code, self.http_status
+        )
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize, Hash, Debug, PartialEq, Eq, Error)]
+/// Data about the specific error encountered, returned as JSON by the API.
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#json>
+pub struct JsonError {
+    /// A unique code for this type of error.
+    ///
+    /// For a list of some known codes, see <https://gist.github.com/Dziurwa14/de2498e5ee28d2089f095aa037957cbb>
+    pub code: u32,
+
+    /// A human-friendly error message related to the error code
+    #[serde(default)]
+    pub message: Option<String>,
+
+    /// See <https://docs.discord.sex/reference#error-messages>
+    ///
+    /// A nested JSON object detailing where the error is, ending in an [JsonErrorKey] object.
+    pub errors: Option<serde_json::Value>,
+}
+
+impl fmt::Display for JsonError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(message) = &self.message {
+            return write!(f, "{} (code {})", message, self.code);
+        }
+
+        write!(f, "Unknown error (code {})", self.code)
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize, Hash, Debug, PartialEq, Eq, Ord, PartialOrd)]
+/// A JSON key mirroring one in the request schema, with detailed error keys ([JsonKeyError])
+///
+/// See [JsonError].errors
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#json>
+pub struct JsonErrorKey {
+    #[serde(rename = "_errors")]
+    pub errors: Vec<JsonErrorKeyError>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Hash, Debug, PartialEq, Eq, Ord, PartialOrd)]
+/// A more specific error given for a JSON schema key.
+///
+/// See [JsonErrorKey]
+///
+/// # Reference
+/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#json>
+pub struct JsonErrorKeyError {
+    /// An UPPER_SNAKE_CASE code for the error
+    pub code: String,
+
+    /// A human-friendly error message related to the code
+    pub message: String,
 }
 
 custom_error! {

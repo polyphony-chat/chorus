@@ -56,7 +56,7 @@ impl ChorusUser {
         // even though discord.sex mentions it as unauthenticated
 
         chorus_request
-            .deserialize_response::<AuthorizeConnectionReturn>(self)
+            .send_and_deserialize_response::<AuthorizeConnectionReturn>(self)
             .await
             .map(|response| response.url)
     }
@@ -93,7 +93,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Creates a new contact sync connection for the current user.
@@ -123,7 +123,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Creates a new domain connection for the current user.
@@ -192,34 +192,38 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        let result = chorus_request
-            .deserialize_response::<Connection>(self)
-            .await;
+        let result = chorus_request.send_request(self).await;
 
-        if let Ok(connection) = result {
-            return Ok(CreateDomainConnectionReturn::Ok(connection));
-        }
+        match result {
+            Ok(response) => ChorusRequest::deserialize_response(response)
+                .await
+                .map(|c| CreateDomainConnectionReturn::Ok(c)),
+            Err(e) => {
+                match e {
+                    ChorusError::ReceivedError {
+                        ref error,
+                        ref response_text,
+                    } => {
+                        // TODO: maybe there is a JSON code for this?
+                        if error.http_status.as_u16() == 400 {
+                            let try_deserialize: Result<
+                                CreateDomainConnectionError,
+                                serde_json::Error,
+                            > = serde_json::from_str(&response_text);
 
-        let error = result.err().unwrap();
+                            if let Ok(deserialized) = try_deserialize {
+                                return Ok(CreateDomainConnectionReturn::ProofNeeded(
+                                    deserialized.proof,
+                                ));
+                            }
+                        }
 
-        if let ChorusError::ReceivedErrorCode {
-            error_code,
-            error: ref error_string,
-        } = error
-        {
-            if error_code == 400 {
-                let try_deserialize: Result<CreateDomainConnectionError, serde_json::Error> =
-                    serde_json::from_str(error_string);
-
-                if let Ok(deserialized_error) = try_deserialize {
-                    return Ok(CreateDomainConnectionReturn::ProofNeeded(
-                        deserialized_error.proof,
-                    ));
+                        Err(e)
+                    }
+                    _ => Err(e),
                 }
             }
         }
-
-        Err(error)
     }
 
     /// Fetches the current user's [Connection]s
@@ -238,7 +242,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Refreshes a local user's [Connection].
@@ -267,7 +271,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Changes settings on a local user's [Connection].
@@ -302,7 +306,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Deletes a local user's [Connection].
@@ -331,7 +335,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Returns a new access token for the given connection.
@@ -363,7 +367,7 @@ impl ChorusUser {
         .with_headers_for(self);
 
         chorus_request
-            .deserialize_response::<GetConnectionAccessTokenReturn>(self)
+            .send_and_deserialize_response::<GetConnectionAccessTokenReturn>(self)
             .await
             .map(|res| res.access_token)
     }
@@ -391,6 +395,6 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 }

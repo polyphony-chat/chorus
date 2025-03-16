@@ -90,7 +90,9 @@ impl Guild {
             )]);
         }
 
-        let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        let response = chorus_request
+            .send_and_deserialize_response::<Guild>(user)
+            .await?;
         Ok(response)
     }
 
@@ -110,7 +112,9 @@ impl Guild {
             limit_type: LimitType::Global,
         }
         .with_headers_for(user);
-        chorus_request.deserialize_response::<Guild>(user).await
+        chorus_request
+            .send_and_deserialize_response::<Guild>(user)
+            .await
     }
 
     /// Modify a guild's settings.
@@ -146,7 +150,9 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        let response = chorus_request
+            .send_and_deserialize_response::<Guild>(user)
+            .await?;
         Ok(response)
     }
 
@@ -184,7 +190,7 @@ impl Guild {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<GuildModifyMFALevelSchema>(user)
+            .send_and_deserialize_response::<GuildModifyMFALevelSchema>(user)
             .await
             .map(|_x| ())
     }
@@ -213,7 +219,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Deletes a guild by its id.
@@ -259,7 +265,7 @@ impl Guild {
         .with_maybe_mfa(&user.mfa_token)
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Creates a new channel in a guild.
@@ -298,11 +304,15 @@ impl Guild {
         .with_headers_for(user);
 
         let result = chorus_request.send_request(user).await?;
+
+        let http_status = result.status();
+
         let stringed_response = match result.text().await {
             Ok(value) => value,
             Err(e) => {
                 return Err(ChorusError::InvalidResponse {
                     error: e.to_string(),
+                    http_status,
                 });
             }
         };
@@ -311,6 +321,7 @@ impl Guild {
             Err(e) => {
                 return Err(ChorusError::InvalidResponse {
                     error: e.to_string(),
+                    http_status,
                 });
             }
         };
@@ -340,7 +351,7 @@ impl Guild {
         .with_headers_for(user);
 
         let response = chorus_request
-            .deserialize_response::<GuildPreview>(user)
+            .send_and_deserialize_response::<GuildPreview>(user)
             .await?;
         Ok(response)
     }
@@ -371,7 +382,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns a list of guild member objects that are members of the guild.
@@ -399,7 +410,9 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Vec<GuildMember>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<GuildMember>>(user)
+            .await
     }
 
     /// Returns a list of guild member objects whose username or nickname starts with a provided string.
@@ -430,7 +443,9 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Vec<GuildMember>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<GuildMember>>(user)
+            .await
     }
 
     /// Returns [SupplementalGuildMember](crate::types::SupplementalGuildMember) objects that match a specified query.
@@ -471,9 +486,9 @@ impl Guild {
         let response = request.send_request(user).await?;
         log::trace!("Got response: {:?}", response);
 
-        let status = response.status();
+        let http_status = response.status();
 
-        match status {
+        match http_status {
             http::StatusCode::ACCEPTED | http::StatusCode::OK => {
                 let response_text = match response.text().await {
                     Ok(string) => string,
@@ -483,11 +498,12 @@ impl Guild {
                                 "Error while trying to process the HTTP response into a String: {}",
                                 e
                             ),
+                            http_status,
                         });
                     }
                 };
 
-                match status {
+                match http_status {
                     http::StatusCode::ACCEPTED => {
                         match serde_json::from_str::<SGMReturnNotIndexed>(&response_text) {
                             Ok(object) => Ok(SearchGuildMembersReturn::NotIndexed(object)),
@@ -496,6 +512,7 @@ impl Guild {
 												error: format!(
 												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
 												e, response_text),
+                                                                                                http_status
 											})
                             }
                         }
@@ -508,6 +525,7 @@ impl Guild {
 												error: format!(
 												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
 												e, response_text),
+                                                                                                http_status
 											})
                             }
                         }
@@ -515,9 +533,9 @@ impl Guild {
                     _ => unreachable!(),
                 }
             }
-            _ => Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.status().to_string(),
+            _ => Err(ChorusError::InvalidResponse {
+                error: format!("Received unexpected http status code: {}", http_status),
+                http_status,
             }),
         }
     }
@@ -548,7 +566,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns a list of ban objects for the guild.
@@ -578,7 +596,9 @@ impl Guild {
             request.request = request.request.query(&query.to_query());
         }
 
-        request.deserialize_response::<Vec<GuildBan>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<GuildBan>>(user)
+            .await
     }
 
     /// Returns a list of ban objects whose usernames or display names contains a provided string.
@@ -609,7 +629,9 @@ impl Guild {
 
         request.request = request.request.query(&query.to_query());
 
-        request.deserialize_response::<Vec<GuildBan>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<GuildBan>>(user)
+            .await
     }
 
     /// Returns a ban object for the given user.
@@ -636,7 +658,9 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<GuildBan>(user).await
+        request
+            .send_and_deserialize_response::<GuildBan>(user)
+            .await
     }
 
     /// Creates a ban for the guild - bans a user from the guild.
@@ -667,7 +691,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Creates multiple bans for the guild.
@@ -699,7 +723,7 @@ impl Guild {
         .with_maybe_mfa(&user.mfa_token)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Removes the ban for a user.
@@ -728,7 +752,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Returns the number of members that would be removed in a prune operation.
@@ -761,7 +785,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Begins a prune operation.
@@ -799,7 +823,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns the [GuildWidgetSettings] for a guild.
@@ -824,7 +848,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies the [GuildWidgetSettings] for a guild.
@@ -854,7 +878,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns the [GuildWidget] for the given guild ID.
@@ -869,45 +893,21 @@ impl Guild {
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-widget>
-    pub async fn get_widget(instance: &Instance, guild_id: Snowflake) -> ChorusResult<GuildWidget> {
+    pub async fn get_widget(
+        instance: &mut Instance,
+        guild_id: Snowflake,
+    ) -> ChorusResult<GuildWidget> {
         let url = format!("{}/guilds/{}/widget.json", instance.urls.api, guild_id,);
 
-        let client = Client::new().get(url.clone());
-
-        let response = match client.send().await {
-            Ok(result) => result,
-            Err(e) => {
-                return Err(ChorusError::RequestFailed {
-                    url,
-                    error: e.to_string(),
-                });
-            }
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url.clone()),
+            // Note: how do I know which LimitType it is? it is probably ip or global?
+            limit_type: LimitType::Ip,
         };
 
-        if !response.status().as_str().starts_with('2') {
-            return Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.text().await.unwrap(),
-            });
-        }
-
-        let response_text = match response.text().await {
-            Ok(string) => string,
-            Err(e) => {
-                return Err(ChorusError::InvalidResponse {
-                    error: format!(
-                        "Error while trying to process the HTTP response into a String: {}",
-                        e
-                    ),
-                });
-            }
-        };
-
-        match from_str::<GuildWidget>(&response_text) {
-			Ok(return_value) => Ok(return_value),
-			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into response type T: {}. JSON Response: {}",
-                        e, response_text) })
-		  }
+        chorus_request
+            .send_anonymous_and_deserialize_response(instance)
+            .await
     }
 
     /// Returns a widget image for the given guild ID.
@@ -919,13 +919,17 @@ impl Guild {
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#get-guild-widget-image>
     pub async fn get_widget_image(
-        instance: &Instance,
+        instance: &mut Instance,
         guild_id: Snowflake,
         style: Option<GuildWidgetImageStyle>,
     ) -> ChorusResult<Bytes> {
         let url = format!("{}/guilds/{}/widget.png", instance.urls.api, guild_id,);
 
-        let mut client = Client::new().get(url.clone());
+        let mut chorus_request = ChorusRequest {
+            request: Client::new().get(url.clone()),
+            // Note: how do I know which LimitType it is? it is probably ip or global?
+            limit_type: LimitType::Ip,
+        };
 
         if let Some(style_some) = style {
             match serde_json::to_string(&style_some) {
@@ -935,27 +939,18 @@ impl Guild {
                     })
                 }
                 Ok(string) => {
-                    client = client.query(&("style".to_string(), string.replace('"', "")));
+                    chorus_request.request = chorus_request
+                        .request
+                        .query(&("style".to_string(), string.replace('"', "")));
                 }
             }
         }
 
-        let response = match client.send().await {
-            Ok(result) => result,
-            Err(e) => {
-                return Err(ChorusError::RequestFailed {
-                    url,
-                    error: e.to_string(),
-                });
-            }
-        };
+        let response = chorus_request.send_anonymous_request(instance).await?;
 
-        if !response.status().as_str().starts_with('2') {
-            return Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.text().await.unwrap(),
-            });
-        }
+        let http_status = response.status();
+
+        // No need to check success / failure state, send request does that already
 
         let response_bytes = match response.bytes().await {
             Ok(string) => string,
@@ -965,6 +960,7 @@ impl Guild {
                         "Error while trying to process the HTTP response into Bytes: {}",
                         e
                     ),
+                    http_status,
                 });
             }
         };
@@ -996,7 +992,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies the guild vanity invite code for a given guild.
@@ -1033,7 +1029,7 @@ impl Guild {
         .with_maybe_mfa(&user.mfa_token)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Fetches the [GuildMemberVerification] object for a given guild if one is set.
@@ -1066,7 +1062,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies the [GuildMemberVerification] object for the guild.
@@ -1096,7 +1092,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns a list of [GuildJoinRequest]s for the guild.
@@ -1127,7 +1123,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns a specific [GuildJoinRequest].
@@ -1156,7 +1152,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns the remaining time until the current user can submit another join request for the
@@ -1183,7 +1179,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Submits a request to join a guild.
@@ -1210,7 +1206,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Resets the current user's join request for a guild.
@@ -1236,7 +1232,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Acknowledges an approved join request for the current user.
@@ -1262,7 +1258,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// If the guild has previewing disabled, deletes the current user's join request.
@@ -1293,25 +1289,12 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        let response = match request.request.send().await {
-            Ok(result) => result,
-            Err(e) => {
-                return Err(ChorusError::RequestFailed {
-                    url,
-                    error: e.to_string(),
-                });
-            }
-        };
+        let response = request.send_request(user).await?;
 
-        if !response.status().as_str().starts_with('2') {
-            return Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.text().await.unwrap(),
-            });
-        }
+        let http_status = response.status();
 
         // Note: empty response, the request was deleted
-        if response.status().as_u16() == 204 {
+        if http_status.as_u16() == 204 {
             return Ok(None);
         }
 
@@ -1324,13 +1307,14 @@ impl Guild {
                         "Error while trying to process the HTTP response into a String: {}",
                         e
                     ),
+                    http_status,
                 });
             }
         };
 
         match from_str::<GuildJoinRequest>(&response_text) {
 			Ok(return_value) => Ok(Some(return_value)),
-			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into response type T: {}. JSON Response: {}", e, response_text) })
+			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into response type T: {}. JSON Response: {}", e, response_text), http_status })
 		  }
     }
 
@@ -1367,7 +1351,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Accepts or denies a join request.
@@ -1400,7 +1384,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Accepts or denies a join request for a given user.
@@ -1433,7 +1417,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Accepts or denies all pending join requests for a guild.
@@ -1464,7 +1448,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Returns the [welcome screen](crate::types::PublicGuildWelcomeScreen) object for the guild.
@@ -1490,7 +1474,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies a guild's [welcome screen](crate::types::PublicGuildWelcomeScreen) object.
@@ -1518,7 +1502,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns the [onboarding](crate::types::GuildOnboarding) object for the guild.
@@ -1546,7 +1530,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies a guild's [onboarding](crate::types::PublicGuildWelcomeScreen) configuration.
@@ -1584,7 +1568,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     // TODO: once we have documentation on how this works, add PUT /guilds/{guild_id}/onboarding-responses
@@ -1614,7 +1598,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Joins the Discord Admin Community through the guild.
@@ -1646,7 +1630,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Joins the Wumpus Feedback Squad through the guild.
@@ -1675,7 +1659,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 }
 
@@ -1705,7 +1689,7 @@ impl Channel {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response::<Channel>(user).await
+        request.send_and_deserialize_response::<Channel>(user).await
     }
 }
 

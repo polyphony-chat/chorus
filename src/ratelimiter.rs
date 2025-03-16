@@ -6,13 +6,14 @@
 
 use std::collections::HashMap;
 
+use log::{trace, warn};
 use reqwest::{Client, RequestBuilder, Response};
 use serde::Deserialize;
 use serde_json::from_str;
 
 use crate::{
-    errors::{ChorusError, ChorusResult},
-    instance::ChorusUser,
+    errors::{ApiError, ChorusError, ChorusResult, JsonError},
+    instance::{ChorusUser, Instance},
     types::{
         types::subconfigs::limits::rates::RateLimits, Limit, LimitType, LimitsConfiguration,
         MfaRequiredSchema,
@@ -77,9 +78,69 @@ impl ChorusRequest {
                 });
             }
             log::warn!("Request failed: {:?}", result);
+
             return Err(ChorusRequest::interpret_error(result).await);
         }
         ChorusRequest::update_rate_limits(user, &self.limit_type, !result.status().is_success());
+        Ok(result)
+    }
+
+    /// Sends a [`ChorusRequest`] without a [`ChorusUser`] and handles a few possible error results.
+    ///
+    /// Note: these kinds of requests cannot properly count towards User ratelimit buckets!
+    ///
+    /// However, this method is still preferable to writing or copy pasting code, which does not
+    /// count any ratelimit
+    #[allow(clippy::await_holding_refcell_ref)]
+    pub(crate) async fn send_anonymous_request(
+        self,
+        instance: &mut Instance,
+    ) -> ChorusResult<Response> {
+        let client = instance.client.clone();
+        let result = match client.execute(self.request.build().unwrap()).await {
+            Ok(result) => {
+                log::trace!("Request successful: {:?}", result);
+                result
+            }
+            Err(error) => {
+                log::warn!("Request failed: {:?}", error);
+                return Err(ChorusError::RequestFailed {
+                    url: error.url().unwrap().to_string(),
+                    error: error.to_string(),
+                });
+            }
+        };
+        drop(client);
+        if !result.status().is_success() {
+            if result.status().as_u16() == 429 {
+                log::warn!("Rate limit hit unexpectedly (in anonymous request). Bucket: {:?}. Setting the instances' remaining global limit to 0 to have cooldown.", self.limit_type);
+                instance
+                    .limits_information
+                    .as_mut()
+                    .unwrap()
+                    .ratelimits
+                    .get_mut(&LimitType::Global)
+                    .unwrap()
+                    .remaining = 0;
+                return Err(ChorusError::RateLimited {
+                    bucket: format!("{:?}", self.limit_type),
+                });
+            }
+            log::warn!("Request failed: {:?}", result);
+
+            return Err(ChorusRequest::interpret_error(result).await);
+        }
+
+        // Note: these kinds of requests cannot properly count towards User ratelimit buckets!
+        //
+        // However, this method is still preferable to writing or copy pasting code, which does not
+        // count any ratelimit
+        ChorusRequest::update_anonymous_rate_limits(
+            instance,
+            &self.limit_type,
+            !result.status().is_success(),
+        );
+
         Ok(result)
     }
 
@@ -224,27 +285,82 @@ impl ChorusRequest {
         }
     }
 
+    /// Interprets an unsuccessful [reqwest::Response] type as a [ChorusError]
     async fn interpret_error(response: reqwest::Response) -> ChorusError {
-        match response.status().as_u16() {
-            401 => {
-                let response = response.text().await.unwrap();
-                match serde_json::from_str::<MfaRequiredSchema>(&response) {
-                    Ok(response) => ChorusError::MfaRequired { error: response },
-                    Err(_) => ChorusError::NoPermission,
+        let http_status = response.status();
+
+        let response_text = match response.text().await {
+            Ok(string) => string,
+            Err(e) => {
+                return ChorusError::InvalidResponse {
+                    error: format!(
+                        "Error while trying to process the HTTP response into a String: {}",
+                        e
+                    ),
+                    http_status,
                 }
             }
-            402..=403 | 407 => ChorusError::NoPermission,
-            404 => ChorusError::NotFound {
-                error: response.text().await.unwrap(),
+        };
+
+        let json_error = match serde_json::from_str::<JsonError>(&response_text) {
+            Ok(json_error) => json_error,
+            Err(e) => {
+                return ChorusError::InvalidResponse {
+                    error: format!(
+                        "Error while trying to deserialize the JSON response into a JsonError: {}. JSON Response: {}",
+                        e, response_text
+                    ),
+                    http_status
+                };
+            }
+        };
+
+        match json_error.code {
+            // MFA required code
+            60003 => match serde_json::from_str::<MfaRequiredSchema>(&response_text) {
+                Ok(response) => ChorusError::MfaRequired { error: response },
+                Err(e) => {
+                    warn!(
+                        "Received MFA required error, but could not deserialize challenge: {}.",
+                        e
+                    );
+                    trace!("JSON Response: {}", response_text);
+                    ChorusError::ReceivedError {
+                        error: ApiError {
+                            json_error,
+                            http_status,
+                        },
+                        response_text,
+                    }
+                }
             },
-            405 | 408 | 409 => ChorusError::ReceivedErrorCode { error_code: response.status().as_u16(), error: response.text().await.unwrap() },
-            411..=421 | 426 | 428 | 431 => ChorusError::InvalidArguments {
-                error: response.text().await.unwrap(),
+            // This means the code has no further information and we should look at the status
+            0 => match http_status.as_u16() {
+                401..=403 | 407 => ChorusError::NoPermission,
+                404 => ChorusError::NotFound {
+                    error: json_error
+                        .message
+                        .unwrap_or(String::from("Resource not found")),
+                },
+                429 => {
+                    panic!("Illegal state: Rate limit exception should have been caught before this function call.")
+                }
+                451 => ChorusError::NoResponse,
+                _ => ChorusError::ReceivedError {
+                    error: ApiError {
+                        json_error,
+                        http_status,
+                    },
+                    response_text,
+                },
             },
-            429 => panic!("Illegal state: Rate limit exception should have been caught before this function call."),
-            451 => ChorusError::NoResponse,
-            500..=599 => ChorusError::ReceivedErrorCode { error_code: response.status().as_u16(), error: response.text().await.unwrap() },
-            _ => ChorusError::ReceivedErrorCode { error_code: response.status().as_u16(), error: response.text().await.unwrap()},
+            _ => ChorusError::ReceivedError {
+                error: ApiError {
+                    json_error,
+                    http_status,
+                },
+                response_text,
+            },
         }
     }
 
@@ -312,6 +428,77 @@ impl ChorusRequest {
         }
     }
 
+    /// Tries to update the rate limits of an instance from an anonymous request.
+    ///
+    /// Note that if the request counts towards a User bucket, we cannot properly count it!
+    ///
+    /// The following steps are performed, just as in [Self::update_rate_limits]
+    /// 1.  If the current unix timestamp is greater than the reset timestamp, the reset timestamp is
+    ///     set to the current unix timestamp + the rate limit window. The remaining rate limit is
+    ///     reset to the rate limit limit.
+    /// 2. The remaining rate limit is decreased by 1.
+    fn update_anonymous_rate_limits(
+        instance: &mut Instance,
+        limit_type: &LimitType,
+        response_was_err: bool,
+    ) {
+        if instance.limits_information.is_none() {
+            return;
+        }
+        let instance_dictated_limits = [
+            &LimitType::AuthLogin,
+            &LimitType::AuthRegister,
+            &LimitType::Global,
+            &LimitType::Ip,
+        ];
+        // modify this to store something to look up the value with later, instead of storing a reference to the actual data itself.
+        let mut relevant_limits = Vec::new();
+        if instance_dictated_limits.contains(&limit_type) {
+            relevant_limits.push((LimitOrigin::Instance, *limit_type));
+        } else {
+            relevant_limits.push((LimitOrigin::User, *limit_type));
+        }
+        relevant_limits.push((LimitOrigin::Instance, LimitType::Global));
+        relevant_limits.push((LimitOrigin::Instance, LimitType::Ip));
+        if response_was_err {
+            relevant_limits.push((LimitOrigin::User, LimitType::Error));
+        }
+        let time: u64 = chrono::Utc::now().timestamp() as u64;
+        for relevant_limit in relevant_limits.iter() {
+            let limit = match relevant_limit.0 {
+                LimitOrigin::Instance => {
+                    log::trace!(
+                        "Updating instance rate limit. Bucket: {:?}",
+                        relevant_limit.1
+                    );
+                    instance
+                        .limits_information
+                        .as_mut()
+                        .unwrap()
+                        .ratelimits
+                        .get_mut(&relevant_limit.1)
+                        .unwrap()
+                }
+                LimitOrigin::User => {
+                    warn!(
+                        "Anonymous request was part of User bucket ({:?})!",
+                        relevant_limit.1
+                    );
+                    warn!("This means our ratelimit count is officially out of sync.");
+                    return;
+                }
+            };
+            if time > limit.reset {
+                // Spacebar does not yet return rate limit information in its response headers. We
+                // therefore have to guess the next rate limit window. This is not ideal. Oh well!
+                log::trace!("Rate limit replenished. Bucket: {:?}", limit.bucket);
+                limit.reset += limit.window;
+                limit.remaining = limit.limit;
+            }
+            limit.remaining -= 1;
+        }
+    }
+
     /// Gets the ratelimit configuration.
     ///
     /// # Notes
@@ -333,6 +520,7 @@ impl ChorusRequest {
                 })
             }
         };
+
         let limits_configuration = match request.status().as_u16() {
             200 => from_str::<LimitsConfiguration>(&request.text().await.unwrap()).unwrap(),
             429 => {
@@ -341,13 +529,8 @@ impl ChorusRequest {
                 })
             }
             404 => return Err(ChorusError::NotFound { error: "Route \"/policies/instance/limits/\" not found. Are you perhaps trying to request the Limits configuration from an unsupported server?".to_string() }),
-            400..=u16::MAX => {
-                return Err(ChorusError::ReceivedErrorCode { error_code: request.status().as_u16(), error: request.text().await.unwrap() })
-            }
             _ => {
-                return Err(ChorusError::InvalidResponse {
-                    error: request.text().await.unwrap(),
-                })
+                return Err(ChorusRequest::interpret_error(request).await)
             }
         };
 
@@ -446,21 +629,73 @@ impl ChorusRequest {
 
     /// Sends a [`ChorusRequest`] and returns a [`ChorusResult`] that contains nothing if the request
     /// was successful, or a [`ChorusError`] if the request failed.
-    pub(crate) async fn handle_request_as_result(self, user: &mut ChorusUser) -> ChorusResult<()> {
+    pub(crate) async fn send_and_handle_as_result(self, user: &mut ChorusUser) -> ChorusResult<()> {
         match self.send_request(user).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
     }
 
-    /// Sends a [`ChorusRequest`] and returns a [`ChorusResult`] that contains a [`T`] if the request
+	 #[allow(unused)]
+    /// Sends an anonymous [`ChorusRequest`] and returns a [`ChorusResult`] that contains nothing if the request
     /// was successful, or a [`ChorusError`] if the request failed.
-    pub(crate) async fn deserialize_response<T: for<'a> Deserialize<'a>>(
+    ///
+    /// Note: these kinds of requests cannot properly count towards User ratelimit buckets!
+    ///
+    /// However, this method is still preferable to writing or copy pasting code, which does not
+    /// count any ratelimit
+    pub(crate) async fn send_anonymous_and_handle_as_result(
+        self,
+        instance: &mut Instance,
+    ) -> ChorusResult<()> {
+        match self.send_anonymous_request(instance).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Sends a [`ChorusRequest`] and calls [Self::deserialize_response].
+    ///
+    /// Returns a [`ChorusResult`] that contains a [`T`] if the request
+    /// was successful, or a [`ChorusError`] if the request failed.
+    pub(crate) async fn send_and_deserialize_response<T: for<'a> Deserialize<'a>>(
         self,
         user: &mut ChorusUser,
     ) -> ChorusResult<T> {
         let response = self.send_request(user).await?;
         log::trace!("Got response: {:?}", response);
+
+        Self::deserialize_response(response).await
+    }
+
+    /// Sends an anonymous [`ChorusRequest`] and calls [Self::deserialize_response].
+    ///
+    /// Note: these kinds of requests cannot properly count towards User ratelimit buckets!
+    ///
+    /// However, this method is still preferable to writing or copy pasting code, which does not
+    /// count any ratelimit
+    ///
+    /// Returns a [`ChorusResult`] that contains a [`T`] if the request
+    /// was successful, or a [`ChorusError`] if the request failed.
+    pub(crate) async fn send_anonymous_and_deserialize_response<T: for<'a> Deserialize<'a>>(
+        self,
+        instance: &mut Instance,
+    ) -> ChorusResult<T> {
+        let response = self.send_anonymous_request(instance).await?;
+        log::trace!("Got response: {:?}", response);
+
+        Self::deserialize_response(response).await
+    }
+
+    /// Processes a [reqwest::Result] (acquired by [Self::send_request] or [Self::send_anonymous_request]), expecting a [`T`] in JSON
+    ///
+    /// Returns a [`ChorusResult`] that contains a [`T`] if the request
+    /// was successful, or a [`ChorusError`] if the request failed.
+    pub(crate) async fn deserialize_response<T: for<'a> Deserialize<'a>>(
+        response: reqwest::Response,
+    ) -> ChorusResult<T> {
+        let http_status = response.status();
+
         let response_text = match response.text().await {
             Ok(string) => string,
             Err(e) => {
@@ -469,9 +704,11 @@ impl ChorusRequest {
                         "Error while trying to process the HTTP response into a String: {}",
                         e
                     ),
+                    http_status,
                 });
             }
         };
+
         let object = match from_str::<T>(&response_text) {
             Ok(object) => object,
             Err(e) => {
@@ -480,6 +717,7 @@ impl ChorusRequest {
                         "Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
                         e, response_text
                     ),
+						  http_status
                 })
             }
         };
