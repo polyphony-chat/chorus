@@ -44,7 +44,7 @@ impl Instance {
         let url = format!("{}/version", self.urls.api.clone());
 
         let chorus_request = ChorusRequest {
-            request: Client::new().post(url.clone()),
+            request: Client::new().get(url.clone()),
             limit_type: LimitType::Global,
         };
 
