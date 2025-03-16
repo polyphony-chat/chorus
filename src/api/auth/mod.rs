@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use std::sync::{Arc, RwLock};
 
@@ -25,7 +25,7 @@ impl Instance {
     pub async fn login_with_token(&mut self, token: &str) -> ChorusResult<ChorusUser> {
         let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
 
-		  user.update_with_login_data(token.to_string(), None).await?;
+        user.update_with_login_data(token.to_string(), None).await?;
 
         Ok(user)
     }

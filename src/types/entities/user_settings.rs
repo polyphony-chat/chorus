@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use chrono::{serde::ts_milliseconds_option, Utc};
 use serde::{Deserialize, Serialize};
@@ -21,6 +21,7 @@ pub enum UserStatus {
     Dnd,
     Idle,
     Invisible,
+    Unknown,
 }
 
 impl std::fmt::Display for UserStatus {
@@ -56,7 +57,7 @@ pub struct UserSettings {
     pub disable_games_tab: bool,
     pub enable_tts_command: bool,
     pub explicit_content_filter: UInt8,
-    pub friend_source_flags: FriendSourceFlags,
+    pub friend_source_flags: Option<FriendSourceFlags>,
     pub gateway_connected: Option<bool>,
     pub gif_auto_play: bool,
     pub guild_folders: Vec<GuildFolder>,
@@ -126,16 +127,21 @@ impl Default for UserSettings {
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct CustomStatus {
+    #[serde(default)]
     pub emoji_id: Option<String>,
+
+    #[serde(default)]
     pub emoji_name: Option<String>,
+
     #[serde(with = "ts_milliseconds_option")]
+    #[serde(default)]
     pub expires_at: Option<chrono::DateTime<Utc>>,
+
+    #[serde(default)]
     pub text: Option<String>,
 }
 
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Copy, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 pub struct FriendSourceFlags {
     pub all: bool,

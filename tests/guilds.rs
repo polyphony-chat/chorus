@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use chorus::types::{
     CreateChannelInviteSchema, Guild, GuildBanCreateSchema, GuildCreateSchema, GuildModifySchema,
@@ -19,12 +19,7 @@ async fn guild_creation_deletion() {
 
     let guild_create_schema = GuildCreateSchema {
         name: Some("test".to_string()),
-        region: None,
-        icon: None,
-        channels: None,
-        guild_template_code: None,
-        system_channel_id: None,
-        rules_channel_id: None,
+        ..Default::default()
     };
 
     let guild = Guild::create(&mut bundle.user, guild_create_schema)
@@ -82,7 +77,7 @@ async fn modify_guild() {
         ..Default::default()
     };
     let guild_id = bundle.guild.read().unwrap().id;
-    let result = Guild::modify(guild_id, schema, &mut bundle.user)
+    let result = Guild::modify(guild_id, schema, None, &mut bundle.user)
         .await
         .unwrap();
     assert_eq!(result.name.unwrap(), "Mycoolguild".to_string());

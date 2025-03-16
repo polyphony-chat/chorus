@@ -45,14 +45,14 @@ To get started with Chorus, import it into your project by adding the following 
 
 ```toml
 [dependencies]
-chorus = "0.18.0"
+chorus = "0.19.0"
 ```
 
 ### Establishing a Connection
 
 To connect to a Polyphony/Spacebar compatible server, you'll need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
 
-```rs
+```rust
 use chorus::instance::Instance;
 
 #[tokio::main]
@@ -73,7 +73,7 @@ This Instance can now be used to log in, register and from there on, interact wi
 Logging in correctly provides you with an instance of `ChorusUser`, with which you can interact with the server and
 manipulate the account. Assuming you already have an account on the server, you can log in like this:
 
-```rs
+```rust
 use chorus::types::LoginSchema;
 // Assume, you already have an account created on this instance. Registering an account works
 // the same way, but you'd use the Register-specific Structs and methods instead.
@@ -120,11 +120,11 @@ We recommend checking out the "examples" directory, as well as the documentation
 
 ## MSRV (Minimum Supported Rust Version)
 
-Rust **1.70.0**. This number might change at any point while Chorus is not yet at version 1.0.0.
+Rust **1.71.1**. This number might change at any point while Chorus is not yet at version 1.0.0.
 
 ## Development Setup
 
-Make sure that you have at least Rust 1.70.0 installed. You can check your Rust version by running `cargo --version`
+Make sure that you have at least Rust 1.71.1 installed. You can check your Rust version by running `cargo --version`
 in your terminal. To compile for `wasm32-unknown-unknown`, you need to install the `wasm32-unknown-unknown` target.
 You can do this by running `rustup target add wasm32-unknown-unknown`.
 

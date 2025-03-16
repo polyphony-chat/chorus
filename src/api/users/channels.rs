@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use reqwest::Client;
 use serde_json::to_string;
@@ -23,12 +23,10 @@ impl ChorusUser {
             self.belongs_to.read().unwrap().urls.api
         );
         ChorusRequest {
-            request: Client::new()
-                .get(url)
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json"),
+            request: Client::new().get(url),
             limit_type: LimitType::Global,
         }
+        .with_headers_for(self)
         .deserialize_response::<Vec<Channel>>(self)
         .await
     }
@@ -49,13 +47,10 @@ impl ChorusUser {
             self.belongs_to.read().unwrap().urls.api
         );
         ChorusRequest {
-            request: Client::new()
-                .post(url)
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json")
-                .body(to_string(&create_private_channel_schema).unwrap()),
+            request: Client::new().post(url).json(&create_private_channel_schema),
             limit_type: LimitType::Global,
         }
+        .with_headers_for(self)
         .deserialize_response::<Channel>(self)
         .await
     }

@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -19,7 +19,7 @@ use crate::types::{
 };
 use crate::UInt64;
 
-use super::{option_arc_rwlock_ptr_eq, vec_arc_rwlock_ptr_eq, PublicUser};
+use super::{option_arc_rwlock_ptr_eq, vec_arc_rwlock_ptr_eq, PublicUser, UserStatus};
 
 #[cfg(feature = "client")]
 use crate::gateway::Updateable;
@@ -257,6 +257,101 @@ pub struct GuildCreateResponse {
     pub id: Snowflake,
 }
 
+/// An embeddable widget for a guild.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-object>
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct GuildWidget {
+    /// The ID of the guild the widget is for
+    pub id: Snowflake,
+
+    /// The name of the guild the widget is for
+    pub name: String,
+
+    /// The invite URL for the guild's widget channel, if any
+    pub instant_invite: Option<String>,
+
+    /// Approximate count of non-offline members in the guild
+    pub presence_count: usize,
+
+    /// The public voice and stage channels in the guild
+    pub channels: Vec<GuildWidgetChannel>,
+
+    /// The non-offline guild members (max 100)
+    pub members: Vec<GuildWidgetMember>,
+}
+
+/// A channel, as provided in [GuildWidget]
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-channel-structure>
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct GuildWidgetChannel {
+    /// The ID of the channel
+    pub id: Snowflake,
+
+    /// The name of the channel (1 - 100 characters)
+    pub name: String,
+
+    /// The sorting position of the channel
+    pub position: i32,
+}
+
+/// A guild member, as provided in [GuildWidget]
+///
+/// Due to privacy concerns, `id`, `discriminator` and `avatar` are anonymized.
+///
+/// `id` is replaced with an incrementing integer, `discriminator` is always `0000`,
+/// and `avatar` is always `null` (replaced with an encrypted `avatar_url` field).
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-member-structure>
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct GuildWidgetMember {
+    /// The incrementing ID of the member
+    pub id: Snowflake,
+
+    /// The display name or censored username of the member
+    pub username: String,
+
+    pub avatar_url: String,
+
+    /// The status of the user
+    pub status: UserStatus,
+
+    /// The primary activity the member is participating in
+    pub activity: Option<GuildWidgetMemberActivity>,
+
+    /// The ID of the voice or stage channel the member is in
+    pub channel_id: Option<Snowflake>,
+
+    /// Whether the member is server-deafened
+    pub deaf: Option<bool>,
+
+    /// Whether the member is server-muted
+    pub mute: Option<bool>,
+
+    /// Whether the member is locally deafened
+    pub self_deaf: Option<bool>,
+
+    /// Whether the member is locally muted
+    pub self_mute: Option<bool>,
+
+    /// Whether the member's permission to speak is denied
+    pub suppress: Option<bool>,
+}
+
+/// An activity, as provided in [GuildWidgetMember]
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-widget-member-activity-structure>
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct GuildWidgetMemberActivity {
+    /// The name of the activity
+    pub name: String,
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// See <https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object>
@@ -428,13 +523,23 @@ pub enum ExplicitContentFilterLevel {
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// See <https://discord-userdoccers.vercel.app/resources/guild#verification-level>
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#verification-level>
 pub enum VerificationLevel {
     #[default]
+    /// Unrestricted
     None = 0,
+
+    /// Must have a verified email
     Low = 1,
+
+    /// Must be a registered user for longer than 5 minutes
     Medium = 2,
+
+    /// Must be a member of the server for longer than 10 minutes
     High = 3,
+
+    /// Must have a verified phone number
     VeryHigh = 4,
 }
 
@@ -535,6 +640,406 @@ bitflags! {
         const SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATIONS = 1 << 4;
         const SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATIONS_REPLIES = 1 << 5;
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-object>
+pub struct GuildMemberVerification {
+    /// When the verification object was last modified
+    #[serde(default)]
+    pub version: Option<DateTime<Utc>>,
+
+    /// Questions for the applicants to answer (max 5)
+    #[serde(default)]
+    pub form_fields: Vec<GuildMemberVerificationFormField>,
+
+    /// A description of what the guild is about; max 300 characters
+    #[serde(default)]
+    pub description: Option<String>,
+
+    /// The guild this member verification is for
+    ///
+    /// This field is only included when returned by the [`Guild::get_member_verification`](crate::types::Guild::get_member_verification) endpoint with
+    /// `with_guild set` to `true`.
+    #[serde(default)]
+    pub guild: Option<GuildMemberVerificationGuild>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+/// A question in [GuildMemberVerification].
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-form-field-structure>
+pub struct GuildMemberVerificationFormField {
+    /// The type of question
+    pub field_type: GuildMemberVerificationFormFieldType,
+
+    /// The label for the form field (max 300 characters)
+    pub label: String,
+
+    /// Multiple choice answers (1-8, max 150 characters)
+    #[serde(default)]
+    pub choices: Option<Vec<String>>,
+
+    /// The rules that the user must agree to (1-16, max 300 characters)
+    #[serde(default)]
+    pub values: Option<Vec<String>>,
+
+    /// The correct response or the given response for this field.
+    ///
+    /// See [the type](GuildMemberVerificationResponse) for related docs on which variant to use.
+    ///
+    /// This field is not present when fetched from the [`Guild::get_member_verification`](crate::types::Guild::get_member_verification) endpoint.
+    #[serde(default)]
+    pub response: Option<GuildMemberVerificationResponse>,
+
+    /// Whether this field is required for a successful application
+    pub required: bool,
+
+    /// The subtext of the form field
+    #[serde(default)]
+    pub description: Option<String>,
+
+    /// Unknown (max 300 characters, max 10)
+    #[serde(default)]
+    pub automations: Option<Vec<String>>,
+
+    /// Placeholder text for the field's response area
+    #[serde(default)]
+    pub placeholder: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash, PartialOrd, Ord)]
+#[serde(untagged)]
+/// Types of form responses in [GuildMemberVerificationFormField].
+///
+/// For [GuildMemberVerificationFormFieldType::Terms], this should be [GuildMemberVerificationResponse::Boolean] (with a value of `true`)
+///
+/// For [GuildMemberVerificationFormFieldType::MultipleChoice], this should be [GuildMemberVerificationResponse::Index] (with the index of the selected choice)
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-form-field-type>
+pub enum GuildMemberVerificationResponse {
+    String(String),
+    Index(usize),
+    Boolean(bool),
+}
+
+#[derive(
+    Serialize, Deserialize, Default, Debug, Clone, Eq, PartialEq, Hash, Copy, PartialOrd, Ord,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// Types of form questions in [GuildMemberVerificationFormField].
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-form-field-type>
+pub enum GuildMemberVerificationFormFieldType {
+    /// User must agree to the guild rules
+    #[default]
+    Terms,
+
+    /// User must respond with a short answer (max 150 characters)
+    TextInput,
+
+    /// User must respond with a paragraph (max 1000 characters)
+    Paragraph,
+
+    /// User must select one of the provided choices
+    MultipleChoice,
+
+    /// User must verify their email or phone number
+    ///
+    /// Deprecated
+    Verification,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+/// A guild, as provided in [GuildMemberVerification].
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#member-verification-guild-structure>
+pub struct GuildMemberVerificationGuild {
+    /// The ID of the guild
+    pub id: Snowflake,
+
+    /// The name of the guild (2-100 characters)
+    pub name: String,
+
+    /// The guild's icon hash
+    pub icon: Option<String>,
+
+    /// The description for the guild (max 300 characters)
+    pub description: Option<String>,
+
+    /// The guild's splash image hash
+    pub splash: Option<String>,
+
+    /// The guild's discovery splash image hash
+    pub discovery_splash: Option<String>,
+
+    /// The guild's home header hash
+    pub home_header: Option<String>,
+
+    /// The [VerificationLevel] required to talk in the guild.
+    pub verification_level: VerificationLevel,
+
+    /// Enabled [GuildFeatures](crate::types::types::guild_configuration::GuildFeatures)
+    pub features: GuildFeaturesList,
+
+    /// Custom guild emojis
+    pub emojis: Vec<Emoji>,
+
+    /// Approximate number of total members in the guild
+    pub approximate_member_count: usize,
+
+    /// Approximate number of non-offline members in the guild
+    pub approximate_presence_count: usize,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// [GuildJoinRequest]s are an extension of [member verification](https://docs.discord.sex/resources/guild#member-verification-object).
+///
+/// A join request is created when a user attempts to join a guild with member verification enabled. They must complete the verification process to join the guild.
+///
+/// All join requests are stored for 180 days.
+///
+/// Most join request features require the
+/// [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-join-request-object>
+pub struct GuildJoinRequest {
+    /// The ID of the join request
+    pub id: Snowflake,
+
+    /// When the join request was created
+    pub created_at: DateTime<Utc>,
+
+    /// The status of the join request
+    pub application_status: GuildJoinRequestStatus,
+
+    /// The ID of the guild this join request is for
+    pub guild_id: Snowflake,
+
+    /// Responses to the guild's member verification questions
+    ///
+    /// This field is only included when fetched from the [get_join_request](crate::types::Guild::get_join_request) or [get_join_requests](crate::types::Guild::get_join_requests)
+    /// endpoints.
+    #[serde(default)]
+    pub form_responses: Option<Vec<GuildMemberVerificationFormField>>,
+
+    /// When the request was acknowledged by the user
+    #[serde(default)]
+    pub last_seen: Option<DateTime<Utc>>,
+
+    /// A snowflake representing when the join request was actioned (accepted / rejected)
+    ///
+    /// This field is only included when fetched from the [get_join_request](crate::types::Guild::get_join_request) or [get_join_requests](crate::types::Guild::get_join_requests)
+    /// endpoints.
+    #[serde(default)]
+    pub actioned_at: Option<Snowflake>,
+
+    /// The moderator who actioned (accepted / rejected) the join request
+    ///
+    /// This field is only included when fetched from the [get_join_request](crate::types::Guild::get_join_request) or [get_join_requests](crate::types::Guild::get_join_requests)
+    /// endpoints.
+    #[serde(default)]
+    pub actioned_by_user: Option<PublicUser>,
+
+    /// Why the request was rejected
+    #[serde(default)]
+    pub rejection_reason: Option<String>,
+
+    /// The id of the user who created the request
+    pub user_id: Snowflake,
+
+    /// The user who created this join request.
+    ///
+    /// This field is only included when fetched from the [get_join_request](crate::types::Guild::get_join_request) or [get_join_requests](crate::types::Guild::get_join_requests)
+    /// endpoints and is not sent if the user is the current user.
+    #[serde(default)]
+    pub user: Option<PublicUser>,
+
+    /// The id of a channel where an interview regarding this request may be conducted
+    #[serde(default)]
+    pub interview_channel_id: Option<Snowflake>,
+}
+
+#[derive(
+    Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq, Hash, Copy, PartialOrd, Ord,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// Status of a [GuildJoinRequest].
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#guild-join-request-status>
+pub enum GuildJoinRequestStatus {
+    /// The request is started but is not yet submitted
+    Started,
+
+    /// The request has been submitted
+    #[default]
+    Submitted,
+
+    /// The request has been rejected
+    Rejected,
+
+    /// The request has been approved
+    Approved,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// A [Guild]'s onboarding flow.
+///
+/// This feature lets users select which roles / channels they will have in a guild by going
+/// through a series of prompts.
+///
+/// # Notes
+/// Onboarding enforces constraints when enabled:
+///
+/// There must be at least 7 default channels and at least 5 of them must allow sending
+/// messages by the @everyone role.
+///
+/// The mode field modifies what is considered when enforcing these constraints.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-object>
+pub struct GuildOnboarding {
+    /// Id of the relevant guild
+    pub guild_id: Snowflake,
+
+    /// The prompts shown during onboarding and in community customization
+    pub prompts: Vec<GuildOnboardingPrompt>,
+
+    /// The channel IDs that members get opted into automatically
+    pub default_channel_ids: Vec<Snowflake>,
+
+    /// Whether onboarding is enabled in the guild
+    pub enabled: bool,
+
+    /// Whether the guild is below the requirements for onboarding
+    pub below_requirements: bool,
+
+    /// The current criteria mode for onboarding
+    pub mode: GuildOnboardingMode,
+}
+
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Default,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// Defines the criteria used to satisfy [GuildOnboarding] constraints.
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-mode>
+pub enum GuildOnboardingMode {
+    /// Count only default channels towards constraints
+    #[default]
+    #[serde(rename = "ONBOARDING_DEFAULT")]
+    Default = 0,
+
+    /// Count default channels and questions towards constraints
+    #[serde(rename = "ONBOARDING_ADVANCED")]
+    Advanced = 1,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Part of [GuildOnboarding]; a prompt given to a user to select which roles / channel they will
+/// have in the guild
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-prompt-structure>
+pub struct GuildOnboardingPrompt {
+    /// Id of the prompt
+    pub id: Snowflake,
+
+    /// The type of prompt
+    #[serde(rename = "type")]
+    pub prompt_type: GuildOnboardingPromptType,
+
+    /// Options available within the prompt
+    pub options: Vec<GuildOnboardingPromptOption>,
+
+    /// The title of the prompt
+    pub title: String,
+
+    /// Whether users can only select one option for the prompt
+    pub single_select: bool,
+
+    /// Whether a user must answer the prompt in order to complete the onboarding flow
+    pub required: bool,
+
+    /// Whether the prompt appears in the onboarding flow or only in community customization
+    pub in_onboarding: bool,
+}
+
+#[derive(
+    Serialize_repr,
+    Deserialize_repr,
+    Debug,
+    Default,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Copy,
+    PartialOrd,
+    Ord,
+)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(not(feature = "sqlx"), repr(u8))]
+#[cfg_attr(feature = "sqlx", repr(i16))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+/// Type of [GuildOnboardingPrompt]
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-prompt-type>
+pub enum GuildOnboardingPromptType {
+    /// Prompt offers multiple options to select from
+    #[default]
+    MultipleChoice = 0,
+
+    /// Prompt offers a dropdown menu to select from
+    Dropdown = 1,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Part of [GuildOnboardingPrompt]; an individual option in the prompt
+///
+/// # Reference
+/// See <https://docs.discord.sex/resources/guild#onboarding-prompt-option-structure>
+pub struct GuildOnboardingPromptOption {
+    /// The option's unique id
+    pub id: Snowflake,
+
+    /// The option's title
+    pub title: String,
+
+    /// The option's description
+    pub description: Option<String>,
+
+    /// The emoji representing the option
+    pub emoji: Emoji,
+
+    /// The role IDs assigned to a member when the option is selected
+    pub role_ids: Vec<Snowflake>,
+
+    /// The channel IDs a member is added to when the option is selected
+    pub channel_ids: Vec<Snowflake>,
 }
 
 #[derive(

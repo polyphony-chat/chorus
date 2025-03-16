@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::types::entities::{Guild, User};
 use crate::types::events::{Session, WebSocketEvent};
@@ -108,7 +108,7 @@ pub struct GatewayReady {
     /// TODO: Make Guild Experiments into own struct
     // Note: this is a pain to parse! See the above TODO
     pub guild_experiments: Vec<serde_json::value::Value>,
-    pub read_state: ReadState,
+    pub read_state: VersionedReadStateOrEntries,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
@@ -297,6 +297,25 @@ pub struct ReadStateEntry {
     pub mention_count: Option<u64>,
 }
 
+/// An enum which represents the possible ways of receiving read states.
+///
+/// Discord.com has in recent times switched to just sending a vec of read state entries, while
+/// Spacebar sends a versioned [ReadState] object (as DDC once did)
+///
+/// Note that this api will likely change in the future.
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(untagged)]
+pub enum VersionedReadStateOrEntries {
+    Versioned(ReadState),
+    Entries(Vec<ReadStateEntry>),
+}
+
+impl Default for VersionedReadStateOrEntries {
+    fn default() -> Self {
+        Self::Entries(Vec::new())
+    }
+}
+
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UserExperiment {
     pub hash: u32,
@@ -324,8 +343,8 @@ impl serde::Serialize for UserExperiment {
             serde_json::to_value(self.aa_mode).map_err(S::Error::custom)?,
             serde_json::to_value(self.trigger_debugging).map_err(S::Error::custom)?,
         ])
-        .map_err(S::Error::custom)?
-        .serialize(serializer)
+            .map_err(S::Error::custom)?
+            .serialize(serializer)
     }
 }
 

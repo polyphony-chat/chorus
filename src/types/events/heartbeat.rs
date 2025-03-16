@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::types::events::WebSocketEvent;
 use serde::{Deserialize, Serialize};
@@ -22,11 +22,13 @@ impl GatewayHeartbeat {
     /// Quickly create a [GatewayHeartbeat] with the correct `opcode` and the given `sequence_number`.
     ///
     /// Shorthand for
-    /// ```rs
-    /// Self {
+    /// ```
+    /// # use chorus::types::GatewayHeartbeat;
+    /// # let sequence_number: u64 = 1;
+    /// let heatbeat = GatewayHeartbeat {
     ///     op: 1,
     ///     d: Some(sequence_number)
-    /// }
+    /// };
     /// ```
     pub fn new(sequence_number: u64) -> Self {
         Self {

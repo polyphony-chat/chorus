@@ -1,6 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use reqwest::Client;
 use serde_json::to_string;
@@ -30,9 +30,10 @@ impl ChorusUser {
             user_id
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).header("Authorization", self.token()),
+            request: Client::new().get(url),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(self);
         chorus_request
             .deserialize_response::<Vec<types::PublicUser>>(self)
             .await
@@ -48,9 +49,10 @@ impl ChorusUser {
             self.belongs_to.read().unwrap().urls.api
         );
         let chorus_request = ChorusRequest {
-            request: Client::new().get(url).header("Authorization", self.token()),
+            request: Client::new().get(url),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(self);
         chorus_request
             .deserialize_response::<Vec<types::Relationship>>(self)
             .await
@@ -68,15 +70,11 @@ impl ChorusUser {
             "{}/users/@me/relationships",
             self.belongs_to.read().unwrap().urls.api
         );
-        let body = to_string(&schema).unwrap();
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(url)
-                .header("Authorization", self.token())
-                .header("Content-Type", "application/json")
-                .body(body),
+            request: Client::new().post(url).json(&schema),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(self);
         chorus_request.handle_request_as_result(self).await
     }
 
@@ -93,14 +91,14 @@ impl ChorusUser {
             RelationshipType::None => {
                 let chorus_request = ChorusRequest {
                     request: Client::new()
-                        .delete(format!("{}/users/@me/relationships/{}", api_url, user_id))
-                        .header("Authorization", self.token()),
+                        .delete(format!("{}/users/@me/relationships/{}", api_url, user_id)),
                     limit_type: LimitType::Global,
-                };
+                }
+                .with_headers_for(self);
                 chorus_request.handle_request_as_result(self).await
             }
             RelationshipType::Friends | RelationshipType::Incoming | RelationshipType::Outgoing => {
-                let body = CreateUserRelationshipSchema {
+                let schema = CreateUserRelationshipSchema {
                     relationship_type: None, // Selecting 'None' here will accept an incoming FR or send a new FR.
                     from_friend_suggestion: None,
                     friend_token: None,
@@ -108,14 +106,14 @@ impl ChorusUser {
                 let chorus_request = ChorusRequest {
                     request: Client::new()
                         .put(format!("{}/users/@me/relationships/{}", api_url, user_id))
-                        .header("Authorization", self.token())
-                        .body(to_string(&body).unwrap()),
+                        .json(&schema),
                     limit_type: LimitType::Global,
-                };
+                }
+                .with_headers_for(self);
                 chorus_request.handle_request_as_result(self).await
             }
             RelationshipType::Blocked => {
-                let body = CreateUserRelationshipSchema {
+                let schema = CreateUserRelationshipSchema {
                     relationship_type: Some(RelationshipType::Blocked),
                     from_friend_suggestion: None,
                     friend_token: None,
@@ -123,10 +121,10 @@ impl ChorusUser {
                 let chorus_request = ChorusRequest {
                     request: Client::new()
                         .put(format!("{}/users/@me/relationships/{}", api_url, user_id))
-                        .header("Authorization", self.token())
-                        .body(to_string(&body).unwrap()),
+                        .json(&schema),
                     limit_type: LimitType::Global,
-                };
+                }
+                .with_headers_for(self);
                 chorus_request.handle_request_as_result(self).await
             }
             RelationshipType::Suggestion | RelationshipType::Implicit => Ok(()),
@@ -144,11 +142,10 @@ impl ChorusUser {
             user_id
         );
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .delete(url)
-                .header("Authorization", self.token()),
+            request: Client::new().delete(url),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(self);
         chorus_request.handle_request_as_result(self).await
     }
 }
