@@ -55,7 +55,10 @@ impl BulkRemoveRelationshipsQuery {
         let mut query = Vec::with_capacity(2);
 
         if let Some(relationship_type) = self.relationship_type {
-            query.push(("relationship_type", relationship_type.to_string()));
+            query.push((
+                "relationship_type",
+                serde_json::to_string(&relationship_type).unwrap(),
+            ));
         }
 
         if let Some(only_spam) = self.only_spam {
