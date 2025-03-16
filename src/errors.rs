@@ -138,7 +138,7 @@ impl fmt::Display for JsonError {
 }
 
 #[derive(Clone, Serialize, Deserialize, Hash, Debug, PartialEq, Eq, Ord, PartialOrd)]
-/// A JSON key mirroring one in the request schema, with detailed error keys ([JsonKeyError])
+/// A JSON key mirroring one in the request schema, with detailed error keys ([JsonErrorKeyError])
 ///
 /// See [JsonError].errors
 ///

@@ -123,7 +123,7 @@ impl Message {
             return Err(ChorusError::InvalidResponse {
                 error: format!(
                     "Got unexpected Response, or Response which is not valid JSON. Response: \n{}",
-                    result_json.to_string()
+                    result_json
                 ),
                 http_status,
             });
@@ -140,7 +140,7 @@ impl Message {
             return Err(ChorusError::InvalidResponse {
                 error: format!(
                     "Got unexpected Response, or Response which is not valid JSON. Response: \n{}",
-                    result_json.to_string()
+                    result_json
                 ),
                 http_status,
             });

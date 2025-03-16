@@ -195,9 +195,11 @@ impl ChorusUser {
         let result = chorus_request.send_request(self).await;
 
         match result {
-            Ok(response) => ChorusRequest::deserialize_response(response)
-                .await
-                .map(|c| CreateDomainConnectionReturn::Ok(c)),
+            Ok(response) => {
+                let connection: Connection = ChorusRequest::deserialize_response(response).await?;
+
+                Ok(CreateDomainConnectionReturn::Ok(connection))
+            }
             Err(e) => {
                 match e {
                     ChorusError::ReceivedError {
@@ -209,7 +211,7 @@ impl ChorusUser {
                             let try_deserialize: Result<
                                 CreateDomainConnectionError,
                                 serde_json::Error,
-                            > = serde_json::from_str(&response_text);
+                            > = serde_json::from_str(response_text);
 
                             if let Ok(deserialized) = try_deserialize {
                                 return Ok(CreateDomainConnectionReturn::ProofNeeded(
