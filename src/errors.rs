@@ -123,6 +123,7 @@ pub struct JsonError {
     /// See <https://docs.discord.sex/reference#error-messages>
     ///
     /// A nested JSON object detailing where the error is, ending in an [JsonErrorKey] object.
+    #[serde(default)]
     pub errors: Option<serde_json::Value>,
 }
 
