@@ -192,7 +192,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        let result = chorus_request.send_request(self).await;
+        let result = chorus_request.send(self).await;
 
         match result {
             Ok(response) => {

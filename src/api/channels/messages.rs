@@ -114,7 +114,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        let result = request.send_request(user).await?;
+        let result = request.send(user).await?;
 
         let http_status = result.status();
 

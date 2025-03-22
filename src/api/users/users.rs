@@ -459,8 +459,8 @@ impl ChorusUser {
 
         // Manual handling, because a 204 with no harvest is a success state,
         // but we also need to deserialize stuff if it's a 200
-        // TODO: Maybe make this a method on ChorusRequest if we need it a lot
-        let response = chorus_request.send_request(self).await?;
+        // TODO: Maybe make this a method on ChorusRequest if we need it a lot.
+        let response = chorus_request.send(self).await?;
         log::trace!("Got response: {:?}", response);
 
         let http_status = response.status();

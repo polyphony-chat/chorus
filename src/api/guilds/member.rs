@@ -73,7 +73,7 @@ impl Guild {
         }
         .with_authorization_for(user);
 
-        let response = request.send_request(user).await?;
+        let response = request.send(user).await?;
         log::trace!("Got response: {:?}", response);
 
         let http_status = response.status();

@@ -303,28 +303,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        let result = chorus_request.send_request(user).await?;
-
-        let http_status = result.status();
-
-        let stringed_response = match result.text().await {
-            Ok(value) => value,
-            Err(e) => {
-                return Err(ChorusError::InvalidResponse {
-                    error: e.to_string(),
-                    http_status,
-                });
-            }
-        };
-        let _: Vec<Channel> = match from_str(&stringed_response) {
-            Ok(result) => return Ok(result),
-            Err(e) => {
-                return Err(ChorusError::InvalidResponse {
-                    error: e.to_string(),
-                    http_status,
-                });
-            }
-        };
+        chorus_request.send_and_deserialize_response(user).await
     }
 
     /// Returns a guild preview object for the given guild ID.
@@ -483,7 +462,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        let response = request.send_request(user).await?;
+        let response = request.send(user).await?;
         log::trace!("Got response: {:?}", response);
 
         let http_status = response.status();
@@ -946,7 +925,7 @@ impl Guild {
             }
         }
 
-        let response = chorus_request.send_anonymous_request(instance).await?;
+        let response = chorus_request.send_anonymous(instance).await?;
 
         let http_status = response.status();
 
@@ -1289,7 +1268,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        let response = request.send_request(user).await?;
+        let response = request.send(user).await?;
 
         let http_status = response.status();
 
