@@ -37,7 +37,7 @@ impl Instance {
         let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
 
         let login_result = chorus_request
-            .deserialize_response::<LoginResult>(&mut user)
+            .send_and_deserialize_response::<LoginResult>(&mut user)
             .await?;
 
         user.update_with_login_data(login_result.token, Some(login_result.settings))
@@ -67,7 +67,7 @@ impl Instance {
         let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
 
         match chorus_request
-            .deserialize_response::<VerifyMFALoginResponse>(&mut user)
+            .send_and_deserialize_response::<VerifyMFALoginResponse>(&mut user)
             .await?
         {
             VerifyMFALoginResponse::Success {
@@ -111,7 +111,7 @@ impl Instance {
         let mut chorus_user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
 
         let send_mfa_sms_response = chorus_request
-            .deserialize_response::<SendMfaSmsResponse>(&mut chorus_user)
+            .send_and_deserialize_response::<SendMfaSmsResponse>(&mut chorus_user)
             .await?;
 
         Ok(send_mfa_sms_response)

@@ -44,7 +44,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        let response: EnableTotpMfaResponse = chorus_request.deserialize_response(self).await?;
+        let response: EnableTotpMfaResponse = chorus_request.send_and_deserialize_response(self).await?;
 
         self.token = response.token.clone();
 
@@ -77,7 +77,7 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        let response: Token = chorus_request.deserialize_response(self).await?;
+        let response: Token = chorus_request.send_and_deserialize_response(self).await?;
 
         self.token = response.token.clone();
 
@@ -110,7 +110,7 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Disables SMS based multi-factor authentication for the current user.
@@ -137,7 +137,7 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Fetches a list of [WebAuthn](crate::types::MfaAuthenticatorType::WebAuthn)
@@ -157,7 +157,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Begins creation of a [WebAuthn](crate::types::MfaAuthenticatorType::WebAuthn)
@@ -191,7 +191,7 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Finishes creation of a [WebAuthn](crate::types::MfaAuthenticatorType::WebAuthn)
@@ -231,7 +231,7 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Modifies a [WebAuthn](crate::types::MfaAuthenticatorType::WebAuthn)
@@ -266,7 +266,7 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Deletes a [WebAuthn](crate::types::MfaAuthenticatorType::WebAuthn)
@@ -301,7 +301,7 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Sends an email to the current user with a verification code
@@ -331,7 +331,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Fetches the user's [MfaBackupCode]s.
@@ -367,6 +367,6 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 }

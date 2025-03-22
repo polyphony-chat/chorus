@@ -40,7 +40,7 @@ impl Instance {
         let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
 
         let token = chorus_request
-            .deserialize_response::<Token>(&mut user)
+            .send_and_deserialize_response::<Token>(&mut user)
             .await?
             .token;
 

@@ -38,7 +38,9 @@ impl Message {
             }
             .with_headers_for(user);
 
-            chorus_request.deserialize_response::<Message>(user).await
+            chorus_request
+                .send_and_deserialize_response::<Message>(user)
+                .await
         } else {
             for (index, attachment) in message.attachments.iter_mut().enumerate() {
                 attachment.get_mut(index).unwrap().id = Some((index as u64).into());
@@ -75,7 +77,9 @@ impl Message {
             }
             .with_headers_for(user);
 
-            chorus_request.deserialize_response::<Message>(user).await
+            chorus_request
+                .send_and_deserialize_response::<Message>(user)
+                .await
         }
     }
 
@@ -110,10 +114,19 @@ impl Message {
         }
         .with_headers_for(user);
 
-        let result = request.send_request(user).await?;
+        let result = request.send(user).await?;
+
+        let http_status = result.status();
+
         let result_json = result.json::<Value>().await.unwrap();
         if !result_json.is_object() {
-            return Err(search_error(result_json.to_string().as_str()));
+            return Err(ChorusError::InvalidResponse {
+                error: format!(
+                    "Got unexpected Response, or Response which is not valid JSON. Response: \n{}",
+                    result_json
+                ),
+                http_status,
+            });
         }
         let value_map = result_json.as_object().unwrap();
         if let Some(messages) = value_map.get("messages") {
@@ -124,7 +137,13 @@ impl Message {
         }
         // The code below might be incorrect. We'll cross that bridge when we come to it
         if !value_map.contains_key("code") || !value_map.contains_key("retry_after") {
-            return Err(search_error(result_json.to_string().as_str()));
+            return Err(ChorusError::InvalidResponse {
+                error: format!(
+                    "Got unexpected Response, or Response which is not valid JSON. Response: \n{}",
+                    result_json
+                ),
+                http_status,
+            });
         }
         let code = value_map.get("code").unwrap().as_u64().unwrap();
         let retry_after = value_map.get("retry_after").unwrap().as_u64().unwrap();
@@ -153,7 +172,9 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Vec<Message>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<Message>>(user)
+            .await
     }
 
     /// Pins a message in a channel. Requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
@@ -179,7 +200,7 @@ impl Message {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Unpins a message in a channel. Requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
@@ -203,7 +224,7 @@ impl Message {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Returns a specific message object in the channel.
@@ -226,7 +247,9 @@ impl Message {
         }
         .with_headers_for(user);
 
-        chorus_request.deserialize_response::<Message>(user).await
+        chorus_request
+            .send_and_deserialize_response::<Message>(user)
+            .await
     }
 
     /// Posts a greet message to a channel. This endpoint requires the channel is a DM channel or you reply to a system message.
@@ -249,7 +272,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Message>(user).await
+        request.send_and_deserialize_response::<Message>(user).await
     }
 
     /// Sets the channel's latest acknowledged message (marks a message as read) for the current user.
@@ -281,7 +304,9 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Option<String>>(user).await
+        request
+            .send_and_deserialize_response::<Option<String>>(user)
+            .await
     }
 
     /// Crossposts a message in a News Channel to following channels.
@@ -306,7 +331,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Message>(user).await
+        request.send_and_deserialize_response::<Message>(user).await
     }
 
     /// Hides a message from the feed of the guild the channel belongs to. Returns a 204 empty response on success.
@@ -331,7 +356,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Edits a previously sent message. All fields can be edited by the original message author.
@@ -363,7 +388,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Message>(user).await
+        request.send_and_deserialize_response::<Message>(user).await
     }
 
     /// Deletes a message. If operating on a guild channel and trying to delete a message that was not sent by the current user,
@@ -388,7 +413,7 @@ impl Message {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Deletes multiple messages in a single request. This endpoint can only be used on guild channels and requires the MANAGE_MESSAGES permission.
@@ -425,7 +450,7 @@ impl Message {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Acknowledges the currently pinned messages in a channel. Returns a 204 empty response on success.
@@ -446,16 +471,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
-    }
-}
-
-fn search_error(result_text: &str) -> ChorusError {
-    ChorusError::InvalidResponse {
-        error: format!(
-            "Got unexpected Response, or Response which is not valid JSON. Response: \n{}",
-            result_text
-        ),
+        request.send_and_handle_as_result(user).await
     }
 }
 

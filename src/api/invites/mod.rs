@@ -36,7 +36,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        request.deserialize_response::<Invite>(self).await
+        request.send_and_deserialize_response::<Invite>(self).await
     }
 
     /// Creates a new friend invite.
@@ -56,7 +56,7 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self)
-        .deserialize_response::<Invite>(self)
+        .send_and_deserialize_response::<Invite>(self)
         .await
     }
 
@@ -83,7 +83,7 @@ impl ChorusUser {
             limit_type: LimitType::Channel(channel_id),
         }
         .with_headers_for(self)
-        .deserialize_response::<GuildInvite>(self)
+        .send_and_deserialize_response::<GuildInvite>(self)
         .await
     }
 }

@@ -43,7 +43,7 @@ impl types::Channel {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Deletes a permission overwrite for a user or role in a channel.
@@ -72,6 +72,6 @@ impl types::Channel {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 }

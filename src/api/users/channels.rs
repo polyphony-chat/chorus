@@ -27,7 +27,7 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self)
-        .deserialize_response::<Vec<Channel>>(self)
+        .send_and_deserialize_response::<Vec<Channel>>(self)
         .await
     }
 
@@ -51,7 +51,7 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self)
-        .deserialize_response::<Channel>(self)
+        .send_and_deserialize_response::<Channel>(self)
         .await
     }
 }

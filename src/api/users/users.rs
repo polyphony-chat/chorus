@@ -118,7 +118,9 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        chorus_request.deserialize_response::<User>(self).await
+        chorus_request
+            .send_and_deserialize_response::<User>(self)
+            .await
     }
 
     /// Disables the current user's account.
@@ -147,7 +149,7 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Deletes the current user from the Instance.
@@ -174,7 +176,7 @@ impl ChorusUser {
         .with_maybe_mfa(&self.mfa_token)
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Gets a user's profile object by their id.
@@ -234,7 +236,7 @@ impl ChorusUser {
             limit_type: LimitType::default(),
         }
         .with_headers_for(self);
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Verifies a code sent to change the current user's email.
@@ -266,7 +268,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
         chorus_request
-            .deserialize_response::<VerifyUserEmailChangeResponse>(self)
+            .send_and_deserialize_response::<VerifyUserEmailChangeResponse>(self)
             .await
     }
 
@@ -296,7 +298,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
         chorus_request
-            .deserialize_response::<GetPomeloSuggestionsReturn>(self)
+            .send_and_deserialize_response::<GetPomeloSuggestionsReturn>(self)
             .await
             .map(|returned| returned.username)
     }
@@ -326,7 +328,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
         chorus_request
-            .deserialize_response::<GetPomeloEligibilityReturn>(self)
+            .send_and_deserialize_response::<GetPomeloEligibilityReturn>(self)
             .await
             .map(|returned| !returned.taken)
     }
@@ -366,7 +368,9 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        let result = chorus_request.deserialize_response::<User>(self).await;
+        let result = chorus_request
+            .send_and_deserialize_response::<User>(self)
+            .await;
 
         // FIXME: Does UserUpdate do this automatically? or would a user need to manually observe ChorusUser::object
         if let Ok(new_object) = result {
@@ -403,7 +407,7 @@ impl ChorusUser {
         .with_headers_for(self);
 
         chorus_request
-            .deserialize_response::<Vec<crate::types::Message>>(self)
+            .send_and_deserialize_response::<Vec<crate::types::Message>>(self)
             .await
     }
 
@@ -429,7 +433,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// If it exists, returns the most recent [Harvest] (personal data harvest request).
@@ -453,10 +457,13 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        // Manual handling, because a 204 with no harvest is a success state
-        // TODO: Maybe make this a method on ChorusRequest if we need it a lot
-        let response = chorus_request.send_request(self).await?;
+        // Manual handling, because a 204 with no harvest is a success state,
+        // but we also need to deserialize stuff if it's a 200
+        // TODO: Maybe make this a method on ChorusRequest if we need it a lot.
+        let response = chorus_request.send(self).await?;
         log::trace!("Got response: {:?}", response);
+
+        let http_status = response.status();
 
         if response.status() == http::StatusCode::NO_CONTENT {
             return Ok(None);
@@ -470,6 +477,7 @@ impl ChorusUser {
                         "Error while trying to process the HTTP response into a String: {}",
                         e
                     ),
+                    http_status,
                 });
             }
         };
@@ -482,6 +490,7 @@ impl ChorusUser {
                         "Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
                         e, response_text
                     ),
+						  http_status
                 })
             }
         };
@@ -526,7 +535,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Returns a mapping of user IDs ([Snowflake]s) to notes ([String]s) for the current user.
@@ -548,7 +557,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Fetches the note ([UserNote]) for the given user.
@@ -600,7 +609,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Fetches the current user's affinity scores for their joined guilds.
@@ -619,7 +628,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Fetches the current user's usage of various premium perks ([PremiumUsage] object).
@@ -644,7 +653,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 
     /// Fetches info about the current user's burst credits
@@ -666,7 +675,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.deserialize_response(self).await
+        chorus_request.send_and_deserialize_response(self).await
     }
 }
 
@@ -684,7 +693,9 @@ impl User {
             limit_type: LimitType::Global,
         }
         .with_headers_for(user);
-        chorus_request.deserialize_response::<User>(user).await
+        chorus_request
+            .send_and_deserialize_response::<User>(user)
+            .await
     }
 
     /// Gets a non-local user by their id
@@ -701,7 +712,7 @@ impl User {
         }
         .with_headers_for(user);
         chorus_request
-            .deserialize_response::<PublicUser>(user)
+            .send_and_deserialize_response::<PublicUser>(user)
             .await
     }
 
@@ -742,7 +753,7 @@ impl User {
         }
         .with_headers_for(user);
         chorus_request
-            .deserialize_response::<PublicUser>(user)
+            .send_and_deserialize_response::<PublicUser>(user)
             .await
     }
 
@@ -760,7 +771,7 @@ impl User {
         }
         .with_headers_for(user);
         chorus_request
-            .deserialize_response::<UserSettings>(user)
+            .send_and_deserialize_response::<UserSettings>(user)
             .await
     }
 
@@ -792,7 +803,7 @@ impl User {
         }
         .with_headers_for(user);
         chorus_request
-            .deserialize_response::<UserProfile>(user)
+            .send_and_deserialize_response::<UserProfile>(user)
             .await
     }
 
@@ -816,7 +827,7 @@ impl User {
         }
         .with_headers_for(user);
         chorus_request
-            .deserialize_response::<UserProfileMetadata>(user)
+            .send_and_deserialize_response::<UserProfileMetadata>(user)
             .await
     }
 
@@ -843,7 +854,7 @@ impl User {
         }
         .with_headers_for(user);
 
-        chorus_request.deserialize_response(user).await
+        chorus_request.send_and_deserialize_response(user).await
     }
 
     /// Sets the note for the given user.
@@ -873,6 +884,6 @@ impl User {
         }
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 }
