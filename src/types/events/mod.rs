@@ -142,7 +142,7 @@ pub(crate) trait UpdateMessage<T>: Clone + JsonField + SourceUrlField
 where
     T: Updateable + Serialize + DeserializeOwned + Clone,
 {
-    fn update(&mut self, object_to_update: Shared<T>) {
+    fn update(&mut self, object_to_update: &mut T) {
         update_object(self.get_json(), object_to_update)
     }
     #[cfg(not(tarpaulin_include))]
@@ -161,9 +161,9 @@ pub trait SourceUrlField: Clone {
 
 #[cfg(feature = "client")]
 /// Only applicable for events where the Update struct is the same as the Entity struct
-pub(crate) fn update_object(
+pub(crate) fn update_object<T: Updateable + Serialize + DeserializeOwned + Clone>(
     value: String,
-    object: Shared<(impl Updateable + Serialize + DeserializeOwned + Clone)>,
+    object: &mut T,
 ) {
     let data_from_event: HashMap<String, Value> = from_str(&value).unwrap();
     let mut original_data: HashMap<String, Value> =
@@ -171,5 +171,5 @@ pub(crate) fn update_object(
     for (updated_entry_key, updated_entry_value) in data_from_event.into_iter() {
         original_data.insert(updated_entry_key.clone(), updated_entry_value);
     }
-    *object.write().unwrap() = from_value(to_value(original_data).unwrap()).unwrap();
+    *object = from_value(to_value(original_data).unwrap()).unwrap();
 }
