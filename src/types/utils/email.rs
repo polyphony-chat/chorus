@@ -4,7 +4,7 @@
 
 use regex::Regex;
 
-use super::errors::{Error, UserError};
+use crate::types::errors::{Error, UserError};
 
 lazy_static::lazy_static! {
     // TODO(bitfl0wer): Could we just use <https://docs.rs/email_address/latest/email_address/> here?
