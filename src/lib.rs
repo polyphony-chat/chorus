@@ -165,6 +165,9 @@ pub mod instance;
 #[cfg(feature = "client")]
 pub mod ratelimiter;
 pub mod types;
+#[cfg(feature = "backend")]
+pub mod util;
+
 #[cfg(all(
     feature = "client",
     any(feature = "voice_udp", feature = "voice_gateway")
