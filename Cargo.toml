@@ -7,13 +7,12 @@ edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
 readme = "README.md"
 keywords = ["spacebar", "discord", "polyphony"]
-website = ["https://discord.com/invite/m3FpcapGDD"]
 rust-version = "1.71.1"
 
 
 [features]
 default = ["client", "rt-multi-thread"]
-backend = ["poem", "sqlx", "sqlx-pg-uint"]
+backend = ["poem", "sqlx", "sqlx-pg-uint", "toml", "argon2"]
 rt-multi-thread = ["tokio/rt-multi-thread"]
 rt = ["tokio/rt"]
 client = ["flate2"]
@@ -21,6 +20,8 @@ voice = ["voice_udp", "voice_gateway"]
 voice_udp = ["dep:discortp", "dep:crypto_secretbox"]
 voice_gateway = []
 sqlx-pg-uint = ["dep:sqlx-pg-uint", "sqlx-pg-uint/serde"]
+toml = ["dep:toml"]
+argon2 = ["dep:argon2"]
 
 [dependencies]
 tokio = { version = "1.39.3", features = ["macros", "sync"] }
@@ -73,6 +74,8 @@ sqlx-pg-uint = { version = "0.8.0", features = ["serde"], optional = true }
 #
 # This was included to be able to return bytes from reqwest for fetching different file types
 bytes = "1.0"
+toml = { version = "0.8.20", optional = true }
+argon2 = { version = "0.5.3", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rustls = "0.23.20"
