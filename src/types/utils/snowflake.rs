@@ -82,7 +82,7 @@ impl<'de> serde::Deserialize<'de> for Snowflake {
         D: serde::Deserializer<'de>,
     {
         struct SnowflakeVisitor;
-        impl<'de> serde::de::Visitor<'de> for SnowflakeVisitor {
+        impl serde::de::Visitor<'_> for SnowflakeVisitor {
             type Value = Snowflake;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {

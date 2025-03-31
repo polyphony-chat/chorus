@@ -104,7 +104,7 @@ pub mod ts_seconds_str {
         d.deserialize_str(SecondsStringTimestampVisitor)
     }
 
-    impl<'de> de::Visitor<'de> for SecondsStringTimestampVisitor {
+    impl de::Visitor<'_> for SecondsStringTimestampVisitor {
         type Value = DateTime<Utc>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

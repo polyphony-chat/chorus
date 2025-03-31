@@ -123,7 +123,7 @@ pub struct GatewayReceivePayload<'a> {
     pub event_name: Option<String>,
 }
 
-impl<'a> WebSocketEvent for GatewayReceivePayload<'a> {}
+impl WebSocketEvent for GatewayReceivePayload<'_> {}
 
 #[cfg(feature = "client")]
 /// An [`UpdateMessage<T>`] represents a received Gateway Message which contains updated

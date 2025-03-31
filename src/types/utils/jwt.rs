@@ -46,7 +46,7 @@ pub fn build_token(claims: &Claims, jwt_key: &str) -> Result<String, jsonwebtoke
 }
 
 pub fn decode_token(token: &str, jwt_secret: &str) -> Result<TokenData<Claims>, Error> {
-    let mut validation = Validation::new(Algorithm::HS256);
+    let validation = Validation::new(Algorithm::HS256);
     //TODO: What is this?
     //validation.sub = Some("quartzauth".to_string());
     decode(

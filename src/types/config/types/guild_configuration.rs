@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::config::types::subconfigs::guild::{
     autojoin::AutoJoinConfiguration, discovery::DiscoverConfiguration,
 };
-use crate::types::{Error, GuildError};
+use crate::types::errors::{Error, GuildError};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]

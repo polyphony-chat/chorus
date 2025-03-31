@@ -2,13 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use chorus::{
-    errors::ChorusError,
-    types::{
-        ConnectionType, DeleteDisableUserSchema, PublicUser, Snowflake, User,
-        UserModifyProfileSchema, UserNote,
-    },
-};
+use chorus::types::{
+        DeleteDisableUserSchema, PublicUser, Snowflake, User,
+        UserModifyProfileSchema,
+    };
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 #[cfg(target_arch = "wasm32")]

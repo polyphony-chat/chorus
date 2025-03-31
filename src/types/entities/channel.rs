@@ -242,7 +242,7 @@ impl FromStr for PermissionOverwriteType {
 
 struct PermissionOverwriteTypeVisitor;
 
-impl<'de> Visitor<'de> for PermissionOverwriteTypeVisitor {
+impl Visitor<'_> for PermissionOverwriteTypeVisitor {
     type Value = PermissionOverwriteType;
 
     fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {

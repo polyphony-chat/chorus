@@ -57,7 +57,7 @@ pub struct VoiceGatewayReceivePayload<'a> {
     pub data: &'a RawValue,
 }
 
-impl<'a> WebSocketEvent for VoiceGatewayReceivePayload<'a> {}
+impl WebSocketEvent for VoiceGatewayReceivePayload<'_> {}
 
 /// The modes of encryption available in voice UDP connections;
 ///

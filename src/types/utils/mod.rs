@@ -6,8 +6,11 @@
 pub use opcode::*;
 pub use regexes::*;
 pub use rights::Rights;
-pub use snowflake::{Snowflake, OneOrMoreSnowflakes};
+pub use snowflake::{OneOrMoreSnowflakes, Snowflake};
 
+mod email;
+#[cfg(feature = "backend")]
+pub mod events;
 pub mod jwt;
 pub mod opcode;
 mod regexes;
