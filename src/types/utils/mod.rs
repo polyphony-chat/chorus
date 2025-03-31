@@ -8,6 +8,8 @@ pub use regexes::*;
 pub use rights::Rights;
 pub use snowflake::{OneOrMoreSnowflakes, Snowflake};
 
+#[cfg(feature = "backend")]
+pub mod configuration;
 mod email;
 #[cfg(feature = "backend")]
 pub mod events;

@@ -15,6 +15,8 @@ pub use schema::*;
 pub use utils::*;
 
 mod config;
+#[cfg(feature = "backend")]
+mod database;
 mod entities;
 pub mod errors;
 pub mod events;
@@ -35,9 +37,11 @@ mod utils;
 pub type Shared<T> = Arc<RwLock<T>>;
 #[cfg(not(feature = "client"))]
 pub type Shared<T> = T;
+#[cfg(feature = "backend")]
+pub use backend::*;
 
 #[cfg(feature = "backend")]
-mod backend {
+pub mod backend {
     use std::collections::HashMap;
     use std::sync::Arc;
 

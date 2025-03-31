@@ -109,7 +109,7 @@ impl From<SendError<tokio_tungstenite::tungstenite::Message>> for Error {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Clone, Copy, PartialEq)]
 pub enum UserError {
     #[error("EMAIL_INVALID")]
     InvalidEmail,
@@ -163,7 +163,7 @@ pub enum GuildError {
     VoiceStateNotFound,
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Clone, Copy, PartialEq, Eq)]
 pub enum ChannelError {
     #[error("Unknown Channel")]
     InvalidChannel, // code 10003
