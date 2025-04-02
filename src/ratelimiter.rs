@@ -29,19 +29,6 @@ pub struct ChorusRequest {
 }
 
 impl ChorusRequest {
-    /// An alias of [Self::send_request] which sends a user request.
-    pub(crate) async fn send(self, user: &mut ChorusUser) -> ChorusResult<Response> {
-        let belongs_to = user.belongs_to.clone();
-        let mut instance = belongs_to.write().unwrap();
-
-        self.send_request(Some(user), &mut instance).await
-    }
-
-    /// An alias of [Self::send_request] which sends an anonymous request with an [Instance].
-    pub(crate) async fn send_anonymous(self, instance: &mut Instance) -> ChorusResult<Response> {
-        self.send_request(None, instance).await
-    }
-
     /// Sends a [`ChorusRequest`]. Checks if the user / instance is rate limited, and if not, sends the request.
     ///
     /// If the user is not rate limited and the instance has rate limits enabled, it will update the
@@ -50,12 +37,16 @@ impl ChorusRequest {
     /// If user is [Some], the request will be a user request.
     /// If user is [None], it will be an anonymous request.
     #[allow(clippy::await_holding_refcell_ref)]
-    pub(crate) async fn send_request(
-        self,
-        mut user: Option<&mut ChorusUser>,
-        instance: &mut Instance,
-    ) -> ChorusResult<Response> {
-        if !ChorusRequest::can_send_request(&mut user, instance, &self.limit_type) {
+    pub(crate) async fn send(self, user: &mut ChorusUser) -> ChorusResult<Response> {
+        // Have one arc just for this method, so we don't need to borrow it from ChorusUser
+        let instance_arc = user.belongs_to.clone();
+
+        if !ChorusRequest::can_send_request(
+            &mut Some(user),
+            // Note: create a lock here, which will be released before we get to async code
+            &mut instance_arc.write().unwrap(),
+            &self.limit_type,
+        ) {
             log::info!("Rate limit hit. Bucket: {:?}", self.limit_type);
             return Err(ChorusError::RateLimited {
                 bucket: format!("{:?}", self.limit_type),
@@ -64,12 +55,76 @@ impl ChorusRequest {
 
         let mut request = self.request;
 
-        if let Some(user_some) = user.as_ref() {
-            request = request.header(
-                "User-Agent",
-                user_some.client_properties.user_agent.clone().0,
-            );
+        request = request.header("User-Agent", user.client_properties.user_agent.clone().0);
+
+        let client = user.belongs_to.read().unwrap().client.clone();
+        let result = match client.execute(request.build().unwrap()).await {
+            Ok(result) => {
+                log::trace!("Request successful: {:?}", result);
+                result
+            }
+            Err(error) => {
+                log::warn!("Request failed: {:?}", error);
+                return Err(ChorusError::RequestFailed {
+                    url: error.url().unwrap().to_string(),
+                    error: error.to_string(),
+                });
+            }
+        };
+        drop(client);
+
+        if !result.status().is_success() {
+            if result.status().as_u16() == 429 {
+                log::warn!("Rate limit hit unexpectedly. Bucket: {:?}. Setting the instances' remaining global limit to 0 to have cooldown.", self.limit_type);
+                instance_arc
+                    .write()
+                    .unwrap()
+                    .limits_information
+                    .as_mut()
+                    .unwrap()
+                    .ratelimits
+                    .get_mut(&LimitType::Global)
+                    .unwrap()
+                    .remaining = 0;
+
+                return Err(ChorusError::RateLimited {
+                    bucket: format!("{:?}", self.limit_type),
+                });
+            }
+            log::warn!("Request failed: {:?}", result);
+
+            return Err(ChorusRequest::interpret_error(result).await);
         }
+
+        ChorusRequest::update_rate_limits(
+            Some(user),
+            // Now we are past the async code and can safely create another lock
+            &mut instance_arc.write().unwrap(),
+            &self.limit_type,
+            !result.status().is_success(),
+        );
+        Ok(result)
+    }
+
+    /// Sends a [`ChorusRequest`] without a [ChorusUser].
+    ///
+    /// Checks if the instance is rate limited, and if not, sends the request.
+    ///
+    /// If the instance has rate limits enabled, they will be updated.
+    ///
+    /// Note: anonymous requests shouldn't count towards user buckets!
+    #[allow(clippy::await_holding_refcell_ref)]
+    pub(crate) async fn send_anonymous(self, instance: &mut Instance) -> ChorusResult<Response> {
+        if !ChorusRequest::can_send_request(&mut None, instance, &self.limit_type) {
+            log::info!("Rate limit hit. Bucket: {:?}", self.limit_type);
+            return Err(ChorusError::RateLimited {
+                bucket: format!("{:?}", self.limit_type),
+            });
+        }
+
+        let request = self.request;
+
+        // TODO: maybe have a default Instance user agent?
 
         let client = instance.client.clone();
         let result = match client.execute(request.build().unwrap()).await {
@@ -106,7 +161,7 @@ impl ChorusRequest {
             return Err(ChorusRequest::interpret_error(result).await);
         }
         ChorusRequest::update_rate_limits(
-            user,
+            None,
             instance,
             &self.limit_type,
             !result.status().is_success(),
@@ -349,13 +404,14 @@ impl ChorusRequest {
 
     /// Updates the rate limits of the user / instance. The following steps are performed:
     ///
-    /// 1.  If the current unix timestamp is greater than the reset timestamp, the reset timestamp is
-    ///     set to the current unix timestamp + the rate limit window. The remaining rate limit is
-    ///     reset to the rate limit limit.
+    /// 1. If the current unix timestamp is greater than the reset timestamp, the reset timestamp is
+    ///    set to the current unix timestamp + the rate limit window. The remaining rate limit is
+    ///    reset to the rate limit limit.
+    ///
     /// 2. The remaining rate limit is decreased by 1.
     ///
-    /// If user is [Some], the request will be a user request.
-    /// If user is [None], it will be an anonymous request.
+    /// If user is [Some], the request will be treated as a user request.
+    /// If user is [None], it will be treated as an anonymous request.
     fn update_rate_limits(
         mut user: Option<&mut ChorusUser>,
         instance: &mut Instance,
