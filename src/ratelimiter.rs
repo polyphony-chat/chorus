@@ -33,9 +33,6 @@ impl ChorusRequest {
     ///
     /// If the user is not rate limited and the instance has rate limits enabled, it will update the
     /// rate limits.
-    ///
-    /// If user is [Some], the request will be a user request.
-    /// If user is [None], it will be an anonymous request.
     #[allow(clippy::await_holding_refcell_ref)]
     pub(crate) async fn send(self, user: &mut ChorusUser) -> ChorusResult<Response> {
         // Have one arc just for this method, so we don't need to borrow it from ChorusUser
