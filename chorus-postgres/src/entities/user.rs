@@ -1,8 +1,6 @@
-/*
- *  This Source Code Form is subject to the terms of the Mozilla Public
- *  License, v. 2.0. If a copy of the MPL was not distributed with this
- *  file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use super::*;
 use crate::QUERY_UPPER_LIMIT;
@@ -15,13 +13,13 @@ use std::{
 
 use crate::types::{PremiumType, PublicUser, Rights, Snowflake, UserData};
 use argon2::{
-    password_hash::{self, PasswordHash, PasswordHasher, SaltString},
     Argon2,
+    password_hash::{self, PasswordHash, PasswordHasher, SaltString},
 };
 use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::{from_str, Map, Value};
+use serde_json::{Map, Value, from_str};
 use sqlx::{FromRow, PgPool, Row};
 use sqlx_pg_uint::{PgU32, PgU64};
 

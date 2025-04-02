@@ -15,8 +15,6 @@ pub use schema::*;
 pub use utils::*;
 
 mod config;
-#[cfg(feature = "backend")]
-mod database;
 mod entities;
 pub mod errors;
 pub mod events;
