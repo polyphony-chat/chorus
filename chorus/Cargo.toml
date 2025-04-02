@@ -51,7 +51,7 @@ thiserror = "1.0.63"
 jsonwebtoken = "8.3.0"
 log = "0.4.22"
 async-trait = "0.1.81"
-chorus-macros = { path = "./chorus-macros", version = "0" } # Note: version here is used when releasing. This will use the latest release. Make sure to republish the crate when code in macros is changed!
+chorus-macros = { path = "../chorus-macros", version = "0" } # Note: version here is used when releasing. This will use the latest release. Make sure to republish the crate when code in macros is changed!
 sqlx = { version = "0.8.2", features = [
     "json",
     "chrono",
