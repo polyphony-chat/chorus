@@ -31,7 +31,7 @@ impl Channel {
         }
         .with_headers_for(user);
 
-        chorus_request.deserialize_response::<Channel>(user).await
+        chorus_request.send_and_deserialize_response::<Channel>(user).await
     }
 
     /// Deletes self.
@@ -59,7 +59,7 @@ impl Channel {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Modifies a channel with the provided data.
@@ -96,7 +96,7 @@ impl Channel {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response::<Channel>(user).await
+        request.send_and_deserialize_response::<Channel>(user).await
     }
 
     /// Fetches recent messages from a channel.
@@ -128,7 +128,7 @@ impl Channel {
         chorus_request.request = chorus_request.request.query(&range);
 
         chorus_request
-            .deserialize_response::<Vec<Message>>(user)
+            .send_and_deserialize_response::<Vec<Message>>(user)
             .await
     }
 
@@ -158,7 +158,7 @@ impl Channel {
             limit_type: LimitType::Channel(self.id),
         }
         .with_headers_for(user)
-        .handle_request_as_result(user)
+        .send_and_handle_as_result(user)
         .await
     }
 
@@ -184,7 +184,7 @@ impl Channel {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Modifies the positions of a set of channel objects for the guild. Requires the `MANAGE_CHANNELS` permission.
@@ -209,6 +209,6 @@ impl Channel {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 }

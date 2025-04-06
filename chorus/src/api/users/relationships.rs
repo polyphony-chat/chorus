@@ -35,7 +35,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
         chorus_request
-            .deserialize_response::<Vec<types::PublicUser>>(self)
+            .send_and_deserialize_response::<Vec<types::PublicUser>>(self)
             .await
     }
 
@@ -54,7 +54,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
         chorus_request
-            .deserialize_response::<Vec<types::Relationship>>(self)
+            .send_and_deserialize_response::<Vec<types::Relationship>>(self)
             .await
     }
 
@@ -75,7 +75,7 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self);
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Modifies the relationship between the authenticated user and a given user.
@@ -95,7 +95,7 @@ impl ChorusUser {
                     limit_type: LimitType::Global,
                 }
                 .with_headers_for(self);
-                chorus_request.handle_request_as_result(self).await
+                chorus_request.send_and_handle_as_result(self).await
             }
             RelationshipType::Friends | RelationshipType::Incoming | RelationshipType::Outgoing => {
                 let schema = CreateUserRelationshipSchema {
@@ -110,7 +110,7 @@ impl ChorusUser {
                     limit_type: LimitType::Global,
                 }
                 .with_headers_for(self);
-                chorus_request.handle_request_as_result(self).await
+                chorus_request.send_and_handle_as_result(self).await
             }
             RelationshipType::Blocked => {
                 let schema = CreateUserRelationshipSchema {
@@ -125,7 +125,7 @@ impl ChorusUser {
                     limit_type: LimitType::Global,
                 }
                 .with_headers_for(self);
-                chorus_request.handle_request_as_result(self).await
+                chorus_request.send_and_handle_as_result(self).await
             }
             RelationshipType::Suggestion | RelationshipType::Implicit => Ok(()),
         }
@@ -146,7 +146,7 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self);
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// Removes multiple relationships.
