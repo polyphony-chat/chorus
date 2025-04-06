@@ -26,33 +26,33 @@ futures = ["dep:futures"]
 itertools = ["dep:itertools"]
 
 [dependencies]
-tokio = { version = "1.39.3", features = ["macros", "sync"] }
-serde = { version = "1.0.209", features = ["derive", "rc"] }
-serde_json = { version = "1.0.127", features = ["raw_value"] }
-serde-aux = "4.5.0"
-serde_with = "3.9.0"
-serde_repr = "0.1.19"
+tokio = { version = "1.44.1", features = ["macros", "sync"] }
+serde = { version = "1.0.219", features = ["derive", "rc"] }
+serde_json = { version = "1.0.140", features = ["raw_value"] }
+serde-aux = "4.6.0"
+serde_with = "3.12.0"
+serde_repr = "0.1.20"
 reqwest = { features = [
     "multipart",
     "json",
     "rustls-tls-webpki-roots",
 ], version = "=0.11.26", default-features = false }
-url = "2.5.2"
-chrono = { version = "0.4.38", features = ["serde"] }
-regex = "1.10.6"
+url = "2.5.4"
+chrono = { version = "0.4.40", features = ["serde"] }
+regex = "1.11.1"
 custom_error = "1.9.2"
-futures-util = "0.3.30"
+futures-util = "0.3.31"
 http = "0.2.12"
 base64 = "0.21.7"
-bitflags = { version = "2.6.0", features = ["serde"] }
+bitflags = { version = "2.9.0", features = ["serde"] }
 lazy_static = "1.5.0"
 poem = { version = "3.0.1", features = ["multipart"], optional = true }
-thiserror = "1.0.63"
+thiserror = "1.0.69"
 jsonwebtoken = "8.3.0"
-log = "0.4.22"
-async-trait = "0.1.81"
+log = "0.4.27"
+async-trait = "0.1.88"
 chorus-macros = { path = "../chorus-macros", version = "0" } # Note: version here is used when releasing. This will use the latest release. Make sure to republish the crate when code in macros is changed!
-sqlx = { version = "0.8.2", features = [
+sqlx = { version = "0.8.3", features = [
     "json",
     "chrono",
     "ipnetwork",
@@ -67,23 +67,23 @@ discortp = { version = "0.5.0", optional = true, features = [
 ] }
 crypto_secretbox = { version = "0.1.1", optional = true }
 rand = "0.8.5"
-flate2 = { version = "1.0.33", optional = true }
-webpki-roots = "0.26.3"
+flate2 = { version = "1.1.1", optional = true }
+webpki-roots = "0.26.8"
 pubserve = { version = "1.1.0", features = ["async", "send"] }
 sqlx-pg-uint = { version = "0.8.0", features = ["serde"], optional = true }
 
 # Note: this does not another dependency when compiling, since many other dependencies (reqwest, http, sqlx, tokio_tungstenite, ...) also depend on the same version
 #
 # This was included to be able to return bytes from reqwest for fetching different file types
-bytes = "1.0"
+bytes = "1.10"
 toml = { version = "0.8.20", optional = true }
 argon2 = { version = "0.5.3", optional = true }
 futures = { version = "0.3.31", optional = true }
 itertools = { version = "0.14.0", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-rustls = "0.23.20"
-tokio-tungstenite = { version = "0.26.1", features = [
+rustls = "0.23.25"
+tokio-tungstenite = { version = "0.26.2", features = [
     "rustls-tls-webpki-roots",
 ] }
 hostname = "0.3.1"
@@ -93,18 +93,18 @@ getrandom = { version = "0.2.15" }
 getrandom = { version = "0.2.15", features = ["js"] }
 ws_stream_wasm = "0.7.4"
 pharos = "0.5.3" # This is a dependency of ws_stream_wasm, we are including it to interface with that library
-wasm-bindgen-futures = "0.4.43"
-wasmtimer = "0.4.0"
+wasm-bindgen-futures = "0.4.50"
+wasmtimer = "0.4.1"
 
 [dev-dependencies]
 lazy_static = "1.5.0"
-wasm-bindgen-test = "0.3.43"
-wasm-bindgen = "0.2.95"
+wasm-bindgen-test = "0.3.50"
+wasm-bindgen = "0.2.100"
 simple_logger = { version = "5.0.0", default-features = false }
 tokio-test = "0.4.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-httptest = "0.16.1"
+httptest = "0.16.3"
 
 [lints.rust]
 unexpected_cfgs = { level = "allow", check-cfg = ['cfg(tarpaulin_include)'] }

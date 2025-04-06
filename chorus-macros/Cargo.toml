@@ -10,6 +10,6 @@ repository = "https://github.com/polyphony-chat/chorus"
 proc-macro = true
 
 [dependencies]
-quote = "1.0.33"
-syn = "2.0.29"
-async-trait = "0.1.73"
+quote = "1.0.40"
+syn = "2.0.100"
+async-trait = "0.1.88"
