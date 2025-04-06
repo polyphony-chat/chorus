@@ -367,7 +367,7 @@ dependencies = [
  "serde_with",
  "simple_logger",
  "sqlx",
- "sqlx-pg-uint 0.8.1",
+ "sqlx-pg-uint",
  "thiserror 1.0.69",
  "tokio",
  "tokio-test",
@@ -395,9 +395,23 @@ dependencies = [
 name = "chorus-postgres"
 version = "0.1.0"
 dependencies = [
+ "argon2",
+ "bigdecimal",
  "chorus",
+ "chrono",
+ "futures",
+ "hex",
+ "itertools 0.14.0",
+ "log",
+ "num-traits",
+ "pubserve",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
  "sqlx",
- "sqlx-pg-uint 0.9.0",
+ "sqlx-pg-uint",
+ "tokio",
 ]
 
 [[package]]
@@ -2509,6 +2523,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_path_to_error"
+version = "0.1.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59fab13f937fa393d08645bf3a84bdfe86e296747b506ada67bb15f10f218b2a"
+dependencies = [
+ "itoa",
+ "serde",
+]
+
+[[package]]
 name = "serde_repr"
 version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2820,19 +2844,6 @@ dependencies = [
 
 [[package]]
 name = "sqlx-pg-uint"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7241503cb734a90d248d68dbf63a05144bc4c6ee4a733bb3239860e01eb03653"
-dependencies = [
- "bigdecimal",
- "serde",
- "sqlx",
- "sqlx-pg-uint-macros",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "sqlx-pg-uint"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8d617c9e82d0ae86cb1c9ba3bdc02ba43e18515185d9cf87a917fce6da0768c"
@@ -3128,9 +3139,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.44.1"
+version = "1.44.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f382da615b842244d4b8738c82ed1275e6c5dd90c459a30941cd07080b06c91a"
+checksum = "e6b88822cbe49de4185e3a4cbf8321dd487cf5fe0c5c65695fef6346371e9c48"
 dependencies = [
  "backtrace",
  "bytes",
