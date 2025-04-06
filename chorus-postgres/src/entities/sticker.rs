@@ -4,21 +4,21 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::{Snowflake, StickerFormatType, StickerType};
+use chorus::types::{Snowflake, StickerFormatType, StickerType, errors::Error};
 use serde::{Deserialize, Serialize};
 use sqlx::{PgPool, Row};
 
-use crate::{database::entities::User, errors::Error};
+use crate::entities::User;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Sticker {
     #[sqlx(flatten)]
-    inner: crate::types::Sticker,
+    inner: chorus::types::Sticker,
     pub user_id: Option<Snowflake>,
 }
 
 impl Deref for Sticker {
-    type Target = crate::types::Sticker;
+    type Target = chorus::types::Sticker;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -58,7 +58,7 @@ impl Sticker {
             .await?;
 
         Ok(Self {
-            inner: crate::types::Sticker {
+            inner: chorus::types::Sticker {
                 id,
                 guild_id,
                 user: None,
@@ -131,7 +131,7 @@ impl Sticker {
             .map(|_| ())
     }
 
-    pub fn into_inner(self) -> crate::types::Sticker {
+    pub fn into_inner(self) -> chorus::types::Sticker {
         self.inner
     }
 }

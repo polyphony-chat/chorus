@@ -2,17 +2,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use crate::types::Snowflake;
+use chorus::types::Snowflake;
 use std::ops::{Deref, DerefMut};
 
 #[derive(Debug, Clone)]
 pub struct GuildTemplate {
-    inner: crate::types::GuildTemplate,
+    inner: chorus::types::GuildTemplate,
     pub id: Snowflake,
 }
 
 impl Deref for GuildTemplate {
-    type Target = crate::types::GuildTemplate;
+    type Target = chorus::types::GuildTemplate;
 
     fn deref(&self) -> &Self::Target {
         &self.inner

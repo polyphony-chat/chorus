@@ -4,21 +4,21 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::errors::{ChannelError, Error, GuildError};
-use crate::types::{CreateChannelInviteSchema, InviteType, Snowflake};
+use chorus::types::errors::{ChannelError, Error, GuildError};
+use chorus::types::{CreateChannelInviteSchema, InviteType, Snowflake};
 use chrono::Utc;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use sqlx_pg_uint::{PgU32, PgU8};
+use sqlx_pg_uint::{PgU8, PgU32};
 
-use crate::types::database::entities::{Channel, Guild, User};
+use crate::entities::{Channel, Guild, User};
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 pub struct Invite {
     #[serde(flatten)]
     #[sqlx(flatten)]
-    inner: crate::types::Invite,
+    inner: chorus::types::Invite,
     #[serde(skip)]
     pub channel_id: Option<Snowflake>,
     #[serde(skip)]
@@ -29,7 +29,7 @@ pub struct Invite {
 }
 
 impl Deref for Invite {
-    type Target = crate::types::Invite;
+    type Target = chorus::types::Invite;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -70,7 +70,7 @@ impl Invite {
             .map(|age| Utc::now() + chrono::Duration::seconds(age as i64));
 
         let invite = Self {
-            inner: crate::types::Invite {
+            inner: chorus::types::Invite {
                 approximate_member_count: None,
                 approximate_presence_count: None,
                 channel: None,
@@ -130,7 +130,7 @@ impl Invite {
         code: &str,
     ) -> Result<Self, Error> {
         let invite = Self {
-            inner: crate::types::Invite {
+            inner: chorus::types::Invite {
                 code: code.to_string(),
                 created_at: Some(Utc::now()),
                 guild_id: Some(guild_id),
@@ -308,7 +308,7 @@ impl Invite {
             .map_err(Error::SQLX)
     }
 
-    pub fn into_inner(self) -> crate::types::Invite {
+    pub fn into_inner(self) -> chorus::types::Invite {
         self.inner
     }
 }

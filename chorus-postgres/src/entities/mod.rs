@@ -22,7 +22,7 @@ pub use user_settings::*;
 pub use voice_state::*;
 pub use webhook::*;
 
-use crate::types::SharedEventPublisher;
+use chorus::types::SharedEventPublisher;
 
 mod application;
 mod attachment;

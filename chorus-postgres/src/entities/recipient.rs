@@ -2,12 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use crate::types::Snowflake;
+use chorus::types::{Snowflake, errors::Error};
 
-use crate::{
-    database::entities::{Channel, User},
-    errors::Error,
-};
+use crate::entities::{Channel, User};
 
 #[derive(Debug, Clone, PartialEq, sqlx::FromRow)]
 pub struct Recipient {
@@ -16,7 +13,7 @@ pub struct Recipient {
     pub channel: Option<Channel>,
     pub channel_id: Snowflake,
     #[sqlx(skip)]
-    pub user: Option<crate::types::User>,
+    pub user: Option<chorus::types::User>,
     pub user_id: Snowflake,
     pub closed: bool,
 }

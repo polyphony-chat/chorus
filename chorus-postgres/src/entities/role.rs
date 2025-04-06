@@ -6,17 +6,18 @@ use super::*;
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::{PermissionFlags, Snowflake};
+use chorus::types::{
+    PermissionFlags, SharedEventPublisherMap, Snowflake, eq_shared_event_publisher, errors::Error,
+};
+use futures::executor::block_on;
 use serde::{Deserialize, Serialize};
 use sqlx::{PgPool, Row};
 use sqlx_pg_uint::PgU64;
 
-use crate::{eq_shared_event_publisher, errors::Error, SharedEventPublisherMap, QUERY_UPPER_LIMIT};
-
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Role {
     #[sqlx(flatten)]
-    inner: crate::types::RoleObject,
+    inner: chorus::types::RoleObject,
     pub guild_id: Snowflake,
     #[sqlx(skip)]
     #[serde(skip)]
@@ -27,12 +28,12 @@ impl PartialEq for Role {
     fn eq(&self, other: &Self) -> bool {
         self.inner == other.inner
             && self.guild_id == other.guild_id
-            && eq_shared_event_publisher(&self.publisher, &other.publisher)
+            && block_on(eq_shared_event_publisher(&self.publisher, &other.publisher))
     }
 }
 
 impl Deref for Role {
-    type Target = crate::types::RoleObject;
+    type Target = chorus::types::RoleObject;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -62,7 +63,7 @@ impl Role {
         unicode_emoji: Option<String>,
     ) -> Result<Self, Error> {
         let role = Self {
-            inner: crate::types::RoleObject {
+            inner: chorus::types::RoleObject {
                 id: id.unwrap_or_default(),
                 color,
                 hoist,
@@ -80,6 +81,7 @@ impl Role {
         };
         shared_event_publisher_map
             .write()
+            .await
             .insert(role.id, role.publisher.clone());
         sqlx::query("INSERT INTO roles (id, guild_id, name, color, hoist, managed, mentionable, permissions, position, icon, unicode_emoji) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
             .bind(role.id)
@@ -126,7 +128,7 @@ impl Role {
                 ) LIMIT $2;",
         )
         .bind(user_id)
-        .bind(QUERY_UPPER_LIMIT)
+        .bind(10000)
         .fetch_all(db)
         .await
         .map_err(Error::SQLX)
@@ -142,7 +144,7 @@ impl Role {
                 WHERE m.id = $1 LIMIT $2;",
         )
         .bind(user_id)
-        .bind(QUERY_UPPER_LIMIT)
+        .bind(10000)
         .fetch_all(db)
         .await
         .map_err(Error::SQLX)?
@@ -187,7 +189,7 @@ impl Role {
             .map_err(Error::SQLX)
     }
 
-    pub fn into_inner(self) -> crate::types::RoleObject {
+    pub fn into_inner(self) -> chorus::types::RoleObject {
         self.inner
     }
 }

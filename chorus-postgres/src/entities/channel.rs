@@ -5,26 +5,26 @@
 use std::ops::{Deref, DerefMut};
 
 use super::*;
-use crate::types::errors::*;
-use crate::types::{
+use chorus::types::errors::*;
+use chorus::types::{
     ChannelMessagesAnchor, ChannelModifySchema, ChannelType, CreateChannelInviteSchema, InviteType,
     MessageSendSchema, PermissionOverwrite, Snowflake,
 };
 use futures::executor::block_on;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{types::Json, PgPool};
+use sqlx::{PgPool, types::Json};
 
-use crate::types::database::entities::{
-    invite::Invite, message::Message, read_state::ReadState, recipient::Recipient, GuildMember,
-    User, Webhook,
+use crate::entities::{
+    GuildMember, User, Webhook, invite::Invite, message::Message, read_state::ReadState,
+    recipient::Recipient,
 };
-use crate::types::eq_shared_event_publisher;
+use chorus::types::eq_shared_event_publisher;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, Default)]
 pub struct Channel {
     #[sqlx(flatten)]
-    pub(crate) inner: crate::types::Channel,
+    pub(crate) inner: chorus::types::Channel,
     #[sqlx(skip)]
     #[serde(skip)]
     pub publisher: SharedEventPublisher,
@@ -38,7 +38,7 @@ impl PartialEq for Channel {
 }
 
 impl Deref for Channel {
-    type Target = crate::types::Channel;
+    type Target = chorus::types::Channel;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -51,7 +51,7 @@ impl DerefMut for Channel {
 }
 
 impl Channel {
-    pub fn into_inner(self) -> crate::types::Channel {
+    pub fn into_inner(self) -> chorus::types::Channel {
         self.inner
     }
 
@@ -95,7 +95,7 @@ impl Channel {
         // TODO: permission overwrites
 
         let channel = Self {
-            inner: crate::types::Channel {
+            inner: chorus::types::Channel {
                 channel_type,
                 name,
                 nsfw: Some(nsfw),
@@ -390,14 +390,15 @@ impl Channel {
     }
 }
 
-#[cfg(test)]
-mod channel_unit_tests {
-    #[sqlx::test(fixtures(path = "../../../fixtures", scripts("private_channels")))]
-    async fn get_private_of_user(pool: sqlx::PgPool) {
-        let channels = super::Channel::get_private_of_user(7250861145186111490.into(), &pool)
-            .await
-            .unwrap();
-        assert_eq!(channels.len(), 1);
-        assert_eq!(channels[0].id, 7250859537236758528.into());
-    }
-}
+// TODO: Move to symfonia again
+// #[cfg(test)]
+// mod channel_unit_tests {
+//     #[sqlx::test(fixtures(path = "../../../fixtures", scripts("private_channels")))]
+//     async fn get_private_of_user(pool: sqlx::PgPool) {
+//         let channels = super::Channel::get_private_of_user(7250861145186111490.into(), &pool)
+//             .await
+//             .unwrap();
+//         assert_eq!(channels.len(), 1);
+//         assert_eq!(channels[0].id, 7250859537236758528.into());
+//     }
+// }

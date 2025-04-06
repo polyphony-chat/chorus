@@ -4,23 +4,23 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::{AuditLogActionType, Snowflake};
+use chorus::types::{AuditLogActionType, Snowflake};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 use sqlx_pg_uint::PgU8;
 
-use crate::types::errors::Error;
+use chorus::types::errors::Error;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct AuditLogEntry {
     #[serde(flatten)]
     #[sqlx(flatten)]
-    inner: crate::types::AuditLogEntry,
+    inner: chorus::types::AuditLogEntry,
     pub guild_id: Snowflake,
 }
 
 impl Deref for AuditLogEntry {
-    type Target = crate::types::AuditLogEntry;
+    type Target = chorus::types::AuditLogEntry;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -96,7 +96,7 @@ impl AuditLogEntry {
             .collect::<Vec<_>>())
     }
 
-    pub fn into_inner(self) -> crate::types::AuditLogEntry {
+    pub fn into_inner(self) -> chorus::types::AuditLogEntry {
         self.inner
     }
 }

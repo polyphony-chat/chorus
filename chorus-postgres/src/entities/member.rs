@@ -4,21 +4,20 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::{Snowflake, UserGuildSettingsUpdate};
+use chorus::types::{Snowflake, UserGuildSettingsUpdate};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Row};
 use sqlx_pg_uint::{PgU16, PgU64};
 
-use crate::{
-    database::entities::{Guild, User},
-    errors::{Error, GuildError, UserError},
-};
+use crate::entities::{Guild, User};
+
+use chorus::types::errors::{Error, GuildError, UserError};
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, FromRow)]
 pub struct GuildMember {
     #[serde(flatten)]
     #[sqlx(flatten)]
-    inner: crate::types::GuildMember,
+    inner: chorus::types::GuildMember,
     pub index: PgU64,
     pub id: Snowflake,
     pub guild_id: Snowflake,
@@ -29,7 +28,7 @@ pub struct GuildMember {
 }
 
 impl Deref for GuildMember {
-    type Target = crate::types::GuildMember;
+    type Target = chorus::types::GuildMember;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -62,7 +61,7 @@ impl GuildMember {
             guild_id: guild.id,
             settings: Default::default(),
             user_data: user.to_owned(),
-            inner: crate::types::GuildMember {
+            inner: chorus::types::GuildMember {
                 user: None,
                 nick: None,
                 avatar: None, // TODO
@@ -293,7 +292,7 @@ impl GuildMember {
         Ok(())
     }
 
-    pub fn into_inner(self) -> crate::types::GuildMember {
+    pub fn into_inner(self) -> chorus::types::GuildMember {
         self.inner
     }
 }

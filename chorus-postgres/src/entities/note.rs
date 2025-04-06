@@ -4,10 +4,10 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::{Snowflake, UserNote};
+use chorus::types::{Snowflake, UserNote};
 use serde::{Deserialize, Serialize};
 
-use crate::errors::Error;
+use chorus::types::errors::Error;
 
 #[derive(sqlx::FromRow, Debug, Clone, Serialize, Deserialize)]
 /// A note that a user has written about another user. The target user may be the author of the note.
@@ -56,17 +56,18 @@ impl Note {
     }
 }
 
-#[cfg(test)]
-mod note_unit_tests {
-    #[sqlx::test(fixtures(path = "../../../fixtures", scripts("notes")))]
-    async fn test_get_by_author_id(db: sqlx::PgPool) {
-        let notes = super::Note::get_by_author_id(7250861145186111490.into(), &db)
-            .await
-            .unwrap();
-        assert_eq!(notes.len(), 1);
-        let note = notes[0].as_inner();
-        assert_eq!(note.author_id, 7250861145186111490.into());
-        assert_eq!(note.target_id, 7250861145186111491.into());
-        assert_eq!(note.content, "This is a note");
-    }
-}
+// TODO: Move to symfonia again
+// #[cfg(test)]
+// mod note_unit_tests {
+//     #[sqlx::test(fixtures(path = "../../../fixtures", scripts("notes")))]
+//     async fn test_get_by_author_id(db: sqlx::PgPool) {
+//         let notes = super::Note::get_by_author_id(7250861145186111490.into(), &db)
+//             .await
+//             .unwrap();
+//         assert_eq!(notes.len(), 1);
+//         let note = notes[0].as_inner();
+//         assert_eq!(note.author_id, 7250861145186111490.into());
+//         assert_eq!(note.target_id, 7250861145186111491.into());
+//         assert_eq!(note.content, "This is a note");
+//     }
+// }

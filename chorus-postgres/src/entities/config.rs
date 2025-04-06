@@ -4,18 +4,18 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::ConfigValue;
+use chorus::types::ConfigValue;
 use serde_json::{Map, Value};
 use sqlx::PgPool;
 use tokio::io::AsyncReadExt;
 
-use crate::types::errors::Error;
+use chorus::types::errors::Error;
 
 #[derive(Debug, Clone, Default)]
-pub struct Config(crate::types::ConfigValue);
+pub struct Config(chorus::types::ConfigValue);
 
 impl Deref for Config {
-    type Target = crate::types::ConfigValue;
+    type Target = chorus::types::ConfigValue;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -101,7 +101,7 @@ impl Config {
                     pairs.extend(Self::generate_pairs(v, &new_key));
                 }
             }
-            _ => pairs.push(ConfigEntity(crate::types::ConfigEntity {
+            _ => pairs.push(ConfigEntity(chorus::types::ConfigEntity {
                 key: key.to_string(),
                 value: Some(obj.clone()),
             })),
@@ -111,10 +111,10 @@ impl Config {
 }
 
 #[derive(Debug)]
-pub struct ConfigEntity(crate::types::ConfigEntity);
+pub struct ConfigEntity(chorus::types::ConfigEntity);
 
 impl Deref for ConfigEntity {
-    type Target = crate::types::ConfigEntity;
+    type Target = chorus::types::ConfigEntity;
     fn deref(&self) -> &Self::Target {
         &self.0
     }

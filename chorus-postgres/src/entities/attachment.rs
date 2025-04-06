@@ -2,19 +2,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use crate::types::Snowflake;
+use chorus::types::Snowflake;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Attachment {
     #[sqlx(flatten)]
-    inner: crate::types::Attachment,
+    inner: chorus::types::Attachment,
     pub message_id: Option<Snowflake>,
 }
 
 impl Deref for Attachment {
-    type Target = crate::types::Attachment;
+    type Target = chorus::types::Attachment;
 
     fn deref(&self) -> &Self::Target {
         &self.inner

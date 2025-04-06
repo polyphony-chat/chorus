@@ -4,32 +4,31 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::{
+use chorus::types::errors::{ChannelError, Error, ReactionError};
+use chorus::types::{
     ChannelMessagesAnchor, MessageFlags, MessageModifySchema, MessageSearchQuery,
     MessageSendSchema, MessageType, PartialEmoji, Reaction, Snowflake,
 };
+
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool, QueryBuilder, Row};
 use sqlx_pg_uint::PgU64;
 
-use crate::{
-    database::entities::User,
-    errors::{ChannelError, Error, ReactionError},
-};
+use crate::entities::User;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Message {
     #[sqlx(flatten)]
     #[serde(flatten)]
-    inner: crate::types::Message,
+    inner: chorus::types::Message,
     pub author_id: Snowflake,
     pub guild_id: Option<Snowflake>,
     pub message_reference_id: Option<Snowflake>,
 }
 
 impl Deref for Message {
-    type Target = crate::types::Message;
+    type Target = chorus::types::Message;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -88,7 +87,7 @@ impl Message {
             .await?;
 
         Ok(Self {
-            inner: crate::types::Message {
+            inner: chorus::types::Message {
                 id: new_message_id,
                 channel_id,
                 author: None,

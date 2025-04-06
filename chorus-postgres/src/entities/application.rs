@@ -9,18 +9,18 @@ use std::{
     sync::Arc,
 };
 
-use crate::types::errors::Error;
-use crate::types::{ApplicationFlags, Snowflake};
+use chorus::types::errors::Error;
+use chorus::types::{ApplicationFlags, Snowflake};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use tokio::sync::RwLock;
 
-use super::{user::User, Config};
+use super::{Config, user::User};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Application {
     #[sqlx(flatten)]
-    inner: crate::types::Application,
+    inner: chorus::types::Application,
     pub owner_id: Snowflake,
     pub bot_user_id: Option<Snowflake>,
     pub team_id: Option<Snowflake>,
@@ -30,7 +30,7 @@ pub struct Application {
 }
 
 impl Deref for Application {
-    type Target = crate::types::Application;
+    type Target = chorus::types::Application;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -62,7 +62,7 @@ impl Application {
         };
 
         let application = Self {
-            inner: crate::types::Application {
+            inner: chorus::types::Application {
                 name: name.to_string(),
                 summary: Some(summary.to_string()),
                 verify_key: verify_key.to_string(),

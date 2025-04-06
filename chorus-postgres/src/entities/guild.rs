@@ -5,21 +5,19 @@
 use super::*;
 use std::ops::{Deref, DerefMut};
 
-use crate::types::{
+use chorus::types::{
     ChannelType, NSFWLevel, PermissionFlags, PremiumTier, Snowflake, SystemChannelFlags,
     WelcomeScreenObject,
 };
-use crate::util::{
-    errors::{Error, GuildError, UserError},
+use chorus::types::{
     SharedEventPublisherMap,
+    errors::{Error, GuildError, UserError},
 };
-use bigdecimal::BigDecimal;
-use num_traits::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool, QueryBuilder, Row};
-use sqlx_pg_uint::{PgU16, PgU64};
+use sqlx_pg_uint::PgU16;
 
-use crate::types::database::entities::{
+use crate::entities::{
     Channel, Config, Emoji, GuildMember, GuildTemplate, Invite, Role, Sticker, User,
 };
 
@@ -27,7 +25,7 @@ use crate::types::database::entities::{
 pub struct Guild {
     #[sqlx(flatten)]
     #[serde(flatten)]
-    inner: crate::types::Guild,
+    inner: chorus::types::Guild,
     pub member_count: Option<i32>,
     pub presence_count: Option<i32>,
     pub unavailable: bool,
@@ -40,7 +38,7 @@ pub struct Guild {
 }
 
 impl Deref for Guild {
-    type Target = crate::types::Guild;
+    type Target = chorus::types::Guild;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -60,10 +58,10 @@ impl Guild {
         name: &str,
         icon: Option<String>,
         owner_id: Snowflake,
-        channels: &[crate::types::Channel],
+        channels: &[chorus::types::Channel],
     ) -> Result<Self, Error> {
         let mut guild = Self {
-            inner: crate::types::Guild {
+            inner: chorus::types::Guild {
                 name: Some(name.to_string()),
                 icon: Default::default(), // TODO: Handle guild Icon
                 owner_id: Some(owner_id.to_owned()),
@@ -94,6 +92,7 @@ impl Guild {
         };
         shared_event_publisher_map
             .write()
+            .await
             .insert(guild.id, guild.publisher.clone());
 
         sqlx::query("INSERT INTO guilds (id, afk_timeout, default_message_notifications, explicit_content_filter, features, icon, max_members, max_presences, max_video_channel_users, name, owner_id, region, system_channel_flags, preferred_locale, welcome_screen, large, premium_tier, unavailable, widget_enabled, nsfw) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,0,0,?)")
@@ -411,11 +410,11 @@ impl Guild {
         GuildMember::search(db, self.id, query, limit).await
     }
 
-    pub fn into_inner(self) -> crate::types::Guild {
+    pub fn into_inner(self) -> chorus::types::Guild {
         self.inner
     }
 
-    pub fn to_inner(&self) -> &crate::types::Guild {
+    pub fn to_inner(&self) -> &chorus::types::Guild {
         &self.inner
     }
 }
@@ -423,7 +422,7 @@ impl Guild {
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct GuildBan {
     #[sqlx(flatten)]
-    inner: crate::types::GuildBan,
+    inner: chorus::types::GuildBan,
     pub id: Snowflake,
     pub executor_id: Snowflake,
     pub guild_id: Snowflake,
@@ -432,7 +431,7 @@ pub struct GuildBan {
 }
 
 impl Deref for GuildBan {
-    type Target = crate::types::GuildBan;
+    type Target = chorus::types::GuildBan;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -470,7 +469,7 @@ impl GuildBan {
             .map_err(Error::SQLX)?;
 
         Ok(Self {
-            inner: crate::types::GuildBan {
+            inner: chorus::types::GuildBan {
                 reason,
                 user: user.user_data.to_public_user(),
             },
@@ -495,7 +494,7 @@ impl GuildBan {
         let mut rows = user_ids
             .into_iter()
             .map(|user_id| GuildBan {
-                inner: crate::types::GuildBan {
+                inner: chorus::types::GuildBan {
                     user: Default::default(),
                     reason: None,
                 },
@@ -607,7 +606,7 @@ impl GuildBan {
 
     // Start helper functions
 
-    pub fn into_inner(self) -> crate::types::GuildBan {
+    pub fn into_inner(self) -> chorus::types::GuildBan {
         self.inner
     }
 }

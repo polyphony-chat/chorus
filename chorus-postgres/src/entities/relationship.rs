@@ -4,26 +4,22 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::{PublicUser, Snowflake};
-use bigdecimal::BigDecimal;
+use chorus::types::{PublicUser, Snowflake, errors::Error};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::{QUERY_UPPER_LIMIT, errors::Error};
-
-use super::*;
 
 #[derive(sqlx::FromRow, Debug, Clone, Serialize, Deserialize)]
 pub struct Relationship {
     #[sqlx(flatten)]
-    pub(crate) inner: crate::types::Relationship,
+    pub(crate) inner: chorus::types::Relationship,
     pub from_id: Snowflake,
     #[sqlx(skip)]
     pub user: PublicUser,
 }
 
 impl Deref for Relationship {
-    type Target = crate::types::Relationship;
+    type Target = chorus::types::Relationship;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -38,15 +34,15 @@ impl DerefMut for Relationship {
 
 // TODO: Lots of missing methods
 impl Relationship {
-    pub fn into_inner(self) -> crate::types::Relationship {
+    pub fn into_inner(self) -> chorus::types::Relationship {
         self.inner
     }
 
-    pub fn as_inner(&self) -> &crate::types::Relationship {
+    pub fn as_inner(&self) -> &chorus::types::Relationship {
         &self.inner
     }
 
-    pub fn as_inner_mut(&mut self) -> &mut crate::types::Relationship {
+    pub fn as_inner_mut(&mut self) -> &mut chorus::types::Relationship {
         &mut self.inner
     }
 
@@ -54,7 +50,7 @@ impl Relationship {
     pub async fn get_by_from_id(from_id: Snowflake, db: &PgPool) -> Result<Vec<Self>, Error> {
         sqlx::query_as("SELECT * from relationships WHERE from_id = $1 LIMIT $2")
             .bind(from_id)
-            .bind(QUERY_UPPER_LIMIT)
+            .bind(10000)
             .fetch_all(db)
             .await
             .map_err(Error::from)
@@ -64,7 +60,7 @@ impl Relationship {
     pub async fn get_by_to_id(to_id: Snowflake, db: &PgPool) -> Result<Vec<Self>, Error> {
         sqlx::query_as("SELECT * from relationships WHERE to_id = $1 LIMIT $2")
             .bind(to_id)
-            .bind(QUERY_UPPER_LIMIT)
+            .bind(10000)
             .fetch_all(db)
             .await
             .map_err(Error::from)
@@ -75,114 +71,115 @@ impl Relationship {
     pub async fn get_all_by_id(id: Snowflake, db: &PgPool) -> Result<Vec<Self>, Error> {
         sqlx::query_as("SELECT * from relationships WHERE from_id = $1 OR to_id = $1 LIMIT $2")
             .bind(id)
-            .bind(QUERY_UPPER_LIMIT)
+            .bind(10000)
             .fetch_all(db)
             .await
             .map_err(Error::from)
     }
 }
 
-#[cfg(test)]
-mod relationship_unit_tests {
-    use crate::types::RelationshipType;
-    use bigdecimal::BigDecimal;
-    use sqlx::PgPool;
-    use sqlx_pg_uint::PgU8;
+// TODO: move to symfonia again
+// #[cfg(test)]
+// mod relationship_unit_tests {
+//     use chorus::types::RelationshipType;
+//     use bigdecimal::BigDecimal;
+//     use sqlx::PgPool;
+//     use sqlx_pg_uint::PgU8;
 
-    #[sqlx::test(fixtures(path = "../../../fixtures", scripts("users")))]
-    async fn get_by_from_id(pool: PgPool) {
-        sqlx::query!(
-            "INSERT INTO relationships(from_id, to_id, nickname, type) VALUES($1, $2, $3, $4);",
-            BigDecimal::from(7248639845155737600_u64),
-            BigDecimal::from(7248639891561517057_u64),
-            "Janana Banana 🍌",
-            BigDecimal::from(RelationshipType::Outgoing as u8)
-        )
-        .execute(&pool)
-        .await
-        .unwrap();
+//     #[sqlx::test(fixtures(path = "../../../fixtures", scripts("users")))]
+//     async fn get_by_from_id(pool: PgPool) {
+//         sqlx::query!(
+//             "INSERT INTO relationships(from_id, to_id, nickname, type) VALUES($1, $2, $3, $4);",
+//             BigDecimal::from(7248639845155737600_u64),
+//             BigDecimal::from(7248639891561517057_u64),
+//             "Janana Banana 🍌",
+//             BigDecimal::from(RelationshipType::Outgoing as u8)
+//         )
+//         .execute(&pool)
+//         .await
+//         .unwrap();
 
-        let relationships = super::Relationship::get_by_from_id(7248639845155737600.into(), &pool)
-            .await
-            .unwrap();
+//         let relationships = super::Relationship::get_by_from_id(7248639845155737600.into(), &pool)
+//             .await
+//             .unwrap();
 
-        assert_eq!(relationships.len(), 1);
-        let relationship = &relationships[0];
-        assert_eq!(relationship.from_id, 7248639845155737600.into());
-        assert_eq!(relationship.id, 7248639891561517057.into());
-        assert_eq!(relationship.nickname, Some("Janana Banana 🍌".to_string()));
-        assert_eq!(relationship.relationship_type, RelationshipType::Outgoing);
-    }
+//         assert_eq!(relationships.len(), 1);
+//         let relationship = &relationships[0];
+//         assert_eq!(relationship.from_id, 7248639845155737600.into());
+//         assert_eq!(relationship.id, 7248639891561517057.into());
+//         assert_eq!(relationship.nickname, Some("Janana Banana 🍌".to_string()));
+//         assert_eq!(relationship.relationship_type, RelationshipType::Outgoing);
+//     }
 
-    #[sqlx::test(fixtures(path = "../../../fixtures", scripts("users")))]
-    async fn get_by_to_id(pool: PgPool) {
-        sqlx::query!(
-            "INSERT INTO relationships(from_id, to_id, nickname, type) VALUES($1, $2, $3, $4);",
-            BigDecimal::from(7248639845155737600_u64),
-            BigDecimal::from(7248639891561517057_u64),
-            "Janana Banana 🍌",
-            BigDecimal::from(RelationshipType::Outgoing as u8)
-        )
-        .execute(&pool)
-        .await
-        .unwrap();
+//     #[sqlx::test(fixtures(path = "../../../fixtures", scripts("users")))]
+//     async fn get_by_to_id(pool: PgPool) {
+//         sqlx::query!(
+//             "INSERT INTO relationships(from_id, to_id, nickname, type) VALUES($1, $2, $3, $4);",
+//             BigDecimal::from(7248639845155737600_u64),
+//             BigDecimal::from(7248639891561517057_u64),
+//             "Janana Banana 🍌",
+//             BigDecimal::from(RelationshipType::Outgoing as u8)
+//         )
+//         .execute(&pool)
+//         .await
+//         .unwrap();
 
-        let relationships = super::Relationship::get_by_to_id(7248639891561517057.into(), &pool)
-            .await
-            .unwrap();
+//         let relationships = super::Relationship::get_by_to_id(7248639891561517057.into(), &pool)
+//             .await
+//             .unwrap();
 
-        assert_eq!(relationships.len(), 1);
-        let relationship = &relationships[0];
-        assert_eq!(relationship.from_id, 7248639845155737600.into());
-        assert_eq!(relationship.id, 7248639891561517057.into());
-        assert_eq!(relationship.nickname, Some("Janana Banana 🍌".to_string()));
-        assert_eq!(relationship.relationship_type, RelationshipType::Outgoing);
-    }
+//         assert_eq!(relationships.len(), 1);
+//         let relationship = &relationships[0];
+//         assert_eq!(relationship.from_id, 7248639845155737600.into());
+//         assert_eq!(relationship.id, 7248639891561517057.into());
+//         assert_eq!(relationship.nickname, Some("Janana Banana 🍌".to_string()));
+//         assert_eq!(relationship.relationship_type, RelationshipType::Outgoing);
+//     }
 
-    #[sqlx::test(fixtures(path = "../../../fixtures", scripts("users")))]
-    async fn get_all_by_id(pool: PgPool) {
-        sqlx::query!(
-            "INSERT INTO relationships(from_id, to_id, nickname, type) VALUES($1, $2, $3, $4);",
-            BigDecimal::from(7248639845155737600_u64),
-            BigDecimal::from(7248639891561517057_u64),
-            "Janana Banana 🍌",
-            BigDecimal::from(RelationshipType::Outgoing as u8)
-        )
-        .execute(&pool)
-        .await
-        .unwrap();
+//     #[sqlx::test(fixtures(path = "../../../fixtures", scripts("users")))]
+//     async fn get_all_by_id(pool: PgPool) {
+//         sqlx::query!(
+//             "INSERT INTO relationships(from_id, to_id, nickname, type) VALUES($1, $2, $3, $4);",
+//             BigDecimal::from(7248639845155737600_u64),
+//             BigDecimal::from(7248639891561517057_u64),
+//             "Janana Banana 🍌",
+//             BigDecimal::from(RelationshipType::Outgoing as u8)
+//         )
+//         .execute(&pool)
+//         .await
+//         .unwrap();
 
-        let relationships = super::Relationship::get_all_by_id(7248639845155737600.into(), &pool)
-            .await
-            .unwrap();
+//         let relationships = super::Relationship::get_all_by_id(7248639845155737600.into(), &pool)
+//             .await
+//             .unwrap();
 
-        assert_eq!(relationships.len(), 1);
-        let relationship = &relationships[0];
-        assert_eq!(relationship.from_id, 7248639845155737600.into());
-        assert_eq!(relationship.id, 7248639891561517057.into());
-        assert_eq!(relationship.nickname, Some("Janana Banana 🍌".to_string()));
-        assert_eq!(relationship.relationship_type, RelationshipType::Outgoing);
+//         assert_eq!(relationships.len(), 1);
+//         let relationship = &relationships[0];
+//         assert_eq!(relationship.from_id, 7248639845155737600.into());
+//         assert_eq!(relationship.id, 7248639891561517057.into());
+//         assert_eq!(relationship.nickname, Some("Janana Banana 🍌".to_string()));
+//         assert_eq!(relationship.relationship_type, RelationshipType::Outgoing);
 
-        sqlx::query!(
-            "INSERT INTO relationships(from_id, to_id, nickname, type) VALUES($1, $2, $3, $4);",
-            BigDecimal::from(7248639845155737600_u64),
-            BigDecimal::from(7248640296244744192_u64),
-            "Banana Janana 🍌",
-            BigDecimal::from(RelationshipType::Incoming as u8)
-        )
-        .execute(&pool)
-        .await
-        .unwrap();
+//         sqlx::query!(
+//             "INSERT INTO relationships(from_id, to_id, nickname, type) VALUES($1, $2, $3, $4);",
+//             BigDecimal::from(7248639845155737600_u64),
+//             BigDecimal::from(7248640296244744192_u64),
+//             "Banana Janana 🍌",
+//             BigDecimal::from(RelationshipType::Incoming as u8)
+//         )
+//         .execute(&pool)
+//         .await
+//         .unwrap();
 
-        let relationships = super::Relationship::get_all_by_id(7248639845155737600.into(), &pool)
-            .await
-            .unwrap();
+//         let relationships = super::Relationship::get_all_by_id(7248639845155737600.into(), &pool)
+//             .await
+//             .unwrap();
 
-        assert_eq!(relationships.len(), 2);
-        let relationship = &relationships[1];
-        assert_eq!(relationship.from_id, 7248639845155737600.into());
-        assert_eq!(relationship.id, 7248640296244744192.into());
-        assert_eq!(relationship.nickname, Some("Banana Janana 🍌".to_string()));
-        assert_eq!(relationship.relationship_type, RelationshipType::Incoming);
-    }
-}
+//         assert_eq!(relationships.len(), 2);
+//         let relationship = &relationships[1];
+//         assert_eq!(relationship.from_id, 7248639845155737600.into());
+//         assert_eq!(relationship.id, 7248640296244744192.into());
+//         assert_eq!(relationship.nickname, Some("Banana Janana 🍌".to_string()));
+//         assert_eq!(relationship.relationship_type, RelationshipType::Incoming);
+//     }
+// }

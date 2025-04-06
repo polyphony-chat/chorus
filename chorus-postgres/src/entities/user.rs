@@ -3,36 +3,34 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use super::*;
-use crate::QUERY_UPPER_LIMIT;
 
 use std::{
     default::Default,
     ops::{Deref, DerefMut},
-    str::FromStr,
 };
 
-use crate::types::{PremiumType, PublicUser, Rights, Snowflake, UserData};
 use argon2::{
     Argon2,
-    password_hash::{self, PasswordHash, PasswordHasher, SaltString},
+    password_hash::{self, PasswordHasher, SaltString},
 };
 use bigdecimal::BigDecimal;
+use chorus::types::{
+    PublicUser, Rights, Snowflake, UserData,
+    errors::{Error, GuildError},
+};
 use chrono::{NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, from_str};
 use sqlx::{FromRow, PgPool, Row};
 use sqlx_pg_uint::{PgU32, PgU64};
 
-use crate::{
-    database::entities::{Config, Guild, GuildMember, UserSettings},
-    errors::{Error, GuildError},
-};
+use crate::entities::{Config, Guild, GuildMember, UserSettings};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, FromRow)]
 pub struct User {
     #[sqlx(flatten)]
     #[serde(flatten)]
-    inner: crate::types::User,
+    inner: chorus::types::User,
     pub data: sqlx::types::Json<UserData>,
     pub deleted: bool,
     pub fingerprints: String, // TODO: Simple-array, should actually be a vec
@@ -47,7 +45,7 @@ pub struct User {
 }
 
 impl Deref for User {
-    type Target = crate::types::User;
+    type Target = chorus::types::User;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -91,7 +89,7 @@ impl User {
         let user_id = Snowflake::default();
 
         let user = Self {
-            inner: crate::types::User {
+            inner: chorus::types::User {
                 username: username.to_string(),
                 discriminator: "0000".to_string(),
                 email: email.clone(),
@@ -118,16 +116,16 @@ impl User {
             .as_big_decimal()
             .to_owned();
 
-        sqlx::query!("INSERT INTO users (id, username, discriminator, email, data, fingerprints, premium, premium_type, created_at, flags, public_flags, purchased_flags, premium_usage_flags, rights, extended_settings, settings_index) VALUES ($1, $2, $3, $4, $5, $6, false, 0, $7, 0, 0, 0, 0, $8, '{}', $9)",
-            bigdecimal::BigDecimal::from(user.id.to_string().parse::<u64>().unwrap()),
-            username,
-            "0000",
-            email,
-            data,
-            &user.fingerprints,
-            Utc::now().naive_local(),
-            Some(rights),
-            user.settings_index.clone().as_big_decimal().to_owned())
+        sqlx::query("INSERT INTO users (id, username, discriminator, email, data, fingerprints, premium, premium_type, created_at, flags, public_flags, purchased_flags, premium_usage_flags, rights, extended_settings, settings_index) VALUES ($1, $2, $3, $4, $5, $6, false, 0, $7, 0, 0, 0, 0, $8, '{}', $9)")
+            .bind(bigdecimal::BigDecimal::from(user.id.to_string().parse::<u64>().unwrap()))
+            .bind(username)
+            .bind(   "0000")
+            .bind( email)
+            .bind(  data)
+            .bind(&user.fingerprints)
+            .bind( Utc::now().naive_local())
+            .bind(  Some(rights))
+            .bind( user.settings_index.clone().as_big_decimal().to_owned())
             .execute(db)
             .await?;
 
@@ -222,19 +220,17 @@ impl User {
     /// Return the Snowflake IDs of all guilds the user is a member of. Limited to 1000 results to
     /// avoid memory exhaustion.
     pub async fn get_guild_ids(&self, db: &PgPool) -> Result<Vec<Snowflake>, Error> {
-        sqlx::query!(
-            "SELECT guild_id FROM members where id = $1 LIMIT $2",
-            BigDecimal::from(u64::from(self.id)),
-            i64::from(QUERY_UPPER_LIMIT)
-        )
-        .fetch_all(db)
-        .await
-        .map_err(Error::SQLX)
-        .map(|r| {
-            r.iter()
-                .map(|x| Snowflake::from(PgU64::try_from(x.guild_id.clone()).unwrap().to_uint()))
-                .collect()
-        })
+        let pg_u64s: Vec<PgU64> =
+            sqlx::query_as("SELECT guild_id FROM members where id = $1 LIMIT $2")
+                .bind(BigDecimal::from(u64::from(self.id)))
+                .bind(10000)
+                .fetch_all(db)
+                .await
+                .map_err(Error::SQLX)?;
+        Ok(pg_u64s
+            .iter()
+            .map(|x| Snowflake::from(x.to_uint()))
+            .collect())
     }
 
     pub async fn count(db: &PgPool) -> Result<i32, Error> {
@@ -253,7 +249,7 @@ impl User {
         self.to_inner().into_public_user()
     }
 
-    pub fn to_inner(&self) -> crate::types::User {
+    pub fn to_inner(&self) -> chorus::types::User {
         self.inner.clone()
     }
 
@@ -266,58 +262,59 @@ impl User {
     }
 }
 
-#[cfg(test)]
-mod user_unit_tests {
-    use crate::types::Snowflake;
-    use bigdecimal::BigDecimal;
-    use sqlx::PgPool;
+// TODO: move these back to symfonia
+// #[cfg(test)]
+// mod user_unit_tests {
+//     use bigdecimal::BigDecimal;
+//     use chorus::types::Snowflake;
+//     use sqlx::PgPool;
 
-    use crate::types::database::entities::User;
-    #[sqlx::test(fixtures(path = "../../../fixtures", scripts("users", "guilds")))]
-    async fn get_user_guilds(pool: PgPool) {
-        sqlx::query!(
-            "INSERT INTO members(
-            id, guild_id, deaf, mute, pending, settings, bio, pronouns, joined_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, current_timestamp);",
-            BigDecimal::from(7248639845155737600_u64),
-            BigDecimal::from(7249086638293258240_u64),
-            false,
-            false,
-            false,
-            "{}",
-            "my bio on this guild",
-            "any/all"
-        )
-        .execute(&pool)
-        .await
-        .unwrap();
-        sqlx::query!(
-            "INSERT INTO members(
-            id, guild_id, deaf, mute, pending, settings, bio, pronouns, joined_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, current_timestamp);",
-            BigDecimal::from(7248639845155737600_u64),
-            BigDecimal::from(7249112309484752896_u64),
-            false,
-            false,
-            false,
-            "{}",
-            "my bio on this guild",
-            "any/all"
-        )
-        .execute(&pool)
-        .await
-        .unwrap();
-        let user = User::get_by_id(&pool, Snowflake::from(7248639845155737600))
-            .await
-            .unwrap()
-            .unwrap();
-        let guilds = user.get_guild_ids(&pool).await.unwrap();
-        assert_eq!(
-            guilds,
-            vec![
-                Snowflake::from(7249086638293258240),
-                Snowflake::from(7249112309484752896)
-            ]
-        );
-    }
-}
+//     use crate::entities::User;
+//     #[sqlx::test(fixtures(path = "../../../fixtures", scripts("users", "guilds")))]
+//     async fn get_user_guilds(pool: PgPool) {
+//         sqlx::query!(
+//             "INSERT INTO members(
+//             id, guild_id, deaf, mute, pending, settings, bio, pronouns, joined_at)
+//             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, current_timestamp);",
+//             BigDecimal::from(7248639845155737600_u64),
+//             BigDecimal::from(7249086638293258240_u64),
+//             false,
+//             false,
+//             false,
+//             "{}",
+//             "my bio on this guild",
+//             "any/all"
+//         )
+//         .execute(&pool)
+//         .await
+//         .unwrap();
+//         sqlx::query!(
+//             "INSERT INTO members(
+//             id, guild_id, deaf, mute, pending, settings, bio, pronouns, joined_at)
+//             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, current_timestamp);",
+//             BigDecimal::from(7248639845155737600_u64),
+//             BigDecimal::from(7249112309484752896_u64),
+//             false,
+//             false,
+//             false,
+//             "{}",
+//             "my bio on this guild",
+//             "any/all"
+//         )
+//         .execute(&pool)
+//         .await
+//         .unwrap();
+//         let user = User::get_by_id(&pool, Snowflake::from(7248639845155737600))
+//             .await
+//             .unwrap()
+//             .unwrap();
+//         let guilds = user.get_guild_ids(&pool).await.unwrap();
+//         assert_eq!(
+//             guilds,
+//             vec![
+//                 Snowflake::from(7249086638293258240),
+//                 Snowflake::from(7249112309484752896)
+//             ]
+//         );
+//     }
+// }

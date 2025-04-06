@@ -2,13 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use crate::types::Snowflake;
+use chorus::types::{Snowflake, errors::Error};
 use sqlx::PgPool;
 
-use crate::{
-    database::entities::{Channel, User},
-    errors::Error,
-};
+use crate::entities::{Channel, User};
 
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct ReadState {

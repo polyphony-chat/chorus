@@ -7,17 +7,17 @@ use std::ops::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::types::errors::Error;
+use chorus::types::errors::Error;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct GuildTemplate {
     #[serde(flatten)]
     #[sqlx(flatten)]
-    inner: crate::types::GuildTemplate,
+    inner: chorus::types::GuildTemplate,
 }
 
 impl Deref for GuildTemplate {
-    type Target = crate::types::GuildTemplate;
+    type Target = chorus::types::GuildTemplate;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -38,7 +38,7 @@ impl GuildTemplate {
             .map_err(Error::SQLX)
     }
 
-    pub fn into_inner(self) -> crate::types::GuildTemplate {
+    pub fn into_inner(self) -> chorus::types::GuildTemplate {
         self.inner
     }
 }

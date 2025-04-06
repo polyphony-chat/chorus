@@ -4,23 +4,23 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::Snowflake;
-use crate::types::errors::Error;
+use chorus::types::Snowflake;
+use chorus::types::errors::Error;
 use serde::{Deserialize, Serialize};
 use sqlx::{PgPool, Row};
 
-use crate::types::database::entities::User;
+use crate::entities::User;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Emoji {
     #[sqlx(flatten)]
-    inner: crate::types::Emoji,
+    inner: chorus::types::Emoji,
     pub guild_id: Snowflake,
     pub user_id: Option<Snowflake>,
 }
 
 impl Deref for Emoji {
-    type Target = crate::types::Emoji;
+    type Target = chorus::types::Emoji;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -67,7 +67,7 @@ impl Emoji {
             .map_err(Error::SQLX)?;
 
         Ok(Self {
-            inner: crate::types::Emoji {
+            inner: chorus::types::Emoji {
                 id,
                 name: Some(name.to_string()),
                 animated: Some(animated),
@@ -132,7 +132,7 @@ impl Emoji {
             .map(|_| ())
     }
 
-    pub fn into_inner(self) -> crate::types::Emoji {
+    pub fn into_inner(self) -> chorus::types::Emoji {
         self.inner
     }
 }

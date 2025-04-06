@@ -4,22 +4,20 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::{Snowflake, WebhookType};
+use chorus::types::{Snowflake, WebhookType, errors::Error};
 use serde::{Deserialize, Serialize};
 use sqlx::{PgPool, Row};
-
-use crate::errors::Error;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Webhook {
     #[sqlx(flatten)]
-    inner: crate::types::Webhook,
+    inner: chorus::types::Webhook,
     pub source_guild_id: Option<Snowflake>,
     pub user_id: Snowflake,
 }
 
 impl Deref for Webhook {
-    type Target = crate::types::Webhook;
+    type Target = chorus::types::Webhook;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -44,11 +42,10 @@ impl Webhook {
         source_guild_id: Option<Snowflake>,
         application_id: Option<Snowflake>,
     ) -> Result<Self, Error> {
-        let mut token_data = [0u8; 24];
-        let _ = openssl::rand::rand_bytes(&mut token_data);
+        let token_data = [0u8; 24];
 
         let webhook = Self {
-            inner: crate::types::Webhook {
+            inner: chorus::types::Webhook {
                 id: Default::default(),
                 token: hex::encode(token_data),
                 guild_id,

@@ -4,22 +4,22 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::types::Snowflake;
+use chorus::types::{Snowflake, errors::Error};
 use futures::FutureExt;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::{database::entities::Guild, errors::Error};
+use crate::entities::Guild;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct VoiceState {
     #[sqlx(flatten)]
-    inner: crate::types::VoiceState,
+    inner: chorus::types::VoiceState,
     pub id: Snowflake,
 }
 
 impl Deref for VoiceState {
-    type Target = crate::types::VoiceState;
+    type Target = chorus::types::VoiceState;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
