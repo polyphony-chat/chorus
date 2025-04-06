@@ -10,8 +10,8 @@ use crate::{
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{
-        self, CreateUserRelationshipSchema, FriendRequestSendSchema, LimitType, RelationshipType,
-        Snowflake,
+        self, BulkRemoveRelationshipsQuery, CreateUserRelationshipSchema, FriendRequestSendSchema,
+        LimitType, RelationshipType, Snowflake,
     },
 };
 
@@ -146,6 +146,78 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self);
+        chorus_request.handle_request_as_result(self).await
+    }
+
+    /// Removes multiple relationships.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/relationships#bulk-remove-relationships>
+    pub async fn bulk_remove_relationships(
+        &mut self,
+        query: Option<BulkRemoveRelationshipsQuery>,
+    ) -> ChorusResult<()> {
+        let query_parameters = if let Some(passed) = query {
+            passed.to_query()
+        } else {
+            Vec::new()
+        };
+
+        let url = format!(
+            "{}/users/@me/relationships",
+            self.belongs_to.read().unwrap().urls.api,
+        );
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url).query(&query_parameters),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(self);
+        chorus_request.handle_request_as_result(self).await
+    }
+
+    /// [Ignores](https://support.discord.com/hc/en-us/articles/28084948873623-How-to-Ignore-Users-on-Discord) a user.
+    ///
+    /// # Notes
+    /// As of 2025/03/16, Spacebar does not yet implement this endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/relationships#ignore-user>
+    pub async fn ignore_user(&mut self, user_id: Snowflake) -> ChorusResult<()> {
+        let url = format!(
+            "{}/users/@me/relationships/{}/ignore",
+            self.belongs_to.read().unwrap().urls.api,
+            user_id
+        );
+
+        let chorus_request = ChorusRequest {
+            request: Client::new().put(url),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(self);
+
+        chorus_request.handle_request_as_result(self).await
+    }
+
+    /// [Unignores](https://support.discord.com/hc/en-us/articles/28084948873623-How-to-Ignore-Users-on-Discord) a user.
+    ///
+    /// # Notes
+    /// As of 2025/03/16, Spacebar does not yet implement this endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.sex/resources/relationships#unignore-user>
+    pub async fn unignore_user(&mut self, user_id: Snowflake) -> ChorusResult<()> {
+        let url = format!(
+            "{}/users/@me/relationships/{}/ignore",
+            self.belongs_to.read().unwrap().urls.api,
+            user_id
+        );
+
+        let chorus_request = ChorusRequest {
+            request: Client::new().delete(url),
+            limit_type: LimitType::Global,
+        }
+        .with_headers_for(self);
+
         chorus_request.handle_request_as_result(self).await
     }
 }

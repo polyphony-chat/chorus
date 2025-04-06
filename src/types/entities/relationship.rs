@@ -13,16 +13,20 @@ use super::{option_arc_rwlock_ptr_eq, PublicUser};
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
-/// See <https://discord-userdoccers.vercel.app/resources/user#relationship-structure>
+/// # Reference
+/// See <https://docs.discord.sex/resources/relationships#relationship-structure>
 pub struct Relationship {
     /// The ID of the target user
     #[cfg_attr(feature = "sqlx", sqlx(rename = "to_id"))]
     pub id: Snowflake,
+
     #[serde(rename = "type")]
     #[cfg_attr(feature = "sqlx", sqlx(rename = "type"))]
     pub relationship_type: RelationshipType,
-    /// The nickname of the user in this relationship
+
+    /// The nickname of the user in this relationship (1 - 32 characters)
     pub nickname: Option<String>,
+
     #[cfg_attr(feature = "sqlx", sqlx(skip))] // Can be derived from the user id
     /// The target user
     ///
@@ -30,6 +34,28 @@ pub struct Relationship {
     ///
     /// In such a case, you should refer to the id field and seperately fetch the user's data
     pub user: Option<Shared<PublicUser>>,
+
+    #[serde(default)]
+    /// Whether the friend request was flagged as spam (false by default)
+    pub is_spam_request: Option<bool>,
+
+    #[serde(default)]
+    /// Whether the friend request was sent by a user without a mutual friend or small mutual guild
+    /// (false by default)
+    pub stranger_request: Option<bool>,
+
+    #[serde(default)]
+    /// Whether the target user has been ignored by the current user.
+    ///
+    /// Note: Spacebar does not implement this field (or ignoring users)
+    ///
+    /// When connected to a Spacebar instance, this field will always be false.
+    pub user_ignored: bool,
+
+    /// The ID of the application that created the relationship
+    #[serde(default)]
+    pub origin_application_id: Option<Snowflake>,
+
     /// When the user requested a relationship
     pub since: Option<DateTime<Utc>>,
 }
@@ -59,15 +85,17 @@ impl PartialEq for Relationship {
     Hash,
 )]
 #[repr(u8)]
-/// See <https://discord-userdoccers.vercel.app/resources/user#relationship-type>
+/// # Reference
+/// See <https://docs.discord.sex/resources/relationships#relationship-type>
 pub enum RelationshipType {
+    /// Deprecated
     Suggestion = 6,
     Implicit = 5,
     Outgoing = 4,
     Incoming = 3,
     Blocked = 2,
-    #[default]
     Friends = 1,
+    #[default]
     None = 0,
 }
 
