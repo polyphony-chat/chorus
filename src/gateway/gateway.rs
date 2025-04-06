@@ -395,18 +395,10 @@ impl Gateway {
                                             };
                                             if let Some(to_update) = store.get(&id) {
                                                 let object = to_update.clone();
-                                                let inner_object = object.read().unwrap();
-                                                if let Some(_) = inner_object.downcast_ref::<$update_type>() {
-                                                    let ptr = Arc::into_raw(object.clone());
-                                                    // SAFETY:
-                                                    // - We have just checked that the typeid of the `dyn Any ...` matches that of `T`.
-                                                    // - This operation doesn't read or write any shared data, and thus cannot cause a data race
-                                                    // - The reference count is not being modified
-                                                    let downcasted = unsafe { Arc::from_raw(ptr as *const RwLock<$update_type>).clone() };
-                                                    drop(inner_object);
-                                                    message.set_json(json.to_string());
+                                                let mut inner_object = object.write().unwrap();
+                                                if let Some(downcasted) = inner_object.downcast_mut::<$update_type>() {
                                                     message.set_source_url(self.url.clone());
-                                                    message.update(downcasted.clone());
+                                                    message.update(downcasted);
                                                 } else {
                                                     warn!("Received {} for {}, but it has been observed to be a different type!", $name, id)
                                                 }
