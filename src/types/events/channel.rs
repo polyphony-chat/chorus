@@ -61,8 +61,7 @@ impl UpdateMessage<Guild> for ChannelCreate {
         self.channel.guild_id
     }
 
-    fn update(&mut self, object_to_update: Shared<Guild>) {
-        let mut write = object_to_update.write().unwrap();
+    fn update(&mut self, write: &mut Guild) {
         let update = self.channel.clone().into_shared();
         write.channels.push(update);
     }
@@ -83,8 +82,7 @@ pub struct ChannelUpdate {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Channel> for ChannelUpdate {
-    fn update(&mut self, object_to_update: Shared<Channel>) {
-        let mut write = object_to_update.write().unwrap();
+    fn update(&mut self, write: &mut Channel) {
         *write = self.channel.clone();
     }
 
@@ -132,11 +130,10 @@ impl UpdateMessage<Guild> for ChannelDelete {
         self.channel.guild_id
     }
 
-    fn update(&mut self, object_to_update: Shared<Guild>) {
+    fn update(&mut self, write: &mut Guild) {
         if self.id().is_none() {
             return;
         }
-        let mut write = object_to_update.write().unwrap();
         if write.channels.is_empty() {
             return;
         }
