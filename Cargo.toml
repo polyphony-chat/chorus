@@ -23,7 +23,7 @@ voice_gateway = []
 sqlx-pg-uint = ["dep:sqlx-pg-uint", "sqlx-pg-uint/serde"]
 
 [dependencies]
-tokio = { version = "1.39.3", features = ["macros", "sync"] }
+tokio = { version = "1.43.1", features = ["macros", "sync"] }
 serde = { version = "1.0.209", features = ["derive", "rc"] }
 serde_json = { version = "1.0.127", features = ["raw_value"] }
 serde-aux = "4.5.0"
