@@ -38,14 +38,14 @@ url = "2.5.2"
 chrono = { version = "0.4.38", features = ["serde"] }
 regex = "1.10.6"
 custom_error = "1.9.2"
-futures-util = "0.3.30"
+futures-util = "0.3.31"
 http = "0.2.12"
 base64 = "0.21.7"
 bitflags = { version = "2.6.0", features = ["serde"] }
 lazy_static = "1.5.0"
 poem = { version = "3.0.1", features = ["multipart"], optional = true }
 thiserror = "1.0.63"
-jsonwebtoken = "8.3.0"
+jsonwebtoken = "9.3.1"
 log = "0.4.22"
 async-trait = "0.1.81"
 chorus-macros = { path = "./chorus-macros", version = "0" } # Note: version here is used when releasing. This will use the latest release. Make sure to republish the crate when code in macros is changed!
