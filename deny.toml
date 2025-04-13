@@ -42,6 +42,7 @@ exceptions = [
     #{ allow = ["Zlib"], crate = "adler32" },
     { allow = ["OpenSSL"], crate = "aws-lc-sys" },
     { allow = ["OpenSSL"], crate = "ring" },
+    { allow = ["Unicode-DFS-2016"], crate = "unicode-ident" },
 ]
 
 # Some crates don't have (easily) machine readable licensing information,
