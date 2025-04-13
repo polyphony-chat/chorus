@@ -3,9 +3,8 @@ name: "Rust: Build, Test, Publish Coverage"
 on:
   push:
     branches: ["main"]
-    tags: ["*"]
   pull_request:
-    branches: ["*"]
+    branches: ["main", "dev"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -16,17 +15,134 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+      - name: Clone spacebar server
+        run: |
+          git clone https://github.com/bitfl0wer/server.git
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: server/package-lock.json
+      - name: Prepare and start Spacebar server
+        run: |
+          npm install
+          npm run setup
+          npm run start &
+        working-directory: ./server
+      - uses: Swatinem/rust-cache@v2
         with:
           cache-all-crates: "true"
-      - uses: taiki-e/install-action@7cb2cdb5024b2b45585f150af1ee02e24b87edd7
+          prefix-key: "linux"
+      - uses: taiki-e/install-action@nextest
       - name: Build, Test with nextest, Publish Coverage
         run: |
           if [ -n "${{ secrets.COVERALLS_REPO_TOKEN }}" ]; then
-            curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-            cargo binstall --no-confirm cargo-tarpaulin --force
-            cargo tarpaulin --all-features --avoid-cfg-tarpaulin --tests --verbose --skip-clean --coveralls ${{ secrets.COVERALLS_REPO_TOKEN }} --timeout 120
+            if [ "${{github.event.pull_request.head.ref}}" = "main" ]; then
+              curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+              cargo binstall --no-confirm cargo-tarpaulin --force
+              cargo tarpaulin --all-features --avoid-cfg-tarpaulin --tests --verbose --skip-clean --coveralls ${{ secrets.COVERALLS_REPO_TOKEN }} --timeout 120
+            else
+              echo "Code Coverage step is skipped on non-main PRs and PRs from forks."
+              cargo nextest run --verbose --all-features
+            fi
           else
-            echo "Code Coverage step is skipped on PRs from forks."
+            echo "Code Coverage step is skipped on non-main PRs and PRs from forks."
             cargo nextest run --verbose --all-features
           fi
+  linux-non-default-features:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check common non-default feature configurations
+        run: |
+          echo "No features:"
+          cargo check --features="" --no-default-features
+          echo "Only client:"
+          cargo check --features="client" --no-default-features
+          echo "Only backend:"
+          cargo check --features="backend" --no-default-features
+          echo "Only voice:"
+          cargo check --features="voice" --no-default-features
+          echo "Only voice gateway:"
+          cargo check --features="voice_gateway" --no-default-features
+          echo "Backend + client:"
+          cargo check --features="backend, client" --no-default-features
+          echo "Backend + voice:"
+          cargo check --features="backend, voice" --no-default-features
+          echo "Backend + voice gateway:"
+          cargo check --features="backend, voice_gateway" --no-default-features
+          echo "Client + voice gateway:"
+          cargo check --features="client, voice_gateway" --no-default-features
+  wasm-gecko:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clone spacebar server
+        run: |
+          git clone https://github.com/bitfl0wer/server.git
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: server/package-lock.json
+      - name: Prepare and start Spacebar server
+        run: |
+          npm install
+          npm run setup
+          npm run start &
+        working-directory: ./server
+        # Note: see
+        # https://github.com/polyphony-chat/chorus/pull/579,
+        # https://github.com/rustwasm/wasm-bindgen/issues/4274
+        # https://github.com/rustwasm/wasm-bindgen/issues/4274#issuecomment-2493497388
+      - name: Install rust toolchain 1.81.0
+        uses: dtolnay/rust-toolchain@1.81.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-all-crates: "true"
+          prefix-key: "macos"
+      - uses: taiki-e/install-action@nextest
+      - name: Run WASM tests with Safari, Firefox, Chrome
+        run: |
+          rustup target add wasm32-unknown-unknown
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.95" --force
+          GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt, voice_gateway"
+  wasm-chrome:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clone spacebar server
+        run: |
+          git clone https://github.com/bitfl0wer/server.git
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: server/package-lock.json
+      - name: Prepare and start Spacebar server
+        run: |
+          npm install
+          npm run setup
+          npm run start &
+        working-directory: ./server
+        # Note: see
+        # https://github.com/polyphony-chat/chorus/pull/579,
+        # https://github.com/rustwasm/wasm-bindgen/issues/4274
+        # https://github.com/rustwasm/wasm-bindgen/issues/4274#issuecomment-2493497388
+      - name: Install rust toolchain 1.81.0
+        uses: dtolnay/rust-toolchain@1.81.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-all-crates: "true"
+          prefix-key: "macos"
+      - uses: taiki-e/install-action@nextest
+      - name: Run WASM tests with Safari, Firefox, Chrome
+        run: |
+          rustup target add wasm32-unknown-unknown
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall --no-confirm wasm-bindgen-cli --version "0.2.95" --force
+          CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown --no-default-features --features="client, rt, voice_gateway"
