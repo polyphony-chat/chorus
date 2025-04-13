@@ -1,20 +1,14 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# rust-clippy is a tool that runs a bunch of lints to catch common
-# mistakes in your Rust code and help improve your Rust code.
-# More details at https://github.com/rust-lang/rust-clippy
-# and https://rust-lang.github.io/rust-clippy/
-
-name: rust-clippy analyze
+name: "Rust: Compliance"
 
 on:
   push:
-    branches: [ "main", "preserve/*" ]
+    branches: ["main"]
+    tags: ["*"]
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "main", "dev" ]
+    branches: ["*"]
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   rust-clippy-analyze:
@@ -33,15 +27,24 @@ jobs:
         with:
           components: clippy
 
-      - name: Install required cargo
-        run: cargo install clippy-sarif sarif-fmt
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+
+      - name: Install cargo-binstall
+        run: curl -L --proto '=https' --tlsv1.3 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+      - name: Install additionally required components
+        run: cargo binstall clippy-sarif sarif-fmt cargo-deny --only-signed --force -y
 
       - name: Run rust-clippy
-        run:
-          cargo clippy
+        run: cargo clippy
           --all-features
           --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
         continue-on-error: true
+
+      - name: Analyze crate dependency licenses with cargo-deny
+        uses: EmbarkStudios/cargo-deny-action@34899fc7ba81ca6268d5947a7a16b4649013fea1
+        with:
+          command: check licenses
 
       - name: Upload analysis results to GitHub
         uses: github/codeql-action/upload-sarif@v3
