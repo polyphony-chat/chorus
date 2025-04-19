@@ -61,7 +61,9 @@ impl ChorusRequest {
                 result
             }
             Err(error) => {
-                log::warn!("Request failed: {:?}", error);
+                log::trace!("Request failed to send: {:?}", error);
+                log::warn!("Request failed: {}", error);
+
                 return Err(ChorusError::RequestFailed {
                     url: error.url().unwrap().to_string(),
                     error: error.to_string(),
@@ -88,9 +90,15 @@ impl ChorusRequest {
                     bucket: format!("{:?}", self.limit_type),
                 });
             }
-            log::warn!("Request failed: {:?}", result);
 
-            return Err(ChorusRequest::interpret_error(result).await);
+            let request_url = result.url().clone();
+
+            log::trace!("Request failed, result: {:?}", result);
+
+            let error = ChorusRequest::interpret_error(result).await;
+            log::warn!("Request failed: {} | {}", request_url.path(), error);
+
+            return Err(error);
         }
 
         ChorusRequest::update_rate_limits(
@@ -130,7 +138,9 @@ impl ChorusRequest {
                 result
             }
             Err(error) => {
-                log::warn!("Request failed: {:?}", error);
+                log::trace!("Request failed to send: {:?}", error);
+                log::warn!("Request failed: {}", error);
+
                 return Err(ChorusError::RequestFailed {
                     url: error.url().unwrap().to_string(),
                     error: error.to_string(),
@@ -153,9 +163,15 @@ impl ChorusRequest {
                     bucket: format!("{:?}", self.limit_type),
                 });
             }
-            log::warn!("Request failed: {:?}", result);
 
-            return Err(ChorusRequest::interpret_error(result).await);
+            let request_url = result.url().clone();
+
+            log::trace!("Request failed, result: {:?}", result);
+
+            let error = ChorusRequest::interpret_error(result).await;
+            log::warn!("Request failed: {} | {}", request_url.path(), error);
+
+            return Err(error);
         }
         ChorusRequest::update_rate_limits(
             None,
