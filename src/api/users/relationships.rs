@@ -172,7 +172,7 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self);
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// [Ignores](https://support.discord.com/hc/en-us/articles/28084948873623-How-to-Ignore-Users-on-Discord) a user.
@@ -195,7 +195,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 
     /// [Unignores](https://support.discord.com/hc/en-us/articles/28084948873623-How-to-Ignore-Users-on-Discord) a user.
@@ -218,6 +218,6 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        chorus_request.handle_request_as_result(self).await
+        chorus_request.send_and_handle_as_result(self).await
     }
 }
