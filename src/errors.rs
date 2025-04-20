@@ -45,7 +45,7 @@ custom_error! {
     /// No permission
     NoPermission = "You do not have the permissions needed to perform this action.",
     /// Resource not found
-    NotFound{error: String} = "Received Not Found error: {error}",
+    NotFound{error: String} = "Received Not Found error ({error})",
     /// Used when you, for example, try to change your spacebar account password without providing your old password for verification.
     PasswordRequired = "You need to provide your current password to authenticate for this action.",
     /// Malformed or unexpected response.
