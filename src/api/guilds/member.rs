@@ -11,7 +11,9 @@ use crate::{
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{
-        self, AddGuildMemberReturn, AddGuildMemberSchema, AddRoleMembersSchema, Guild, GuildMember, LimitType, ModifyCurrentGuildMemberSchema, ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema, Snowflake, UserProfileMetadata
+        self, AddGuildMemberReturn, AddGuildMemberSchema, AddRoleMembersSchema, Guild, GuildMember,
+        LimitType, ModifyCurrentGuildMemberSchema, ModifyGuildMemberProfileSchema,
+        ModifyGuildMemberSchema, Snowflake, UserProfileMetadata,
     },
 };
 
@@ -39,7 +41,7 @@ impl Guild {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<GuildMember>(user)
+            .send_and_deserialize_response::<GuildMember>(user)
             .await
     }
 
@@ -71,12 +73,12 @@ impl Guild {
         }
         .with_authorization_for(user);
 
-        let response = request.send_request(user).await?;
+        let response = request.send(user).await?;
         log::trace!("Got response: {:?}", response);
 
-        let status = response.status();
+        let http_status = response.status();
 
-        match status {
+        match http_status {
             http::StatusCode::OK => {
                 let response_text = match response.text().await {
                     Ok(string) => string,
@@ -86,6 +88,7 @@ impl Guild {
                                 "Error while trying to process the HTTP response into a String: {}",
                                 e
                             ),
+                            http_status,
                         });
                     }
                 };
@@ -97,14 +100,15 @@ impl Guild {
 												error: format!(
 												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
 												e, response_text),
+												http_status
 											})
                             }
                         }
             }
             http::StatusCode::NO_CONTENT => Ok(AddGuildMemberReturn::AlreadyAMember),
-            _ => Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.status().to_string(),
+            _ => Err(ChorusError::InvalidResponse {
+                error: format!("Received unexpected http status code: {}", http_status),
+                http_status,
             }),
         }
     }
@@ -133,7 +137,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Modifies a [GuildMember] object.
@@ -163,7 +167,9 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response::<GuildMember>(user).await
+        request
+            .send_and_deserialize_response::<GuildMember>(user)
+            .await
     }
 
     /// Modifies the current user's member object in the guild.
@@ -189,7 +195,9 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response::<GuildMember>(user).await
+        request
+            .send_and_deserialize_response::<GuildMember>(user)
+            .await
     }
 
     /// Modifies the current user's profile in the guild.
@@ -214,7 +222,7 @@ impl Guild {
         .with_headers_for(user);
 
         request
-            .deserialize_response::<UserProfileMetadata>(user)
+            .send_and_deserialize_response::<UserProfileMetadata>(user)
             .await
     }
 
@@ -246,7 +254,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Removes a role from a guild member.
@@ -277,7 +285,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Retrieves a mapping of role IDs to their respective member counts.
@@ -308,20 +316,20 @@ impl Guild {
     pub async fn get_role_members(
         user: &mut ChorusUser,
         guild_id: Snowflake,
-		  role_id: Snowflake
+        role_id: Snowflake,
     ) -> ChorusResult<Vec<Snowflake>> {
         crate::types::RoleObject::get_members(user, guild_id, role_id).await
     }
 
-	 /// Adds multiple guild members to a role.
+    /// Adds multiple guild members to a role.
     ///
     /// Requires the [MANAGE_ROLES](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// Returns a mapping of member IDs to guild member objects.
-	 ///
-	 /// # Notes
-	 /// This method is wrapper around
-	 /// [RoleObject::add_members](crate::types::RoleObject::add_members)
+    ///
+    /// # Notes
+    /// This method is wrapper around
+    /// [RoleObject::add_members](crate::types::RoleObject::add_members)
     ///
     /// # Reference
     /// See <https://docs.discord.sex/resources/guild#add-guild-role-members>
@@ -332,8 +340,9 @@ impl Guild {
         role_id: Snowflake,
         schema: AddRoleMembersSchema,
     ) -> ChorusResult<HashMap<Snowflake, GuildMember>> {
-		crate::types::RoleObject::add_members(user, audit_log_reason, guild_id, role_id, schema).await
-	 }
+        crate::types::RoleObject::add_members(user, audit_log_reason, guild_id, role_id, schema)
+            .await
+    }
 }
 
 impl types::GuildMember {

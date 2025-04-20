@@ -7,7 +7,10 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::{errors::ChorusError, types::Snowflake};
+use crate::{
+    errors::{ChorusError, JsonError},
+    types::Snowflake,
+};
 
 #[cfg(feature = "client")]
 use crate::{instance::ChorusUser, ChorusResult};
@@ -16,17 +19,16 @@ use crate::{instance::ChorusUser, ChorusResult};
 #[serde(rename_all = "snake_case")]
 /// Error received when mfa is required
 pub struct MfaRequiredSchema {
-    pub message: String,
-    pub code: i32,
+    #[serde(flatten)]
+    pub json_error: JsonError,
     #[serde(rename = "mfa")]
     pub mfa_challenge: MfaChallenge,
 }
 
 impl Display for MfaRequiredSchema {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MfaRequired")
-            .field("message", &self.message)
-            .field("code", &self.code)
+        f.debug_struct("MfaRequiredSchema")
+            .field("json_error", &self.json_error)
             .field("mfa", &self.mfa_challenge)
             .finish()
     }

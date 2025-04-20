@@ -35,7 +35,7 @@ impl ChorusUser {
                 .json(&GuildLeaveSchema { lurking }),
             limit_type: LimitType::Guild(*guild_id),
         }
-        .handle_request_as_result(self)
+        .send_and_handle_as_result(self)
         .await
     }
 
@@ -71,7 +71,7 @@ impl ChorusUser {
         .with_headers_for(self);
 
         chorus_request
-            .deserialize_response::<Vec<Guild>>(self)
+            .send_and_deserialize_response::<Vec<Guild>>(self)
             .await
     }
 
@@ -93,7 +93,7 @@ impl ChorusUser {
         .with_headers_for(self);
 
         chorus_request
-            .deserialize_response::<Vec<Guild>>(self)
+            .send_and_deserialize_response::<Vec<Guild>>(self)
             .await
     }
 }

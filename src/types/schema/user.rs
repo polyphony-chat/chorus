@@ -7,9 +7,12 @@ use std::collections::HashMap;
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{
-    Connection, GuildAffinity, HarvestBackendType, Snowflake, ThemeColors, TwoWayLinkType,
-    UserAffinity,
+use crate::{
+    errors::JsonError,
+    types::{
+        Connection, GuildAffinity, HarvestBackendType, Snowflake, ThemeColors, TwoWayLinkType,
+        UserAffinity,
+    },
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -407,15 +410,15 @@ pub struct GuildAffinities {
     pub guild_affinities: Vec<GuildAffinity>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Return type for the error in the [crate::instance::ChorusUser::create_domain_connection] endpoint.
 ///
 /// This allows us to retrieve the needed proof for actually verifying the connection.
 ///
 /// See <https://docs.discord.sex/resources/user#create-domain-connection>
 pub(crate) struct CreateDomainConnectionError {
-    pub message: String,
-    pub code: u16,
+    #[serde(flatten)]
+    pub error: JsonError,
     pub proof: String,
 }
 

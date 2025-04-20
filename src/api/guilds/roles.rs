@@ -39,7 +39,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<Vec<RoleObject>>(user)
+            .send_and_deserialize_response::<Vec<RoleObject>>(user)
             .await
     }
 
@@ -66,7 +66,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<RoleObject>(user)
+            .send_and_deserialize_response::<RoleObject>(user)
             .await
     }
 
@@ -91,7 +91,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<HashMap<Snowflake, usize>>(user)
+            .send_and_deserialize_response::<HashMap<Snowflake, usize>>(user)
             .await
     }
 
@@ -120,7 +120,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<Vec<Snowflake>>(user)
+            .send_and_deserialize_response::<Vec<Snowflake>>(user)
             .await
     }
 
@@ -202,7 +202,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<HashMap<Snowflake, GuildMember>>(user)
+            .send_and_deserialize_response::<HashMap<Snowflake, GuildMember>>(user)
             .await
     }
 
@@ -230,7 +230,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<RoleObject>(user)
+            .send_and_deserialize_response::<RoleObject>(user)
             .await
     }
 
@@ -258,7 +258,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<RoleObject>(user)
+            .send_and_deserialize_response::<RoleObject>(user)
             .await
     }
 
@@ -288,7 +288,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<RoleObject>(user)
+            .send_and_deserialize_response::<RoleObject>(user)
             .await
     }
 
@@ -316,6 +316,6 @@ impl types::RoleObject {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 }
