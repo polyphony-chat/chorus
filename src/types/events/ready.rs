@@ -189,7 +189,7 @@ pub struct GatewayReadySupplemental {
     pub merged_members: Vec<Vec<GuildMember>>,
     pub lazy_private_channels: Vec<Channel>,
     pub guilds: Vec<SupplementalGuild>,
-    // "Upcoming changes that the client should disclose to the user" (discord.sex)
+    // "Upcoming changes that the client should disclose to the user" (discord.food)
     pub disclose: Vec<String>,
 }
 
@@ -197,9 +197,9 @@ pub struct GatewayReadySupplemental {
 /// See <https://docs.discord.food/topics/gateway-events#merged-presences-structure>
 pub struct MergedPresences {
     /// "Presences of the user's guilds in the same order as the guilds array in ready"
-    /// (discord.sex)
+    /// (discord.food)
     pub guilds: Vec<Vec<MergedPresenceGuild>>,
-    /// "Presences of the user's friends and implicit relationships" (discord.sex)
+    /// "Presences of the user's friends and implicit relationships" (discord.food)
     pub friends: Vec<MergedPresenceFriend>,
 }
 

@@ -53,7 +53,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
         // Note: ommiting authorization causes a 401 Unauthorized,
-        // even though discord.sex mentions it as unauthenticated
+        // even though discord.food mentions it as unauthenticated
 
         chorus_request
             .send_and_deserialize_response::<AuthorizeConnectionReturn>(self)
