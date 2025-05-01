@@ -152,7 +152,7 @@ impl ChorusUser {
     /// Removes multiple relationships.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/relationships#bulk-remove-relationships>
+    /// See <https://docs.discord.food/resources/relationships#bulk-remove-relationships>
     pub async fn bulk_remove_relationships(
         &mut self,
         query: Option<BulkRemoveRelationshipsQuery>,
@@ -181,7 +181,7 @@ impl ChorusUser {
     /// As of 2025/03/16, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/relationships#ignore-user>
+    /// See <https://docs.discord.food/resources/relationships#ignore-user>
     pub async fn ignore_user(&mut self, user_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/{}/ignore",
@@ -204,7 +204,7 @@ impl ChorusUser {
     /// As of 2025/03/16, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/relationships#unignore-user>
+    /// See <https://docs.discord.food/resources/relationships#unignore-user>
     pub async fn unignore_user(&mut self, user_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/users/@me/relationships/{}/ignore",

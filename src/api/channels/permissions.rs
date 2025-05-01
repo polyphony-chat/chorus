@@ -22,7 +22,7 @@ impl types::Channel {
     /// (unless you have a [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) overwrite in the channel).
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel-permissions>
+    /// See <https://docs.discord.food/resources/channel#modify-channel-permissions>
     pub async fn modify_permissions(
         user: &mut ChorusUser,
         channel_id: Snowflake,
@@ -53,7 +53,7 @@ impl types::Channel {
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel-permission>
+    /// See <https://docs.discord.food/resources/channel#delete-channel-permission>
     pub async fn delete_permission(
         user: &mut ChorusUser,
         channel_id: Snowflake,

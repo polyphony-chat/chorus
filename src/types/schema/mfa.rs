@@ -102,7 +102,7 @@ pub struct MfaMethod {
 /// A multi-factor authentication authenticator.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#authenticator-object>
+/// See <https://docs.discord.food/resources/user#authenticator-object>
 pub struct MfaAuthenticator {
     pub id: Snowflake,
     #[serde(rename = "type")]
@@ -214,7 +214,7 @@ impl Display for MfaAuthenticationType {
 /// An mfa backup code.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#backup-code-object>
+/// See <https://docs.discord.food/resources/user#backup-code-object>
 pub struct MfaBackupCode {
     pub user_id: Snowflake,
     pub code: String,
@@ -300,7 +300,7 @@ pub struct SendMfaSmsResponse {
 // TODO: Json error codes
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#enable-totp-mfa>
+/// See <https://docs.discord.food/resources/user#enable-totp-mfa>
 pub struct EnableTotpMfaSchema {
     pub password: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -313,7 +313,7 @@ pub struct EnableTotpMfaSchema {
 /// Response type for the Enable TOTP MFA route
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#enable-totp-mfa>
+/// See <https://docs.discord.food/resources/user#enable-totp-mfa>
 pub struct EnableTotpMfaResponse {
     pub token: String,
     pub backup_codes: Vec<MfaBackupCode>,
@@ -323,8 +323,8 @@ pub struct EnableTotpMfaResponse {
 /// A schema for SMS MFA Enable and Disable routes.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#enable-sms-mfa> and
-/// <https://docs.discord.sex/resources/user#disable-sms-mfa>
+/// See <https://docs.discord.food/resources/user#enable-sms-mfa> and
+/// <https://docs.discord.food/resources/user#disable-sms-mfa>
 pub struct SmsMfaRouteSchema {
     /// The user's current password
     pub password: String,
@@ -336,7 +336,7 @@ pub struct SmsMfaRouteSchema {
 /// Includes the MFA ticket and a stringified JSON object of the public key credential challenge.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#create-webauthn-authenticator>
+/// See <https://docs.discord.food/resources/user#create-webauthn-authenticator>
 pub struct BeginWebAuthnAuthenticatorCreationReturn {
     pub ticket: String,
     /// Stringified JSON public key credential request options challenge
@@ -347,7 +347,7 @@ pub struct BeginWebAuthnAuthenticatorCreationReturn {
 /// A schema for the [ChorusUser::finish_webauthn_authenticator_creation] route (Create WebAuthn Authenticator).
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#create-webauthn-authenticator>
+/// See <https://docs.discord.food/resources/user#create-webauthn-authenticator>
 pub struct FinishWebAuthnAuthenticatorCreationSchema {
     /// Name of the authenticator to create (1 - 32 characters)
     pub name: String,
@@ -363,7 +363,7 @@ pub struct FinishWebAuthnAuthenticatorCreationSchema {
 /// Includes the MFA ticket and a stringified JSON object of the public key credential challenge.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#create-webauthn-authenticator>
+/// See <https://docs.discord.food/resources/user#create-webauthn-authenticator>
 pub struct FinishWebAuthnAuthenticatorCreationReturn {
     #[serde(flatten)]
     /// The created authenticator object
@@ -376,7 +376,7 @@ pub struct FinishWebAuthnAuthenticatorCreationReturn {
 /// A schema for the Modify WebAuthn Authenticator route.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#modify-webauthn-authenticator>
+/// See <https://docs.discord.food/resources/user#modify-webauthn-authenticator>
 pub struct ModifyWebAuthnAuthenticatorSchema {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// New name of the authenticator (1 - 32 characters)
@@ -387,7 +387,7 @@ pub struct ModifyWebAuthnAuthenticatorSchema {
 /// A schema for the Send Backup Codes Challenge route.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#send-backup-codes-challenge>
+/// See <https://docs.discord.food/resources/user#send-backup-codes-challenge>
 pub struct SendBackupCodesChallengeSchema {
     /// The user's current password
     pub password: String,
@@ -397,7 +397,7 @@ pub struct SendBackupCodesChallengeSchema {
 /// A return type for the Send Backup Codes Challenge route.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#send-backup-codes-challenge>
+/// See <https://docs.discord.food/resources/user#send-backup-codes-challenge>
 pub struct SendBackupCodesChallengeReturn {
     /// A one-time verification nonce used to view the backup codes
     ///
@@ -416,7 +416,7 @@ pub struct SendBackupCodesChallengeReturn {
 /// A schema for the Get Backup Codes route.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#get-backup-codes>
+/// See <https://docs.discord.food/resources/user#get-backup-codes>
 pub struct GetBackupCodesSchema {
     /// The one-time verification nonce used to view or regenerate the backup codes.
     ///

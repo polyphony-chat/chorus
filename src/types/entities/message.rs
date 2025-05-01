@@ -24,7 +24,7 @@ use super::option_arc_rwlock_ptr_eq;
 /// Represents a message sent in a channel.
 ///
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/message#message-object>
+/// See <https://docs.discord.food/resources/message#message-object>
 pub struct Message {
     pub id: Snowflake,
     pub channel_id: Snowflake,
@@ -129,7 +129,7 @@ impl PartialEq for Message {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Ord, PartialOrd, Copy)]
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/message#message-reference-object>
+/// See <https://docs.discord.food/resources/message#message-reference-object>
 pub struct MessageReference {
     #[serde(rename = "type")]
     #[serde(default)]
@@ -301,7 +301,7 @@ pub struct EmbedField {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/message#reaction-object>
+/// See <https://docs.discord.food/resources/message#reaction-object>
 pub struct Reaction {
     pub count: UInt32,
     pub burst_count: UInt32,
@@ -336,7 +336,7 @@ pub enum Component {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/message#message-activity-object>
+/// See <https://docs.discord.food/resources/message#message-activity-object>
 pub struct MessageActivity {
     #[serde(rename = "type")]
     pub activity_type: i64,
@@ -351,7 +351,7 @@ pub struct MessageActivity {
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
-/// See <https://docs.discord.sex/resources/message#message-type>
+/// See <https://docs.discord.food/resources/message#message-type>
 pub enum MessageType {
     /// A default message
     #[default]
@@ -449,7 +449,7 @@ bitflags! {
     #[derive(Debug, Clone, Copy,  PartialEq, Eq, Hash, PartialOrd, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
-    /// See <https://docs.discord.sex/resources/message#message-type>
+    /// See <https://docs.discord.food/resources/message#message-type>
     pub struct MessageFlags: u64 {
         /// This message has been published to subscribed channels (via Channel Following)
         const CROSSPOSTED = 1 << 0;

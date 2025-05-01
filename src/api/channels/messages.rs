@@ -21,7 +21,7 @@ impl Message {
     /// Returns the sent message.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/message#create-message>
+    /// See <https://docs.discord.food/resources/message#create-message>
     pub async fn send(
         user: &mut ChorusUser,
         channel_id: Snowflake,
@@ -92,7 +92,7 @@ impl Message {
     /// In this case, the method will return a [`ChorusError::InvalidResponse`] error.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
+    /// See <https://docs.discord.food/resources/message#search-messages>
     pub(crate) async fn search(
         endpoint: MessageSearchEndpoint,
         query: MessageSearchQuery,
@@ -157,7 +157,7 @@ impl Message {
 
     /// Returns all pinned messages in the channel as a Vector of message objects without the reactions key.
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#get-pinned-messages>
+    /// See: <https://docs.discord.food/resources/message#get-pinned-messages>
     pub async fn get_sticky(
         channel_id: Snowflake,
         user: &mut ChorusUser,
@@ -181,7 +181,7 @@ impl Message {
     /// The max pinned messages is 50.
     ///
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#pin-message>
+    /// See: <https://docs.discord.food/resources/message#pin-message>
     pub async fn sticky(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -205,7 +205,7 @@ impl Message {
 
     /// Unpins a message in a channel. Requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#unpin-message>
+    /// See: <https://docs.discord.food/resources/message#unpin-message>
     pub async fn unsticky(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -230,7 +230,7 @@ impl Message {
     /// Returns a specific message object in the channel.
     /// If operating on a guild channel, this endpoint requires the `READ_MESSAGE_HISTORY` permission to be present on the current user.
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#get-message>
+    /// See: <https://docs.discord.food/resources/message#get-message>
     pub async fn get(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -254,7 +254,7 @@ impl Message {
 
     /// Posts a greet message to a channel. This endpoint requires the channel is a DM channel or you reply to a system message.
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#create-greet-message>
+    /// See: <https://docs.discord.food/resources/message#create-greet-message>
     pub async fn create_greet(
         channel_id: Snowflake,
         schema: CreateGreetMessage,
@@ -284,7 +284,7 @@ impl Message {
     /// Returns an optional token, which can be used as the new `ack` token for following `ack`s.
     ///
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#acknowledge-message>
+    /// See: <https://docs.discord.food/resources/message#acknowledge-message>
     pub async fn acknowledge(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -314,7 +314,7 @@ impl Message {
     /// or additionally the `MANAGE_MESSAGES` permission, for all other messages, to be present for the current user.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#crosspost-message>
+    /// See <https://docs.discord.food/resources/message#crosspost-message>
     pub async fn crosspost(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -337,7 +337,7 @@ impl Message {
     /// Hides a message from the feed of the guild the channel belongs to. Returns a 204 empty response on success.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#hide-message-from-guild-feed>
+    /// See <https://docs.discord.food/resources/message#hide-message-from-guild-feed>
     pub async fn hide_from_guild_feed(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -368,7 +368,7 @@ impl Message {
     /// without regard to whether or not an allowed_mentions was present in the request that originally created the message.
     ///
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#edit-message>
+    /// See: <https://docs.discord.food/resources/message#edit-message>
     pub async fn modify(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -424,7 +424,7 @@ impl Message {
     /// **This endpoint is not usable by user accounts.** (At least according to Discord.com. Spacebar behaviour may differ.)
     ///
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#bulk-delete-messages>
+    /// See: <https://docs.discord.food/resources/message#bulk-delete-messages>
     pub async fn bulk_delete(
         channel_id: Snowflake,
         messages: Vec<Snowflake>,
@@ -456,7 +456,7 @@ impl Message {
     /// Acknowledges the currently pinned messages in a channel. Returns a 204 empty response on success.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#acknowledge-pinned-messages>
+    /// See <https://docs.discord.food/resources/message#acknowledge-pinned-messages>
     pub async fn acknowledge_pinned(
         channel_id: Snowflake,
         user: &mut ChorusUser,
@@ -483,7 +483,7 @@ impl ChorusUser {
     /// Shorthand call for [`Message::send`]
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/message#create-message>
+    /// See <https://docs.discord.food/resources/message#create-message>
     pub async fn send_message(
         &mut self,
         message: MessageSendSchema,
@@ -503,7 +503,7 @@ impl Channel {
     /// In this case, the method will return a [`ChorusError::InvalidResponse`] error.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
+    /// See <https://docs.discord.food/resources/message#search-messages>
     pub async fn search_messages(
         channel_id: Snowflake,
         query: MessageSearchQuery,

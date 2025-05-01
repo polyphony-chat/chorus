@@ -52,7 +52,7 @@ pub struct IntegrationAccount {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(rename_all = "snake_case"))]
-/// See <https://docs.discord.sex/resources/integration#integration-type>
+/// See <https://docs.discord.food/resources/integration#integration-type>
 pub enum IntegrationType {
     #[default]
     Twitch,
@@ -79,7 +79,7 @@ pub enum IntegrationType {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// Defines the behaviour that is executed when a user's subscription to the integration expires.
 ///
-/// See <https://docs.discord.sex/resources/integration#integration-expire-behavior>
+/// See <https://docs.discord.food/resources/integration#integration-expire-behavior>
 pub enum IntegrationExpireBehaviour {
     #[default]
     /// Remove the subscriber role from the user

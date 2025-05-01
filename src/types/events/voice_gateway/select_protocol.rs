@@ -10,7 +10,7 @@ use super::VoiceEncryptionMode;
 /// An event sent by the client to the voice gateway server,
 /// detailing what protocol, address and encryption to use;
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#select-protocol-structure>
+/// See <https://docs.discord.food/topics/voice-connections#select-protocol-structure>
 pub struct SelectProtocol {
     /// The protocol to use. The only option chorus supports is [VoiceProtocol::Udp].
     pub protocol: VoiceProtocol,
@@ -27,7 +27,7 @@ pub struct SelectProtocol {
 
 /// The possible protocol for sending a receiving voice data.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#select-protocol-structure>
+/// See <https://docs.discord.food/topics/voice-connections#select-protocol-structure>
 #[derive(Debug, Default, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum VoiceProtocol {
@@ -41,7 +41,7 @@ pub enum VoiceProtocol {
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 /// The data field of the SelectProtocol Event
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#protocol-data-structure>
+/// See <https://docs.discord.food/topics/voice-connections#protocol-data-structure>
 pub struct SelectProtocolData {
     /// Our external IP we got from IP discovery
     pub address: String,

@@ -18,7 +18,7 @@ use super::VoiceEncryptionMode;
 ///
 /// Sent in response to an Identify event.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#ready-structure>
+/// See <https://docs.discord.food/topics/voice-connections#ready-structure>
 pub struct VoiceReady {
     /// See <https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpStreamStats/ssrc>
     pub ssrc: u32,

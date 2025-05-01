@@ -26,7 +26,7 @@ impl ChorusUser {
     /// Updates the authorization token for the current session.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#enable-totp-mfa>
+    /// See <https://docs.discord.food/resources/user#enable-totp-mfa>
     pub async fn enable_totp_mfa(
         &mut self,
         schema: EnableTotpMfaSchema,
@@ -63,7 +63,7 @@ impl ChorusUser {
     /// Fires a [`UserUpdate`](crate::types::UserUpdate) gateway event.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#disable-totp-mfa>
+    /// See <https://docs.discord.food/resources/user#disable-totp-mfa>
     pub async fn disable_totp_mfa(&mut self) -> ChorusResult<Token> {
         let request = Client::new().post(format!(
             "{}/users/@me/mfa/totp/disable",
@@ -94,7 +94,7 @@ impl ChorusUser {
     /// Fires a [`UserUpdate`](crate::types::UserUpdate) gateway event.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#enable-sms-mfa>
+    /// See <https://docs.discord.food/resources/user#enable-sms-mfa>
     pub async fn enable_sms_mfa(&mut self, schema: SmsMfaRouteSchema) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
@@ -121,7 +121,7 @@ impl ChorusUser {
     /// Fires a [`UserUpdate`](crate::types::UserUpdate) gateway event.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#disable-sms-mfa>
+    /// See <https://docs.discord.food/resources/user#disable-sms-mfa>
     pub async fn disable_sms_mfa(&mut self, schema: SmsMfaRouteSchema) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
@@ -144,7 +144,7 @@ impl ChorusUser {
     /// [MfaAuthenticator]s for the current user.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-webauthn-authenticators>
+    /// See <https://docs.discord.food/resources/user#get-webauthn-authenticators>
     pub async fn get_webauthn_authenticators(&mut self) -> ChorusResult<Vec<MfaAuthenticator>> {
         let request = Client::new().get(format!(
             "{}/users/@me/mfa/webauthn/credentials",
@@ -173,7 +173,7 @@ impl ChorusUser {
     /// Requires MFA.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#create-webauthn-authenticator>
+    /// See <https://docs.discord.food/resources/user#create-webauthn-authenticator>
     ///
     /// Note: for an easier to use API, we've split this one route into two methods
     pub async fn begin_webauthn_authenticator_creation(
@@ -210,7 +210,7 @@ impl ChorusUser {
     /// [UserUpdate](crate::types::UserUpdate) events.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#create-webauthn-authenticator>
+    /// See <https://docs.discord.food/resources/user#create-webauthn-authenticator>
     ///
     /// Note: for an easier to use API, we've split this one route into two methods
     pub async fn finish_webauthn_authenticator_creation(
@@ -245,7 +245,7 @@ impl ChorusUser {
     /// Fires an [AuthenticatorUpdate](crate::types::AuthenticatorUpdate) event.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#modify-webauthn-authenticator>
+    /// See <https://docs.discord.food/resources/user#modify-webauthn-authenticator>
     pub async fn modify_webauthn_authenticator(
         &mut self,
         authenticator_id: Snowflake,
@@ -283,7 +283,7 @@ impl ChorusUser {
     /// MFA cannot be disabled for administrators of guilds with published creator monetization listings.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#delete-webauthn-authenticator>
+    /// See <https://docs.discord.food/resources/user#delete-webauthn-authenticator>
     pub async fn delete_webauthn_authenticator(
         &mut self,
         authenticator_id: Snowflake,
@@ -313,7 +313,7 @@ impl ChorusUser {
     /// The two returned nonces can only be used once and expire after 30 minutes.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#send-backup-codes-challenge>
+    /// See <https://docs.discord.food/resources/user#send-backup-codes-challenge>
     pub async fn send_backup_codes_challenge(
         &mut self,
         schema: SendBackupCodesChallengeSchema,
@@ -349,7 +349,7 @@ impl ChorusUser {
     /// Each nonce can only be used once and expires after 30 minutes.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-backup-codes>
+    /// See <https://docs.discord.food/resources/user#get-backup-codes>
     pub async fn get_backup_codes(
         &mut self,
         schema: GetBackupCodesSchema,

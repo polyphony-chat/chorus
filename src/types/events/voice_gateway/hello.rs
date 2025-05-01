@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Differs from the normal hello data in that discord sends heartbeat interval as a float.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#heartbeating>
+/// See <https://docs.discord.food/topics/voice-connections#heartbeating>
 pub struct VoiceHelloData {
     /// The voice gateway version.
     ///

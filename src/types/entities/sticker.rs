@@ -14,7 +14,7 @@ use super::option_arc_rwlock_ptr_eq;
 /// Represents a sticker that can be sent in messages.
 ///
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/sticker#sticker-object>
+/// See <https://docs.discord.food/resources/sticker#sticker-object>
 pub struct Sticker {
     #[serde(default)]
     pub id: Snowflake,
@@ -67,7 +67,7 @@ impl Sticker {
 /// Represents the smallest amount of data required to render a sticker.
 ///
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/sticker#sticker-item-object>
+/// See <https://docs.discord.food/resources/sticker#sticker-item-object>
 pub struct StickerItem {
     pub id: Snowflake,
     pub name: String,
@@ -82,7 +82,7 @@ pub struct StickerItem {
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename = "SCREAMING_SNAKE_CASE")]
 /// # Reference
-/// See <https://docs.discord.sex/resources/sticker#sticker-types>
+/// See <https://docs.discord.food/resources/sticker#sticker-types>
 pub enum StickerType {
     /// An official sticker in a current or legacy purchasable pack
     Standard = 1,
@@ -98,7 +98,7 @@ pub enum StickerType {
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
-/// See <https://docs.discord.sex/resources/sticker#sticker-format-types>
+/// See <https://docs.discord.food/resources/sticker#sticker-format-types>
 pub enum StickerFormatType {
     #[default]
     /// A PNG image

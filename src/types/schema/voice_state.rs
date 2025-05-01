@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Copy)]
 /// # Reference:
-/// See <https://docs.discord.sex/resources/voice#json-params>
+/// See <https://docs.discord.food/resources/voice#json-params>
 pub struct VoiceStateUpdateSchema {
     /// The ID of the channel the user is currently in
     pub channel_id: Option<Snowflake>,

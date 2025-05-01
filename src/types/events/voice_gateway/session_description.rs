@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize, Clone, Default, WebSocketEvent)]
 /// Event that describes our encryption mode and secret key for encryption
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#session-description-structure>
+/// See <https://docs.discord.food/topics/voice-connections#session-description-structure>
 pub struct SessionDescription {
     pub audio_codec: AudioCodec,
     pub video_codec: VideoCodec,
@@ -27,7 +27,7 @@ pub struct SessionDescription {
 #[derive(Debug, Deserialize, Serialize, Clone, Default, WebSocketEvent)]
 /// Event that might be sent to update session parameters
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#session-update-structure>
+/// See <https://docs.discord.food/topics/voice-connections#session-update-structure>
 pub struct SessionUpdate {
     #[serde(rename = "audio_codec")]
     pub new_audio_codec: Option<AudioCodec>,

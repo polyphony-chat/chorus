@@ -16,7 +16,7 @@ impl Guild {
     /// In this case, the method will return a [`ChorusError::InvalidResponse`](crate::errors::ChorusError::InvalidResponse) error.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
+    /// See <https://docs.discord.food/resources/message#search-messages>
     pub async fn search_messages(
         guild_id: Snowflake,
         query: MessageSearchQuery,

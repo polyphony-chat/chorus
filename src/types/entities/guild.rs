@@ -260,7 +260,7 @@ pub struct GuildCreateResponse {
 /// An embeddable widget for a guild.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#guild-widget-object>
+/// See <https://docs.discord.food/resources/guild#guild-widget-object>
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct GuildWidget {
     /// The ID of the guild the widget is for
@@ -285,7 +285,7 @@ pub struct GuildWidget {
 /// A channel, as provided in [GuildWidget]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#guild-widget-channel-structure>
+/// See <https://docs.discord.food/resources/guild#guild-widget-channel-structure>
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct GuildWidgetChannel {
     /// The ID of the channel
@@ -306,7 +306,7 @@ pub struct GuildWidgetChannel {
 /// and `avatar` is always `null` (replaced with an encrypted `avatar_url` field).
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#guild-widget-member-structure>
+/// See <https://docs.discord.food/resources/guild#guild-widget-member-structure>
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct GuildWidgetMember {
     /// The incrementing ID of the member
@@ -345,7 +345,7 @@ pub struct GuildWidgetMember {
 /// An activity, as provided in [GuildWidgetMember]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#guild-widget-member-activity-structure>
+/// See <https://docs.discord.food/resources/guild#guild-widget-member-activity-structure>
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct GuildWidgetMemberActivity {
     /// The name of the activity
@@ -471,7 +471,7 @@ pub struct VoiceRegion {
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// See <https://discord-userdoccers.vercel.app/resources/guild#message-notification-level>
+/// See <https://docs.discord.food/resources/guild#message-notification-level>
 pub enum MessageNotificationLevel {
     #[default]
     AllMessages = 0,
@@ -495,7 +495,7 @@ pub enum MessageNotificationLevel {
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// See <https://discord-userdoccers.vercel.app/resources/guild#explicit-content-filter-level>
+/// See <https://docs.discord.food/resources/guild#explicit-content-filter-level>
 pub enum ExplicitContentFilterLevel {
     #[default]
     Disabled = 0,
@@ -521,7 +521,7 @@ pub enum ExplicitContentFilterLevel {
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#verification-level>
+/// See <https://docs.discord.food/resources/guild#verification-level>
 pub enum VerificationLevel {
     #[default]
     /// Unrestricted
@@ -557,7 +557,7 @@ pub enum VerificationLevel {
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// See <https://docs.discord.sex/resources/guild#mfa-level>
+/// See <https://docs.discord.food/resources/guild#mfa-level>
 pub enum MFALevel {
     #[default]
     None = 0,
@@ -581,7 +581,7 @@ pub enum MFALevel {
 #[cfg_attr(not(feature = "sqlx"), repr(u8))]
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// See <https://docs.discord.sex/resources/guild#nsfw-level>
+/// See <https://docs.discord.food/resources/guild#nsfw-level>
 pub enum NSFWLevel {
     #[default]
     Default = 0,
@@ -610,7 +610,7 @@ pub enum NSFWLevel {
 // Note: Maybe rename this to GuildPremiumTier?
 /// **Guild** premium (Boosting) tier
 ///
-/// See <https://docs.discord.sex/resources/guild#premium-tier>
+/// See <https://docs.discord.food/resources/guild#premium-tier>
 pub enum PremiumTier {
     #[default]
     /// No server boost perks
@@ -627,7 +627,7 @@ bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#system-channel-flags>
+    /// See <https://docs.discord.food/resources/guild#system-channel-flags>
     pub struct SystemChannelFlags: u64 {
         /// Indicates if an app uses the Auto Moderation API
         const SUPPRESS_JOIN_NOTIFICATIONS = 1 << 0;
@@ -641,7 +641,7 @@ bitflags! {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#member-verification-object>
+/// See <https://docs.discord.food/resources/guild#member-verification-object>
 pub struct GuildMemberVerification {
     /// When the verification object was last modified
     #[serde(default)]
@@ -667,7 +667,7 @@ pub struct GuildMemberVerification {
 /// A question in [GuildMemberVerification].
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#member-verification-form-field-structure>
+/// See <https://docs.discord.food/resources/guild#member-verification-form-field-structure>
 pub struct GuildMemberVerificationFormField {
     /// The type of question
     pub field_type: GuildMemberVerificationFormFieldType,
@@ -716,7 +716,7 @@ pub struct GuildMemberVerificationFormField {
 /// For [GuildMemberVerificationFormFieldType::MultipleChoice], this should be [GuildMemberVerificationResponse::Index] (with the index of the selected choice)
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#member-verification-form-field-type>
+/// See <https://docs.discord.food/resources/guild#member-verification-form-field-type>
 pub enum GuildMemberVerificationResponse {
     String(String),
     Index(usize),
@@ -730,7 +730,7 @@ pub enum GuildMemberVerificationResponse {
 /// Types of form questions in [GuildMemberVerificationFormField].
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#member-verification-form-field-type>
+/// See <https://docs.discord.food/resources/guild#member-verification-form-field-type>
 pub enum GuildMemberVerificationFormFieldType {
     /// User must agree to the guild rules
     #[default]
@@ -755,7 +755,7 @@ pub enum GuildMemberVerificationFormFieldType {
 /// A guild, as provided in [GuildMemberVerification].
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#member-verification-guild-structure>
+/// See <https://docs.discord.food/resources/guild#member-verification-guild-structure>
 pub struct GuildMemberVerificationGuild {
     /// The ID of the guild
     pub id: Snowflake,
@@ -795,7 +795,7 @@ pub struct GuildMemberVerificationGuild {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// [GuildJoinRequest]s are an extension of [member verification](https://docs.discord.sex/resources/guild#member-verification-object).
+/// [GuildJoinRequest]s are an extension of [member verification](https://docs.discord.food/resources/guild#member-verification-object).
 ///
 /// A join request is created when a user attempts to join a guild with member verification enabled. They must complete the verification process to join the guild.
 ///
@@ -805,7 +805,7 @@ pub struct GuildMemberVerificationGuild {
 /// [MemberVerificationManualApproval](crate::types::types::guild_configuration::GuildFeatures::MemberVerificationManualApproval) feature.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#guild-join-request-object>
+/// See <https://docs.discord.food/resources/guild#guild-join-request-object>
 pub struct GuildJoinRequest {
     /// The ID of the join request
     pub id: Snowflake,
@@ -870,7 +870,7 @@ pub struct GuildJoinRequest {
 /// Status of a [GuildJoinRequest].
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#guild-join-request-status>
+/// See <https://docs.discord.food/resources/guild#guild-join-request-status>
 pub enum GuildJoinRequestStatus {
     /// The request is started but is not yet submitted
     Started,
@@ -901,7 +901,7 @@ pub enum GuildJoinRequestStatus {
 /// The mode field modifies what is considered when enforcing these constraints.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#onboarding-object>
+/// See <https://docs.discord.food/resources/guild#onboarding-object>
 pub struct GuildOnboarding {
     /// Id of the relevant guild
     pub guild_id: Snowflake,
@@ -942,7 +942,7 @@ pub struct GuildOnboarding {
 /// Defines the criteria used to satisfy [GuildOnboarding] constraints.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#onboarding-mode>
+/// See <https://docs.discord.food/resources/guild#onboarding-mode>
 pub enum GuildOnboardingMode {
     /// Count only default channels towards constraints
     #[default]
@@ -959,7 +959,7 @@ pub enum GuildOnboardingMode {
 /// have in the guild
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#onboarding-prompt-structure>
+/// See <https://docs.discord.food/resources/guild#onboarding-prompt-structure>
 pub struct GuildOnboardingPrompt {
     /// Id of the prompt
     pub id: Snowflake,
@@ -1004,7 +1004,7 @@ pub struct GuildOnboardingPrompt {
 /// Type of [GuildOnboardingPrompt]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#onboarding-prompt-type>
+/// See <https://docs.discord.food/resources/guild#onboarding-prompt-type>
 pub enum GuildOnboardingPromptType {
     /// Prompt offers multiple options to select from
     #[default]
@@ -1018,7 +1018,7 @@ pub enum GuildOnboardingPromptType {
 /// Part of [GuildOnboardingPrompt]; an individual option in the prompt
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#onboarding-prompt-option-structure>
+/// See <https://docs.discord.food/resources/guild#onboarding-prompt-option-structure>
 pub struct GuildOnboardingPromptOption {
     /// The option's unique id
     pub id: Snowflake,

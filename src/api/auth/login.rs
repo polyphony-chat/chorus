@@ -49,7 +49,7 @@ impl Instance {
     /// Verifies a multi-factor authentication login
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/authentication#verify-mfa-login>
+    /// See <https://docs.discord.food/authentication#verify-mfa-login>
     pub async fn verify_mfa_login(
         &mut self,
         authenticator: MfaAuthenticationType,
@@ -92,7 +92,7 @@ impl Instance {
     /// Sends a multi-factor authentication code to the user's phone number
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/authentication#send-mfa-sms>
+    /// See <https://docs.discord.food/authentication#send-mfa-sms>
     // FIXME: This uses ChorusUser::shell, when it *really* shouldn't, but
     // there is no other way to send a ratelimited request
     pub async fn send_mfa_sms(

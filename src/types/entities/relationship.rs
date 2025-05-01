@@ -14,7 +14,7 @@ use super::{option_arc_rwlock_ptr_eq, PublicUser};
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// # Reference
-/// See <https://docs.discord.sex/resources/relationships#relationship-structure>
+/// See <https://docs.discord.food/resources/relationships#relationship-structure>
 pub struct Relationship {
     /// The ID of the target user
     #[cfg_attr(feature = "sqlx", sqlx(rename = "to_id"))]
@@ -86,7 +86,7 @@ impl PartialEq for Relationship {
 )]
 #[repr(u8)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/relationships#relationship-type>
+/// See <https://docs.discord.food/resources/relationships#relationship-type>
 pub enum RelationshipType {
     /// Deprecated
     Suggestion = 6,

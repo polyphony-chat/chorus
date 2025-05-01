@@ -20,7 +20,7 @@ pub struct FriendRequestSendSchema {
 /// * friend_token: The friend token of the user to add a direct friend relationship to
 ///
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/user#create-user-relationship>
+/// See <https://docs.discord.food/resources/user#create-user-relationship>
 #[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq, Eq)]
 pub struct CreateUserRelationshipSchema {
     #[serde(rename = "type")]
@@ -34,7 +34,7 @@ pub struct CreateUserRelationshipSchema {
 /// route.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/relationships#bulk-remove-relationships>
+/// See <https://docs.discord.food/resources/relationships#bulk-remove-relationships>
 #[derive(Deserialize, Serialize, Debug, Copy, Default, Clone, PartialEq, Eq)]
 pub struct BulkRemoveRelationshipsQuery {
     /// Remove relationships with this type (default [RelationshipType::Incoming], only
