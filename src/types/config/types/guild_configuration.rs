@@ -16,7 +16,7 @@ use crate::types::{Error, GuildError};
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#guild-features>
+/// See <https://docs.discord.food/resources/guild#guild-features>
 pub enum GuildFeatures {
     ActivitiesAlpha,
     ActivitiesEmployee,

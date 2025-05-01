@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Contains authentication info and context to authenticate to the voice gateway.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#identify-structure>
+/// See <https://docs.discord.food/topics/voice-connections#identify-structure>
 pub struct VoiceIdentify {
     /// The ID of the guild or the private channel being connected to
     pub server_id: Snowflake,

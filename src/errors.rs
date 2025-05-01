@@ -80,7 +80,7 @@ impl From<reqwest::Error> for ChorusError {
 pub struct ApiError {
     /// More specific error data with a unique code and message
     ///
-    /// See <https://docs.discord.sex/topics/opcodes-and-status-codes#json>
+    /// See <https://docs.discord.food/topics/opcodes-and-status-codes#json>
     pub json_error: JsonError,
 
     /// The https response status
@@ -109,7 +109,7 @@ impl fmt::Display for ApiError {
 /// Data about the specific error encountered, returned as JSON by the API.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#json>
+/// See <https://docs.discord.food/topics/opcodes-and-status-codes#json>
 pub struct JsonError {
     /// A unique code for this type of error.
     ///
@@ -120,7 +120,7 @@ pub struct JsonError {
     #[serde(default)]
     pub message: Option<String>,
 
-    /// See <https://docs.discord.sex/reference#error-messages>
+    /// See <https://docs.discord.food/reference#error-messages>
     ///
     /// A nested JSON object detailing where the error is, ending in an [JsonErrorKey] object.
     #[serde(default)]
@@ -143,7 +143,7 @@ impl fmt::Display for JsonError {
 /// See [JsonError].errors
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#json>
+/// See <https://docs.discord.food/topics/opcodes-and-status-codes#json>
 pub struct JsonErrorKey {
     #[serde(rename = "_errors")]
     pub errors: Vec<JsonErrorKeyError>,
@@ -155,7 +155,7 @@ pub struct JsonErrorKey {
 /// See [JsonErrorKey]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#json>
+/// See <https://docs.discord.food/topics/opcodes-and-status-codes#json>
 pub struct JsonErrorKeyError {
     /// An UPPER_SNAKE_CASE code for the error
     pub code: String,
@@ -171,7 +171,7 @@ custom_error! {
 }
 
 custom_error! {
-    /// For errors we receive from the gateway, see <https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#gateway-close-event-codes>;
+    /// For errors we receive from the gateway, see <https://docs.discord.food/topics/opcodes-and-status-codes#gateway-close-event-codes>;
     ///
     /// Supposed to be sent as numbers, though they are sent as string most of the time?
     ///

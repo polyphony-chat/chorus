@@ -14,7 +14,7 @@ use crate::types::{entities::Emoji, PartialEmoji, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/presence#activity-object>
+/// See <https://docs.discord.food/resources/presence#activity-object>
 pub struct Activity {
     /// The ID of the activity
     ///
@@ -106,7 +106,7 @@ pub struct Activity {
     ///
     /// Treat data within this object carefully.
     ///
-    /// The official clients follow a convention: <https://docs.discord.sex/resources/presence#activity-metadata-structure>
+    /// The official clients follow a convention: <https://docs.discord.food/resources/presence#activity-metadata-structure>
     ///
     /// This field is send-only, but can be retrieved with its own route.
     #[serde(default)]
@@ -134,7 +134,7 @@ pub struct Activity {
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// # Reference
-/// See <https://docs.discord.sex/resources/presence#activity-type>
+/// See <https://docs.discord.food/resources/presence#activity-type>
 pub enum ActivityType {
     #[default]
     /// "Playing {name}"
@@ -160,7 +160,7 @@ pub enum ActivityType {
 /// Platform an [Activity] is being played on
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/presence#activity-platform-type>
+/// See <https://docs.discord.food/resources/presence#activity-platform-type>
 pub enum ActivityPlatformType {
     #[default]
     Desktop,
@@ -179,7 +179,7 @@ pub enum ActivityPlatformType {
 /// Unix timestamps (sent in milliseconds) for start and/or end of the game
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/presence#activity-timestamps-structure>
+/// See <https://docs.discord.food/resources/presence#activity-timestamps-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 pub struct ActivityTimestamps {
     /// Unix time (sent in milliseconds) of when the activity starts
@@ -195,7 +195,7 @@ pub struct ActivityTimestamps {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/presence#activity-party-structure>
+/// See <https://docs.discord.food/resources/presence#activity-party-structure>
 pub struct ActivityParty {
     /// The ID of the party (max 128 characters)
     #[serde(default)]
@@ -208,7 +208,7 @@ pub struct ActivityParty {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/presence#activity-assets-structure>
+/// See <https://docs.discord.food/resources/presence#activity-assets-structure>
 pub struct ActivityAssets {
     /// The large activity asset image (max 313 characters)
     #[serde(default)]
@@ -229,7 +229,7 @@ pub struct ActivityAssets {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/presence#activity-secrets-structure>
+/// See <https://docs.discord.food/resources/presence#activity-secrets-structure>
 pub struct ActivitySecrets {
     /// The secret for joining a party (max 128 characters)
     #[serde(default)]
@@ -256,7 +256,7 @@ bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
-    /// See <https://docs.discord.sex/resources/presence#activity-flags>
+    /// See <https://docs.discord.food/resources/presence#activity-flags>
     pub struct ActivityFlags: u64 {
         /// The activity is an instanced game session; a match that will end
         const INSTANCE = 1 << 0;

@@ -32,7 +32,7 @@ impl ChorusUser {
     /// This function is a wrapper around [`User::get_current`].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-current-user>
+    /// See <https://docs.discord.food/resources/user#get-current-user>
     pub async fn get_current_user(&mut self) -> ChorusResult<User> {
         User::get_current(self).await
     }
@@ -43,7 +43,7 @@ impl ChorusUser {
     /// This function is a wrapper around [`User::get`].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user>
+    /// See <https://docs.discord.food/resources/user#get-user>
     pub async fn get_user(&mut self, id: Snowflake) -> ChorusResult<PublicUser> {
         User::get(self, id).await
     }
@@ -68,7 +68,7 @@ impl ChorusUser {
     /// This function is a wrapper around [`User::get_by_username`].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-by-username>
+    /// See <https://docs.discord.food/resources/user#get-user-by-username>
     pub async fn get_user_by_username(
         &mut self,
         username: &String,
@@ -91,9 +91,9 @@ impl ChorusUser {
     /// This route requires MFA.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/user#modify-current-user>
+    /// See <https://docs.discord.food/resources/user#modify-current-user>
     pub async fn modify(&mut self, modify_schema: UserModifySchema) -> ChorusResult<User> {
-        // See <https://docs.discord.sex/resources/user#json-params>, note 1
+        // See <https://docs.discord.food/resources/user#json-params>, note 1
         let requires_current_password = modify_schema.username.is_some()
             || modify_schema.discriminator.is_some()
             || modify_schema.email.is_some()
@@ -133,7 +133,7 @@ impl ChorusUser {
     /// This route requires MFA.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#disable-user>
+    /// See <https://docs.discord.food/resources/user#disable-user>
     pub async fn disable(&mut self, schema: DeleteDisableUserSchema) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
@@ -160,7 +160,7 @@ impl ChorusUser {
     /// This route requires MFA.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#delete-user>
+    /// See <https://docs.discord.food/resources/user#delete-user>
     pub async fn delete(&mut self, schema: DeleteDisableUserSchema) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
@@ -193,7 +193,7 @@ impl ChorusUser {
     /// This function is a wrapper around [`User::get_profile`].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-profile>
+    /// See <https://docs.discord.food/resources/user#get-user-profile>
     pub async fn get_user_profile(
         &mut self,
         id: Snowflake,
@@ -210,7 +210,7 @@ impl ChorusUser {
     /// This function is a wrapper around [`User::modify_profile`].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#modify-user-profile>
+    /// See <https://docs.discord.food/resources/user#modify-user-profile>
     pub async fn modify_profile(
         &mut self,
         schema: UserModifyProfileSchema,
@@ -225,7 +225,7 @@ impl ChorusUser {
     /// Should be followed up with [Self::verify_email_change]
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#modify-user-email>
+    /// See <https://docs.discord.food/resources/user#modify-user-email>
     pub async fn initiate_email_change(&mut self) -> ChorusResult<()> {
         let request = Client::new().put(format!(
             "{}/users/@me/email",
@@ -251,7 +251,7 @@ impl ChorusUser {
     // FIXME: Does this mean PUT users/@me/email is different?
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#modify-user-email>
+    /// See <https://docs.discord.food/resources/user#modify-user-email>
     pub async fn verify_email_change(
         &mut self,
         schema: VerifyUserEmailChangeSchema,
@@ -285,7 +285,7 @@ impl ChorusUser {
     /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-pomelo-suggestions>
+    /// See <https://docs.discord.food/resources/user#get-pomelo-suggestions>
     pub async fn get_pomelo_suggestions(&mut self) -> ChorusResult<String> {
         let request = Client::new().get(format!(
             "{}/users/@me/pomelo-suggestions",
@@ -311,7 +311,7 @@ impl ChorusUser {
     /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-pomelo-eligibility>
+    /// See <https://docs.discord.food/resources/user#get-pomelo-eligibility>
     pub async fn get_pomelo_eligibility(&mut self, username: &String) -> ChorusResult<bool> {
         let request = Client::new()
             .post(format!(
@@ -351,7 +351,7 @@ impl ChorusUser {
     /// As of 2024/08/08, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#create-pomelo-migration>
+    /// See <https://docs.discord.food/resources/user#create-pomelo-migration>
     pub async fn create_pomelo_migration(&mut self, username: &String) -> ChorusResult<()> {
         let request = Client::new()
             .post(format!(
@@ -388,7 +388,7 @@ impl ChorusUser {
     /// As of 2024/08/09, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-recent-mentions>
+    /// See <https://docs.discord.food/resources/user#get-recent-mentions>
     pub async fn get_recent_mentions(
         &mut self,
         query_parameters: GetRecentMentionsSchema,
@@ -419,7 +419,7 @@ impl ChorusUser {
     /// As of 2024/08/09, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#delete-recent-mention>
+    /// See <https://docs.discord.food/resources/user#delete-recent-mention>
     pub async fn delete_recent_mention(&mut self, message_id: Snowflake) -> ChorusResult<()> {
         let request = Client::new().delete(format!(
             "{}/users/@me/mentions/{}",
@@ -444,7 +444,7 @@ impl ChorusUser {
     /// As of 2024/08/09, Spacebar does not yet implement this endpoint. (Or data harvesting)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-harvest>
+    /// See <https://docs.discord.food/resources/user#get-user-harvest>
     pub async fn get_harvest(&mut self) -> ChorusResult<Option<Harvest>> {
         let request = Client::new().get(format!(
             "{}/users/@me/harvest",
@@ -509,7 +509,7 @@ impl ChorusUser {
     /// As of 2024/08/09, Spacebar does not yet implement this endpoint. (Or data harvesting)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#create-user-harvest>
+    /// See <https://docs.discord.food/resources/user#create-user-harvest>
     pub async fn create_harvest(
         &mut self,
         backends: Vec<HarvestBackendType>,
@@ -544,7 +544,7 @@ impl ChorusUser {
     /// As of 2024/08/21, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-notes>
+    /// See <https://docs.discord.food/resources/user#get-user-notes>
     pub async fn get_user_notes(&mut self) -> ChorusResult<HashMap<Snowflake, String>> {
         let request = Client::new().get(format!(
             "{}/users/@me/notes",
@@ -569,7 +569,7 @@ impl ChorusUser {
     /// This function is a wrapper around [`User::get_note`].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-note>
+    /// See <https://docs.discord.food/resources/user#get-user-note>
     pub async fn get_user_note(&mut self, target_user_id: Snowflake) -> ChorusResult<UserNote> {
         User::get_note(self, target_user_id).await
     }
@@ -582,7 +582,7 @@ impl ChorusUser {
     /// This function is a wrapper around [`User::set_note`].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#modify-user-note>
+    /// See <https://docs.discord.food/resources/user#modify-user-note>
     pub async fn set_user_note(
         &mut self,
         target_user_id: Snowflake,
@@ -596,7 +596,7 @@ impl ChorusUser {
     /// (Affinity scores are a measure of how likely a user is to be friends with another user.)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-affinities>
+    /// See <https://docs.discord.food/resources/user#get-user-affinities>
     pub async fn get_user_affinities(&mut self) -> ChorusResult<UserAffinities> {
         let request = Client::new().get(format!(
             "{}/users/@me/affinities/users",
@@ -615,7 +615,7 @@ impl ChorusUser {
     /// Fetches the current user's affinity scores for their joined guilds.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-guild-affinities>
+    /// See <https://docs.discord.food/resources/user#get-guild-affinities>
     pub async fn get_guild_affinities(&mut self) -> ChorusResult<GuildAffinities> {
         let request = Client::new().get(format!(
             "{}/users/@me/affinities/guilds",
@@ -640,7 +640,7 @@ impl ChorusUser {
     /// As of 2024/08/16, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-premium-usage>
+    /// See <https://docs.discord.food/resources/user#get-user-premium-usage>
     pub async fn get_premium_usage(&mut self) -> ChorusResult<PremiumUsage> {
         let request = Client::new().get(format!(
             "{}/users/@me/premium-usage",
@@ -683,7 +683,7 @@ impl User {
     /// Gets the local / current user.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-current-user>
+    /// See <https://docs.discord.food/resources/user#get-current-user>
     pub async fn get_current(user: &mut ChorusUser) -> ChorusResult<User> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let url = format!("{}/users/@me", url_api);
@@ -701,7 +701,7 @@ impl User {
     /// Gets a non-local user by their id
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/user#get-user>
+    /// See <https://docs.discord.food/resources/user#get-user>
     pub async fn get(user: &mut ChorusUser, id: Snowflake) -> ChorusResult<PublicUser> {
         let url_api = user.belongs_to.read().unwrap().urls.api.clone();
         let url = format!("{}/users/{}", url_api, id);
@@ -733,7 +733,7 @@ impl User {
     /// Due to this restriction, you are not able to resolve your own username."
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-by-username>
+    /// See <https://docs.discord.food/resources/user#get-user-by-username>
     pub async fn get_by_username(
         user: &mut ChorusUser,
         username: &String,
@@ -786,7 +786,7 @@ impl User {
     /// - The other user has an outgoing friend request to the current user
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-profile>
+    /// See <https://docs.discord.food/resources/user#get-user-profile>
     pub async fn get_profile(
         user: &mut ChorusUser,
         id: Snowflake,
@@ -812,7 +812,7 @@ impl User {
     /// Returns the updated [UserProfileMetadata].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#modify-user-profile>
+    /// See <https://docs.discord.food/resources/user#modify-user-profile>
     pub async fn modify_profile(
         user: &mut ChorusUser,
         schema: UserModifyProfileSchema,
@@ -837,7 +837,7 @@ impl User {
     /// returns `Err(NotFound { error: "{\"message\": \"Unknown User\", \"code\": 10013}" })`
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-note>
+    /// See <https://docs.discord.food/resources/user#get-user-note>
     pub async fn get_note(
         user: &mut ChorusUser,
         target_user_id: Snowflake,
@@ -862,7 +862,7 @@ impl User {
     /// Fires a `UserNoteUpdate` gateway event. (Note: yet to be implemented in chorus, see [#546](https://github.com/polyphony-chat/chorus/issues/546))
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#modify-user-note>
+    /// See <https://docs.discord.food/resources/user#modify-user-note>
     pub async fn set_note(
         user: &mut ChorusUser,
         target_user_id: Snowflake,

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// Used to replay missed events when a disconnected client resumes.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#resume>
+/// See <https://docs.discord.food/topics/gateway-events#resume>
 #[derive(Debug, Clone, Deserialize, Serialize, Default, WebSocketEvent)]
 pub struct GatewayResume {
     pub token: String,
@@ -23,7 +23,7 @@ pub struct GatewayResume {
 /// Signifies the end of event replaying.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#resumed>
+/// See <https://docs.discord.food/topics/gateway-events#resumed>
 #[derive(Debug, Clone, Deserialize, Serialize, Default, WebSocketEvent)]
 pub struct GatewayResumed {
     #[serde(rename = "_trace")]

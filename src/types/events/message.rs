@@ -153,7 +153,7 @@ pub struct MessageReactionRemoveEmoji {
 /// Sent when a message that mentioned the current user in the last week is acknowledged and deleted.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#recent-mention-delete>
+/// See <https://docs.discord.food/topics/gateway-events#recent-mention-delete>
 pub struct RecentMentionDelete {
     pub message_id: Snowflake,
 }
@@ -185,7 +185,7 @@ pub struct MessageACK {
 /// Fires a [LastMessages] events with up to 100 messages that match the request.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#request-last-messages>
+/// See <https://docs.discord.food/topics/gateway-events#request-last-messages>
 pub struct RequestLastMessages {
     /// The ID of the guild the channels are in
     pub guild_id: Snowflake,
@@ -197,7 +197,7 @@ pub struct RequestLastMessages {
 /// Sent as a response to [RequestLastMessages].
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#last-messages>
+/// See <https://docs.discord.food/topics/gateway-events#last-messages>
 pub struct LastMessages {
     /// The ID of the guild the channels are in
     pub guild_id: Snowflake,

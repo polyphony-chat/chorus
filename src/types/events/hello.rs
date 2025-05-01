@@ -37,7 +37,7 @@ impl std::default::Default for GatewayHello {
 impl std::default::Default for HelloData {
     fn default() -> Self {
         Self {
-            // Discord docs mention 45000 seconds - discord.sex mentions 41250. Defaulting to 45s
+            // Discord docs mention 45000 seconds - discord.food mentions 41250. Defaulting to 45s
             heartbeat_interval: 45000,
         }
     }

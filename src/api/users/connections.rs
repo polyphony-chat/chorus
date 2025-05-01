@@ -27,7 +27,7 @@ impl ChorusUser {
     /// [Self::create_connection_callback].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#authorize-user-connection>
+    /// See <https://docs.discord.food/resources/user#authorize-user-connection>
     ///
     /// Note: it doesn't seem to be actually unauthenticated
     pub async fn authorize_connection(
@@ -53,7 +53,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
         // Note: ommiting authorization causes a 401 Unauthorized,
-        // even though discord.sex mentions it as unauthenticated
+        // even though discord.food mentions it as unauthenticated
 
         chorus_request
             .send_and_deserialize_response::<AuthorizeConnectionReturn>(self)
@@ -68,7 +68,7 @@ impl ChorusUser {
     /// [Self::authorize_connection] to this one.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#create-user-connection-callback>
+    /// See <https://docs.discord.food/resources/user#create-user-connection-callback>
     // TODO: When is this called? When should it be used over authorize_connection?
     pub async fn create_connection_callback(
         &mut self,
@@ -103,7 +103,7 @@ impl ChorusUser {
     /// [Self::create_connection_callback]
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#create-contact-sync-connection>
+    /// See <https://docs.discord.food/resources/user#create-contact-sync-connection>
     pub async fn create_contact_sync_connection(
         &mut self,
         connection_account_id: &String,
@@ -175,7 +175,7 @@ impl ChorusUser {
     /// ```
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#create-domain-connection>
+    /// See <https://docs.discord.food/resources/user#create-domain-connection>
     pub async fn create_domain_connection(
         &mut self,
         domain: &String,
@@ -231,7 +231,7 @@ impl ChorusUser {
     /// Fetches the current user's [Connection]s
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-connections>
+    /// See <https://docs.discord.food/resources/user#get-user-connections>
     pub async fn get_connections(&mut self) -> ChorusResult<Vec<Connection>> {
         let request = Client::new().get(format!(
             "{}/users/@me/connections",
@@ -250,7 +250,7 @@ impl ChorusUser {
     /// Refreshes a local user's [Connection].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#refresh-user-connection>
+    /// See <https://docs.discord.food/resources/user#refresh-user-connection>
     pub async fn refresh_connection(
         &mut self,
         connection_type: ConnectionType,
@@ -282,7 +282,7 @@ impl ChorusUser {
     /// Not all connection types support all parameters.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#modify-user-connection>
+    /// See <https://docs.discord.food/resources/user#modify-user-connection>
     pub async fn modify_connection(
         &mut self,
         connection_type: ConnectionType,
@@ -314,7 +314,7 @@ impl ChorusUser {
     /// Deletes a local user's [Connection].
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#delete-user-connection>
+    /// See <https://docs.discord.food/resources/user#delete-user-connection>
     pub async fn delete_connection(
         &mut self,
         connection_type: ConnectionType,
@@ -345,7 +345,7 @@ impl ChorusUser {
     /// Only available for [ConnectionType::Twitch], [ConnectionType::YouTube] and [ConnectionType::Spotify] connections.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-connection-access-token>
+    /// See <https://docs.discord.food/resources/user#get-user-connection-access-token>
     pub async fn get_connection_access_token(
         &mut self,
         connection_type: ConnectionType,
@@ -380,7 +380,7 @@ impl ChorusUser {
     /// Only available for [ConnectionType::Reddit] connections.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/user#get-user-connection-subreddits>
+    /// See <https://docs.discord.food/resources/user#get-user-connection-subreddits>
     pub async fn get_connection_subreddits(
         &mut self,
         connection_account_id: &String,

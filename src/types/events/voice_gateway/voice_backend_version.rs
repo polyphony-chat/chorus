@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, WebSocketEvent)]
 /// Received from the voice gateway server to describe the backend version.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#voice-backend-version>
+/// See <https://docs.discord.food/topics/voice-connections#voice-backend-version>
 pub struct VoiceBackendVersion {
     /// The voice backend's version
     #[serde(rename = "voice")]

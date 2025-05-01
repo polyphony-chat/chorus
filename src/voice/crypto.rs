@@ -8,7 +8,7 @@
 
 /// Gets an `xsalsa20_poly1305` nonce from an rtppacket.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#encryption-mode>
+/// See <https://docs.discord.food/topics/voice-connections#encryption-mode>
 pub(crate) fn get_xsalsa20_poly1305_nonce(packet: &[u8]) -> Vec<u8> {
     let mut rtp_header = Vec::with_capacity(24);
     rtp_header.append(&mut packet[0..12].to_vec());
@@ -23,7 +23,7 @@ pub(crate) fn get_xsalsa20_poly1305_nonce(packet: &[u8]) -> Vec<u8> {
 
 /// Gets an `xsalsa20_poly1305_suffix` nonce from an rtppacket.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#encryption-mode>
+/// See <https://docs.discord.food/topics/voice-connections#encryption-mode>
 pub(crate) fn get_xsalsa20_poly1305_suffix_nonce(packet: &[u8]) -> Vec<u8> {
     let mut nonce = Vec::with_capacity(24);
 
@@ -34,7 +34,7 @@ pub(crate) fn get_xsalsa20_poly1305_suffix_nonce(packet: &[u8]) -> Vec<u8> {
 
 /// Gets an `xsalsa20_poly1305_lite` nonce from an rtppacket.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#encryption-mode>
+/// See <https://docs.discord.food/topics/voice-connections#encryption-mode>
 pub(crate) fn get_xsalsa20_poly1305_lite_nonce(packet: &[u8]) -> Vec<u8> {
     let mut nonce = Vec::with_capacity(24);
 

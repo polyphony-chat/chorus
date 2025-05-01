@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// When received, the SSRC of the user should be discarded.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#other-client-disconnection>
+/// See <https://docs.discord.food/topics/voice-connections#other-client-disconnection>
 pub struct VoiceClientDisconnection {
     pub user_id: Snowflake,
 }

@@ -24,7 +24,7 @@ use crate::types::{
 /// Represents the schema which needs to be sent to create a Guild.
 ///
 /// # Reference
-/// See <https://docs.spacebar.chat/routes/#cmp--schemas-guildcreateschema> and <https://docs.discord.sex/resources/guild#create-guild>
+/// See <https://docs.spacebar.chat/routes/#cmp--schemas-guildcreateschema> and <https://docs.discord.food/resources/guild#create-guild>
 pub struct GuildCreateSchema {
     /// The name of the guild (2-100 characters, excluding trailing and leading whitespace)
     pub name: Option<String>,
@@ -34,7 +34,7 @@ pub struct GuildCreateSchema {
     /// Note: this field is deprecated
     pub region: Option<String>,
 
-    /// See <https://docs.discord.sex/reference#cdn-data>
+    /// See <https://docs.discord.food/reference#cdn-data>
     pub icon: Option<String>,
 
     /// Note: this field is not implemented yet on Spacebar, see <https://github.com/spacebarchat/server/issues/1251>
@@ -111,7 +111,7 @@ impl PartialEq for GuildCreateSchema {
 /// Represents the schema which needs to be sent to create a Guild Ban.
 ///
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild-ban>
+/// See <https://docs.discord.food/resources/guild#create-guild-ban>
 pub struct GuildBanCreateSchema {
     /// Number of seconds to delete messages for (0-604800, default 0)
     pub delete_message_seconds: Option<u32>,
@@ -122,7 +122,7 @@ pub struct GuildBanCreateSchema {
 /// Schema for the [crate::instance::ChorusUser::leave_guild] route
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#json-params>
+/// See <https://docs.discord.food/resources/guild#json-params>
 pub(crate) struct GuildLeaveSchema {
     /// "Whether the user is lurking in the guild"
     pub lurking: Option<bool>,
@@ -133,7 +133,7 @@ pub(crate) struct GuildLeaveSchema {
 /// Schema for the bulk guild ban endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#json-params>
+/// See <https://docs.discord.food/resources/guild#json-params>
 pub struct BulkGuildBanSchema {
     /// The user IDs to ban (max 200)
     pub user_ids: Vec<Snowflake>,
@@ -146,7 +146,7 @@ pub struct BulkGuildBanSchema {
 /// Return type for the bulk guild ban endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#response-body>
+/// See <https://docs.discord.food/resources/guild#response-body>
 pub struct BulkGuildBanReturn {
     /// The user IDs that were successfully banned
     pub banned_users: Vec<Snowflake>,
@@ -166,7 +166,7 @@ pub struct BulkGuildBanReturn {
 /// Schema for the Add Guild Role Members endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#add-guild-role-members>
+/// See <https://docs.discord.food/resources/guild#add-guild-role-members>
 pub struct AddRoleMembersSchema {
     /// The member IDs to assign the role to (max 30)
     pub member_ids: Vec<Snowflake>,
@@ -175,29 +175,29 @@ pub struct AddRoleMembersSchema {
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 /// Represents the schema used to modify a guild.
-/// See: <https://docs.discord.sex/resources/guild#modify-guild>
+/// See: <https://docs.discord.food/resources/guild#modify-guild>
 pub struct GuildModifySchema {
     /// The name of the guild (2-100 characters, excluding trailing and leading whitespace)
     pub name: Option<String>,
 
-    /// See <https://docs.discord.sex/reference#cdn-data>
+    /// See <https://docs.discord.food/reference#cdn-data>
     pub icon: Option<String>,
 
-    /// See <https://docs.discord.sex/reference#cdn-data>
+    /// See <https://docs.discord.food/reference#cdn-data>
     pub banner: Option<String>,
 
     /// The guild's banner
     ///
     /// For it tobe shown, the guild must have the BANNER feature
     ///
-    /// See <https://docs.discord.sex/reference#cdn-data>
+    /// See <https://docs.discord.food/reference#cdn-data>
     pub home_header: Option<String>,
 
     /// The guild's invite splash
     ///
     /// For it to be shown, the guild must have the INVITE_SPLASH feature
     ///
-    /// See <https://docs.discord.sex/reference#cdn-data>
+    /// See <https://docs.discord.food/reference#cdn-data>
     pub splash: Option<String>,
 
     /// The guild's discovery splash
@@ -242,7 +242,7 @@ pub struct GuildModifySchema {
     ///
     /// If set to Some(1), will create a new #rules channel
     ///
-    /// Reference: <https://docs.discord.sex/resources/guild#modify-guild>
+    /// Reference: <https://docs.discord.food/resources/guild#modify-guild>
     pub rules_channel_id: Option<Snowflake>,
 
     /// The ID of the channel where admins and moderators of community guilds receive notices from Discord
@@ -268,14 +268,14 @@ pub struct GuildModifySchema {
 /// Schema for the [crate::types::Guild::modify_mfa_level] route
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#modify-guild-mfa-level>
+/// See <https://docs.discord.food/resources/guild#modify-guild-mfa-level>
 pub(crate) struct GuildModifyMFALevelSchema {
     pub level: MFALevel,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-user-guilds>
+/// See <https://docs.discord.food/resources/guild#get-user-guilds>
 pub struct GetUserGuildsSchema {
     /// Get guilds before this guild id
     pub before: Option<Snowflake>,
@@ -343,7 +343,7 @@ pub struct GuildPreview {
 /// Schema for the [crate::types::Guild::get_members] route
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-members>
+/// See <https://docs.discord.food/resources/guild#get-guild-members>
 pub struct GetGuildMembersSchema {
     /// Max number of members to return (1-1000, default 1)
     pub limit: Option<u16>,
@@ -381,7 +381,7 @@ impl Default for GetGuildMembersSchema {
 /// Schema for the [Guild::query_members](crate::types::Guild::query_members) route
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#query-guild-members>
+/// See <https://docs.discord.food/resources/guild#query-guild-members>
 pub struct QueryGuildMembersSchema {
     /// Query to match username(s) and nickname(s) against
     pub query: String,
@@ -423,7 +423,7 @@ pub struct GuildGetMembersQuery {
 /// Schema for the [Guild::modify_member](crate::types::Guild::modify_member) route.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#modify-guild-member>
+/// See <https://docs.discord.food/resources/guild#modify-guild-member>
 pub struct ModifyGuildMemberSchema {
     #[serde(rename = "nick")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -482,7 +482,7 @@ bitflags! {
     /// Represents the flags of a Guild Member.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#guild-member-flags>
+    /// See <https://docs.discord.food/resources/guild#guild-member-flags>
     pub struct GuildMemberFlags: u64 {
         const DID_REJOIN = 1 << 0;
         const COMPLETED_ONBOARDING = 1 << 1;
@@ -498,7 +498,7 @@ bitflags! {
 /// Schema for the [Guild::modify_current_member](crate::types::Guild::modify_current_member) route.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#modify-current-guild-member>
+/// See <https://docs.discord.food/resources/guild#modify-current-guild-member>
 pub struct ModifyCurrentGuildMemberSchema {
     #[serde(rename = "nick")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -543,7 +543,7 @@ pub struct ModifyCurrentGuildMemberSchema {
 /// [Guild::modify_current_member_profile](crate::types::Guild::modify_current_member_profile) route.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#modify-guild-member-profile>
+/// See <https://docs.discord.food/resources/guild#modify-guild-member-profile>
 pub struct ModifyGuildMemberProfileSchema {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// The member's guild pronouns (up to 40 characters)
@@ -588,7 +588,7 @@ pub struct ModifyGuildMemberProfileSchema {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Copy, Hash)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-bans>
+/// See <https://docs.discord.food/resources/guild#get-guild-bans>
 pub struct GetGuildBansQuery {
     /// Get bans before this user ID
     pub before: Option<Snowflake>,
@@ -621,7 +621,7 @@ impl GetGuildBansQuery {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#search-guild-bans>
+/// See <https://docs.discord.food/resources/guild#search-guild-bans>
 pub struct SearchGuildBansQuery {
     /// Query to match username(s) and display name(s) against
     ///
@@ -661,7 +661,7 @@ pub type GuildMembersSearchQuery = GenericSearchQueryWithLimit;
 ///  Certain guilds, such as those that are verified, are exempt from discovery requirements. These guilds will not have a fully populated discovery requirements object, and are guaranteed to receive only sufficient and sufficient_without_grace_period.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/discovery#discovery-requirements-object>
+/// See <https://docs.discord.food/resources/discovery#discovery-requirements-object>
 pub struct GuildDiscoveryRequirements {
     pub guild_id: Option<Snowflake>,
     pub safe_environment: Option<bool>,
@@ -684,7 +684,7 @@ pub struct GuildDiscoveryRequirements {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/discovery#discovery-nsfw-properties-structure>
+/// See <https://docs.discord.food/resources/discovery#discovery-nsfw-properties-structure>
 pub struct GuildDiscoveryNsfwProperties {
     pub channels: Vec<Snowflake>,
     pub channel_banned_keywords: HashMap<Snowflake, Vec<String>>,
@@ -698,7 +698,7 @@ pub struct GuildDiscoveryNsfwProperties {
 /// Activity metrics are recalculated weekly, as an 8-week rolling average. If they are not yet eligible to be calculated, all fields will be null.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/discovery#discovery-health-score-structure>
+/// See <https://docs.discord.food/resources/discovery#discovery-health-score-structure>
 pub struct GuildDiscoveryHealthScore {
     pub avg_nonnew_communicators: u64,
     pub avg_nonnew_participators: u64,
@@ -708,11 +708,11 @@ pub struct GuildDiscoveryHealthScore {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/emoji#create-guild-emoji>
+/// See <https://docs.discord.food/resources/emoji#create-guild-emoji>
 pub struct EmojiCreateSchema {
     pub name: Option<String>,
     /// # Reference:
-    /// See <https://docs.discord.sex/reference#cdn-data>
+    /// See <https://docs.discord.food/reference#cdn-data>
     pub image: String,
     #[serde(default)]
     pub roles: Vec<Snowflake>,
@@ -720,7 +720,7 @@ pub struct EmojiCreateSchema {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference
-///  See <https://docs.discord.sex/resources/emoji#modify-guild-emoji>
+///  See <https://docs.discord.food/resources/emoji#modify-guild-emoji>
 pub struct EmojiModifySchema {
     pub name: Option<String>,
     pub roles: Option<Vec<Snowflake>>,
@@ -728,7 +728,7 @@ pub struct EmojiModifySchema {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-prune>
+/// See <https://docs.discord.food/resources/guild#get-guild-prune>
 pub struct GuildPruneQuerySchema {
     pub days: u8,
     /// Only used on POST
@@ -745,7 +745,7 @@ pub struct GuildPruneQuerySchema {
 /// a part of [GuildPruneSchema].
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#query-string-params>
+/// See <https://docs.discord.food/resources/guild#query-string-params>
 pub struct GuildPruneParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Number of inactive days to count prune for.
@@ -783,7 +783,7 @@ impl GuildPruneParameters {
 /// Schema for the [Guild::prune](crate::types::Guild::prune) endpoint
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#query-string-params>
+/// See <https://docs.discord.food/resources/guild#query-string-params>
 pub struct GuildPruneSchema {
     #[serde(flatten)]
     /// Parameters which set how to prune the guild
@@ -800,7 +800,7 @@ pub struct GuildPruneSchema {
 /// Return schema for the [Guild::get_prune](crate::types::Guild::get_prune) endpoint
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#response-body>
+/// See <https://docs.discord.food/resources/guild#response-body>
 pub struct GetGuildPruneResult {
     pub pruned: usize,
 }
@@ -809,7 +809,7 @@ pub struct GetGuildPruneResult {
 /// Return schema for the [Guild::prune](crate::types::Guild::prune) endpoint
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-prune>
+/// See <https://docs.discord.food/resources/guild#get-guild-prune>
 pub struct GuildPruneResult {
     /// `None` if `compute_prune_count` is `false`
     pub pruned: Option<usize>,
@@ -817,7 +817,7 @@ pub struct GuildPruneResult {
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/sticker#create-guild-sticker>
+/// See <https://docs.discord.food/resources/sticker#create-guild-sticker>
 pub struct GuildCreateStickerSchema {
     pub name: String,
     #[serde(default)]
@@ -908,7 +908,7 @@ impl GuildCreateStickerSchema {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/sticker#modify-guild-sticker>
+/// See <https://docs.discord.food/resources/sticker#modify-guild-sticker>
 pub struct GuildModifyStickerSchema {
     #[serde(default)]
     pub name: Option<String>,
@@ -920,7 +920,7 @@ pub struct GuildModifyStickerSchema {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
+/// See <https://docs.discord.food/resources/guild#modify-guild-welcome-screen>
 pub struct GuildModifyWelcomeScreenSchema {
     pub enabled: Option<bool>,
     pub description: Option<String>,
@@ -930,7 +930,7 @@ pub struct GuildModifyWelcomeScreenSchema {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference:
-/// See <https://docs.discord.sex/resources/guild-template#create-guild-template>
+/// See <https://docs.discord.food/resources/guild-template#create-guild-template>
 pub struct GuildTemplateCreateSchema {
     /// Name of the template (1-100 characters)
     pub name: String,
@@ -947,7 +947,7 @@ pub struct GuildTemplateCreateSchema {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub enum SearchGuildMembersReturn {
     NotIndexed(SGMReturnNotIndexed),
     Ok(SGMReturnOk),
@@ -964,7 +964,7 @@ pub enum SearchGuildMembersReturn {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMReturnNotIndexed {
     pub message: String,
     pub code: u32,
@@ -980,7 +980,7 @@ pub struct SGMReturnNotIndexed {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMReturnOk {
     /// The id of the guild searchedd
     pub guild_id: Snowflake,
@@ -998,7 +998,7 @@ pub struct SGMReturnOk {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SearchGuildMembersSchema {
     /// Max number of members to return
     ///
@@ -1047,7 +1047,7 @@ pub struct SearchGuildMembersSchema {
 /// How a user joined a guild
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#join-source-type>
+/// See <https://docs.discord.food/resources/guild#join-source-type>
 pub enum MemberSortType {
     #[default]
     /// Sort by when the user joined the guild, descending (newest members first) (default)
@@ -1109,7 +1109,7 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for MemberSortType {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMPaginationFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_id: Option<Snowflake>,
@@ -1124,7 +1124,7 @@ pub struct SGMPaginationFilter {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SearchGuildMembersFilter {
     /// Query to match user IDs against
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1168,7 +1168,7 @@ pub struct SearchGuildMembersFilter {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMSafetySignals {
     /// When the member's unusual activity flag will expire
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1193,7 +1193,7 @@ pub struct SGMSafetySignals {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub enum SearchGuildMembersQuery {
     Snowflake(SGMSnowflakeQuery),
     String(SGMStringQuery),
@@ -1209,7 +1209,7 @@ pub enum SearchGuildMembersQuery {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMSnowflakeQuery {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     /// The values to match against using OR logic
@@ -1235,7 +1235,7 @@ pub struct SGMSnowflakeQuery {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMSnowflakeQueryRange {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "gte")]
@@ -1256,7 +1256,7 @@ pub struct SGMSnowflakeQueryRange {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMStringQuery {
     /// The values to match against using OR logic
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -1271,7 +1271,7 @@ pub struct SGMStringQuery {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMTimestampQuery {
     /// The range of values to match against
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1285,7 +1285,7 @@ pub struct SGMTimestampQuery {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMTimestampQueryRange {
     #[serde(with = "ts_milliseconds_option")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1306,7 +1306,7 @@ pub struct SGMTimestampQueryRange {
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/guild#search-guild-members>
+/// See <https://docs.discord.food/resources/guild#search-guild-members>
 pub struct SGMJoinSourceQuery {
     /// The values to match against using OR logic
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -1317,7 +1317,7 @@ pub struct SGMJoinSourceQuery {
 /// Schema for the [Guild::get_members_supplemental](crate::types::Guild::get_members_supplemental) route
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
+/// See <https://docs.discord.food/resources/guild#get-guild-members-supplemental>
 pub struct GetGuildMembersSupplementalSchema {
     /// The user IDs to fetch supplemental guild member information for (max 200)
     pub users: Vec<Snowflake>,
@@ -1327,7 +1327,7 @@ pub struct GetGuildMembersSupplementalSchema {
 /// Schema for the [Guild::add_member](crate::types::Guild::add_member) endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#add-guild-member>
+/// See <https://docs.discord.food/resources/guild#add-guild-member>
 pub struct AddGuildMemberSchema {
     /// The OAuth2 access token granted with guilds.join to the bot's application for the user you want to add
     pub access_token: String,
@@ -1373,7 +1373,7 @@ pub struct AddGuildMemberSchema {
 /// Return object for the [Guild::add_member](crate::types::Guild::add_member) route.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#add-guild-member>
+/// See <https://docs.discord.food/resources/guild#add-guild-member>
 pub enum AddGuildMemberReturn {
     /// The request succeeded, and the user is now a member
     Joined(GuildMember),
@@ -1386,7 +1386,7 @@ pub enum AddGuildMemberReturn {
 /// Return schema for the [Guild::get_widget_settings](crate::types::Guild::get_widget_settings) endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#guild-widget-settings-structure>
+/// See <https://docs.discord.food/resources/guild#guild-widget-settings-structure>
 pub struct GuildWidgetSettings {
     /// Whether the widget is enabled
     pub enabled: bool,
@@ -1399,7 +1399,7 @@ pub struct GuildWidgetSettings {
 /// Schema for the [Guild::modify_widget](crate::types::Guild::modify_widget) endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#json-params>
+/// See <https://docs.discord.food/resources/guild#json-params>
 pub struct ModifyGuildWidgetSchema {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Whether the widget is enabled
@@ -1421,7 +1421,7 @@ pub struct ModifyGuildWidgetSchema {
 /// [Guild::get_widget_image](crate::types::Guild::get_widget_image) endpoint
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#guild-widget-image-style-option>
+/// See <https://docs.discord.food/resources/guild#guild-widget-image-style-option>
 pub enum GuildWidgetImageStyle {
     #[default]
     /// Shield style widget with instance icon and online count
@@ -1440,7 +1440,7 @@ pub enum GuildWidgetImageStyle {
 /// Return schema for the [Guild::get_vanity_invite](crate::types::Guild::get_vanity_invite) endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-vanity-invite>
+/// See <https://docs.discord.food/resources/guild#get-guild-vanity-invite>
 pub struct GuildVanityInviteInfo {
     /// The vanity invite code
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1454,7 +1454,7 @@ pub struct GuildVanityInviteInfo {
 /// Internal schema for the [Guild::modify_vanity_invite](crate::types::Guild::modify_vanity_invite) endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#modify-guild-vanity-invite>
+/// See <https://docs.discord.food/resources/guild#modify-guild-vanity-invite>
 pub(crate) struct GuildModifyVanityInviteSchema {
     /// The vanity invite code; None to clear
     pub code: Option<String>,
@@ -1462,7 +1462,7 @@ pub(crate) struct GuildModifyVanityInviteSchema {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-member-verification>
+/// See <https://docs.discord.food/resources/guild#get-guild-member-verification>
 pub struct GetGuildMemberVerificationQuery {
     /// Whether or not to include an object with guild info in the response (false by default)
     ///
@@ -1494,7 +1494,7 @@ impl GetGuildMemberVerificationQuery {
 /// Schema for the [Guild::modify_member_verification](crate::types::Guild::modify_member_verification) endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#json-params>
+/// See <https://docs.discord.food/resources/guild#json-params>
 pub struct ModifyGuildMemberVerificationSchema {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Whether the member verification gate is enabled
@@ -1516,7 +1516,7 @@ pub struct ModifyGuildMemberVerificationSchema {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
+/// See <https://docs.discord.food/resources/guild#get-guild-join-requests>
 pub struct GetGuildJoinRequestsQuery {
     /// The status of the join requests to filter by
     pub status: GuildJoinRequestStatus,
@@ -1559,7 +1559,7 @@ impl GetGuildJoinRequestsQuery {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#response-body>
+/// See <https://docs.discord.food/resources/guild#response-body>
 pub struct GetGuildJoinRequestsReturn {
     /// The join requests for the guild.
     ///
@@ -1582,7 +1582,7 @@ pub struct GetGuildJoinRequestsReturn {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
+/// See <https://docs.discord.food/resources/guild#get-guild-join-request-cooldown>
 pub struct GuildJoinRequestCooldown {
     /// How long (in seconds) the current user has to wait until they can submit another join request
     #[serde(rename = "cooldown")]
@@ -1595,7 +1595,7 @@ pub struct GuildJoinRequestCooldown {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#json-params>
+/// See <https://docs.discord.food/resources/guild#json-params>
 pub struct CreateGuildJoinRequestSchema {
     /// The answered member verification questions.
     ///
@@ -1615,7 +1615,7 @@ pub struct CreateGuildJoinRequestSchema {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
+/// See <https://docs.discord.food/resources/guild#action-guild-join-request>
 pub struct ActionGuildJoinRequestSchema {
     /// The action to take on the join request.
     ///
@@ -1633,7 +1633,7 @@ pub struct ActionGuildJoinRequestSchema {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
+/// See <https://docs.discord.food/resources/guild#bulk-action-guild-join-requests>
 pub struct BulkActionGuildJoinRequestsSchema {
     /// The action to take on the join requests.
     ///
@@ -1647,7 +1647,7 @@ pub struct BulkActionGuildJoinRequestsSchema {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
+/// See <https://docs.discord.food/resources/guild#modify-guild-welcome-screen>
 pub struct ModifyGuildWelcomeScreenSchema {
     /// Whether the welcome screen is enabled.
     ///
@@ -1683,7 +1683,7 @@ pub struct ModifyGuildWelcomeScreenSchema {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#modify-guild-onboarding>
+/// See <https://docs.discord.food/resources/guild#modify-guild-onboarding>
 pub struct ModifyGuildOnboardingSchema {
     /// The prompts shown during onboarding and in community customization
     ///
@@ -1716,7 +1716,7 @@ pub struct ModifyGuildOnboardingSchema {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-admin-community-eligibility>
+/// See <https://docs.discord.food/resources/guild#get-admin-community-eligibility>
 pub struct AdminCommunityEligibility {
     /// Whether the user is eligible to join the Discord Admin Community through the guild
     pub eligible_for_admin_server: bool,
@@ -1728,7 +1728,7 @@ pub struct AdminCommunityEligibility {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-members-with-unusual-dm-activity>
+/// See <https://docs.discord.food/resources/guild#get-guild-members-with-unusual-dm-activity>
 pub struct GetMembersWithUnusualDmActivitySchema {
     /// Max number of members to return (max 1000, default 100)
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1762,7 +1762,7 @@ impl GetMembersWithUnusualDmActivitySchema {
 /// endpoint.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#get-guild-members-with-unusual-dm-activity>
+/// See <https://docs.discord.food/resources/guild#get-guild-members-with-unusual-dm-activity>
 pub struct GuildMemberUnusualDMActivity {
     /// The ID of the user with unusual activity
     pub user_id: Snowflake,

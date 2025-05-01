@@ -68,7 +68,7 @@ use crate::{instance::ChorusUser, ratelimiter::ChorusRequest};
 /// If you wish to create your own profile, please use `..ClientProperties::minimal()` instead of `..ClientProperties::default()` for unset fields.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/reference#client-properties>
+/// See <https://docs.discord.food/reference#client-properties>
 pub struct ClientProperties {
     /// **Not part of the sent data**
     ///
@@ -162,7 +162,7 @@ pub struct ClientProperties {
     /// The alternate event source this request originated from
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/reference#client-event-source>
+    /// See <https://docs.discord.food/reference#client-event-source>
     #[serde(default)]
     pub client_event_source: Option<String>,
 
@@ -238,7 +238,7 @@ pub struct ClientProperties {
     /// Common values are "google", "bing", "yahoo" and "duckduckgo"
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/reference#search-engine>
+    /// See <https://docs.discord.food/reference#search-engine>
     #[serde(skip_serializing_if = "Option::is_none")]
     pub search_engine: Option<String>,
 
@@ -458,7 +458,7 @@ impl ChorusRequest {
 /// This is used for [ClientProperties]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/reference#operating-system-type>
+/// See <https://docs.discord.food/reference#operating-system-type>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct ClientOs(String);
@@ -532,7 +532,7 @@ impl Default for ClientOs {
 /// This is used for [ClientProperties]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/reference#client-properties-structure>
+/// See <https://docs.discord.food/reference#client-properties-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct ClientOsVersion(String);
@@ -626,7 +626,7 @@ impl Default for ClientOsVersion {
 /// This is used for [ClientProperties]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/reference#browser-type>
+/// See <https://docs.discord.food/reference#browser-type>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct ClientBrowser(String);
@@ -756,7 +756,7 @@ impl Default for ClientBrowser {
 /// This is used for [ClientProperties]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/reference#browser-type>
+/// See <https://docs.discord.food/reference#browser-type>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct ClientUserAgent(pub(crate) String);
@@ -886,7 +886,7 @@ impl Default for ClientUserAgent {
 /// This is used for [ClientProperties]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/reference#client-properties-structure>
+/// See <https://docs.discord.food/reference#client-properties-structure>
 #[derive(Debug, Deserialize, Serialize, Copy, Clone, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct ClientBuildNumber(u64);
@@ -935,7 +935,7 @@ impl Default for ClientBuildNumber {
 /// This is used for [ClientProperties]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/client-distribution#desktop-release-channel> and <https://docs.discord.sex/topics/client-distribution#web-release-channel>
+/// See <https://docs.discord.food/topics/client-distribution#desktop-release-channel> and <https://docs.discord.food/topics/client-distribution#web-release-channel>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct ClientReleaseChannel(String);
@@ -996,7 +996,7 @@ impl Default for ClientReleaseChannel {
 /// This is used for [ClientProperties]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/reference#client-properties-structure>
+/// See <https://docs.discord.food/reference#client-properties-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct ClientSystemLocale(String);

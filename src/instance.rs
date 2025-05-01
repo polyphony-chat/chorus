@@ -429,7 +429,7 @@ impl ChorusUser {
     /// This route is usually used in response to [ChorusError::MfaRequired](crate::ChorusError::MfaRequired).
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/authentication#verify-mfa>
+    /// See <https://docs.discord.food/authentication#verify-mfa>
     pub async fn complete_mfa_challenge(
         &mut self,
         mfa_verify_schema: MfaVerifySchema,

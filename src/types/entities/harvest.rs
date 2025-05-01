@@ -18,7 +18,7 @@ use crate::gateway::Updateable;
 ///
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/user#harvest-object>
+/// See <https://docs.discord.food/resources/user#harvest-object>
 pub struct Harvest {
     pub harvest_id: Snowflake,
     /// The id of the user being harvested
@@ -59,7 +59,7 @@ impl Updateable for Harvest {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// Current status of a [Harvest]
 ///
-/// See <https://docs.discord.sex/resources/user#harvest-status> and <https://docs.discord.sex/resources/user#harvest-object>
+/// See <https://docs.discord.food/resources/user#harvest-status> and <https://docs.discord.food/resources/user#harvest-object>
 pub enum HarvestStatus {
     /// The harvest is queued and has not been started
     Queued = 0,
@@ -77,7 +77,7 @@ pub enum HarvestStatus {
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// A type of backend / service a harvest can be requested for.
 ///
-/// See <https://docs.discord.sex/resources/user#harvest-backend-type> and <https://support.discord.com/hc/en-us/articles/360004957991-Your-Discord-Data-Package>
+/// See <https://docs.discord.food/resources/user#harvest-backend-type> and <https://support.discord.com/hc/en-us/articles/360004957991-Your-Discord-Data-Package>
 pub enum HarvestBackendType {
     /// All account information;
     Accounts,

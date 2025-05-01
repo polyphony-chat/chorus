@@ -17,7 +17,7 @@ use super::option_arc_rwlock_ptr_eq;
 /// Represents a participating user in a guild.
 ///
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/guild#guild-member-object>
+/// See <https://docs.discord.food/resources/guild#guild-member-object>
 pub struct GuildMember {
     #[cfg_attr(feature = "sqlx", sqlx(skip))]
     pub user: Option<Shared<PublicUser>>,
@@ -65,7 +65,7 @@ impl PartialEq for GuildMember {
 /// [ChorusUser]: [crate::instance::ChorusUser]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#supplemental-guild-member-object>
+/// See <https://docs.discord.food/resources/guild#supplemental-guild-member-object>
 pub struct SupplementalGuildMember {
     /// The ID of the user this member represents
     ///
@@ -96,7 +96,7 @@ pub struct SupplementalGuildMember {
 /// Used in [SupplementalGuildMember]
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#join-source-type>
+/// See <https://docs.discord.food/resources/guild#join-source-type>
 pub enum JoinSourceType {
     /// The user joined through an unknown source
     Unspecified = 0,
