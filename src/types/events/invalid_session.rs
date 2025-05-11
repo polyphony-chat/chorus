@@ -25,7 +25,7 @@ use super::WebSocketEvent;
 /// Either reauthenticate and reidentify or resume if possible.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#invalid-session>
+/// See <https://docs.discord.food/topics/gateway-events#invalid-session>
 pub struct GatewayInvalidSession {
     #[serde(rename = "d")]
     pub resumable: bool,

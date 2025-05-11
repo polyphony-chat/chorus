@@ -21,7 +21,7 @@ impl types::RoleObject {
     /// Retrieves a list of roles for a given guild.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-roles>
+    /// See <https://docs.discord.food/resources/guild#get-guild-roles>
     pub async fn get_all(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -39,7 +39,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<Vec<RoleObject>>(user)
+            .send_and_deserialize_response::<Vec<RoleObject>>(user)
             .await
     }
 
@@ -66,14 +66,14 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<RoleObject>(user)
+            .send_and_deserialize_response::<RoleObject>(user)
             .await
     }
 
     /// Retrieves a mapping of role IDs to their respective member counts.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-role-member-counts>
+    /// See <https://docs.discord.food/resources/guild#get-guild-role-member-counts>
     pub async fn get_all_member_counts(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -91,7 +91,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<HashMap<Snowflake, usize>>(user)
+            .send_and_deserialize_response::<HashMap<Snowflake, usize>>(user)
             .await
     }
 
@@ -100,7 +100,7 @@ impl types::RoleObject {
     /// (This endpoint does not return results for the @everyone role)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-role-members>
+    /// See <https://docs.discord.food/resources/guild#get-guild-role-members>
     pub async fn get_members(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -120,7 +120,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<Vec<Snowflake>>(user)
+            .send_and_deserialize_response::<Vec<Snowflake>>(user)
             .await
     }
 
@@ -133,7 +133,7 @@ impl types::RoleObject {
     /// [Guild::add_member_role](crate::types::Guild::add_member_role)
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#add-guild-member-role>
+    /// See <https://docs.discord.food/resources/guild#add-guild-member-role>
     pub async fn add_member(
         user: &mut ChorusUser,
         audit_log_reason: Option<String>,
@@ -154,7 +154,7 @@ impl types::RoleObject {
     /// [Guild::remove_member_role](crate::types::Guild::remove_member_role)
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member-role>
+    /// See <https://docs.discord.food/resources/guild#remove-guild-member-role>
     pub async fn remove_member(
         user: &mut ChorusUser,
         audit_log_reason: Option<String>,
@@ -179,7 +179,7 @@ impl types::RoleObject {
     /// Returns a mapping of member IDs to guild member objects.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#add-guild-role-members>
+    /// See <https://docs.discord.food/resources/guild#add-guild-role-members>
     pub async fn add_members(
         user: &mut ChorusUser,
         audit_log_reason: Option<String>,
@@ -202,7 +202,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<HashMap<Snowflake, GuildMember>>(user)
+            .send_and_deserialize_response::<HashMap<Snowflake, GuildMember>>(user)
             .await
     }
 
@@ -211,7 +211,7 @@ impl types::RoleObject {
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild-role>
+    /// See <https://docs.discord.food/resources/guild#create-guild-role>
     pub async fn create(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -230,7 +230,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<RoleObject>(user)
+            .send_and_deserialize_response::<RoleObject>(user)
             .await
     }
 
@@ -239,7 +239,7 @@ impl types::RoleObject {
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role-positions>
+    /// See <https://docs.discord.food/resources/guild#modify-guild-role-positions>
     pub async fn position_update(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -258,7 +258,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<RoleObject>(user)
+            .send_and_deserialize_response::<RoleObject>(user)
             .await
     }
 
@@ -267,7 +267,7 @@ impl types::RoleObject {
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-role>
+    /// See <https://docs.discord.food/resources/guild#modify-guild-role>
     pub async fn modify(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -288,7 +288,7 @@ impl types::RoleObject {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<RoleObject>(user)
+            .send_and_deserialize_response::<RoleObject>(user)
             .await
     }
 
@@ -316,6 +316,6 @@ impl types::RoleObject {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 }

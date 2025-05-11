@@ -65,7 +65,7 @@ impl<'a> WebSocketEvent for VoiceGatewayReceivePayload<'a> {}
 /// to use either [[VoiceEncryptionMode::Xsalsa20Poly1305]] or
 /// [[VoiceEncryptionMode::Xsalsa20Poly1305Suffix]]
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#encryption-mode> and <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-udp-connection-encryption-modes>
+/// See <https://docs.discord.food/topics/voice-connections#encryption-mode> and <https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-udp-connection-encryption-modes>
 #[derive(Debug, Default, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum VoiceEncryptionMode {
@@ -157,9 +157,9 @@ pub const VOICE_SESSION_UPDATE: u8 = 14;
 ///
 /// {"op":15,"d":{"any":100}}
 ///
-/// Opcode from <https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#voice-opcodes>
+/// Opcode from <https://docs.discord.food/topics/opcodes-and-status-codes#voice-opcodes>
 pub const VOICE_MEDIA_SINK_WANTS: u8 = 15;
-/// See <https://discord-userdoccers.vercel.app/topics/opcodes-and-status-codes#voice-opcodes>
+/// See <https://docs.discord.food/topics/opcodes-and-status-codes#voice-opcodes>
 /// Sent with empty data from the client, the server responds with the voice backend version;
 pub const VOICE_BACKEND_VERSION: u8 = 16;
 

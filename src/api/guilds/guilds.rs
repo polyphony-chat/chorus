@@ -67,7 +67,7 @@ impl Guild {
     /// presence counts
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild>
+    /// See <https://docs.discord.food/resources/guild#get-guild>
     pub async fn get(
         guild_id: Snowflake,
         with_counts: Option<bool>,
@@ -90,7 +90,9 @@ impl Guild {
             )]);
         }
 
-        let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        let response = chorus_request
+            .send_and_deserialize_response::<Guild>(user)
+            .await?;
         Ok(response)
     }
 
@@ -99,7 +101,7 @@ impl Guild {
     /// Fires off a [crate::types::GuildCreate] gateway event
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#create-guild>
+    /// See <https://docs.discord.food/resources/guild#create-guild>
     pub async fn create(
         user: &mut ChorusUser,
         guild_create_schema: GuildCreateSchema,
@@ -110,7 +112,9 @@ impl Guild {
             limit_type: LimitType::Global,
         }
         .with_headers_for(user);
-        chorus_request.deserialize_response::<Guild>(user).await
+        chorus_request
+            .send_and_deserialize_response::<Guild>(user)
+            .await
     }
 
     /// Modify a guild's settings.
@@ -125,7 +129,7 @@ impl Guild {
     /// This route requires MFA.
     ///
     /// # Reference
-    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild>
+    /// <https://docs.discord.food/resources/guild#modify-guild>
     pub async fn modify(
         guild_id: Snowflake,
         schema: GuildModifySchema,
@@ -146,7 +150,9 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        let response = chorus_request.deserialize_response::<Guild>(user).await?;
+        let response = chorus_request
+            .send_and_deserialize_response::<Guild>(user)
+            .await?;
         Ok(response)
     }
 
@@ -162,7 +168,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#modify-guild-mfa-level>
+    /// See <https://docs.discord.food/resources/guild#modify-guild-mfa-level>
     pub async fn modify_mfa_level(
         guild_id: Snowflake,
         mfa_level: MFALevel,
@@ -184,7 +190,7 @@ impl Guild {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<GuildModifyMFALevelSchema>(user)
+            .send_and_deserialize_response::<GuildModifyMFALevelSchema>(user)
             .await
             .map(|_x| ())
     }
@@ -198,7 +204,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-ownership-transfer-code>
+    /// See <https://docs.discord.food/resources/guild#get-guild-ownership-transfer-code>
     pub async fn send_ownership_transfer_code(
         guild_id: Snowflake,
         user: &mut ChorusUser,
@@ -213,7 +219,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Deletes a guild by its id.
@@ -244,7 +250,7 @@ impl Guild {
     /// ```
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild>
+    /// See <https://docs.discord.food/resources/guild#delete-guild>
     pub async fn delete(user: &mut ChorusUser, guild_id: Snowflake) -> ChorusResult<()> {
         let url = format!(
             "{}/guilds/{}/delete",
@@ -259,7 +265,7 @@ impl Guild {
         .with_maybe_mfa(&user.mfa_token)
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Creates a new channel in a guild.
@@ -270,7 +276,7 @@ impl Guild {
     /// This method is a wrapper for [Channel::create].
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
+    /// See <https://docs.discord.food/resources/channel#create-guild-channel>
     pub async fn create_channel(
         &self,
         user: &mut ChorusUser,
@@ -285,7 +291,7 @@ impl Guild {
     /// Doesn't include threads.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#get-guild-channels>
+    /// See <https://docs.discord.food/resources/channel#get-guild-channels>
     pub async fn channels(&self, user: &mut ChorusUser) -> ChorusResult<Vec<Channel>> {
         let chorus_request = ChorusRequest {
             request: Client::new().get(format!(
@@ -297,23 +303,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        let result = chorus_request.send_request(user).await?;
-        let stringed_response = match result.text().await {
-            Ok(value) => value,
-            Err(e) => {
-                return Err(ChorusError::InvalidResponse {
-                    error: e.to_string(),
-                });
-            }
-        };
-        let _: Vec<Channel> = match from_str(&stringed_response) {
-            Ok(result) => return Ok(result),
-            Err(e) => {
-                return Err(ChorusError::InvalidResponse {
-                    error: e.to_string(),
-                });
-            }
-        };
+        chorus_request.send_and_deserialize_response(user).await
     }
 
     /// Returns a guild preview object for the given guild ID.
@@ -324,7 +314,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-preview>
+    /// See <https://docs.discord.food/resources/guild#get-guild-preview>
     pub async fn get_preview(
         guild_id: Snowflake,
         user: &mut ChorusUser,
@@ -340,7 +330,7 @@ impl Guild {
         .with_headers_for(user);
 
         let response = chorus_request
-            .deserialize_response::<GuildPreview>(user)
+            .send_and_deserialize_response::<GuildPreview>(user)
             .await?;
         Ok(response)
     }
@@ -353,7 +343,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-members-with-unusual-dm-activity>
+    /// See <https://docs.discord.food/resources/guild#get-guild-members-with-unusual-dm-activity>
     pub async fn get_members_with_unusual_dm_activity(
         guild_id: Snowflake,
         query: GetMembersWithUnusualDmActivitySchema,
@@ -371,7 +361,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns a list of guild member objects that are members of the guild.
@@ -381,7 +371,7 @@ impl Guild {
     /// GUILD_MEMBERS intent for applications
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-members>
+    /// See <https://docs.discord.food/resources/guild#get-guild-members>
     pub async fn get_members(
         guild_id: Snowflake,
         query: GetGuildMembersSchema,
@@ -399,7 +389,9 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Vec<GuildMember>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<GuildMember>>(user)
+            .await
     }
 
     /// Returns a list of guild member objects whose username or nickname starts with a provided string.
@@ -412,7 +404,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#query-guild-members>
+    /// See <https://docs.discord.food/resources/guild#query-guild-members>
     pub async fn query_members(
         guild_id: Snowflake,
         query: QueryGuildMembersSchema,
@@ -430,7 +422,9 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Vec<GuildMember>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<GuildMember>>(user)
+            .await
     }
 
     /// Returns [SupplementalGuildMember](crate::types::SupplementalGuildMember) objects that match a specified query.
@@ -450,7 +444,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
+    /// See <https://docs.discord.food/resources/guild#get-guild-members-supplemental>
     pub async fn search_members(
         guild_id: Snowflake,
         schema: SearchGuildMembersSchema,
@@ -468,12 +462,12 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        let response = request.send_request(user).await?;
+        let response = request.send(user).await?;
         log::trace!("Got response: {:?}", response);
 
-        let status = response.status();
+        let http_status = response.status();
 
-        match status {
+        match http_status {
             http::StatusCode::ACCEPTED | http::StatusCode::OK => {
                 let response_text = match response.text().await {
                     Ok(string) => string,
@@ -483,11 +477,12 @@ impl Guild {
                                 "Error while trying to process the HTTP response into a String: {}",
                                 e
                             ),
+                            http_status,
                         });
                     }
                 };
 
-                match status {
+                match http_status {
                     http::StatusCode::ACCEPTED => {
                         match serde_json::from_str::<SGMReturnNotIndexed>(&response_text) {
                             Ok(object) => Ok(SearchGuildMembersReturn::NotIndexed(object)),
@@ -496,6 +491,7 @@ impl Guild {
 												error: format!(
 												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
 												e, response_text),
+                                                                                                http_status
 											})
                             }
                         }
@@ -508,6 +504,7 @@ impl Guild {
 												error: format!(
 												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
 												e, response_text),
+                                                                                                http_status
 											})
                             }
                         }
@@ -515,9 +512,9 @@ impl Guild {
                     _ => unreachable!(),
                 }
             }
-            _ => Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.status().to_string(),
+            _ => Err(ChorusError::InvalidResponse {
+                error: format!("Received unexpected http status code: {}", http_status),
+                http_status,
             }),
         }
     }
@@ -530,7 +527,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-members-supplemental>
+    /// See <https://docs.discord.food/resources/guild#get-guild-members-supplemental>
     pub async fn get_members_supplemental(
         guild_id: Snowflake,
         schema: GetGuildMembersSupplementalSchema,
@@ -548,7 +545,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns a list of ban objects for the guild.
@@ -556,7 +553,7 @@ impl Guild {
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#get-guild-bans>
+    /// See <https://docs.discord.food/resources/guild#get-guild-bans>
     pub async fn get_bans(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -578,7 +575,9 @@ impl Guild {
             request.request = request.request.query(&query.to_query());
         }
 
-        request.deserialize_response::<Vec<GuildBan>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<GuildBan>>(user)
+            .await
     }
 
     /// Returns a list of ban objects whose usernames or display names contains a provided string.
@@ -589,7 +588,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#search-guild-bans>
+    /// See <https://docs.discord.food/resources/guild#search-guild-bans>
     pub async fn search_bans(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -609,7 +608,9 @@ impl Guild {
 
         request.request = request.request.query(&query.to_query());
 
-        request.deserialize_response::<Vec<GuildBan>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<GuildBan>>(user)
+            .await
     }
 
     /// Returns a ban object for the given user.
@@ -617,7 +618,7 @@ impl Guild {
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-ban>
+    /// See <https://docs.discord.food/resources/guild#get-guild-ban>
     pub async fn get_ban(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -636,7 +637,9 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<GuildBan>(user).await
+        request
+            .send_and_deserialize_response::<GuildBan>(user)
+            .await
     }
 
     /// Creates a ban for the guild - bans a user from the guild.
@@ -644,7 +647,7 @@ impl Guild {
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#create-guild-ban>
+    /// See <https://docs.discord.food/resources/guild#create-guild-ban>
     pub async fn create_ban(
         guild_id: Snowflake,
         user_id: Snowflake,
@@ -667,7 +670,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Creates multiple bans for the guild.
@@ -678,7 +681,7 @@ impl Guild {
     /// This route requires MFA.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#bulk-guild-ban>
+    /// See <https://docs.discord.food/resources/guild#bulk-guild-ban>
     pub async fn bulk_create_ban(
         guild_id: Snowflake,
         audit_log_reason: Option<String>,
@@ -699,7 +702,7 @@ impl Guild {
         .with_maybe_mfa(&user.mfa_token)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Removes the ban for a user.
@@ -707,7 +710,7 @@ impl Guild {
     /// Requires the [BAN_MEMBERS](crate::types::PermissionFlags::BAN_MEMBERS) permission.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#delete-guild-ban>
+    /// See <https://docs.discord.food/resources/guild#delete-guild-ban>
     pub async fn delete_ban(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -728,7 +731,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Returns the number of members that would be removed in a prune operation.
@@ -743,7 +746,7 @@ impl Guild {
     /// user with additional roles will not.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-prune>
+    /// See <https://docs.discord.food/resources/guild#get-guild-prune>
     pub async fn get_prune(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -761,7 +764,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Begins a prune operation.
@@ -779,7 +782,7 @@ impl Guild {
     /// user with additional roles will not.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#prune-guild>
+    /// See <https://docs.discord.food/resources/guild#prune-guild>
     pub async fn prune(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -799,7 +802,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns the [GuildWidgetSettings] for a guild.
@@ -807,7 +810,7 @@ impl Guild {
     /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-widget-settings>
+    /// See <https://docs.discord.food/resources/guild#get-guild-widget-settings>
     pub async fn get_widget_settings(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -824,7 +827,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies the [GuildWidgetSettings] for a guild.
@@ -834,7 +837,7 @@ impl Guild {
     /// Returns the updated object on success.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-widget-settings>
+    /// See <https://docs.discord.food/resources/guild#get-guild-widget-settings>
     pub async fn modify_widget(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -854,7 +857,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns the [GuildWidget] for the given guild ID.
@@ -868,46 +871,22 @@ impl Guild {
     /// invite.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-widget>
-    pub async fn get_widget(instance: &Instance, guild_id: Snowflake) -> ChorusResult<GuildWidget> {
+    /// See <https://docs.discord.food/resources/guild#get-guild-widget>
+    pub async fn get_widget(
+        instance: &mut Instance,
+        guild_id: Snowflake,
+    ) -> ChorusResult<GuildWidget> {
         let url = format!("{}/guilds/{}/widget.json", instance.urls.api, guild_id,);
 
-        let client = Client::new().get(url.clone());
-
-        let response = match client.send().await {
-            Ok(result) => result,
-            Err(e) => {
-                return Err(ChorusError::RequestFailed {
-                    url,
-                    error: e.to_string(),
-                });
-            }
+        let chorus_request = ChorusRequest {
+            request: Client::new().get(url.clone()),
+            // Note: how do I know which LimitType it is? it is probably ip or global?
+            limit_type: LimitType::Ip,
         };
 
-        if !response.status().as_str().starts_with('2') {
-            return Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.text().await.unwrap(),
-            });
-        }
-
-        let response_text = match response.text().await {
-            Ok(string) => string,
-            Err(e) => {
-                return Err(ChorusError::InvalidResponse {
-                    error: format!(
-                        "Error while trying to process the HTTP response into a String: {}",
-                        e
-                    ),
-                });
-            }
-        };
-
-        match from_str::<GuildWidget>(&response_text) {
-			Ok(return_value) => Ok(return_value),
-			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into response type T: {}. JSON Response: {}",
-                        e, response_text) })
-		  }
+        chorus_request
+            .send_anonymous_and_deserialize_response(instance)
+            .await
     }
 
     /// Returns a widget image for the given guild ID.
@@ -917,15 +896,19 @@ impl Guild {
     /// (The guild must have the widget enabled.)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-widget-image>
+    /// See <https://docs.discord.food/resources/guild#get-guild-widget-image>
     pub async fn get_widget_image(
-        instance: &Instance,
+        instance: &mut Instance,
         guild_id: Snowflake,
         style: Option<GuildWidgetImageStyle>,
     ) -> ChorusResult<Bytes> {
         let url = format!("{}/guilds/{}/widget.png", instance.urls.api, guild_id,);
 
-        let mut client = Client::new().get(url.clone());
+        let mut chorus_request = ChorusRequest {
+            request: Client::new().get(url.clone()),
+            // Note: how do I know which LimitType it is? it is probably ip or global?
+            limit_type: LimitType::Ip,
+        };
 
         if let Some(style_some) = style {
             match serde_json::to_string(&style_some) {
@@ -935,27 +918,18 @@ impl Guild {
                     })
                 }
                 Ok(string) => {
-                    client = client.query(&("style".to_string(), string.replace('"', "")));
+                    chorus_request.request = chorus_request
+                        .request
+                        .query(&("style".to_string(), string.replace('"', "")));
                 }
             }
         }
 
-        let response = match client.send().await {
-            Ok(result) => result,
-            Err(e) => {
-                return Err(ChorusError::RequestFailed {
-                    url,
-                    error: e.to_string(),
-                });
-            }
-        };
+        let response = chorus_request.send_anonymous(instance).await?;
 
-        if !response.status().as_str().starts_with('2') {
-            return Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.text().await.unwrap(),
-            });
-        }
+        let http_status = response.status();
+
+        // No need to check success / failure state, send request does that already
 
         let response_bytes = match response.bytes().await {
             Ok(string) => string,
@@ -965,6 +939,7 @@ impl Guild {
                         "Error while trying to process the HTTP response into Bytes: {}",
                         e
                     ),
+                    http_status,
                 });
             }
         };
@@ -979,7 +954,7 @@ impl Guild {
     /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-vanity-invite>
+    /// See <https://docs.discord.food/resources/guild#get-guild-vanity-invite>
     pub async fn get_vanity_invite(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -996,7 +971,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies the guild vanity invite code for a given guild.
@@ -1012,7 +987,7 @@ impl Guild {
     /// This route requires MFA.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#modify-guild-vanity-invite>
+    /// See <https://docs.discord.food/resources/guild#modify-guild-vanity-invite>
     pub async fn modify_vanity_invite(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1033,7 +1008,7 @@ impl Guild {
         .with_maybe_mfa(&user.mfa_token)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Fetches the [GuildMemberVerification] object for a given guild if one is set.
@@ -1048,7 +1023,7 @@ impl Guild {
     /// full.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-member-verification>
+    /// See <https://docs.discord.food/resources/guild#get-guild-member-verification>
     pub async fn get_member_verification(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1066,7 +1041,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies the [GuildMemberVerification] object for the guild.
@@ -1076,7 +1051,7 @@ impl Guild {
     /// Returns the updated object.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#modify-guild-member-verification>
+    /// See <https://docs.discord.food/resources/guild#modify-guild-member-verification>
     pub async fn modify_member_verification(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1096,7 +1071,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns a list of [GuildJoinRequest]s for the guild.
@@ -1109,7 +1084,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
+    /// See <https://docs.discord.food/resources/guild#get-guild-join-requests>
     pub async fn get_join_requests(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1127,7 +1102,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns a specific [GuildJoinRequest].
@@ -1139,7 +1114,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#get-guild-join-request>
     pub async fn get_join_request(
         user: &mut ChorusUser,
         request_id: Snowflake,
@@ -1156,7 +1131,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns the remaining time until the current user can submit another join request for the
@@ -1166,7 +1141,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
+    /// See <https://docs.discord.food/resources/guild#get-guild-join-request-cooldown>
     pub async fn get_join_request_cooldown(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1183,7 +1158,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Submits a request to join a guild.
@@ -1192,7 +1167,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#create-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#create-guild-join-request>
     pub async fn create_join_request(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1210,7 +1185,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Resets the current user's join request for a guild.
@@ -1219,7 +1194,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#reset-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#reset-guild-join-request>
     pub async fn reset_join_request(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1236,7 +1211,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Acknowledges an approved join request for the current user.
@@ -1245,7 +1220,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#reset-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#reset-guild-join-request>
     pub async fn acknowledge_approved_join_request(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1262,7 +1237,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// If the guild has previewing disabled, deletes the current user's join request.
@@ -1276,7 +1251,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#delete-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#delete-guild-join-request>
     pub async fn delete_join_request(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1293,25 +1268,12 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        let response = match request.request.send().await {
-            Ok(result) => result,
-            Err(e) => {
-                return Err(ChorusError::RequestFailed {
-                    url,
-                    error: e.to_string(),
-                });
-            }
-        };
+        let response = request.send(user).await?;
 
-        if !response.status().as_str().starts_with('2') {
-            return Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.text().await.unwrap(),
-            });
-        }
+        let http_status = response.status();
 
         // Note: empty response, the request was deleted
-        if response.status().as_u16() == 204 {
+        if http_status.as_u16() == 204 {
             return Ok(None);
         }
 
@@ -1324,13 +1286,14 @@ impl Guild {
                         "Error while trying to process the HTTP response into a String: {}",
                         e
                     ),
+                    http_status,
                 });
             }
         };
 
         match from_str::<GuildJoinRequest>(&response_text) {
 			Ok(return_value) => Ok(Some(return_value)),
-			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into response type T: {}. JSON Response: {}", e, response_text) })
+			Err(e) => Err(ChorusError::InvalidResponse { error: format!("Error while trying to deserialize the JSON response into response type T: {}. JSON Response: {}", e, response_text), http_status })
 		  }
     }
 
@@ -1350,7 +1313,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#create-guild-join-request-interview>
+    /// See <https://docs.discord.food/resources/guild#create-guild-join-request-interview>
     pub async fn create_join_request_interview(
         user: &mut ChorusUser,
         request_id: Snowflake,
@@ -1367,7 +1330,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Accepts or denies a join request.
@@ -1380,7 +1343,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#action-guild-join-request>
     pub async fn action_join_request(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1400,7 +1363,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Accepts or denies a join request for a given user.
@@ -1413,7 +1376,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request-by-user>
+    /// See <https://docs.discord.food/resources/guild#action-guild-join-request-by-user>
     pub async fn action_join_request_by_user(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1433,7 +1396,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Accepts or denies all pending join requests for a guild.
@@ -1446,7 +1409,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
+    /// See <https://docs.discord.food/resources/guild#bulk-action-guild-join-requests>
     pub async fn bulk_action_join_requests(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1464,7 +1427,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Returns the [welcome screen](crate::types::PublicGuildWelcomeScreen) object for the guild.
@@ -1473,7 +1436,7 @@ impl Guild {
     /// welcome screen is not yet enabled.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-welcome-screen>
+    /// See <https://docs.discord.food/resources/guild#get-guild-welcome-screen>
     pub async fn get_welcome_screen(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1490,7 +1453,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies a guild's [welcome screen](crate::types::PublicGuildWelcomeScreen) object.
@@ -1498,7 +1461,7 @@ impl Guild {
     /// Requires the [MANAGE_GUILD](crate::types::PermissionFlags::MANAGE_GUILD) permission.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#modify-guild-welcome-screen>
+    /// See <https://docs.discord.food/resources/guild#modify-guild-welcome-screen>
     pub async fn modify_welcome_screen(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1518,7 +1481,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Returns the [onboarding](crate::types::GuildOnboarding) object for the guild.
@@ -1529,7 +1492,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or onboarding)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-onboarding>
+    /// See <https://docs.discord.food/resources/guild#get-guild-onboarding>
     pub async fn get_onboarding(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1546,7 +1509,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Modifies a guild's [onboarding](crate::types::PublicGuildWelcomeScreen) configuration.
@@ -1564,7 +1527,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or onboarding)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#modify-guild-onboarding>
+    /// See <https://docs.discord.food/resources/guild#modify-guild-onboarding>
     pub async fn modify_onboarding(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1584,7 +1547,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     // TODO: once we have documentation on how this works, add PUT /guilds/{guild_id}/onboarding-responses
@@ -1597,7 +1560,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-admin-community-eligibility>
+    /// See <https://docs.discord.food/resources/guild#get-admin-community-eligibility>
     pub async fn get_admin_community_eligibility(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1614,7 +1577,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Joins the Discord Admin Community through the guild.
@@ -1629,7 +1592,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#join-admin-community>
+    /// See <https://docs.discord.food/resources/guild#join-admin-community>
     pub async fn join_admin_community(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1646,7 +1609,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.deserialize_response(user).await
+        request.send_and_deserialize_response(user).await
     }
 
     /// Joins the Wumpus Feedback Squad through the guild.
@@ -1658,7 +1621,7 @@ impl Guild {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#join-wumpus-feedback-squad>
+    /// See <https://docs.discord.food/resources/guild#join-wumpus-feedback-squad>
     pub async fn join_wumpus_feedback_squad(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1675,7 +1638,7 @@ impl Guild {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 }
 
@@ -1685,7 +1648,7 @@ impl Channel {
     /// Requires the [MANAGE_CHANNELS](crate::types::PermissionFlags::MANAGE_CHANNELS) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-guild-channel>
+    /// See <https://docs.discord.food/resources/channel#create-guild-channel>
     pub async fn create(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1705,7 +1668,7 @@ impl Channel {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response::<Channel>(user).await
+        request.send_and_deserialize_response::<Channel>(user).await
     }
 }
 
@@ -1722,7 +1685,7 @@ impl GuildJoinRequest {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
+    /// See <https://docs.discord.food/resources/guild#get-guild-join-requests>
     pub async fn get_all_for_guild(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1742,7 +1705,7 @@ impl GuildJoinRequest {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#get-guild-join-request>
     pub async fn get(user: &mut ChorusUser, id: Snowflake) -> ChorusResult<GuildJoinRequest> {
         Guild::get_join_request(user, id).await
     }
@@ -1756,7 +1719,7 @@ impl GuildJoinRequest {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
+    /// See <https://docs.discord.food/resources/guild#get-guild-join-request-cooldown>
     pub async fn get_cooldown(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1772,7 +1735,7 @@ impl GuildJoinRequest {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#create-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#create-guild-join-request>
     pub async fn create(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1793,7 +1756,7 @@ impl GuildJoinRequest {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#action-guild-join-request>
     pub async fn action(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1815,7 +1778,7 @@ impl GuildJoinRequest {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request-by-user>
+    /// See <https://docs.discord.food/resources/guild#action-guild-join-request-by-user>
     pub async fn action_by_user(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1837,7 +1800,7 @@ impl GuildJoinRequest {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
+    /// See <https://docs.discord.food/resources/guild#bulk-action-guild-join-requests>
     pub async fn bulk_action(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1860,7 +1823,7 @@ impl ChorusUser {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-join-requests>
+    /// See <https://docs.discord.food/resources/guild#get-guild-join-requests>
     pub async fn get_guild_join_requests(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1880,7 +1843,7 @@ impl ChorusUser {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#get-guild-join-request>
     pub async fn get_guild_join_request(
         user: &mut ChorusUser,
         id: Snowflake,
@@ -1897,7 +1860,7 @@ impl ChorusUser {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-join-request-cooldown>
+    /// See <https://docs.discord.food/resources/guild#get-guild-join-request-cooldown>
     pub async fn get_guild_join_request_cooldown(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1913,7 +1876,7 @@ impl ChorusUser {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#create-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#create-guild-join-request>
     pub async fn create_guild_join_request(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1934,7 +1897,7 @@ impl ChorusUser {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request>
+    /// See <https://docs.discord.food/resources/guild#action-guild-join-request>
     pub async fn action_guild_join_request(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1956,7 +1919,7 @@ impl ChorusUser {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#action-guild-join-request-by-user>
+    /// See <https://docs.discord.food/resources/guild#action-guild-join-request-by-user>
     pub async fn action_guild_join_request_by_user(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -1978,7 +1941,7 @@ impl ChorusUser {
     /// As of 2025/03/13, Spacebar does not yet implement this endpoint. (Or join requests)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#bulk-action-guild-join-requests>
+    /// See <https://docs.discord.food/resources/guild#bulk-action-guild-join-requests>
     pub async fn bulk_action_guild_join_request(
         user: &mut ChorusUser,
         guild_id: Snowflake,

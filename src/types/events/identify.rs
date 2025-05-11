@@ -78,7 +78,7 @@ bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
-    /// See <https://docs.discord.sex/topics/gateway#gateway-capabilities>
+    /// See <https://docs.discord.food/topics/gateway#gateway-capabilities>
     pub struct GatewayCapabilities: u64 {
         /// Removes the notes field from the Ready event,
         const LAZY_USER_NOTES = 1 << 0;
@@ -132,7 +132,7 @@ bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
     /// # Reference
-    /// See <https://docs.discord.sex/topics/gateway#gateway-intents>
+    /// See <https://docs.discord.food/topics/gateway#gateway-intents>
     pub struct GatewayIntents: u64 {
         ///   - GUILD_CREATE
         ///   - GUILD_UPDATE
@@ -210,7 +210,7 @@ bitflags! {
         const DIRECT_MESSAGE_TYPING = 1 << 14;
         /// Unique privileged intent that isn't directly associated with any Gateway events. Instead, access to MESSAGE_CONTENT permits users to receive message content data across the APIs.
         /// # Reference
-        /// See <https://docs.discord.sex/topics/gateway#message-content-intent>
+        /// See <https://docs.discord.food/topics/gateway#message-content-intent>
         const MESSAGE_CONTENT = 1 << 15;
         ///   - GUILD_SCHEDULED_EVENT_CREATE
         ///   - GUILD_SCHEDULED_EVENT_UPDATE

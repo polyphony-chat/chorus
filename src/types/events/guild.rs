@@ -56,7 +56,7 @@ impl UpdateMessage<Guild> for GuildCreate {
         }
     }
 
-    fn update(&mut self, _: Shared<Guild>) {}
+    fn update(&mut self, _: &mut Guild) {}
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
@@ -170,7 +170,7 @@ impl UpdateMessage<Guild> for GuildDelete {
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild.id)
     }
-    fn update(&mut self, _: Shared<Guild>) {}
+    fn update(&mut self, _: &mut Guild) {}
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, WebSocketEvent, PartialEq)]
@@ -276,9 +276,8 @@ impl UpdateMessage<Guild> for GuildRoleCreate {
         Some(self.guild_id)
     }
 
-    fn update(&mut self, object_to_update: Shared<Guild>) {
-        let mut object_to_update = object_to_update.write().unwrap();
-        object_to_update.roles.push(self.role.clone().into_shared());
+    fn update(&mut self, write: &mut Guild) {
+        write.roles.push(self.role.clone().into_shared());
     }
 }
 
@@ -310,8 +309,7 @@ impl UpdateMessage<RoleObject> for GuildRoleUpdate {
         Some(self.role.id)
     }
 
-    fn update(&mut self, object_to_update: Shared<RoleObject>) {
-        let mut write = object_to_update.write().unwrap();
+    fn update(&mut self, write: &mut RoleObject) {
         *write = self.role.clone();
     }
 }

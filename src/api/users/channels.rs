@@ -16,7 +16,7 @@ impl ChorusUser {
     /// Fetches a list of private channels the user is in.
     ///
     /// # Reference:
-    /// See <https://docs.discord.sex/resources/channel#get-private-channels>
+    /// See <https://docs.discord.food/resources/channel#get-private-channels>
     pub async fn get_private_channels(&mut self) -> ChorusResult<Vec<Channel>> {
         let url = format!(
             "{}/users/@me/channels",
@@ -27,7 +27,7 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self)
-        .deserialize_response::<Vec<Channel>>(self)
+        .send_and_deserialize_response::<Vec<Channel>>(self)
         .await
     }
 
@@ -37,7 +37,7 @@ impl ChorusUser {
     /// none or multiple recipients create a group DM channel.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#create-private-channel>
+    /// See <https://docs.discord.food/resources/channel#create-private-channel>
     pub async fn create_private_channel(
         &mut self,
         create_private_channel_schema: PrivateChannelCreateSchema,
@@ -51,7 +51,7 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self)
-        .deserialize_response::<Channel>(self)
+        .send_and_deserialize_response::<Channel>(self)
         .await
     }
 }

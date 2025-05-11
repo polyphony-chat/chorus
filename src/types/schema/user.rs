@@ -7,16 +7,19 @@ use std::collections::HashMap;
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{
-    Connection, GuildAffinity, HarvestBackendType, Snowflake, ThemeColors, TwoWayLinkType,
-    UserAffinity,
+use crate::{
+    errors::JsonError,
+    types::{
+        Connection, GuildAffinity, HarvestBackendType, Snowflake, ThemeColors, TwoWayLinkType,
+        UserAffinity,
+    },
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 /// A schema used to modify a user.
 ///
-/// See <https://docs.discord.sex/resources/user#json-params>
+/// See <https://docs.discord.food/resources/user#json-params>
 pub struct UserModifySchema {
     /// The user's new username (2-32 characters)
     ///
@@ -46,7 +49,7 @@ pub struct UserModifySchema {
     ///
     /// See:
     ///
-    /// - the endpoints <https://docs.discord.sex/resources/user#modify-user-email> and <https://docs.discord.sex/resources/user#verify-user-email-change>
+    /// - the endpoints <https://docs.discord.food/resources/user#modify-user-email> and <https://docs.discord.food/resources/user#verify-user-email-change>
     ///
     /// - the relevant methods [`ChorusUser::initiate_email_change`](crate::instance::ChorusUser::initiate_email_change) and [`ChorusUser::verify_email_change`](crate::instance::ChorusUser::verify_email_change)
     ///
@@ -112,7 +115,7 @@ pub struct UserModifySchema {
 /// - nicks: A mapping of user IDs to their respective nicknames. Only usable for OAuth2 requests (which can only create group DMs).
 ///
 /// # Reference:
-/// Read: <https://discord-userdoccers.vercel.app/resources/channel#json-params>
+/// Read: <https://docs.discord.food/resources/channel#json-params>
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct PrivateChannelCreateSchema {
     pub recipients: Option<Vec<Snowflake>>,
@@ -125,7 +128,7 @@ pub struct PrivateChannelCreateSchema {
 ///
 /// Similar to [crate::types::UserProfileMetadata]
 ///
-/// See <https://docs.discord.sex/resources/user#modify-user-profile>
+/// See <https://docs.discord.food/resources/user#modify-user-profile>
 pub struct UserModifyProfileSchema {
     // Note: one of these causes a 500 if it is sent
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -164,8 +167,8 @@ pub struct UserModifyProfileSchema {
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// A schema used to delete or disable the current user's profile.
 ///
-/// See <https://docs.discord.sex/resources/user#disable-user> and
-/// <https://docs.discord.sex/resources/user#delete-user>
+/// See <https://docs.discord.food/resources/user#disable-user> and
+/// <https://docs.discord.food/resources/user#delete-user>
 pub struct DeleteDisableUserSchema {
     /// The user's current password, if any
     pub password: Option<String>,
@@ -174,7 +177,7 @@ pub struct DeleteDisableUserSchema {
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// A schema used for [ChorusUser::verify_email_change](crate::instance::ChorusUser::verify_email_change)
 ///
-/// See <https://docs.discord.sex/resources/user#verify-user-email-change>
+/// See <https://docs.discord.food/resources/user#verify-user-email-change>
 pub struct VerifyUserEmailChangeSchema {
     /// The verification code sent to the user's email
     pub code: String,
@@ -183,7 +186,7 @@ pub struct VerifyUserEmailChangeSchema {
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// The return type of [ChorusUser::verify_email_change](crate::instance::ChorusUser::verify_email_change)
 ///
-/// See <https://docs.discord.sex/resources/user#verify-user-email-change>
+/// See <https://docs.discord.food/resources/user#verify-user-email-change>
 pub struct VerifyUserEmailChangeResponse {
     /// The email_token to be used in [ChorusUser::modify](crate::instance::ChorusUser::modify)
     #[serde(rename = "token")]
@@ -194,7 +197,7 @@ pub struct VerifyUserEmailChangeResponse {
 /// Query string parameters for the route GET /users/{user.id}/profile
 /// ([crate::types::User::get_profile])
 ///
-/// See <https://docs.discord.sex/resources/user#get-user-profile>
+/// See <https://docs.discord.food/resources/user#get-user-profile>
 pub struct GetUserProfileSchema {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Whether to include the mutual guilds between the current user.
@@ -229,7 +232,7 @@ pub struct GetUserProfileSchema {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Internal type for the [crate::instance::ChorusUser::get_pomelo_suggestions] endpoint.
 ///
-/// See <https://docs.discord.sex/resources/user#get-pomelo-suggestions>
+/// See <https://docs.discord.food/resources/user#get-pomelo-suggestions>
 pub(crate) struct GetPomeloSuggestionsReturn {
     pub username: String,
 }
@@ -237,7 +240,7 @@ pub(crate) struct GetPomeloSuggestionsReturn {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Internal type for the [crate::instance::ChorusUser::get_pomelo_eligibility] endpoint.
 ///
-/// See <https://docs.discord.sex/resources/user#get-pomelo-eligibility>
+/// See <https://docs.discord.food/resources/user#get-pomelo-eligibility>
 pub(crate) struct GetPomeloEligibilityReturn {
     pub taken: bool,
 }
@@ -246,7 +249,7 @@ pub(crate) struct GetPomeloEligibilityReturn {
 /// Query string parameters for the route GET /users/@me/mentions
 /// ([crate::instance::ChorusUser::get_recent_mentions])
 ///
-/// See <https://docs.discord.sex/resources/user#get-recent-mentions>
+/// See <https://docs.discord.food/resources/user#get-recent-mentions>
 pub struct GetRecentMentionsSchema {
     /// Only fetch messages before this message id
     ///
@@ -276,7 +279,7 @@ pub struct GetRecentMentionsSchema {
 // (koza): imo it's nicer if the user can just pass a vec, instead of having to bother with
 // a specific type
 ///
-/// See <https://docs.discord.sex/resources/user#create-user-harvest>
+/// See <https://docs.discord.food/resources/user#create-user-harvest>
 pub(crate) struct CreateUserHarvestSchema {
     pub backends: Option<Vec<HarvestBackendType>>,
 }
@@ -284,7 +287,7 @@ pub(crate) struct CreateUserHarvestSchema {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Internal type for the [crate::instance::ChorusUser::set_user_note] endpoint.
 ///
-/// See <https://docs.discord.sex/resources/user#modify-user-note>
+/// See <https://docs.discord.food/resources/user#modify-user-note>
 pub(crate) struct ModifyUserNoteSchema {
     pub note: Option<String>,
 }
@@ -293,7 +296,7 @@ pub(crate) struct ModifyUserNoteSchema {
 /// Query string parameters for the route GET /connections/{connection.type}/authorize
 /// ([crate::instance::ChorusUser::authorize_connection])
 ///
-/// See <https://docs.discord.sex/resources/user#authorize-user-connection>
+/// See <https://docs.discord.food/resources/user#authorize-user-connection>
 pub struct AuthorizeConnectionSchema {
     /// The type of two-way link ([TwoWayLinkType]) to create
     pub two_way_link_type: Option<TwoWayLinkType>,
@@ -306,7 +309,7 @@ pub struct AuthorizeConnectionSchema {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Internal type for the [crate::instance::ChorusUser::authorize_connection] endpoint.
 ///
-/// See <https://docs.discord.sex/resources/user#authorize-user-connection>
+/// See <https://docs.discord.food/resources/user#authorize-user-connection>
 pub(crate) struct AuthorizeConnectionReturn {
     pub url: String,
 }
@@ -314,7 +317,7 @@ pub(crate) struct AuthorizeConnectionReturn {
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Json schema for the route POST /connections/{connection.type}/callback ([crate::instance::ChorusUser::create_connection_callback]).
 ///
-/// See <https://docs.discord.sex/resources/user#create-user-connection-callback>
+/// See <https://docs.discord.food/resources/user#create-user-connection-callback>
 pub struct CreateConnectionCallbackSchema {
     /// The authorization code for the connection
     pub code: String,
@@ -333,7 +336,7 @@ pub struct CreateConnectionCallbackSchema {
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Json schema for the route PUT /users/@me/connections/contacts/{connection.id} ([crate::instance::ChorusUser::create_contact_sync_connection]).
 ///
-/// See <https://docs.discord.sex/resources/user#create-contact-sync-connection>
+/// See <https://docs.discord.food/resources/user#create-contact-sync-connection>
 pub struct CreateContactSyncConnectionSchema {
     /// The username of the connection account
     pub name: String,
@@ -346,7 +349,7 @@ pub struct CreateContactSyncConnectionSchema {
 ///
 /// Note: not all connection types support all parameters.
 ///
-/// See <https://docs.discord.sex/resources/user#modify-user-connection>
+/// See <https://docs.discord.food/resources/user#modify-user-connection>
 pub struct ModifyConnectionSchema {
     /// The connection account's username
     ///
@@ -383,7 +386,7 @@ pub struct ModifyConnectionSchema {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Internal type for the [crate::instance::ChorusUser::get_connection_access_token] endpoint.
 ///
-/// See <https://docs.discord.sex/resources/user#get-user-connection-access-token>
+/// See <https://docs.discord.food/resources/user#get-user-connection-access-token>
 pub(crate) struct GetConnectionAccessTokenReturn {
     pub access_token: String,
 }
@@ -391,7 +394,7 @@ pub(crate) struct GetConnectionAccessTokenReturn {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
 /// Return type for the [crate::instance::ChorusUser::get_user_affinities] endpoint.
 ///
-/// See <https://docs.discord.sex/resources/user#get-user-affinities>
+/// See <https://docs.discord.food/resources/user#get-user-affinities>
 pub struct UserAffinities {
     pub user_affinities: Vec<UserAffinity>,
     // FIXME: Is this also a UserAffinity vec?
@@ -402,27 +405,27 @@ pub struct UserAffinities {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd)]
 /// Return type for the [crate::instance::ChorusUser::get_guild_affinities] endpoint.
 ///
-/// See <https://docs.discord.sex/resources/user#get-guild-affinities>
+/// See <https://docs.discord.food/resources/user#get-guild-affinities>
 pub struct GuildAffinities {
     pub guild_affinities: Vec<GuildAffinity>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// Return type for the error in the [crate::instance::ChorusUser::create_domain_connection] endpoint.
 ///
 /// This allows us to retrieve the needed proof for actually verifying the connection.
 ///
-/// See <https://docs.discord.sex/resources/user#create-domain-connection>
+/// See <https://docs.discord.food/resources/user#create-domain-connection>
 pub(crate) struct CreateDomainConnectionError {
-    pub message: String,
-    pub code: u16,
+    #[serde(flatten)]
+    pub error: JsonError,
     pub proof: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Return type for the [crate::instance::ChorusUser::create_domain_connection] endpoint.
 ///
-/// See <https://docs.discord.sex/resources/user#create-domain-connection>
+/// See <https://docs.discord.food/resources/user#create-domain-connection>
 pub enum CreateDomainConnectionReturn {
     /// Additional proof is needed to verify domain ownership.
     ///

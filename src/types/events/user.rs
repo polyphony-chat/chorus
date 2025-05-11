@@ -27,7 +27,7 @@ pub struct UserConnectionsUpdate {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
-/// See <https://docs.discord.sex/topics/gateway-events#user-note-update-structure>;
+/// See <https://docs.discord.food/topics/gateway-events#user-note-update-structure>;
 ///
 /// Sent when a note the current user has on another user is modified;
 ///

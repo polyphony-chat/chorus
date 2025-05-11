@@ -164,14 +164,14 @@ pub enum InviteTargetType {
     CreatorPage = 4,
 }
 
-/// See <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
+/// See <https://docs.discord.food/resources/channel#add-channel-recipient>
 #[derive(Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
 pub struct AddChannelRecipientSchema {
     pub access_token: Option<String>,
     pub nick: Option<String>,
 }
 
-/// See <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
+/// See <https://docs.discord.food/resources/channel#add-channel-recipient>
 #[derive(
     Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq, Copy, Hash,
 )]
@@ -182,7 +182,7 @@ pub struct ModifyChannelPositionsSchema {
     pub parent_id: Option<Snowflake>,
 }
 
-/// See <https://docs.discord.sex/resources/channel#follow-channel>
+/// See <https://docs.discord.food/resources/channel#follow-channel>
 #[derive(
     Debug, Deserialize, Serialize, Clone, Default, PartialOrd, Ord, PartialEq, Eq, Copy, Hash,
 )]

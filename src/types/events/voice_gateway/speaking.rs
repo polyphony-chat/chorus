@@ -12,7 +12,7 @@ use chorus_macros::WebSocketEvent;
 ///
 /// Essentially, what allows us to send UDP data and lights up the green circle around your avatar.
 ///
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#speaking-structure>
+/// See <https://docs.discord.food/topics/voice-connections#speaking-structure>
 #[derive(
     Debug,
     Deserialize,

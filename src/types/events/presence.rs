@@ -26,7 +26,7 @@ pub struct UpdatePresence {
 /// the PresenceUpdate used in the IDENTIFY gateway event, see
 ///
 /// See <https://discord.com/developers/docs/topics/gateway-events#presence-update-presence-update-event-fields>
-/// (Same structure as <https://docs.discord.sex/resources/presence#presence-object>)
+/// (Same structure as <https://docs.discord.food/resources/presence#presence-object>)
 pub struct PresenceUpdate {
     pub user: PublicUser,
     #[serde(default)]

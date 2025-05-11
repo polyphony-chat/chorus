@@ -2,9 +2,9 @@ name: cargo doc lints
 
 on:
   push:
-    branches: [ "main", "preserve/*" ]
+    branches: ["main", "preserve/*"]
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: ["main", "dev"]
 
 jobs:
   cargo-doc-lints:

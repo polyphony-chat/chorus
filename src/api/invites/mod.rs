@@ -18,7 +18,7 @@ impl ChorusUser {
     /// Note that the session ID is required for guest invites.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/invite#accept-invite>
+    /// See <https://docs.discord.food/resources/invite#accept-invite>
     pub async fn accept_invite(
         &mut self,
         invite_code: &str,
@@ -36,7 +36,7 @@ impl ChorusUser {
         }
         .with_headers_for(self);
 
-        request.deserialize_response::<Invite>(self).await
+        request.send_and_deserialize_response::<Invite>(self).await
     }
 
     /// Creates a new friend invite.
@@ -44,7 +44,7 @@ impl ChorusUser {
     /// Note: Spacebar does not yet implement this endpoint.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/invite#create-user-invite>
+    /// See <https://docs.discord.food/resources/invite#create-user-invite>
     pub async fn create_user_invite(&mut self, code: Option<&str>) -> ChorusResult<Invite> {
         ChorusRequest {
             request: Client::new()
@@ -56,7 +56,7 @@ impl ChorusUser {
             limit_type: LimitType::Global,
         }
         .with_headers_for(self)
-        .deserialize_response::<Invite>(self)
+        .send_and_deserialize_response::<Invite>(self)
         .await
     }
 
@@ -66,7 +66,7 @@ impl ChorusUser {
     /// For guild channels, the endpoint requires the [`CREATE_INSTANT_INVITE`](crate::types::PermissionFlags::CREATE_INSTANT_INVITE) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/invite#create-channel-invite>
+    /// See <https://docs.discord.food/resources/invite#create-channel-invite>
     pub async fn create_channel_invite(
         &mut self,
         create_channel_invite_schema: CreateChannelInviteSchema,
@@ -83,7 +83,7 @@ impl ChorusUser {
             limit_type: LimitType::Channel(channel_id),
         }
         .with_headers_for(self)
-        .deserialize_response::<GuildInvite>(self)
+        .send_and_deserialize_response::<GuildInvite>(self)
         .await
     }
 }

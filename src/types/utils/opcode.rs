@@ -148,7 +148,7 @@ impl TryFrom<u8> for Opcode {
 /// When the gateway server closes your connection, it tells you what happened throught a close code.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#gateway-close-event-codes>
+/// See <https://docs.discord.food/topics/opcodes-and-status-codes#gateway-close-event-codes>
 pub enum CloseCode {
     UnknownError = 4000,
     UnknownOpcode = 4001,
@@ -235,7 +235,7 @@ impl TryFrom<u16> for CloseCode {
 /// When the voice gateway server closes your connection, it tells you what happened throught a close code.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/opcodes-and-status-codes#voice-close-event-codes>
+/// See <https://docs.discord.food/topics/opcodes-and-status-codes#voice-close-event-codes>
 pub enum VoiceCloseCode {
     UnknownOpcode = 4001,
     FailedToDecodePayload = 4002,

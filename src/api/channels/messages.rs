@@ -21,7 +21,7 @@ impl Message {
     /// Returns the sent message.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/message#create-message>
+    /// See <https://docs.discord.food/resources/message#create-message>
     pub async fn send(
         user: &mut ChorusUser,
         channel_id: Snowflake,
@@ -38,7 +38,9 @@ impl Message {
             }
             .with_headers_for(user);
 
-            chorus_request.deserialize_response::<Message>(user).await
+            chorus_request
+                .send_and_deserialize_response::<Message>(user)
+                .await
         } else {
             for (index, attachment) in message.attachments.iter_mut().enumerate() {
                 attachment.get_mut(index).unwrap().id = Some((index as u64).into());
@@ -75,7 +77,9 @@ impl Message {
             }
             .with_headers_for(user);
 
-            chorus_request.deserialize_response::<Message>(user).await
+            chorus_request
+                .send_and_deserialize_response::<Message>(user)
+                .await
         }
     }
 
@@ -88,7 +92,7 @@ impl Message {
     /// In this case, the method will return a [`ChorusError::InvalidResponse`] error.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
+    /// See <https://docs.discord.food/resources/message#search-messages>
     pub(crate) async fn search(
         endpoint: MessageSearchEndpoint,
         query: MessageSearchQuery,
@@ -110,10 +114,19 @@ impl Message {
         }
         .with_headers_for(user);
 
-        let result = request.send_request(user).await?;
+        let result = request.send(user).await?;
+
+        let http_status = result.status();
+
         let result_json = result.json::<Value>().await.unwrap();
         if !result_json.is_object() {
-            return Err(search_error(result_json.to_string().as_str()));
+            return Err(ChorusError::InvalidResponse {
+                error: format!(
+                    "Got unexpected Response, or Response which is not valid JSON. Response: \n{}",
+                    result_json
+                ),
+                http_status,
+            });
         }
         let value_map = result_json.as_object().unwrap();
         if let Some(messages) = value_map.get("messages") {
@@ -124,7 +137,13 @@ impl Message {
         }
         // The code below might be incorrect. We'll cross that bridge when we come to it
         if !value_map.contains_key("code") || !value_map.contains_key("retry_after") {
-            return Err(search_error(result_json.to_string().as_str()));
+            return Err(ChorusError::InvalidResponse {
+                error: format!(
+                    "Got unexpected Response, or Response which is not valid JSON. Response: \n{}",
+                    result_json
+                ),
+                http_status,
+            });
         }
         let code = value_map.get("code").unwrap().as_u64().unwrap();
         let retry_after = value_map.get("retry_after").unwrap().as_u64().unwrap();
@@ -138,7 +157,7 @@ impl Message {
 
     /// Returns all pinned messages in the channel as a Vector of message objects without the reactions key.
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#get-pinned-messages>
+    /// See: <https://docs.discord.food/resources/message#get-pinned-messages>
     pub async fn get_sticky(
         channel_id: Snowflake,
         user: &mut ChorusUser,
@@ -153,14 +172,16 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Vec<Message>>(user).await
+        request
+            .send_and_deserialize_response::<Vec<Message>>(user)
+            .await
     }
 
     /// Pins a message in a channel. Requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
     /// The max pinned messages is 50.
     ///
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#pin-message>
+    /// See: <https://docs.discord.food/resources/message#pin-message>
     pub async fn sticky(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -179,12 +200,12 @@ impl Message {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Unpins a message in a channel. Requires the `MANAGE_MESSAGES` permission. Returns a 204 empty response on success.
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#unpin-message>
+    /// See: <https://docs.discord.food/resources/message#unpin-message>
     pub async fn unsticky(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -203,13 +224,13 @@ impl Message {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Returns a specific message object in the channel.
     /// If operating on a guild channel, this endpoint requires the `READ_MESSAGE_HISTORY` permission to be present on the current user.
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#get-message>
+    /// See: <https://docs.discord.food/resources/message#get-message>
     pub async fn get(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -226,12 +247,14 @@ impl Message {
         }
         .with_headers_for(user);
 
-        chorus_request.deserialize_response::<Message>(user).await
+        chorus_request
+            .send_and_deserialize_response::<Message>(user)
+            .await
     }
 
     /// Posts a greet message to a channel. This endpoint requires the channel is a DM channel or you reply to a system message.
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#create-greet-message>
+    /// See: <https://docs.discord.food/resources/message#create-greet-message>
     pub async fn create_greet(
         channel_id: Snowflake,
         schema: CreateGreetMessage,
@@ -249,7 +272,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Message>(user).await
+        request.send_and_deserialize_response::<Message>(user).await
     }
 
     /// Sets the channel's latest acknowledged message (marks a message as read) for the current user.
@@ -261,7 +284,7 @@ impl Message {
     /// Returns an optional token, which can be used as the new `ack` token for following `ack`s.
     ///
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#acknowledge-message>
+    /// See: <https://docs.discord.food/resources/message#acknowledge-message>
     pub async fn acknowledge(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -281,7 +304,9 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Option<String>>(user).await
+        request
+            .send_and_deserialize_response::<Option<String>>(user)
+            .await
     }
 
     /// Crossposts a message in a News Channel to following channels.
@@ -289,7 +314,7 @@ impl Message {
     /// or additionally the `MANAGE_MESSAGES` permission, for all other messages, to be present for the current user.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#crosspost-message>
+    /// See <https://docs.discord.food/resources/message#crosspost-message>
     pub async fn crosspost(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -306,13 +331,13 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Message>(user).await
+        request.send_and_deserialize_response::<Message>(user).await
     }
 
     /// Hides a message from the feed of the guild the channel belongs to. Returns a 204 empty response on success.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#hide-message-from-guild-feed>
+    /// See <https://docs.discord.food/resources/message#hide-message-from-guild-feed>
     pub async fn hide_from_guild_feed(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -331,7 +356,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Edits a previously sent message. All fields can be edited by the original message author.
@@ -343,7 +368,7 @@ impl Message {
     /// without regard to whether or not an allowed_mentions was present in the request that originally created the message.
     ///
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#edit-message>
+    /// See: <https://docs.discord.food/resources/message#edit-message>
     pub async fn modify(
         channel_id: Snowflake,
         message_id: Snowflake,
@@ -363,7 +388,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Message>(user).await
+        request.send_and_deserialize_response::<Message>(user).await
     }
 
     /// Deletes a message. If operating on a guild channel and trying to delete a message that was not sent by the current user,
@@ -388,7 +413,7 @@ impl Message {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Deletes multiple messages in a single request. This endpoint can only be used on guild channels and requires the MANAGE_MESSAGES permission.
@@ -399,7 +424,7 @@ impl Message {
     /// **This endpoint is not usable by user accounts.** (At least according to Discord.com. Spacebar behaviour may differ.)
     ///
     /// # Reference:
-    /// See: <https://discord-userdoccers.vercel.app/resources/message#bulk-delete-messages>
+    /// See: <https://docs.discord.food/resources/message#bulk-delete-messages>
     pub async fn bulk_delete(
         channel_id: Snowflake,
         messages: Vec<Snowflake>,
@@ -425,13 +450,13 @@ impl Message {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Acknowledges the currently pinned messages in a channel. Returns a 204 empty response on success.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#acknowledge-pinned-messages>
+    /// See <https://docs.discord.food/resources/message#acknowledge-pinned-messages>
     pub async fn acknowledge_pinned(
         channel_id: Snowflake,
         user: &mut ChorusUser,
@@ -446,16 +471,7 @@ impl Message {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
-    }
-}
-
-fn search_error(result_text: &str) -> ChorusError {
-    ChorusError::InvalidResponse {
-        error: format!(
-            "Got unexpected Response, or Response which is not valid JSON. Response: \n{}",
-            result_text
-        ),
+        request.send_and_handle_as_result(user).await
     }
 }
 
@@ -467,7 +483,7 @@ impl ChorusUser {
     /// Shorthand call for [`Message::send`]
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/message#create-message>
+    /// See <https://docs.discord.food/resources/message#create-message>
     pub async fn send_message(
         &mut self,
         message: MessageSendSchema,
@@ -487,7 +503,7 @@ impl Channel {
     /// In this case, the method will return a [`ChorusError::InvalidResponse`] error.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
+    /// See <https://docs.discord.food/resources/message#search-messages>
     pub async fn search_messages(
         channel_id: Snowflake,
         query: MessageSearchQuery,

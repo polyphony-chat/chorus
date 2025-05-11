@@ -28,7 +28,7 @@ use super::option_arc_rwlock_ptr_eq;
 #[cfg_attr(feature = "client", derive(Updateable, Composite))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/emoji#emoji-object>
+/// See <https://docs.discord.food/resources/emoji#emoji-object>
 pub struct Emoji {
     pub id: Snowflake,
     pub name: Option<String>,

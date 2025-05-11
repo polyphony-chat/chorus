@@ -4,7 +4,7 @@
 
 //! Defines the UDP component of voice communications, sending and receiving raw rtp data.
 
-/// See <https://discord-userdoccers.vercel.app/topics/voice-connections#voice-packet-structure>
+/// See <https://docs.discord.food/topics/voice-connections#voice-packet-structure>
 /// This always adds up to 12 bytes
 const RTP_HEADER_SIZE: u8 = 12;
 

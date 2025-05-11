@@ -12,7 +12,7 @@ use chorus_macros::WebSocketEvent;
 /// Is sent to a client by the server to signify a new call being created;
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#call-create>
+/// See <https://docs.discord.food/topics/gateway-events#call-create>
 pub struct CallCreate {
     /// Id of the private channel this call is in
     pub channel_id: Snowflake,
@@ -35,7 +35,7 @@ pub struct CallCreate {
 /// Updates the client when metadata about a call changes.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#call-update>
+/// See <https://docs.discord.food/topics/gateway-events#call-update>
 pub struct CallUpdate {
     /// Id of the private channel this call is in
     pub channel_id: Snowflake,
@@ -65,7 +65,7 @@ pub struct CallUpdate {
 /// Sent when a call is deleted, or becomes unavailable due to an outage.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#call-delete>
+/// See <https://docs.discord.food/topics/gateway-events#call-delete>
 pub struct CallDelete {
     pub channel_id: Snowflake,
 	 /// Whether the call is unavailable due to an outage
@@ -91,7 +91,7 @@ pub struct CallDelete {
 /// Fires a [CallCreate] event if a call is found.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#request-call-connect>;
+/// See <https://docs.discord.food/topics/gateway-events#request-call-connect>;
 pub struct CallSync {
     pub channel_id: Snowflake,
 }

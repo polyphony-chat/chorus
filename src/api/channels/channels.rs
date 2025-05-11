@@ -19,7 +19,7 @@ impl Channel {
     /// Retrieves a channel from the server.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#get-channel>
+    /// See <https://docs.discord.food/resources/channel#get-channel>
     pub async fn get(user: &mut ChorusUser, channel_id: Snowflake) -> ChorusResult<Channel> {
         let chorus_request = ChorusRequest {
             request: Client::new().get(format!(
@@ -31,7 +31,7 @@ impl Channel {
         }
         .with_headers_for(user);
 
-        chorus_request.deserialize_response::<Channel>(user).await
+        chorus_request.send_and_deserialize_response::<Channel>(user).await
     }
 
     /// Deletes self.
@@ -40,7 +40,7 @@ impl Channel {
     /// the [`MANAGE_THREADS`](crate::types::PermissionFlags::MANAGE_THREADS) permission if the channel is a thread.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel>
+    /// See <https://docs.discord.food/resources/channel#delete-channel>
     pub async fn delete(
         self,
         audit_log_reason: Option<String>,
@@ -59,7 +59,7 @@ impl Channel {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Modifies a channel with the provided data.
@@ -75,7 +75,7 @@ impl Channel {
     /// Otherwise, requires the [`MANAGE_THREADS`](crate::types::PermissionFlags::MANAGE_THREADS) permission. Requires the thread to have `archived` set to `false` or be set to `false` in the request.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel>
+    /// See <https://docs.discord.food/resources/channel#modify-channel>
     pub async fn modify(
         &self,
         modify_data: ChannelModifySchema,
@@ -96,7 +96,7 @@ impl Channel {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response::<Channel>(user).await
+        request.send_and_deserialize_response::<Channel>(user).await
     }
 
     /// Fetches recent messages from a channel.
@@ -107,7 +107,7 @@ impl Channel {
     /// this method returns an empty list.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/message#get-messages>
+    /// See <https://docs.discord.food/resources/message#get-messages>
     pub async fn messages(
         range: GetChannelMessagesSchema,
         channel_id: Snowflake,
@@ -128,14 +128,14 @@ impl Channel {
         chorus_request.request = chorus_request.request.query(&range);
 
         chorus_request
-            .deserialize_response::<Vec<Message>>(user)
+            .send_and_deserialize_response::<Vec<Message>>(user)
             .await
     }
 
     /// Adds a recipient to a group DM.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#add-channel-recipient>
+    /// See <https://docs.discord.food/resources/channel#add-channel-recipient>
     pub async fn add_channel_recipient(
         &self,
         recipient_id: Snowflake,
@@ -158,14 +158,14 @@ impl Channel {
             limit_type: LimitType::Channel(self.id),
         }
         .with_headers_for(user)
-        .handle_request_as_result(user)
+        .send_and_handle_as_result(user)
         .await
     }
 
     /// Removes a recipient from a group DM.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#remove-channel-recipient>
+    /// See <https://docs.discord.food/resources/channel#remove-channel-recipient>
     pub async fn remove_channel_recipient(
         &self,
         recipient_id: Snowflake,
@@ -184,14 +184,14 @@ impl Channel {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Modifies the positions of a set of channel objects for the guild. Requires the `MANAGE_CHANNELS` permission.
     /// Only channels to be modified are required.
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-guild-channel-positions>
+    /// See <https://docs.discord.food/resources/channel#modify-guild-channel-positions>
     pub async fn modify_positions(
         schema: Vec<ModifyChannelPositionsSchema>,
         guild_id: Snowflake,
@@ -209,6 +209,6 @@ impl Channel {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 }
