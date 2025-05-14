@@ -20,17 +20,55 @@ pub struct SessionsReplace {
 pub struct Session {
     pub activities: Option<Vec<Activity>>,
     pub client_info: ClientInfo,
-    pub session_id: String,
-    pub status: String,
+    pub session_id: String, // Snowflake, but headless sessions start with 'h:'.  Should that be baked into the Snowflake struct?
+    pub status: ClientStatusType,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy)]
 /// Another Client info object
 /// {"client":"web","os":"other","version":0}
 // Note: I don't think this one exists yet? Though I might've made a mistake and this might be a duplicate
 pub struct ClientInfo {
-    pub client: Option<String>,
-    pub os: Option<String>,
+    pub client: Option<ClientType>,
+    pub os: Option<OperatingSystem>,
     pub version: u8,
 }
 
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub enum OperatingSystem {
+    Windows,
+    #[serde(rename = "osx")]
+    MacOs,
+    Linux,
+    Android,
+    IOS,
+    Playstation,
+    #[default]
+    Unknown,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub enum ClientType {
+    Desktop,
+    Web,
+    Mobile,
+    #[default]
+    Unknown,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub enum ClientStatusType {
+    Online,
+    Idle,
+    Dnd,
+    /// Can only be sent, and never received
+    Invisible,
+    /// Can only be received, and never sent
+    Offline,
+    /// This value can only be sent, and is used when the user's initial presence is unknown and should be assigned by the Gateway.
+    #[default]
+    Unknown,
+}
