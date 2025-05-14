@@ -16,6 +16,7 @@ pub struct SessionsReplace {
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// Session info for the current user
 pub struct Session {
     pub activities: Vec<Activity>,
