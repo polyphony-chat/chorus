@@ -2,13 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#[cfg(feature = "client")]
+use crate::{instance::ChorusUser, ratelimiter::ChorusRequest};
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::fmt::{Display, Formatter};
-
-#[cfg(feature = "client")]
-use crate::{instance::ChorusUser, ratelimiter::ChorusRequest};
+use std::str::FromStr;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde_as]
@@ -461,7 +461,6 @@ impl ChorusRequest {
 /// # Reference
 /// See <https://docs.discord.sex/reference#operating-system-type>
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum ClientOs {
     #[default]
@@ -475,6 +474,34 @@ pub enum ClientOs {
     Unknown,
     #[serde(untagged)]
     Custom(String),
+}
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::Postgres> for ClientOs {
+    fn type_info() -> sqlx::postgres::PgTypeInfo {
+        <String as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for ClientOs {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let data = self.to_string();
+        <String as sqlx::Encode<'q, sqlx::Postgres>>::encode_by_ref(&data, buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Decode<'q, sqlx::Postgres> for ClientOs {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'q>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        let data = <String as sqlx::Decode<'q, sqlx::Postgres>>::decode(value)?;
+        Ok(data.into())
+    }
 }
 
 impl From<String> for ClientOs {
@@ -494,6 +521,22 @@ impl Display for ClientOs {
             ClientOs::Playstation => write!(f, "Playstation"),
             ClientOs::Unknown => write!(f, "Unknown"),
             ClientOs::Custom(s) => write!(f, "{s}"),
+        }
+    }
+}
+
+impl FromStr for ClientOs {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "windows" | "Windows" => Ok(Self::Windows),
+            "osx" | "Mac OS" => Ok(Self::MacOs),
+            "linux" | "Linux" => Ok(Self::Linux),
+            "android" | "Android" => Ok(Self::Android),
+            "ios" | "iOS" => Ok(Self::IOS),
+            "playstation" | "Playstation" => Ok(Self::Playstation),
+            "" | "unknown" | "Unknown" => Ok(Self::Unknown),
+            other => Ok(Self::Custom(other.to_string())),
         }
     }
 }
