@@ -21,18 +21,28 @@ instead of worrying about the underlying implementation details.
 To connect to a Polyphony/Spacebar compatible server, you'll need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
 
 ```rust
-use chorus::instance::Instance;
+use chorus::{instance::Instance, types::IntoShared};
 
 #[tokio::main]
 async fn main() {
     let url = "https://example.com";
     # let url = "http://localhost:3001";
+
+    // This instance will later need to be shared across threads and users, so we'll
+    // store it inside of the `Shared` type (note the `into_shared()` method call)
     let instance = Instance::new(url, None)
         .await
-        .expect("Failed to connect to the Spacebar server");
+        .expect("Failed to connect to the Spacebar server")
+        .into_shared();
+
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
-    dbg!(instance.instance_info);
-    dbg!(instance.limits_information);
+
+    // Each time we want to access the underlying `Instance` we need to lock
+    // its reference so other threads don't modify the data while we're reading or changing it
+    let instance_lock = instance.read().unwrap();
+
+    dbg!(&instance_lock.instance_info);
+    dbg!(&instance_lock.limits_information);
 }
 ```
 
@@ -58,8 +68,10 @@ let login_schema = LoginSchema {
 };
 // Each user connects to the Gateway. Each users' Gateway connection lives on a separate thread. Depending on
 // the runtime feature you choose, this can potentially take advantage of all of your computers' threads.
-let user = instance
-    .login_account(login_schema)
+//
+// Note that we clone the reference to the instance here, not the instance itself
+// (we do this because each user needs its own access to the instance's data)
+let user = Instance::login_account(instance.clone(), login_schema)
     .await
     .expect("An error occurred during the login process");
 dbg!(user.belongs_to);

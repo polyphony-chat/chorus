@@ -13,8 +13,8 @@ use crate::instance::{ChorusUser, Instance};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
     ClientProperties, GatewayIdentifyPayload, LimitType, LoginResult, LoginSchema,
-    MfaAuthenticationType, SendMfaSmsResponse, SendMfaSmsSchema, User, VerifyMFALoginResponse,
-    VerifyMFALoginSchema,
+    MfaAuthenticationType, SendMfaSmsResponse, SendMfaSmsSchema, Shared, User,
+    VerifyMFALoginResponse, VerifyMFALoginSchema,
 };
 
 impl Instance {
@@ -22,8 +22,11 @@ impl Instance {
     ///
     /// # Reference
     /// See <https://docs.spacebar.chat/routes/#post-/auth/login/>
-    pub async fn login_account(&mut self, login_schema: LoginSchema) -> ChorusResult<ChorusUser> {
-        let endpoint_url = self.urls.api.clone() + "/auth/login";
+    pub async fn login_account(
+        instance: Shared<Instance>,
+        login_schema: LoginSchema,
+    ) -> ChorusResult<ChorusUser> {
+        let endpoint_url = instance.read().unwrap().urls.api.clone() + "/auth/login";
         let chorus_request = ChorusRequest {
             request: Client::new().post(endpoint_url).json(&login_schema),
             limit_type: LimitType::AuthLogin,
@@ -34,7 +37,7 @@ impl Instance {
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since login is an instance wide limit), which is why we are just cloning the
         // instances' limits to pass them on as user_rate_limits later.
-        let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
+        let mut user = ChorusUser::shell(instance, "None").await;
 
         let login_result = chorus_request
             .send_and_deserialize_response::<LoginResult>(&mut user)
@@ -51,11 +54,12 @@ impl Instance {
     /// # Reference
     /// See <https://docs.discord.food/authentication#verify-mfa-login>
     pub async fn verify_mfa_login(
-        &mut self,
+        instance: Shared<Instance>,
         authenticator: MfaAuthenticationType,
         schema: VerifyMFALoginSchema,
     ) -> ChorusResult<ChorusUser> {
-        let endpoint_url = self.urls.api.clone() + "/auth/mfa/" + &authenticator.to_string();
+        let endpoint_url =
+            instance.read().unwrap().urls.api.clone() + "/auth/mfa/" + &authenticator.to_string();
 
         let chorus_request = ChorusRequest {
             request: Client::new().post(endpoint_url).json(&schema),
@@ -64,7 +68,7 @@ impl Instance {
         // Note: yes, this is still sent even for login and register
         .with_client_properties(&ClientProperties::default());
 
-        let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
+        let mut user = ChorusUser::shell(instance, "None").await;
 
         match chorus_request
             .send_and_deserialize_response::<VerifyMFALoginResponse>(&mut user)
@@ -93,8 +97,6 @@ impl Instance {
     ///
     /// # Reference
     /// See <https://docs.discord.food/authentication#send-mfa-sms>
-    // FIXME: This uses ChorusUser::shell, when it *really* shouldn't, but
-    // there is no other way to send a ratelimited request
     pub async fn send_mfa_sms(
         &mut self,
         schema: SendMfaSmsSchema,
@@ -108,10 +110,8 @@ impl Instance {
             limit_type: LimitType::Ip,
         };
 
-        let mut chorus_user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
-
         let send_mfa_sms_response = chorus_request
-            .send_and_deserialize_response::<SendMfaSmsResponse>(&mut chorus_user)
+            .send_anonymous_and_deserialize_response::<SendMfaSmsResponse>(self)
             .await?;
 
         Ok(send_mfa_sms_response)

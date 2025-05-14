@@ -8,7 +8,7 @@ use reqwest::Client;
 use serde_json::to_string;
 
 use crate::gateway::{Gateway, GatewayHandle};
-use crate::types::{ClientProperties, GatewayIdentifyPayload, User};
+use crate::types::{ClientProperties, GatewayIdentifyPayload, Shared, User};
 use crate::{
     errors::ChorusResult,
     instance::{ChorusUser, Instance, Token},
@@ -23,10 +23,10 @@ impl Instance {
     /// # Reference
     /// See <https://docs.spacebar.chat/routes/#post-/auth/register/>
     pub async fn register_account(
-        &mut self,
+        instance: Shared<Instance>,
         register_schema: RegisterSchema,
     ) -> ChorusResult<ChorusUser> {
-        let endpoint_url = self.urls.api.clone() + "/auth/register";
+        let endpoint_url = instance.read().unwrap().urls.api.clone() + "/auth/register";
         let chorus_request = ChorusRequest {
             request: Client::new().post(endpoint_url).json(&register_schema),
             limit_type: LimitType::AuthRegister,
@@ -37,7 +37,7 @@ impl Instance {
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since register is an instance wide limit), which is why we are just cloning
         // the instances' limits to pass them on as user_rate_limits later.
-        let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), "None").await;
+        let mut user = ChorusUser::shell(instance, "None").await;
 
         let token = chorus_request
             .send_and_deserialize_response::<Token>(&mut user)

@@ -11,6 +11,7 @@ pub use login::*;
 pub use register::*;
 
 use crate::gateway::Gateway;
+use crate::types::Shared;
 use crate::{
     errors::ChorusResult,
     instance::{ChorusUser, Instance},
@@ -22,8 +23,11 @@ pub mod register;
 
 impl Instance {
     /// Logs into an existing account on the spacebar server, using only a token.
-    pub async fn login_with_token(&mut self, token: &str) -> ChorusResult<ChorusUser> {
-        let mut user = ChorusUser::shell(Arc::new(RwLock::new(self.clone())), token).await;
+    pub async fn login_with_token(
+        instance: Shared<Instance>,
+        token: &str,
+    ) -> ChorusResult<ChorusUser> {
+        let mut user = ChorusUser::shell(instance, token).await;
 
         user.update_with_login_data(token.to_string(), None).await?;
 
