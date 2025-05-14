@@ -67,7 +67,7 @@ rand = "0.8.5"
 flate2 = { version = "1.0.33", optional = true }
 webpki-roots = "0.26.3"
 pubserve = { version = "1.1.0", features = ["async", "send"] }
-sqlx-pg-uint = { version = "0.8.0", features = ["serde"], optional = true }
+sqlx-pg-uint = { version = "0.10.1", features = ["serde"], optional = true }
 serde_path_to_error = "0.1.16"
 murmur3 = "0.5.2"
 
