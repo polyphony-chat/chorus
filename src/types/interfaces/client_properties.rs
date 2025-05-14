@@ -5,6 +5,7 @@
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
+use std::fmt::{Display, Formatter};
 
 #[cfg(feature = "client")]
 use crate::{instance::ChorusUser, ratelimiter::ChorusRequest};
@@ -303,7 +304,7 @@ impl ClientProperties {
     pub fn common_web_windows() -> Self {
         // 24% of the web
         Self {
-            os: ClientOs::windows(),
+            os: ClientOs::Windows,
             os_version: ClientOsVersion::common_windows(),
             browser: ClientBrowser::chrome_desktop(),
             browser_version: String::from("132.0.0"),
@@ -321,7 +322,7 @@ impl ClientProperties {
     /// See <https://www.useragents.me/#most-common-desktop-useragents>
     pub fn common_desktop_windows() -> Self {
         Self {
-            os: ClientOs::windows(),
+            os: ClientOs::Windows,
             os_version: ClientOsVersion::common_windows(),
             browser: ClientBrowser::discord_desktop(),
             browser_version: String::from("130.0.0"),
@@ -341,7 +342,7 @@ impl ClientProperties {
     /// See <https://www.useragents.me/#most-common-desktop-useragents>
     pub fn common_desktop_mac_os() -> Self {
         Self {
-            os: ClientOs::mac_os(),
+            os: ClientOs::MacOs,
             os_version: ClientOsVersion::common_mac_os(),
             browser: ClientBrowser::discord_desktop(),
             browser_version: String::from("130.0.0"),
@@ -361,7 +362,7 @@ impl ClientProperties {
     /// See <https://www.useragents.me/#most-common-desktop-useragents>
     pub fn common_desktop_linux() -> Self {
         Self {
-            os: ClientOs::linux(),
+            os: ClientOs::Linux,
             os_version: ClientOsVersion::latest_linux(),
             browser: ClientBrowser::discord_desktop(),
             browser_version: String::from("130.0.0"),
@@ -459,64 +460,52 @@ impl ChorusRequest {
 ///
 /// # Reference
 /// See <https://docs.discord.sex/reference#operating-system-type>
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
-#[serde(transparent)]
-pub struct ClientOs(String);
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[serde(rename_all = "lowercase")]
+pub enum ClientOs {
+    #[default]
+    Windows,
+    #[serde(rename = "osx")]
+    MacOs,
+    Linux,
+    Android,
+    IOS,
+    Playstation,
+    Unknown,
+    #[serde(untagged)]
+    Custom(String),
+}
 
 impl From<String> for ClientOs {
     fn from(value: String) -> Self {
-        ClientOs(value)
+        ClientOs::Custom(value)
     }
 }
 
-impl From<ClientOs> for String {
-    fn from(value: ClientOs) -> Self {
-        value.0
+impl Display for ClientOs {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ClientOs::Windows => write!(f, "Windows"),
+            ClientOs::MacOs => write!(f, "Mac OS"),
+            ClientOs::Linux => write!(f, "Linux"),
+            ClientOs::Android => write!(f, "Android"),
+            ClientOs::IOS => write!(f, "iOS"),
+            ClientOs::Playstation => write!(f, "Playstation"),
+            ClientOs::Unknown => write!(f, "Unknown"),
+            ClientOs::Custom(s) => write!(f, "{s}"),
+        }
     }
 }
 
 impl ClientOs {
-    pub fn android() -> ClientOs {
-        ClientOs(String::from("Android"))
-    }
-
-    pub fn blackberry() -> ClientOs {
-        ClientOs(String::from("BlackBerry"))
-    }
-
-    pub fn mac_os() -> ClientOs {
-        ClientOs(String::from("Mac OS X"))
-    }
-
-    pub fn ios() -> ClientOs {
-        ClientOs(String::from("iOS"))
-    }
-
-    pub fn linux() -> ClientOs {
-        ClientOs(String::from("Linux"))
-    }
-
-    pub fn windows_mobile() -> ClientOs {
-        ClientOs(String::from("Windows Mobile"))
-    }
-
-    pub fn windows() -> ClientOs {
-        ClientOs(String::from("Windows"))
-    }
-
     /// The most common os, currently Windows
     pub fn common() -> ClientOs {
-        Self::windows()
+        Self::Windows
     }
 
     pub fn custom(value: String) -> ClientOs {
         value.into()
-    }
-}
-
-impl Default for ClientOs {
-    fn default() -> Self {
-        ClientOs::common()
     }
 }
 
