@@ -59,6 +59,7 @@ pub enum ClientType {
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Copy)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum ClientStatusType {
     Online,
