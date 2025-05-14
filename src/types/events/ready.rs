@@ -88,7 +88,7 @@ pub struct GatewayReady {
     pub geo_ordered_rtc_regions: Vec<String>,
     /// The tutorial state of the user, if any
     /// TODO: Make tutorial object into object
-    pub tutorial: Option<String>,
+    pub tutorial: Option<Tutorial>,
     /// The API code version, used when re-identifying with client state v2
     pub api_code_version: UInt8,
     #[serde(default)]
@@ -262,6 +262,12 @@ pub struct GatewayGuild {
     pub premium_subscription_count: i32,
 }
 
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+pub struct Tutorial {
+    pub indicators_suppressed: bool,
+    pub indicators_confirmed: Vec<String>,
+}
+
 #[derive(
     Debug, Deserialize, Serialize, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
@@ -343,8 +349,8 @@ impl serde::Serialize for UserExperiment {
             serde_json::to_value(self.aa_mode).map_err(S::Error::custom)?,
             serde_json::to_value(self.trigger_debugging).map_err(S::Error::custom)?,
         ])
-            .map_err(S::Error::custom)?
-            .serialize(serializer)
+        .map_err(S::Error::custom)?
+        .serialize(serializer)
     }
 }
 

@@ -10,9 +10,10 @@ use chrono::{
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::types::{entities::Emoji, PartialEmoji, Snowflake};
+use crate::types::{PartialEmoji, Snowflake};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
 /// See <https://docs.discord.sex/resources/presence#activity-object>
 pub struct Activity {
@@ -156,6 +157,7 @@ pub enum ActivityType {
 #[derive(
     Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq, Hash, Copy, PartialOrd, Ord,
 )]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
 /// Platform an [Activity] is being played on
 ///
@@ -181,6 +183,7 @@ pub enum ActivityPlatformType {
 /// # Reference
 /// See <https://docs.discord.sex/resources/presence#activity-timestamps-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub struct ActivityTimestamps {
     /// Unix time (sent in milliseconds) of when the activity starts
     #[serde(default)]
@@ -194,6 +197,7 @@ pub struct ActivityTimestamps {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
 /// See <https://docs.discord.sex/resources/presence#activity-party-structure>
 pub struct ActivityParty {
@@ -203,10 +207,71 @@ pub struct ActivityParty {
 
     /// The party's current and maximum size (current_size, max_size)
     #[serde(default)]
-    pub size: Option<Vec<(u16, u16)>>,
+    pub size: ActivityPartySize,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[cfg(feature = "sqlx-pg-uint")]
+pub struct ActivityPartySize(Vec<(sqlx_pg_uint::PgU16, sqlx_pg_uint::PgU16)>);
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[cfg(not(feature = "sqlx-pg-uint"))]
+pub struct ActivityPartySize(Vec<(u16, u16)>);
+
+#[cfg(feature = "sqlx")]
+impl sqlx::Type<sqlx::Postgres> for ActivityPartySize {
+    fn type_info() -> sqlx::postgres::PgTypeInfo {
+        <String as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for ActivityPartySize {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let data = self
+            .0
+            .iter()
+            .map(|x| format!("{},{}", x.0, x.1))
+            .collect::<Vec<String>>()
+            .join("|");
+        <String as sqlx::Encode<'q, sqlx::Postgres>>::encode_by_ref(&data, buf)
+    }
+}
+
+#[cfg(feature = "sqlx")]
+impl<'q> sqlx::Decode<'q, sqlx::Postgres> for ActivityPartySize {
+    fn decode(
+        value: <sqlx::Postgres as sqlx::Database>::ValueRef<'q>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        <String as sqlx::Decode<'q, sqlx::Postgres>>::decode(value).map(|x| {
+            ActivityPartySize(
+                x.split('|')
+                    .map(|x| {
+                        let mut split = x.split(',');
+                        (
+                            split
+                                .next()
+                                .unwrap()
+                                .parse::<sqlx_pg_uint::PgU16>()
+                                .unwrap(),
+                            split
+                                .next()
+                                .unwrap()
+                                .parse::<sqlx_pg_uint::PgU16>()
+                                .unwrap(),
+                        )
+                    })
+                    .collect(),
+            )
+        })
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
 /// See <https://docs.discord.sex/resources/presence#activity-assets-structure>
 pub struct ActivityAssets {
@@ -228,6 +293,7 @@ pub struct ActivityAssets {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference
 /// See <https://docs.discord.sex/resources/presence#activity-secrets-structure>
 pub struct ActivitySecrets {

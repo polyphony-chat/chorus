@@ -2,10 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+use crate::types::{Activity, ClientOs, UserStatus, WebSocketEvent};
 use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
-
-use crate::types::{Activity, WebSocketEvent};
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Officially Undocumented
@@ -22,55 +21,30 @@ pub struct Session {
     pub activities: Vec<Activity>,
     pub client_info: ClientInfo,
     pub session_id: String, // Snowflake, but headless sessions start with 'h:'.  Should that be baked into the Snowflake struct?
-    pub status: ClientStatusType,
+    pub status: UserStatus,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// Another Client info object
 /// {"client":"web","os":"other","version":0}
 // Note: I don't think this one exists yet? Though I might've made a mistake and this might be a duplicate
 pub struct ClientInfo {
     pub client: Option<ClientType>,
-    pub os: Option<OperatingSystem>,
+    pub os: Option<ClientOs>,
+    #[cfg(feature = "sqlx-pg-uint")]
+    pub version: sqlx_pg_uint::PgU8,
+    #[cfg(not(feature = "sqlx-pg-uint"))]
     pub version: u8,
-}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy)]
-#[serde(rename_all = "lowercase")]
-pub enum OperatingSystem {
-    Windows,
-    #[serde(rename = "osx")]
-    MacOs,
-    Linux,
-    Android,
-    IOS,
-    Playstation,
-    #[default]
-    Unknown,
-}
-
-#[derive(Debug, Deserialize, Serialize, Default, Clone, Copy)]
-#[serde(rename_all = "lowercase")]
-pub enum ClientType {
-    Desktop,
-    Web,
-    Mobile,
-    #[default]
-    Unknown,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone, Copy)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[serde(rename_all = "lowercase")]
-pub enum ClientStatusType {
-    Online,
-    Idle,
-    Dnd,
-    /// Can only be sent, and never received
-    Invisible,
-    /// Can only be received, and never sent
-    Offline,
-    /// This value can only be sent, and is used when the user's initial presence is unknown and should be assigned by the Gateway.
+pub enum ClientType {
+    Desktop,
+    Web,
+    Mobile,
     #[default]
     Unknown,
 }

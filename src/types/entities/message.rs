@@ -481,6 +481,7 @@ bitflags! {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Default, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 // Note: this is likely used for unicode emojis
 pub struct PartialEmoji {
     /// Note: if id is None, the name field
