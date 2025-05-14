@@ -18,7 +18,7 @@ pub struct SessionsReplace {
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 /// Session info for the current user
 pub struct Session {
-    pub activities: Option<Vec<Activity>>,
+    pub activities: Vec<Activity>,
     pub client_info: ClientInfo,
     pub session_id: String, // Snowflake, but headless sessions start with 'h:'.  Should that be baked into the Snowflake struct?
     pub status: ClientStatusType,
