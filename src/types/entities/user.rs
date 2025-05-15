@@ -42,7 +42,7 @@ impl User {
 #[cfg_attr(feature = "client", derive(Updateable, Composite))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#user-structure>
+/// See <https://docs.discord.food/resources/user#user-structure>
 pub struct User {
     pub id: Snowflake,
     pub username: String,
@@ -148,7 +148,7 @@ impl sqlx::Type<sqlx::Postgres> for ThemeColors {
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#partial-user-structure>
+/// See <https://docs.discord.food/resources/user#partial-user-structure>
 pub struct PublicUser {
     pub id: Snowflake,
     pub username: Option<String>,
@@ -194,7 +194,7 @@ bitflags::bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
      /// # Reference
-     /// See <https://docs.discord.sex/resources/user#user-flags>
+     /// See <https://docs.discord.food/resources/user#user-flags>
     pub struct UserFlags: u64 {
         const DISCORD_EMPLOYEE = 1 << 0;
         const PARTNERED_SERVER_OWNER = 1 << 1;
@@ -237,7 +237,7 @@ bitflags::bitflags! {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// **User** premium (Nitro) type
 ///
-/// See <https://docs.discord.sex/resources/user#premium-type>
+/// See <https://docs.discord.food/resources/user#premium-type>
 pub enum PremiumType {
     #[default]
     /// No Nitro
@@ -296,7 +296,7 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for PremiumType {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#profile-metadata-object>
+/// See <https://docs.discord.food/resources/user#profile-metadata-object>
 pub struct UserProfileMetadata {
     /// The guild ID this profile applies to, if it is a guild profile.
     pub guild_id: Option<Snowflake>,
@@ -321,7 +321,7 @@ pub struct UserProfileMetadata {
 /// A user's publically facing profile
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#profile-metadata-object>
+/// See <https://docs.discord.food/resources/user#profile-metadata-object>
 pub struct UserProfile {
     // TODO: add profile application object
     pub user: PublicUser,
@@ -366,7 +366,7 @@ pub struct UserProfile {
 /// Info about a badge on a user's profile ([UserProfile])
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#profile-badge-structure>
+/// See <https://docs.discord.food/resources/user#profile-badge-structure>
 ///
 /// For a list of know badges, see <https://gist.github.com/XYZenix/c45156b7c883b5301c9028e39d71b479>
 pub struct ProfileBadge {
@@ -806,7 +806,7 @@ impl ProfileBadge {
 /// Structure which shows a mutual guild with a user
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#mutual-guild-structure>
+/// See <https://docs.discord.food/resources/user#mutual-guild-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MutualGuild {
     pub id: Snowflake,
@@ -821,7 +821,7 @@ pub struct MutualGuild {
 // Specualation: this is probably how Discord stores notes internally
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#get-user-note>
+/// See <https://docs.discord.food/resources/user#get-user-note>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct UserNote {
@@ -839,7 +839,7 @@ pub struct UserNote {
 /// Structure which defines an affinity the local user has with another user.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#user-affinity-structure>
+/// See <https://docs.discord.food/resources/user#user-affinity-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, PartialOrd)]
 pub struct UserAffinity {
     /// The other user's id
@@ -851,7 +851,7 @@ pub struct UserAffinity {
 /// Structure which defines an affinity the local user has with a guild.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#guild-affinity-structure>
+/// See <https://docs.discord.food/resources/user#guild-affinity-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, PartialOrd)]
 pub struct GuildAffinity {
     /// The guild's id
@@ -863,7 +863,7 @@ pub struct GuildAffinity {
 /// Structure which defines the local user's premium perk usage.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#get-user-premium-usage>
+/// See <https://docs.discord.food/resources/user#get-user-premium-usage>
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct PremiumUsage {
     /// Number of Nitro stickers the user has sent
@@ -885,7 +885,7 @@ pub struct PremiumUsage {
 /// Currently only contains the number of uses of a premium perk.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#premium-usage-structure>
+/// See <https://docs.discord.food/resources/user#premium-usage-structure>
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct PremiumUsageData {
     /// Total number of uses for this perk

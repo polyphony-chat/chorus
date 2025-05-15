@@ -16,7 +16,7 @@ impl ChorusUser {
     /// Fires a [crate::types::GuildDelete] and [crate::types::GuildMemberRemove] event
     ///
     /// # Reference:
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#leave-guild>
+    /// See <https://docs.discord.food/resources/guild#leave-guild>
     // TODO: Docs: What is "lurking" here?
     // It is documented as "Whether the user is lurking in the guild",
     // but that says nothing about what this field actually does / means
@@ -35,7 +35,7 @@ impl ChorusUser {
                 .json(&GuildLeaveSchema { lurking }),
             limit_type: LimitType::Guild(*guild_id),
         }
-        .handle_request_as_result(self)
+        .send_and_handle_as_result(self)
         .await
     }
 
@@ -46,7 +46,7 @@ impl ChorusUser {
     /// All parameters are optional
     ///
     /// # Reference:
-    /// See <https://docs.discord.sex/resources/guild#get-user-guilds>
+    /// See <https://docs.discord.food/resources/guild#get-user-guilds>
     pub async fn get_guilds(
         &mut self,
         query: Option<GetUserGuildsSchema>,
@@ -71,7 +71,7 @@ impl ChorusUser {
         .with_headers_for(self);
 
         chorus_request
-            .deserialize_response::<Vec<Guild>>(self)
+            .send_and_deserialize_response::<Vec<Guild>>(self)
             .await
     }
 
@@ -79,7 +79,7 @@ impl ChorusUser {
     /// pending join requests for.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-join-request-guilds>
+    /// See <https://docs.discord.food/resources/guild#get-join-request-guilds>
     pub async fn get_join_request_guilds(&mut self) -> ChorusResult<Vec<Guild>> {
         let url = format!(
             "{}/users/@me/join-request-guilds",
@@ -93,7 +93,7 @@ impl ChorusUser {
         .with_headers_for(self);
 
         chorus_request
-            .deserialize_response::<Vec<Guild>>(self)
+            .send_and_deserialize_response::<Vec<Guild>>(self)
             .await
     }
 }

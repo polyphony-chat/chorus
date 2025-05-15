@@ -13,11 +13,15 @@ wasm_bindgen_test_configure!(run_in_browser);
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn generate_general_configuration_schema() {
     let bundle = common::setup().await;
+
     bundle
         .instance
+        .write()
+        .unwrap()
         .general_configuration_schema()
         .await
         .unwrap();
+
     common::teardown(bundle).await;
 }
 
@@ -26,10 +30,16 @@ async fn generate_general_configuration_schema() {
 async fn detect_instance_software() {
     let bundle = common::setup().await;
 
-    let software = bundle.instance.detect_software().await;
+    let mut instance_lock = bundle.instance.write().unwrap();
+
+    let software = instance_lock.detect_software().await;
     assert_eq!(software, InstanceSoftware::SpacebarTypescript);
 
-    assert_eq!(bundle.instance.software(), InstanceSoftware::SpacebarTypescript);
+    assert_eq!(
+        instance_lock.software(),
+        InstanceSoftware::SpacebarTypescript
+    );
+    drop(instance_lock);
 
     common::teardown(bundle).await;
 }

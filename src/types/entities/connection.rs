@@ -10,7 +10,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// A 3rd party service connection to a user's account.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#connection-object>
+/// See <https://docs.discord.food/resources/user#connection-object>
 // TODO: Should (could) this type be Updateable and Composite?
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -71,7 +71,7 @@ impl Connection {
 /// A partial / public [Connection] type.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#partial-connection-structure>
+/// See <https://docs.discord.food/resources/user#partial-connection-structure>
 // FIXME: Should (could) this type also be Updateable and Composite?
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct PublicConnection {
@@ -107,7 +107,7 @@ impl From<Connection> for PublicConnection {
 /// Note: this is subject to change, and the enum is likely non-exhaustive
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#connection-type>
+/// See <https://docs.discord.food/resources/user#connection-type>
 pub enum ConnectionType {
     #[serde(rename = "amazon-music")]
     AmazonMusic,
@@ -257,7 +257,7 @@ impl ConnectionType {
 #[repr(u8)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#visibility-type>
+/// See <https://docs.discord.food/resources/user#visibility-type>
 pub enum ConnectionVisibilityType {
     /// Invisible to everyone except the user themselves
     None = 0,
@@ -271,7 +271,7 @@ pub enum ConnectionVisibilityType {
 /// A type of two-way connection link
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#two-way-link-type>
+/// See <https://docs.discord.food/resources/user#two-way-link-type>
 pub enum TwoWayLinkType {
     /// The connection is linked via web
     Web,
@@ -291,7 +291,7 @@ impl Display for TwoWayLinkType {
 /// Defines a subreddit as fetched through a Reddit connection ([[ConnectionType::Reddit]]).
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/user#subreddit-structure>
+/// See <https://docs.discord.food/resources/user#subreddit-structure>
 pub struct ConnectionSubreddit {
     /// The subreddit's internal id, e.g. "t5_388p4"
     pub id: String,

@@ -1,14 +1,13 @@
 [package]
 name = "chorus"
 description = "A library for interacting with multiple Spacebar-compatible Instances at once."
-version = "0.19.0"
+version = "0.20.0"
 license = "MPL-2.0"
 edition = "2021"
 repository = "https://github.com/polyphony-chat/chorus"
 readme = "README.md"
 keywords = ["spacebar", "discord", "polyphony"]
-website = ["https://discord.com/invite/m3FpcapGDD"]
-rust-version = "1.71.1"
+rust-version = "1.81.0"
 
 
 [features]
@@ -23,7 +22,7 @@ voice_gateway = []
 sqlx-pg-uint = ["dep:sqlx-pg-uint", "sqlx-pg-uint/serde"]
 
 [dependencies]
-tokio = { version = "1.39.3", features = ["macros", "sync"] }
+tokio = { version = "1.43.1", features = ["macros", "sync"] }
 serde = { version = "1.0.209", features = ["derive", "rc"] }
 serde_json = { version = "1.0.127", features = ["raw_value"] }
 serde-aux = "4.5.0"
@@ -38,14 +37,14 @@ url = "2.5.2"
 chrono = { version = "0.4.38", features = ["serde"] }
 regex = "1.10.6"
 custom_error = "1.9.2"
-futures-util = "0.3.30"
+futures-util = "0.3.31"
 http = "0.2.12"
 base64 = "0.21.7"
 bitflags = { version = "2.6.0", features = ["serde"] }
 lazy_static = "1.5.0"
 poem = { version = "3.0.1", features = ["multipart"], optional = true }
 thiserror = "1.0.63"
-jsonwebtoken = "8.3.0"
+jsonwebtoken = "9.3.1"
 log = "0.4.22"
 async-trait = "0.1.81"
 chorus-macros = { path = "./chorus-macros", version = "0" } # Note: version here is used when releasing. This will use the latest release. Make sure to republish the crate when code in macros is changed!
@@ -67,7 +66,7 @@ rand = "0.8.5"
 flate2 = { version = "1.0.33", optional = true }
 webpki-roots = "0.26.3"
 pubserve = { version = "1.1.0", features = ["async", "send"] }
-sqlx-pg-uint = { version = "0.8.0", features = ["serde"], optional = true }
+sqlx-pg-uint = { version = "0.10.0", features = ["serde"], optional = true }
 
 # Note: this does not another dependency when compiling, since many other dependencies (reqwest, http, sqlx, tokio_tungstenite, ...) also depend on the same version
 #
@@ -75,8 +74,8 @@ sqlx-pg-uint = { version = "0.8.0", features = ["serde"], optional = true }
 bytes = "1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-rustls = "0.23.20"
-tokio-tungstenite = { version = "0.26.1", features = [
+rustls = "0.23.26"
+tokio-tungstenite = { version = "0.26.2", features = [
     "rustls-tls-webpki-roots",
 ] }
 hostname = "0.3.1"
@@ -86,15 +85,14 @@ getrandom = { version = "0.2.15" }
 getrandom = { version = "0.2.15", features = ["js"] }
 ws_stream_wasm = "0.7.4"
 pharos = "0.5.3" # This is a dependency of ws_stream_wasm, we are including it to interface with that library
-wasm-bindgen-futures = "0.4.43"
-wasmtimer = "0.4.0"
+wasm-bindgen-futures = "0.4.50"
+wasmtimer = "0.4.1"
 
 [dev-dependencies]
 lazy_static = "1.5.0"
-wasm-bindgen-test = "0.3.43"
-wasm-bindgen = "0.2.95"
+wasm-bindgen-test = "0.3.50"
+wasm-bindgen = "0.2.100"
 simple_logger = { version = "5.0.0", default-features = false }
-tokio-test = "0.4.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 httptest = "0.16.1"

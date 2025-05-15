@@ -7,7 +7,7 @@ use chorus_macros::WebSocketEvent;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
-/// See <https://docs.discord.sex/topics/gateway-events#authenticator-create>;
+/// See <https://docs.discord.food/topics/gateway-events#authenticator-create>;
 ///
 /// Sent when an [MfaAuthenticator] is created.
 pub struct AuthenticatorCreate {
@@ -16,7 +16,7 @@ pub struct AuthenticatorCreate {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq, Eq, WebSocketEvent)]
-/// See <https://docs.discord.sex/topics/gateway-events#authenticator-update>;
+/// See <https://docs.discord.food/topics/gateway-events#authenticator-update>;
 ///
 /// Sent when an [MfaAuthenticator] is modified.
 pub struct AuthenticatorUpdate {
@@ -25,7 +25,7 @@ pub struct AuthenticatorUpdate {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, WebSocketEvent)]
-/// See <https://docs.discord.sex/topics/gateway-events#authenticator-delete>;
+/// See <https://docs.discord.food/topics/gateway-events#authenticator-delete>;
 ///
 /// Sent when an [MfaAuthenticator] is deleted.
 pub struct AuthenticatorDelete {

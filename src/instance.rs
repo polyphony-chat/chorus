@@ -89,6 +89,7 @@ impl PartialEq for LimitsInformation {
 }
 
 impl Instance {
+    #[allow(unused)]
     pub(crate) fn clone_limits_if_some(&self) -> Option<HashMap<LimitType, Limit>> {
         if self.limits_information.is_some() {
             return Some(self.limits_information.as_ref().unwrap().ratelimits.clone());
@@ -177,7 +178,7 @@ impl Instance {
     }
 
     /// Detects which [InstanceSoftware] the instance is running.
-    pub async fn detect_software(&self) -> InstanceSoftware {
+    pub async fn detect_software(&mut self) -> InstanceSoftware {
         if let Ok(version) = self.get_version().await {
             match version.server.to_lowercase().as_str() {
                 "symfonia" => return InstanceSoftware::Symfonia,
@@ -362,7 +363,12 @@ impl ChorusUser {
     ) -> ChorusResult<()> {
         self.token = token.clone();
 
-		  let instance_default_events = self.belongs_to.read().unwrap().default_gateway_events.clone();
+        let instance_default_events = self
+            .belongs_to
+            .read()
+            .unwrap()
+            .default_gateway_events
+            .clone();
 
         *self.gateway.events.lock().await = instance_default_events;
 
@@ -423,22 +429,20 @@ impl ChorusUser {
     /// This route is usually used in response to [ChorusError::MfaRequired](crate::ChorusError::MfaRequired).
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/authentication#verify-mfa>
+    /// See <https://docs.discord.food/authentication#verify-mfa>
     pub async fn complete_mfa_challenge(
         &mut self,
         mfa_verify_schema: MfaVerifySchema,
     ) -> ChorusResult<()> {
         let endpoint_url = self.belongs_to.read().unwrap().urls.api.clone() + "/mfa/finish";
         let chorus_request = ChorusRequest {
-            request: Client::new()
-                .post(endpoint_url)
-                .header("Authorization", self.token())
-                .json(&mfa_verify_schema),
+            request: Client::new().post(endpoint_url).json(&mfa_verify_schema),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_headers_for(self);
 
         let mfa_token_schema = chorus_request
-            .deserialize_response::<MfaTokenSchema>(self)
+            .send_and_deserialize_response::<MfaTokenSchema>(self)
             .await?;
 
         self.mfa_token = Some(MfaToken {

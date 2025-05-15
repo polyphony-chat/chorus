@@ -40,7 +40,7 @@ use super::{option_arc_rwlock_ptr_eq, option_vec_arc_rwlock_ptr_eq, Emoji};
 /// Represents a guild or private channel
 ///
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/channel#channels-resource>
+/// See <https://docs.discord.food/resources/channel#channels-resource>
 pub struct Channel {
     pub application_id: Option<Snowflake>,
     #[cfg(not(feature = "sqlx"))]
@@ -178,7 +178,7 @@ fn compare_permission_overwrites(
 /// A tag that can be applied to a thread in a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel.
 ///
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/channel#forum-tag-object>
+/// See <https://docs.discord.food/resources/channel#forum-tag-object>
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct Tag {
@@ -212,7 +212,7 @@ pub struct PermissionOverwrite {
 #[cfg_attr(feature = "sqlx", repr(i16))]
 /// # Reference
 ///
-/// See <https://docs.discord.sex/resources/channel#permission-overwrite-type>
+/// See <https://docs.discord.food/resources/channel#permission-overwrite-type>
 pub enum PermissionOverwriteType {
     Role = 0,
     Member = 1,
@@ -291,7 +291,7 @@ impl<'de> Deserialize<'de> for PermissionOverwriteType {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Copy)]
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/channel#thread-metadata-object>
+/// See <https://docs.discord.food/resources/channel#thread-metadata-object>
 pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: i32,
@@ -303,7 +303,7 @@ pub struct ThreadMetadata {
 
 #[derive(Default, Debug, Deserialize, Serialize, Clone)]
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/channel#thread-member-object>
+/// See <https://docs.discord.food/resources/channel#thread-member-object>
 pub struct ThreadMember {
     pub id: Option<Snowflake>,
     pub user_id: Option<Snowflake>,
@@ -327,7 +327,7 @@ impl PartialEq for ThreadMember {
 /// Specifies the emoji to use as the default way to react to a [ChannelType::GuildForum] or [ChannelType::GuildMedia] channel post.
 ///
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/channel#default-reaction-object>
+/// See <https://docs.discord.food/resources/channel#default-reaction-object>
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow, sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(type_name = "interface_type"))]
 pub struct DefaultReaction {
@@ -364,7 +364,7 @@ impl From<Emoji> for DefaultReaction {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(i32)]
 /// # Reference
-/// See <https://discord-userdoccers.vercel.app/resources/channel#channel-type>
+/// See <https://docs.discord.food/resources/channel#channel-type>
 pub enum ChannelType {
     #[default]
     /// A text channel within a guild
@@ -417,7 +417,7 @@ pub enum ChannelType {
 }
 
 /// # Reference
-/// See <https://docs.discord.sex/resources/message#followed-channel-object>
+/// See <https://docs.discord.food/resources/message#followed-channel-object>
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord)]
 pub struct FollowedChannel {
     pub channel_id: Snowflake,

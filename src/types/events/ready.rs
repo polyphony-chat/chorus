@@ -18,7 +18,7 @@ use crate::{UInt32, UInt64, UInt8};
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Received after identifying, provides initial user information and client state.
 ///
-/// See <https://docs.discord.sex/topics/gateway-events#ready> and <https://discord.com/developers/docs/topics/gateway-events#ready>
+/// See <https://docs.discord.food/topics/gateway-events#ready> and <https://discord.com/developers/docs/topics/gateway-events#ready>
 pub struct GatewayReady {
     #[serde(default)]
     /// An array of stringified JSON values representing the connection trace, used for debugging
@@ -111,7 +111,7 @@ pub struct GatewayReady {
 #[derive(Debug, Deserialize, Serialize, Default, Clone, WebSocketEvent)]
 /// Received after identifying, provides initial information about the bot session.
 ///
-/// See <https://docs.discord.sex/topics/gateway-events#ready> and <https://discord.com/developers/docs/topics/gateway-events#ready>
+/// See <https://docs.discord.food/topics/gateway-events#ready> and <https://discord.com/developers/docs/topics/gateway-events#ready>
 pub struct GatewayReadyBot {
     #[serde(default)]
     /// An array of stringified JSON values representing the connection trace, used for debugging
@@ -182,24 +182,24 @@ impl GatewayReady {
 /// Sent after the READY event when a client is a user,
 /// seems to somehow add onto the ready event;
 ///
-/// See <https://docs.discord.sex/topics/gateway-events#ready-supplemental>
+/// See <https://docs.discord.food/topics/gateway-events#ready-supplemental>
 pub struct GatewayReadySupplemental {
     /// The presences of the user's relationships and guild presences sent at startup
     pub merged_presences: MergedPresences,
     pub merged_members: Vec<Vec<GuildMember>>,
     pub lazy_private_channels: Vec<Channel>,
     pub guilds: Vec<SupplementalGuild>,
-    // "Upcoming changes that the client should disclose to the user" (discord.sex)
+    // "Upcoming changes that the client should disclose to the user" (discord.food)
     pub disclose: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// See <https://docs.discord.sex/topics/gateway-events#merged-presences-structure>
+/// See <https://docs.discord.food/topics/gateway-events#merged-presences-structure>
 pub struct MergedPresences {
     /// "Presences of the user's guilds in the same order as the guilds array in ready"
-    /// (discord.sex)
+    /// (discord.food)
     pub guilds: Vec<Vec<MergedPresenceGuild>>,
-    /// "Presences of the user's friends and implicit relationships" (discord.sex)
+    /// "Presences of the user's friends and implicit relationships" (discord.food)
     pub friends: Vec<MergedPresenceFriend>,
 }
 
@@ -228,7 +228,7 @@ pub struct MergedPresenceGuild {
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
-/// See <https://docs.discord.sex/topics/gateway-events#supplemental-guild-structure>
+/// See <https://docs.discord.food/topics/gateway-events#supplemental-guild-structure>
 pub struct SupplementalGuild {
     pub id: Snowflake,
     pub voice_states: Option<Vec<VoiceState>>,

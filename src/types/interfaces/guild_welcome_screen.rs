@@ -8,7 +8,7 @@ use crate::types::utils::Snowflake;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#welcome-screen-structure>
+/// See <https://docs.discord.food/resources/guild#welcome-screen-structure>
 pub struct WelcomeScreenObject {
     /// Whether or not the guild has the welcome screen enabled
     pub enabled: bool,
@@ -33,7 +33,7 @@ impl From<WelcomeScreenObject> for PublicGuildWelcomeScreen {
 /// A [Guild](crate::types::Guild) [WelcomeScreenObject] as returned by the api.
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#welcome-screen-structure>
+/// See <https://docs.discord.food/resources/guild#welcome-screen-structure>
 pub struct PublicGuildWelcomeScreen {
     /// The welcome message shown in the welcome screen (max 140 characters)
     pub description: Option<String>,
@@ -46,7 +46,7 @@ pub struct PublicGuildWelcomeScreen {
 /// A [Channel](crate::types::Channel) as shown in the guild's [Welcome Screen](WelcomeScreenObject)
 ///
 /// # Reference
-/// See <https://docs.discord.sex/resources/guild#welcome-screen-channel-structure>
+/// See <https://docs.discord.food/resources/guild#welcome-screen-channel-structure>
 pub struct WelcomeScreenChannel {
     /// The id of the channel
     pub channel_id: Snowflake,

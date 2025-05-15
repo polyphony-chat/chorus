@@ -17,7 +17,7 @@ use crate::instance::InstanceSoftware;
 /// Similarly, discord also supports etf encoding, while chorus does not (yet).
 /// We are looking into supporting it as an option, since it is faster and more lightweight.
 ///
-/// See <https://docs.discord.sex/topics/gateway#connections>
+/// See <https://docs.discord.food/topics/gateway#connections>
 pub struct GatewayOptions {
     pub encoding: GatewayEncoding,
     pub transport_compression: GatewayTransportCompression,
@@ -84,7 +84,7 @@ impl GatewayOptions {
 #[derive(Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Debug, Default)]
 /// Possible transport compression options for the gateway.
 ///
-/// See <https://docs.discord.sex/topics/gateway#transport-compression>
+/// See <https://docs.discord.food/topics/gateway#transport-compression>
 pub enum GatewayTransportCompression {
     /// Do not transport compress packets
     None,
@@ -108,7 +108,7 @@ impl GatewayTransportCompression {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Debug, Default)]
-/// See <https://docs.discord.sex/topics/gateway#encoding-and-compression>
+/// See <https://docs.discord.food/topics/gateway#encoding-and-compression>
 pub enum GatewayEncoding {
     /// Javascript object notation, a standard for websocket connections,
     /// but contains a lot of overhead

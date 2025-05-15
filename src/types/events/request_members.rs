@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 /// If `query` is set, `limit` is required (if requesting all members, set `limit` to 0)
 ///
 /// # Reference
-/// See <https://docs.discord.sex/topics/gateway-events#request-guild-members>
+/// See <https://docs.discord.food/topics/gateway-events#request-guild-members>
 pub struct GatewayRequestGuildMembers {
     /// Id(s) of the guild(s) to get members for
     pub guild_id: OneOrMoreSnowflakes,

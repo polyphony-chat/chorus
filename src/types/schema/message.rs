@@ -51,7 +51,7 @@ impl std::fmt::Display for MessageSearchEndpoint {
 /// The `channel_id` field is not applicable when using the `GET /channels/{channel.id}/messages/search` endpoint.
 ///
 /// # Reference:
-/// See <https://discord-userdoccers.vercel.app/resources/message#search-messages>
+/// See <https://docs.discord.food/resources/message#search-messages>
 pub struct MessageSearchQuery {
     pub attachment_extension: Option<Vec<String>>,
     pub attachment_filename: Option<Vec<String>>,

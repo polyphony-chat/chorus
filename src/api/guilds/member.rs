@@ -11,7 +11,9 @@ use crate::{
     instance::ChorusUser,
     ratelimiter::ChorusRequest,
     types::{
-        self, AddGuildMemberReturn, AddGuildMemberSchema, AddRoleMembersSchema, Guild, GuildMember, LimitType, ModifyCurrentGuildMemberSchema, ModifyGuildMemberProfileSchema, ModifyGuildMemberSchema, Snowflake, UserProfileMetadata
+        self, AddGuildMemberReturn, AddGuildMemberSchema, AddRoleMembersSchema, Guild, GuildMember,
+        LimitType, ModifyCurrentGuildMemberSchema, ModifyGuildMemberProfileSchema,
+        ModifyGuildMemberSchema, Snowflake, UserProfileMetadata,
     },
 };
 
@@ -19,7 +21,7 @@ impl Guild {
     /// Fetch a [GuildMember] object for the specified user.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-member>
+    /// See <https://docs.discord.food/resources/guild#get-guild-member>
     pub async fn get_member(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -39,7 +41,7 @@ impl Guild {
         .with_headers_for(user);
 
         chorus_request
-            .deserialize_response::<GuildMember>(user)
+            .send_and_deserialize_response::<GuildMember>(user)
             .await
     }
 
@@ -51,7 +53,7 @@ impl Guild {
     /// of the guild with the [CREATE_INSTANT_INVITE](crate::types::PermissionFlags::CREATE_INSTANT_INVITE) permission.
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#add-guild-member>
+    /// See <https://docs.discord.food/resources/guild#add-guild-member>
     pub async fn add_member(
         guild_id: Snowflake,
         user_id: Snowflake,
@@ -71,12 +73,12 @@ impl Guild {
         }
         .with_authorization_for(user);
 
-        let response = request.send_request(user).await?;
+        let response = request.send(user).await?;
         log::trace!("Got response: {:?}", response);
 
-        let status = response.status();
+        let http_status = response.status();
 
-        match status {
+        match http_status {
             http::StatusCode::OK => {
                 let response_text = match response.text().await {
                     Ok(string) => string,
@@ -86,6 +88,7 @@ impl Guild {
                                 "Error while trying to process the HTTP response into a String: {}",
                                 e
                             ),
+                            http_status,
                         });
                     }
                 };
@@ -97,14 +100,15 @@ impl Guild {
 												error: format!(
 												"Error while trying to deserialize the JSON response into requested type T: {}. JSON Response: {}",
 												e, response_text),
+												http_status
 											})
                             }
                         }
             }
             http::StatusCode::NO_CONTENT => Ok(AddGuildMemberReturn::AlreadyAMember),
-            _ => Err(ChorusError::ReceivedErrorCode {
-                error_code: response.status().as_u16(),
-                error: response.status().to_string(),
+            _ => Err(ChorusError::InvalidResponse {
+                error: format!("Received unexpected http status code: {}", http_status),
+                http_status,
             }),
         }
     }
@@ -114,7 +118,7 @@ impl Guild {
     /// Requires the [KICK_MEMBERS](crate::types::PermissionFlags::KICK_MEMBERS) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member>
+    /// See <https://docs.discord.food/resources/guild#remove-guild-member>
     pub async fn remove_member(
         guild_id: Snowflake,
         member_id: Snowflake,
@@ -133,7 +137,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Modifies a [GuildMember] object.
@@ -141,7 +145,7 @@ impl Guild {
     /// Returns the updated object on success.
     ///
     /// # Reference
-    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member>
+    /// <https://docs.discord.food/resources/guild#modify-guild-member>
     pub async fn modify_member(
         guild_id: Snowflake,
         member_id: Snowflake,
@@ -163,13 +167,15 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response::<GuildMember>(user).await
+        request
+            .send_and_deserialize_response::<GuildMember>(user)
+            .await
     }
 
     /// Modifies the current user's member object in the guild.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-current-guild-member>
+    /// See <https://docs.discord.food/resources/guild#modify-current-guild-member>
     pub async fn modify_current_member(
         guild_id: Snowflake,
         schema: ModifyCurrentGuildMemberSchema,
@@ -189,13 +195,15 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        request.deserialize_response::<GuildMember>(user).await
+        request
+            .send_and_deserialize_response::<GuildMember>(user)
+            .await
     }
 
     /// Modifies the current user's profile in the guild.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member-profile>
+    /// See <https://docs.discord.food/resources/guild#modify-guild-member-profile>
     pub async fn modify_current_member_profile(
         guild_id: Snowflake,
         schema: ModifyGuildMemberProfileSchema,
@@ -214,7 +222,7 @@ impl Guild {
         .with_headers_for(user);
 
         request
-            .deserialize_response::<UserProfileMetadata>(user)
+            .send_and_deserialize_response::<UserProfileMetadata>(user)
             .await
     }
 
@@ -223,7 +231,7 @@ impl Guild {
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#add-guild-member-role>
+    /// See <https://docs.discord.food/resources/guild#add-guild-member-role>
     pub async fn add_member_role(
         user: &mut ChorusUser,
         audit_log_reason: Option<String>,
@@ -246,7 +254,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Removes a role from a guild member.
@@ -254,7 +262,7 @@ impl Guild {
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member-role>
+    /// See <https://docs.discord.food/resources/guild#remove-guild-member-role>
     pub async fn remove_member_role(
         user: &mut ChorusUser,
         audit_log_reason: Option<String>,
@@ -277,7 +285,7 @@ impl Guild {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Retrieves a mapping of role IDs to their respective member counts.
@@ -287,7 +295,7 @@ impl Guild {
     /// [RoleObject::get_all_member_counts](crate::types::RoleObject::get_all_member_counts)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-role-member-counts>
+    /// See <https://docs.discord.food/resources/guild#get-guild-role-member-counts>
     pub async fn get_role_member_counts(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -304,27 +312,27 @@ impl Guild {
     /// [RoleObject::get_all_member_counts](crate::types::RoleObject::get_all_member_counts)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-role-members>
+    /// See <https://docs.discord.food/resources/guild#get-guild-role-members>
     pub async fn get_role_members(
         user: &mut ChorusUser,
         guild_id: Snowflake,
-		  role_id: Snowflake
+        role_id: Snowflake,
     ) -> ChorusResult<Vec<Snowflake>> {
         crate::types::RoleObject::get_members(user, guild_id, role_id).await
     }
 
-	 /// Adds multiple guild members to a role.
+    /// Adds multiple guild members to a role.
     ///
     /// Requires the [MANAGE_ROLES](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// Returns a mapping of member IDs to guild member objects.
-	 ///
-	 /// # Notes
-	 /// This method is wrapper around
-	 /// [RoleObject::add_members](crate::types::RoleObject::add_members)
+    ///
+    /// # Notes
+    /// This method is wrapper around
+    /// [RoleObject::add_members](crate::types::RoleObject::add_members)
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#add-guild-role-members>
+    /// See <https://docs.discord.food/resources/guild#add-guild-role-members>
     pub async fn add_role_members(
         user: &mut ChorusUser,
         audit_log_reason: Option<String>,
@@ -332,8 +340,9 @@ impl Guild {
         role_id: Snowflake,
         schema: AddRoleMembersSchema,
     ) -> ChorusResult<HashMap<Snowflake, GuildMember>> {
-		crate::types::RoleObject::add_members(user, audit_log_reason, guild_id, role_id, schema).await
-	 }
+        crate::types::RoleObject::add_members(user, audit_log_reason, guild_id, role_id, schema)
+            .await
+    }
 }
 
 impl types::GuildMember {
@@ -343,7 +352,7 @@ impl types::GuildMember {
     /// This is an alias of [Guild::get_member]
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#get-guild-member>
+    /// See <https://docs.discord.food/resources/guild#get-guild-member>
     pub async fn get(
         user: &mut ChorusUser,
         guild_id: Snowflake,
@@ -363,7 +372,7 @@ impl types::GuildMember {
     /// This is an alias of [Guild::add_member]
     ///
     /// # Reference
-    /// See <https://docs.discord.sex/resources/guild#add-guild-member>
+    /// See <https://docs.discord.food/resources/guild#add-guild-member>
     pub async fn add(
         guild_id: Snowflake,
         user_id: Snowflake,
@@ -381,7 +390,7 @@ impl types::GuildMember {
     /// This is an alias of [Guild::remove_member]
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member>
+    /// See <https://docs.discord.food/resources/guild#remove-guild-member>
     pub async fn remove(
         guild_id: Snowflake,
         member_id: Snowflake,
@@ -399,7 +408,7 @@ impl types::GuildMember {
     /// This is an alias of [Guild::modify_member]
     ///
     /// # Reference
-    /// <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member>
+    /// <https://docs.discord.food/resources/guild#modify-guild-member>
     pub async fn modify(
         guild_id: Snowflake,
         member_id: Snowflake,
@@ -416,7 +425,7 @@ impl types::GuildMember {
     /// This is an alias of [Guild::modify_current_member]
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-current-guild-member>
+    /// See <https://docs.discord.food/resources/guild#modify-current-guild-member>
     pub async fn modify_current(
         guild_id: Snowflake,
         schema: ModifyCurrentGuildMemberSchema,
@@ -432,7 +441,7 @@ impl types::GuildMember {
     /// This is an alias of [Guild::modify_current_member_profile]
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#modify-guild-member-profile>
+    /// See <https://docs.discord.food/resources/guild#modify-guild-member-profile>
     pub async fn modify_current_profile(
         guild_id: Snowflake,
         schema: ModifyGuildMemberProfileSchema,
@@ -449,7 +458,7 @@ impl types::GuildMember {
     /// This is an alias of [Guild::add_member_role]
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#add-guild-member-role>
+    /// See <https://docs.discord.food/resources/guild#add-guild-member-role>
     pub async fn add_role(
         user: &mut ChorusUser,
         audit_log_reason: Option<String>,
@@ -468,7 +477,7 @@ impl types::GuildMember {
     /// This is an alias of [Guild::remove_member_role]
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/guild#remove-guild-member-role>
+    /// See <https://docs.discord.food/resources/guild#remove-guild-member-role>
     pub async fn remove_role(
         user: &mut ChorusUser,
         audit_log_reason: Option<String>,

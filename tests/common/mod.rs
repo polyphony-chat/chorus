@@ -29,7 +29,7 @@ use httptest::{
 pub(crate) struct TestBundle {
     pub urls: UrlBundle,
     pub user: ChorusUser,
-    pub instance: Instance,
+    pub instance: Shared<Instance>,
     pub guild: Shared<Guild>,
     pub role: Shared<RoleObject>,
     pub channel: Shared<Channel>,
@@ -44,24 +44,26 @@ impl TestBundle {
             date_of_birth: Some(NaiveDate::from_str("2000-01-01").unwrap()),
             ..Default::default()
         };
-        self.instance
-            .clone()
-            .register_account(register_schema)
+
+        Instance::register_account(self.instance.clone(), register_schema)
             .await
             .unwrap()
     }
     pub(crate) async fn clone_user_without_gateway(&self) -> ChorusUser {
         ChorusUser {
-			   client_properties: Default::default(),
+            client_properties: Default::default(),
             belongs_to: self.user.belongs_to.clone(),
             token: self.user.token.clone(),
             mfa_token: None,
             limits: self.user.limits.clone(),
             settings: self.user.settings.clone(),
             object: self.user.object.clone(),
-            gateway: Gateway::spawn(&self.instance.urls.wss, GatewayOptions::default())
-                .await
-                .unwrap(),
+            gateway: Gateway::spawn(
+                &self.instance.read().unwrap().urls.wss,
+                GatewayOptions::default(),
+            )
+            .await
+            .unwrap(),
         }
     }
 }
@@ -79,7 +81,9 @@ pub(crate) async fn setup() -> TestBundle {
 
     let instance = Instance::new("http://localhost:3001/api", None)
         .await
-        .unwrap();
+        .unwrap()
+        .into_shared();
+
     // Requires the existence of the below user.
     let reg = RegisterSchema {
         username: "integrationtestuser".into(),
@@ -89,7 +93,7 @@ pub(crate) async fn setup() -> TestBundle {
     };
     let guild_create_schema = GuildCreateSchema {
         name: Some("Test-Guild!".to_string()),
-		  ..Default::default()
+        ..Default::default()
     };
     let channel_create_schema = ChannelCreateSchema {
         name: "testchannel".to_string(),
@@ -97,9 +101,11 @@ pub(crate) async fn setup() -> TestBundle {
         nsfw: Some(false),
         flags: Some(0),
         default_thread_rate_limit_per_user: Some(0),
-		  ..Default::default()
+        ..Default::default()
     };
-    let mut user = instance.clone().register_account(reg).await.unwrap();
+    let mut user = Instance::register_account(instance.clone(), reg)
+        .await
+        .unwrap();
     let guild = Guild::create(&mut user, guild_create_schema).await.unwrap();
     let channel = Channel::create(&mut user, guild.id, None, channel_create_schema)
         .await
@@ -154,7 +160,8 @@ pub(crate) async fn setup_with_mock_server(server: &httptest::Server) -> TestBun
 
     let instance = Instance::new(server.url_str("/api").as_str(), None)
         .await
-        .unwrap();
+        .unwrap()
+        .into_shared();
 
     // Requires the existence of the below user.
     let reg = RegisterSchema {
@@ -163,7 +170,9 @@ pub(crate) async fn setup_with_mock_server(server: &httptest::Server) -> TestBun
         date_of_birth: Some(NaiveDate::from_str("2000-01-01").unwrap()),
         ..Default::default()
     };
-    let user = instance.clone().register_account(reg).await.unwrap();
+    let user = Instance::register_account(instance.clone(), reg)
+        .await
+        .unwrap();
 
     let guild = Guild {
         id: Snowflake(123456789101112131),
@@ -191,7 +200,7 @@ pub(crate) async fn setup_with_mock_server(server: &httptest::Server) -> TestBun
         ..Default::default()
     };
 
-    let urls = instance.urls.clone();
+    let urls = instance.read().unwrap().urls.clone();
 
     TestBundle {
         urls,
@@ -240,7 +249,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::method("GET"),
             request::path("/api/policies/instance/domains")
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(json_encoded(
             chorus::types::types::domains_configuration::Domains {
                 api_endpoint: api_url.to_string(),
@@ -257,7 +266,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::method("POST"),
             request::path("/api/auth/register")
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(json_encoded(chorus::instance::Token {
             token: "faketoken".to_string(),
         })),
@@ -268,7 +277,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::method("POST"),
             request::path("/api/auth/login")
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(json_encoded(chorus::types::LoginResult {
             token: "faketoken".to_string(),
             settings: chorus::types::UserSettings {
@@ -284,7 +293,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::path("/api/users/@me"),
             request::headers(contains(("authorization", "faketoken")))
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(json_encoded(chorus::types::User {
             id: chorus::types::Snowflake(123456789101112131),
             username: "integrationtestuser".to_string(),
@@ -302,7 +311,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::path("/api/users/@me/settings"),
             request::headers(contains(("authorization", "faketoken")))
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(json_encoded(chorus::types::UserSettings {
             status: chorus::types::UserStatus::Online.into_shared(),
             ..Default::default()
@@ -317,7 +326,7 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::path("/api/guilds/123456789101112131/delete"),
             request::headers(contains(("authorization", "faketoken")))
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(status_code(200)),
     );
 
@@ -327,63 +336,60 @@ pub(crate) fn create_mock_server() -> httptest::Server {
             request::path("/api/users/@me/delete"),
             request::headers(contains(("authorization", "faketoken")))
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(status_code(200)),
     );
 
-	 // The following should just return a 404, and it's normal that we're getting them
-	 server.expect(
+    // The following should just return a 404, and it's normal that we're getting them
+    server.expect(
         Expectation::matching(all_of![
             request::method("GET"),
             request::path("/api/.well-known/spacebar")
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(status_code(404)),
     );
 
-	 server.expect(
+    server.expect(
         Expectation::matching(all_of![
             request::method("GET"),
             request::path("/api/api/policies/instance/domains")
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(status_code(404)),
     );
 
-	 server.expect(
+    server.expect(
         Expectation::matching(all_of![
             request::method("GET"),
             request::path("/api/policies/instance/limits")
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(status_code(404)),
     );
 
-	 server.expect(
+    server.expect(
         Expectation::matching(all_of![
             request::method("GET"),
             request::path("/api/policies/instance/")
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(status_code(404)),
     );
 
-	 server.expect(
+    server.expect(
         Expectation::matching(all_of![
             request::method("GET"),
             request::path("/api/version")
         ])
-		  .times(0..100)
+        .times(0..100)
         .respond_with(status_code(404)),
     );
 
-	 server.expect(
-        Expectation::matching(all_of![
-            request::method("GET"),
-            request::path("/api/ping")
-        ])
-		  .times(0..100)
-        .respond_with(status_code(404)),
+    server.expect(
+        Expectation::matching(all_of![request::method("GET"), request::path("/api/ping")])
+            .times(0..100)
+            .respond_with(status_code(404)),
     );
 
     server

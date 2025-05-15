@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// Query parameters for the `Get Invite` route.
 ///
 /// # Reference:
-/// See <https://docs.discord.sex/resources/invite#query-string-params>
+/// See <https://docs.discord.food/resources/invite#query-string-params>
 pub struct GetInvitesSchema {
     pub with_counts: Option<bool>,
 }
@@ -17,14 +17,14 @@ pub struct GetInvitesSchema {
 /// JSON schema for the [crate::instance::ChorusUser::accept_invite] route
 ///
 /// # Reference:
-/// See <https://docs.discord.sex/resources/invite#json-params>
+/// See <https://docs.discord.food/resources/invite#json-params>
 pub(crate) struct AcceptInviteSchema {
     pub session_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 /// # Reference:
-/// See <https://docs.discord.sex/resources/guild#get-guild-vanity-invite>
+/// See <https://docs.discord.food/resources/guild#get-guild-vanity-invite>
 pub struct GuildVanityInviteResponse {
     pub code: String,
     #[serde(default)]
@@ -33,7 +33,7 @@ pub struct GuildVanityInviteResponse {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 /// # Reference:
-/// See <https://docs.discord.sex/resources/guild#modify-guild-vanity-invite>
+/// See <https://docs.discord.food/resources/guild#modify-guild-vanity-invite>
 pub struct GuildCreateVanitySchema {
     pub code: String,
 }

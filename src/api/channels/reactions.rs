@@ -39,7 +39,7 @@ impl ReactionMeta {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Gets a list of users that reacted with a specific emoji to a message.
@@ -64,7 +64,7 @@ impl ReactionMeta {
         }
         .with_headers_for(user);
 
-        request.deserialize_response::<Vec<PublicUser>>(user).await
+        request.send_and_deserialize_response::<Vec<PublicUser>>(user).await
     }
 
     /// Deletes all the reactions for a given emoji on a message.
@@ -91,7 +91,7 @@ impl ReactionMeta {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Create a reaction on a message.
@@ -121,7 +121,7 @@ impl ReactionMeta {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Deletes a reaction the current user has made to the message.
@@ -146,7 +146,7 @@ impl ReactionMeta {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 
     /// Deletes a user's reaction to a message.
@@ -179,6 +179,6 @@ impl ReactionMeta {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 }

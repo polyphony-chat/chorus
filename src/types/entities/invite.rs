@@ -16,7 +16,7 @@ use super::guild::GuildScheduledEvent;
 use super::{Application, Channel, GuildMember, NSFWLevel, User};
 
 /// Represents a code that when used, adds a user to a guild or group DM channel, or creates a relationship between two users.
-/// See <https://discord-userdoccers.vercel.app/resources/invite#invite-object>
+/// See <https://docs.discord.food/resources/invite#invite-object>
 #[derive(Default, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Invite {
@@ -55,7 +55,7 @@ pub struct Invite {
 }
 
 /// The guild an invite is for.
-/// See <https://discord-userdoccers.vercel.app/resources/invite#invite-guild-object>
+/// See <https://docs.discord.food/resources/invite#invite-guild-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InviteGuild {
     pub id: Snowflake,
@@ -98,7 +98,7 @@ impl From<Guild> for InviteGuild {
     }
 }
 
-/// See <https://discord-userdoccers.vercel.app/resources/invite#invite-stage-instance-object>
+/// See <https://docs.discord.food/resources/invite#invite-stage-instance-object>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InviteStageInstance {
     pub members: Vec<Shared<GuildMember>>,

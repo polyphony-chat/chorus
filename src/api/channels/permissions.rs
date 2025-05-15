@@ -22,7 +22,7 @@ impl types::Channel {
     /// (unless you have a [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) overwrite in the channel).
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#modify-channel-permissions>
+    /// See <https://docs.discord.food/resources/channel#modify-channel-permissions>
     pub async fn modify_permissions(
         user: &mut ChorusUser,
         channel_id: Snowflake,
@@ -43,7 +43,7 @@ impl types::Channel {
         .with_maybe_audit_log_reason(audit_log_reason)
         .with_headers_for(user);
 
-        chorus_request.handle_request_as_result(user).await
+        chorus_request.send_and_handle_as_result(user).await
     }
 
     /// Deletes a permission overwrite for a user or role in a channel.
@@ -53,7 +53,7 @@ impl types::Channel {
     /// Requires the [`MANAGE_ROLES`](crate::types::PermissionFlags::MANAGE_ROLES) permission.
     ///
     /// # Reference
-    /// See <https://discord-userdoccers.vercel.app/resources/channel#delete-channel-permission>
+    /// See <https://docs.discord.food/resources/channel#delete-channel-permission>
     pub async fn delete_permission(
         user: &mut ChorusUser,
         channel_id: Snowflake,
@@ -72,6 +72,6 @@ impl types::Channel {
         }
         .with_headers_for(user);
 
-        request.handle_request_as_result(user).await
+        request.send_and_handle_as_result(user).await
     }
 }

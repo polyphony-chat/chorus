@@ -4,10 +4,14 @@
 
 use std::str::FromStr;
 
-use chorus::types::{
-    LoginSchema, MfaAuthenticationType, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema,
+use chorus::{
+    instance::Instance,
+    types::{
+        LoginSchema, MfaAuthenticationType, MfaVerifySchema, RegisterSchema, SendMfaSmsSchema,
+    },
 };
 
+use futures_util::task::waker;
 #[cfg(not(target_arch = "wasm32"))]
 use httptest::{
     matchers::{all_of, contains, eq, json_decoded, request},
@@ -28,21 +32,24 @@ mod common;
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_registration() {
-    let mut bundle = common::setup().await;
+    let bundle = common::setup().await;
     let reg = RegisterSchema {
         username: "Hiiii".into(),
         date_of_birth: Some(NaiveDate::from_str("2000-01-01").unwrap()),
         consent: true,
         ..Default::default()
     };
-    bundle.instance.register_account(reg).await.unwrap();
+
+    Instance::register_account(bundle.instance.clone(), reg)
+        .await
+        .unwrap();
     common::teardown(bundle).await;
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_login() {
-    let mut bundle = common::setup().await;
+    let bundle = common::setup().await;
     let reg = RegisterSchema {
         username: "Hiiii".into(),
         email: Some("testuser1@integrationtesting.xyz".into()),
@@ -51,20 +58,24 @@ async fn test_login() {
         consent: true,
         ..Default::default()
     };
-    bundle.instance.register_account(reg).await.unwrap();
+    Instance::register_account(bundle.instance.clone(), reg)
+        .await
+        .unwrap();
     let login = LoginSchema {
         login: "testuser1@integrationtesting.xyz".into(),
         password: "Correct-Horse-Battery-Staple1".into(),
         ..Default::default()
     };
-    bundle.instance.login_account(login).await.unwrap();
+    Instance::login_account(bundle.instance.clone(), login)
+        .await
+        .unwrap();
     common::teardown(bundle).await;
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_wrong_login() {
-    let mut bundle = common::setup().await;
+    let bundle = common::setup().await;
     let reg = RegisterSchema {
         username: "Hiiii".into(),
         email: Some("testuser2@integrationtesting.xyz".into()),
@@ -73,13 +84,15 @@ async fn test_wrong_login() {
         consent: true,
         ..Default::default()
     };
-    bundle.instance.register_account(reg).await.unwrap();
+    Instance::register_account(bundle.instance.clone(), reg)
+        .await
+        .unwrap();
     let login = LoginSchema {
         login: "testuser2@integrationtesting.xyz".into(),
         password: "Correct-Horse-Battery-Staple2".into(),
         ..Default::default()
     };
-    let res = bundle.instance.login_account(login).await;
+    let res = Instance::login_account(bundle.instance.clone(), login).await;
     assert!(res.is_err());
     common::teardown(bundle).await;
 }
@@ -87,10 +100,12 @@ async fn test_wrong_login() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_login_with_token() {
-    let mut bundle = common::setup().await;
+    let bundle = common::setup().await;
 
     let token = &bundle.user.token;
-    let other_user = bundle.instance.login_with_token(token).await.unwrap();
+    let other_user = Instance::login_with_token(bundle.instance.clone(), token)
+        .await
+        .unwrap();
     assert_eq!(
         bundle.user.object.read().unwrap().id,
         other_user.object.read().unwrap().id
@@ -103,10 +118,10 @@ async fn test_login_with_token() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn test_login_with_invalid_token() {
-    let mut bundle = common::setup().await;
+    let bundle = common::setup().await;
 
     let token = "invalid token lalalalala";
-    let other_user = bundle.instance.login_with_token(token).await;
+    let other_user = Instance::login_with_token(bundle.instance.clone(), token).await;
 
     assert!(other_user.is_err());
 
@@ -278,7 +293,7 @@ async fn test_complete_mfa_challenge_password() {
 #[cfg(not(target_arch = "wasm32"))]
 async fn test_send_mfa_sms() {
     let server = common::create_mock_server();
-    let mut bundle = common::setup_with_mock_server(&server).await;
+    let bundle = common::setup_with_mock_server(&server).await;
 
     server.expect(
         Expectation::matching(all_of![
@@ -293,7 +308,7 @@ async fn test_send_mfa_sms() {
         ticket: "testticket".to_string(),
     };
 
-    let result = bundle.instance.send_mfa_sms(schema).await;
+    let result = bundle.instance.write().unwrap().send_mfa_sms(schema).await;
 
     assert!(result.is_ok());
     assert_eq!(result.unwrap().phone, "+*******0085".to_string());

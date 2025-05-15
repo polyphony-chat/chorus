@@ -45,7 +45,7 @@ To get started with Chorus, import it into your project by adding the following 
 
 ```toml
 [dependencies]
-chorus = "0.19.0"
+chorus = "0.20.0"
 ```
 
 ### Establishing a Connection
@@ -53,16 +53,26 @@ chorus = "0.19.0"
 To connect to a Polyphony/Spacebar compatible server, you'll need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
 
 ```rust
-use chorus::instance::Instance;
+use chorus::{instance::Instance, types::IntoShared};
 
 #[tokio::main]
 async fn main() {
+
+    // This instance will later need to be shared across threads and users, so we'll
+    // store it inside of the `Shared` type (note the `into_shared()` method call)
     let instance = Instance::new("https://example.com", None)
         .await
-        .expect("Failed to connect to the Spacebar server");
+        .expect("Failed to connect to the Spacebar server")
+		  .into_shared();
+
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
-    dbg!(instance.instance_info);
-    dbg!(instance.limits_information);
+
+    // Each time we want to access the underlying `Instance` we need to lock
+    // its reference so other threads don't modify the data while we're reading or changing it
+    let instance_lock = instance.read().unwrap();
+
+    dbg!(&instance_lock.instance_info);
+    dbg!(&instance_lock.limits_information);
 }
 ```
 
@@ -84,8 +94,10 @@ let login_schema = LoginSchema {
 };
 // Each user connects to the Gateway. Each users' Gateway connection lives on a separate thread. Depending on
 // the runtime feature you choose, this can potentially take advantage of all of your computers' threads.
-let user = instance
-    .login_account(login_schema)
+//
+// Note that we clone the reference to the instance here, not the instance itself
+// (we do this because each user needs its own access to the instance's data)
+let user = Instance::login_account(instance.clone(), login_schema)
     .await
     .expect("An error occurred during the login process");
 dbg!(user.belongs_to);
@@ -120,11 +132,11 @@ We recommend checking out the "examples" directory, as well as the documentation
 
 ## MSRV (Minimum Supported Rust Version)
 
-Rust **1.71.1**. This number might change at any point while Chorus is not yet at version 1.0.0.
+Rust **1.81.0**. This number might change at any point while Chorus is not yet at version 1.0.0.
 
 ## Development Setup
 
-Make sure that you have at least Rust 1.71.1 installed. You can check your Rust version by running `cargo --version`
+Make sure that you have at least Rust 1.81.0 installed. You can check your Rust version by running `cargo --version`
 in your terminal. To compile for `wasm32-unknown-unknown`, you need to install the `wasm32-unknown-unknown` target.
 You can do this by running `rustup target add wasm32-unknown-unknown`.
 

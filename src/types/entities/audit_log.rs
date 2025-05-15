@@ -113,7 +113,7 @@ pub struct AuditLogChange {
 #[cfg_attr(feature = "sqlx", repr(i16))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 /// # Reference:
-/// See <https://docs.discord.sex/resources/audit-log#audit-log-events>
+/// See <https://docs.discord.food/resources/audit-log#audit-log-events>
 pub enum AuditLogActionType {
     #[default]
     /// Guild settings were updated
