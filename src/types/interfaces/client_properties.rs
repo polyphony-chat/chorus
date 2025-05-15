@@ -144,7 +144,7 @@ pub struct ClientProperties {
 
     /// Always sent, must be provided
     ///
-    /// Current is ~ 355624
+    /// Current is ~ 399244
     ///
     /// See [ClientBuildNumber] for more details
     #[serde(default)]
@@ -297,16 +297,16 @@ impl ClientProperties {
 
     /// Returns the most common properties for desktop web on windows
     ///
-    /// Currently chrome 132.0.0 on windows 10
+    /// Currently chrome 134.0.0 on windows 10
     ///
     /// See <https://www.useragents.me/#most-common-desktop-useragents>
     pub fn common_web_windows() -> Self {
-        // 24% of the web
+        // 17% of the web
         Self {
             os: ClientOs::windows(),
             os_version: ClientOsVersion::common_windows(),
             browser: ClientBrowser::chrome_desktop(),
-            browser_version: String::from("132.0.0"),
+            browser_version: String::from("134.0.0"),
             user_agent: ClientUserAgent::common_web_windows(),
             system_locale: ClientSystemLocale::en_us(),
             client_build_number: ClientBuildNumber::latest(),
@@ -324,7 +324,7 @@ impl ClientProperties {
             os: ClientOs::windows(),
             os_version: ClientOsVersion::common_windows(),
             browser: ClientBrowser::discord_desktop(),
-            browser_version: String::from("130.0.0"),
+            browser_version: String::from("134.0.0"),
             user_agent: ClientUserAgent::common_desktop_windows(),
             system_locale: ClientSystemLocale::en_us(),
             client_build_number: ClientBuildNumber::latest(),
@@ -344,7 +344,7 @@ impl ClientProperties {
             os: ClientOs::mac_os(),
             os_version: ClientOsVersion::common_mac_os(),
             browser: ClientBrowser::discord_desktop(),
-            browser_version: String::from("130.0.0"),
+            browser_version: String::from("113.0.0"),
             user_agent: ClientUserAgent::common_desktop_macos(),
             system_locale: ClientSystemLocale::en_us(),
             client_build_number: ClientBuildNumber::latest(),
@@ -364,7 +364,7 @@ impl ClientProperties {
             os: ClientOs::linux(),
             os_version: ClientOsVersion::latest_linux(),
             browser: ClientBrowser::discord_desktop(),
-            browser_version: String::from("130.0.0"),
+            browser_version: String::from("134.0.0"),
             user_agent: ClientUserAgent::common_desktop_windows(),
             system_locale: ClientSystemLocale::en_us(),
             client_build_number: ClientBuildNumber::latest(),
@@ -776,47 +776,47 @@ impl From<ClientUserAgent> for String {
 impl ClientUserAgent {
     /// Returns the most common user agent used for the web client on windows
     ///
-    /// Currently Chrome 131.0.0 on Windows 10, 24% of the web
+    /// Currently Chrome 134.0.0 on Windows 10, 17% of the web
     ///
     /// See <https://www.useragents.me/#most-common-desktop-useragents>
     pub fn common_web_windows() -> ClientUserAgent {
-        ClientUserAgent(String::from("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.3"))
+        ClientUserAgent(String::from("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.3"))
     }
 
     /// Returns the most common user agent used on Android web
     ///
-    /// Currently Chrome 132.0.0 on android
+    /// Currently Chrome 134.0.0 on android
     ///
     /// See <https://www.useragents.me/#most-common-mobile-useragents>
     pub fn common_web_android() -> ClientUserAgent {
-        ClientUserAgent(String::from("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Mobile Safari/537.3"))
+        ClientUserAgent(String::from("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.3"))
     }
 
     /// Returns the most common user agent used for the ios web
     ///
-    /// Currently Safari on ios 18.1.1
+    /// Currently Safari on ios 18.3.2
     ///
     /// See <https://www.useragents.me/#most-common-mobile-useragents>
     pub fn common_web_ios() -> ClientUserAgent {
-        ClientUserAgent(String::from("Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1.1 Mobile/15E148 Safari/604."))
+        ClientUserAgent(String::from("Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Mobile/15E148 Safari/604."))
     }
 
     /// Returns the most common user agent used for the Mac os web client
     ///
-    /// Currently Safari 18.1.1 on Mac os 10.15.7
+    /// Currently Safari 17.10 on Mac os 10.15.7
     ///
     /// See <https://www.useragents.me/#most-common-mobile-useragents>
     pub fn common_web_mac_os() -> ClientUserAgent {
-        ClientUserAgent(String::from("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1.1 Safari/605.1.1"))
+        ClientUserAgent(String::from("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.10 Safari/605.1.1"))
     }
 
     /// Returns the most common user agent used for the Linux web client
     ///
-    /// Currently Chrome 132.0.0 on Linux
+    /// Currently Chrome 134.0.0 on Linux
     ///
     /// See <https://www.useragents.me/#most-common-desktop-useragents>
     pub fn common_web_linux() -> ClientUserAgent {
-        ClientUserAgent(String::from("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.3"))
+        ClientUserAgent(String::from("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.3"))
     }
 
     /// Returns the most common user agent used for the desktop client on Windows
@@ -848,16 +848,16 @@ impl ClientUserAgent {
     /// (this is mostly a guess, since we can't get statistics from discord themselves)
     ///
     /// Desktop useragents look similar to ones on Chrome;
-    /// this behaves like Linux running Chrome 132.0.0.0
+    /// this behaves like Linux running Chrome 134.0.0.0
     ///
     /// See <https://www.useragents.me/#most-common-desktop-useragents>
     pub fn common_desktop_linux() -> ClientUserAgent {
-        ClientUserAgent(String::from("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.3"))
+        ClientUserAgent(String::from("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.3"))
     }
 
     /// Returns the most common user agent used for the web client
     ///
-    /// Currently Chrome 132.0.0 on Windows 10, 40% of desktop users
+    /// Currently Chrome 134.0.0 on Windows 10, 40% of desktop users
     ///
     /// See <https://www.useragents.me/#most-common-desktop-useragents>
     pub fn common_web() -> ClientUserAgent {
@@ -905,7 +905,7 @@ impl From<ClientBuildNumber> for u64 {
 
 impl ClientBuildNumber {
     pub fn latest() -> ClientBuildNumber {
-        377993.into()
+        399244.into()
     }
 
     pub fn custom(value: u64) -> ClientBuildNumber {
