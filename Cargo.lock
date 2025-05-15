@@ -280,7 +280,7 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
 name = "chorus"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "async-trait",
  "base64 0.21.7",
@@ -2699,9 +2699,9 @@ dependencies = [
 
 [[package]]
 name = "sqlx-pg-uint"
-version = "0.9.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8d617c9e82d0ae86cb1c9ba3bdc02ba43e18515185d9cf87a917fce6da0768c"
+checksum = "f24dbc257946a3ccccb6baba0edc9d4b4002ac22c04deafb74b1d27f4f96e295"
 dependencies = [
  "bigdecimal",
  "serde",
