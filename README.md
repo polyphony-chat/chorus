@@ -4,6 +4,10 @@
 [![Build][build-shield]][build-url]
 [![Coverage][coverage-shield]][coverage-url]
 <img src="https://img.shields.io/static/v1?label=Status&message=Alpha&color=blue">
+[![FAQ-shield]][FAQ]
+
+[FAQ-shield]: https://img.shields.io/badge/Frequently_Asked_Questions_(FAQ)-ff62bd
+[FAQ]: https://github.com/polyphony-chat/.github/blob/main/FAQ.md
 
 </br>
 <div align="center">
