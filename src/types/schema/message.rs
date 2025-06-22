@@ -8,7 +8,8 @@ use crate::types::entities::{
     AllowedMention, Component, Embed, MessageReference, PartialDiscordFileAttachment,
 };
 use crate::types::{
-    Attachment, EmbedType, Message, MessageFlags, MessageType, ReactionType, Snowflake,
+    Attachment, CloudAttachment, EmbedType, Message, MessageFlags, MessageType, ReactionType,
+    Snowflake,
 };
 
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
@@ -210,4 +211,12 @@ pub struct ReactionQuerySchema {
     pub limit: Option<u32>,
     #[serde(rename = "type")]
     pub reaction_type: Option<ReactionType>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// Internal return schema for create_cloud_attachment_urls
+///
+/// See src/api/channels/attachments.rs
+pub(crate) struct CreateCloudAttachmentURLsReturn {
+    pub attachments: Vec<CloudAttachment>,
 }

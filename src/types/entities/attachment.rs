@@ -17,6 +17,10 @@ use super::{Application, User};
 /// See <https://discord.com/developers/docs/resources/channel#attachment-object>
 pub struct Attachment {
     pub id: Snowflake,
+    /// The name of the file without the extension or title of the clip
+    ///
+    /// (max 1024 characters, automatically provided when the filename is normalized or randomly generated due to invalid characters)
+    pub title: Option<String>,
     pub filename: String,
     /// Max 1024 characters
     pub description: Option<String>,
@@ -74,60 +78,117 @@ pub struct Attachment {
     pub content: Option<Vec<u8>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
 /// Discord.com's send schema for file attachments
 ///
 /// # Reference
 /// See <https://docs.discord.food/resources/message#attachment-structure>
 pub struct PartialDiscordFileAttachment {
-    pub id: Option<Snowflake>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<u64>,
+
+    /// The name of the file without the extension or title of the clip
+    ///
+    /// (max 1024 characters, automatically provided when the filename is normalized or randomly generated due to invalid characters)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+
     pub filename: String,
+
     /// The name of the file pre-uploaded to Discord's GCP bucket
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub uploaded_filename: Option<String>,
+
     /// Max 1024 characters
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+
     // Note: this field is marked as receive-only, we don't send it in json
     #[serde(skip_serializing)]
     /// The file's [media type](https://en.wikipedia.org/wiki/Media_type)
     pub content_type: Option<String>,
+
     /// The size of the file in bytes
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt64>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ephemeral: Option<bool>,
+
     /// The duration of the audio file (only for voice messages)
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub duration_secs: Option<f32>,
+
     /// A Base64 encoded bytearray representing a sampled waveform (only for voice messages)
     ///
     /// # Notes
     /// Note that this is computed on the client side.
     /// This means it can be spoofed and isn't necessarily accurate.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub waveform: Option<String>,
 
     /// Whether the file being uploaded is a clipped recording of a stream.
     ///
     /// If true, `clip_created_at` and `clip_participant_ids` are required.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_clip: Option<bool>,
+
     /// Whether the file being uploaded is a thumbnail
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_thumbnail: Option<bool>,
+
     /// Whether this attachment is a remixed version of another attachment
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_remix: Option<bool>,
+
     /// Whether this attachment is a spoiler
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_spoiler: Option<bool>,
 
     /// Required if `is_clip` is true
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub clip_created_at: Option<chrono::DateTime<Utc>>,
 
     /// The IDs of the participants in the clip (max 100)
     ///
     /// Required if `is_clip` is true
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub clip_participant_ids: Option<Vec<Snowflake>>,
 
     /// The ID of the application the clip was taken in
     #[serde(rename = "application_id")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub clip_application_id: Option<Snowflake>,
 
     /// Note: this field is added as part of chorus' API, not mapped from a remote interface
     #[serde(skip_serializing)]
     pub content: Vec<u8>,
+}
+
+impl PartialDiscordFileAttachment {
+    /// Clones every field except `content`, which is set to an empty [Vec]
+    pub fn clone_metadata(&self) -> PartialDiscordFileAttachment {
+        PartialDiscordFileAttachment {
+            id: self.id,
+            title: self.title.clone(),
+            filename: self.filename.clone(),
+            uploaded_filename: self.uploaded_filename.clone(),
+            description: self.description.clone(),
+            content_type: self.content_type.clone(),
+            size: self.size,
+            ephemeral: self.ephemeral,
+            duration_secs: self.duration_secs,
+            waveform: self.waveform.clone(),
+            is_clip: self.is_clip,
+            is_thumbnail: self.is_thumbnail,
+            is_remix: self.is_remix,
+            is_spoiler: self.is_spoiler,
+            clip_created_at: self.clip_created_at,
+            clip_participant_ids: self.clip_participant_ids.clone(),
+            clip_application_id: self.clip_application_id,
+            content: Vec::new(),
+        }
+    }
 }
 
 bitflags! {
@@ -162,4 +223,64 @@ bitflags! {
         /// Attachment is an animated image
         const IS_ANIMATED = 1 << 5;
     }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
+/// Discord.com's send schema for Google Cloud storage attachments
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/message#upload-attachment-structure>
+pub struct CloudUploadAttachment {
+    /// The ID of the attachment to reference in the response
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<u64>,
+
+    pub filename: String,
+    /// The size of the file in bytes
+    pub file_size: u64,
+
+    /// Whether the file being uploaded is a clipped recording of a stream.
+    ///
+    /// If true, `clip_created_at` and `clip_participant_ids` are required.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_clip: Option<bool>,
+
+    /// Required if `is_clip` is true
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub clip_created_at: Option<chrono::DateTime<Utc>>,
+
+    /// The IDs of the participants in the clip (max 100)
+    ///
+    /// Required if `is_clip` is true
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub clip_participant_ids: Option<Vec<Snowflake>>,
+
+    /// The ID of the application the clip was taken in
+    #[serde(rename = "application_id")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub clip_application_id: Option<Snowflake>,
+
+    /// The title of the clip
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+
+    /// Note: this field is added as part of chorus' API, not mapped from a remote interface
+    #[serde(skip_serializing)]
+    pub content: Vec<u8>,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
+/// Discord.com's receive schema for Google Cloud storage attachments
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/message#cloud-attachment-structure>
+pub struct CloudAttachment {
+    /// The ID of the attachment upload, if provided in the request
+    pub id: Option<u64>,
+
+    /// The URL to upload the file to
+    pub upload_url: String,
+
+    /// The name of the uploaded file
+    pub upload_filename: String,
 }

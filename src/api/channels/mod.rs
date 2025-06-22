@@ -3,11 +3,13 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #![allow(unused_imports)]
+pub use attachments::*;
 pub use channels::*;
 pub use messages::*;
 pub use permissions::*;
 pub use reactions::*;
 
+pub mod attachments;
 pub mod channels;
 pub mod messages;
 pub mod permissions;
