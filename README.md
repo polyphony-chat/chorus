@@ -171,8 +171,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 [Rust]: https://img.shields.io/badge/Rust-orange?style=plastic&logo=rust
 [Rust-url]: https://www.rust-lang.org/
-[build-shield]: https://img.shields.io/github/actions/workflow/status/polyphony-chat/chorus/build_and_test.yml?style=flat
-[build-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/build_and_test.yml
+[build-shield]: https://img.shields.io/github/actions/workflow/status/polyphony-chat/chorus/build-test-coverage.yml?style=flat
+[build-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/build-test-coverage.yml
 [clippy-shield]: https://img.shields.io/github/actions/workflow/status/polyphony-chat/chorus/clippy.yml?style=flat
 [clippy-url]: https://github.com/polyphony-chat/chorus/blob/main/.github/workflows/clippy.yml
 [contributors-shield]: https://img.shields.io/github/contributors/polyphony-chat/chorus.svg?style=flat
@@ -187,5 +187,5 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 [issues-url]: https://github.com/polyphony-chat/chorus/issues
 [license-shield]: https://img.shields.io/github/license/polyphony-chat/chorus.svg?style=f;at
 [license-url]: https://github.com/polyphony-chat/chorus/blob/master/LICENSE
-[Discord]: https://dcbadge.vercel.app/api/server/m3FpcapGDD?style=flat
+[Discord]: https://dcbadge.limes.pink/api/server/m3FpcapGDD?style=flat
 [Discord-invite]: https://discord.com/invite/m3FpcapGDD
