@@ -163,6 +163,45 @@ impl CloudUploadAttachment {
 
         Ok(urls)
     }
+
+    /// Deletes an unused attachment uploaded directly to a Google Cloud (or
+    /// similar) storage bucket.
+    ///
+    /// # Notes
+    /// Alias of [CloudAttachment::delete]
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/resources/message#delete-attachment>
+    pub async fn delete_from_storage_bucket(
+        user: &mut ChorusUser,
+        attachment_uploaded_filename: String,
+    ) -> ChorusResult<()> {
+        CloudAttachment::delete(user, attachment_uploaded_filename).await
+    }
+}
+
+impl CloudAttachment {
+    /// Deletes an unused attachment uploaded directly to a Google Cloud (or
+    /// similar) storage bucket.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/resources/message#delete-attachment>
+    pub async fn delete(
+        user: &mut ChorusUser,
+        attachment_upload_filename: String,
+    ) -> ChorusResult<()> {
+        let request = ChorusRequest {
+            limit_type: LimitType::Global,
+            request: Client::new().delete(format!(
+                "{}/attachments/{}",
+                &user.belongs_to.read().unwrap().urls.api,
+                attachment_upload_filename
+            )),
+        }
+        .with_headers_for(user);
+
+        request.send_and_handle_as_result(user).await
+    }
 }
 
 impl PartialDiscordFileAttachment {
