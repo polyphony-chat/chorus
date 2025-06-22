@@ -109,6 +109,8 @@ pub struct PartialDiscordFileAttachment {
     pub content_type: Option<String>,
 
     /// The size of the file in bytes
+    ///
+    /// Note that the Spacebar typescript server returns an error if this field is sent
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<u64>,
 

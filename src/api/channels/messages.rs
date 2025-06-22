@@ -22,12 +22,11 @@ impl MessageSendSchema {
     /// Performs a few needed operations on user-provided attachments before we're ready to
     /// upload them
     ///
-    /// Makes attachment ids sequential and sets their size
+    /// Makes attachment ids sequential
     pub(crate) fn preprocess_attachments(&mut self) {
         if let Some(attachments) = self.attachments.as_mut() {
             for (index, attachment) in attachments.iter_mut().enumerate() {
                 attachment.id = Some(index as u64);
-                attachment.size = Some(attachment.content.len() as u64);
             }
         }
     }
