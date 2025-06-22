@@ -35,7 +35,7 @@ pub struct Harvest {
 
 #[cfg(feature = "client")]
 impl Updateable for Harvest {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Snowflake {
         self.harvest_id
     }

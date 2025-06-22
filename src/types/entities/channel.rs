@@ -100,7 +100,7 @@ pub struct Channel {
     pub video_quality_mode: Option<i32>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[allow(clippy::nonminimal_bool)]
 impl PartialEq for Channel {
     fn eq(&self, other: &Self) -> bool {
@@ -149,7 +149,7 @@ impl PartialEq for Channel {
     }
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[cfg(feature = "sqlx")]
 fn compare_permission_overwrites(
     a: &Option<Json<Vec<PermissionOverwrite>>>,
@@ -165,7 +165,7 @@ fn compare_permission_overwrites(
     }
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[cfg(not(feature = "sqlx"))]
 fn compare_permission_overwrites(
     a: &Option<Vec<Shared<PermissionOverwrite>>>,
@@ -312,7 +312,7 @@ pub struct ThreadMember {
     pub member: Option<Shared<GuildMember>>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for ThreadMember {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id

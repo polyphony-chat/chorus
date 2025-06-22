@@ -60,7 +60,7 @@ pub struct Relationship {
     pub since: Option<DateTime<Utc>>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for Relationship {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id

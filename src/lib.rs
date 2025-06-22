@@ -157,6 +157,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
     missing_copy_implementations,
     clippy::useless_conversion
 )]
+#![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 #[cfg(all(feature = "rt", feature = "rt_multi_thread"))]
 compile_error!("feature \"rt\" and feature \"rt_multi_thread\" cannot be enabled at the same time");
 

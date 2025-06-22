@@ -62,7 +62,7 @@ pub struct Application {
     pub team: Option<Team>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for Application {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
@@ -143,7 +143,7 @@ impl PartialOrd for Application {
     }
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[cfg(feature = "sqlx")]
 fn compare_install_params(
     a: &Option<sqlx::types::Json<InstallParams>>,
@@ -159,7 +159,7 @@ fn compare_install_params(
     }
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[cfg(not(feature = "sqlx"))]
 fn compare_install_params(
     a: &Option<Shared<InstallParams>>,

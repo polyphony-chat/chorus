@@ -44,7 +44,7 @@ jobs:
         run: |
           if [ -n "${{ secrets.COVERALLS_REPO_TOKEN }}" ]; then
             mkdir -p coverage
-            cargo +nightly llvm-cov nextest --lcov --output-path coverage/lcov.info --branch --all-targets --all-features --workspace
+            cargo +nightly llvm-cov nextest --lcov --output-path coverage/lcov.info --branch --all-targets --all-features --workspace --tests
           else
             echo "Code Coverage step is skipped on PRs from forks."
             cargo nextest run --verbose --all-features

@@ -35,7 +35,7 @@ pub struct Sticker {
     pub sort_value: Option<u8>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for Sticker {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
