@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
       - name: Clone spacebar server
         run: |
           git clone https://github.com/bitfl0wer/server.git
@@ -33,22 +34,27 @@ jobs:
         with:
           cache-all-crates: "true"
           prefix-key: "linux"
-      - uses: taiki-e/install-action@nextest
-      - name: Build, Test with nextest, Publish Coverage
+      - uses: taiki-e/install-action@7cb2cdb5024b2b45585f150af1ee02e24b87edd7
+        with:
+          tool: cargo-nextest,cargo-binstall
+      - name: Install dependencies
+        run: |
+          cargo binstall --no-confirm --force --only-signed cargo-llvm-cov
+      - name: Build, Test, Publish Coverage
         run: |
           if [ -n "${{ secrets.COVERALLS_REPO_TOKEN }}" ]; then
-            if [ "${{github.event.pull_request.head.ref}}" = "main" ]; then
-              curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-              cargo binstall --no-confirm cargo-tarpaulin --force
-              cargo tarpaulin --all-features --avoid-cfg-tarpaulin --tests --verbose --skip-clean --coveralls ${{ secrets.COVERALLS_REPO_TOKEN }} --timeout 120
-            else
-              echo "Code Coverage step is skipped on non-main PRs and PRs from forks."
-              cargo nextest run --verbose --all-features
-            fi
+            mkdir -p coverage
+            cargo +nightly llvm-cov nextest --lcov --output-path coverage/lcov.info --branch --mcdc --all-targets --all-features --workspace
           else
-            echo "Code Coverage step is skipped on non-main PRs and PRs from forks."
+            echo "Code Coverage step is skipped on PRs from forks."
             cargo nextest run --verbose --all-features
           fi
+      - name: Publish coverage to Coveralls.io
+        if: github.repository == 'polyphony-chat/sonata'
+        uses: coverallsapp/github-action@v2
+        with:
+          file: "coverage/lcov.info"
+          format: "lcov"
   linux-non-default-features:
     runs-on: ubuntu-latest
     timeout-minutes: 10
