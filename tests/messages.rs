@@ -40,19 +40,9 @@ async fn send_message_attachment() {
     reader.read_to_end(&mut buffer).unwrap();
 
     let attachment = types::PartialDiscordFileAttachment {
-        id: None,
         filename: "README.md".to_string(),
-        description: None,
-        content_type: None,
-        size: None,
-        url: None,
-        proxy_url: None,
-        width: None,
-        height: None,
-        ephemeral: None,
-        duration_secs: None,
-        waveform: None,
         content: buffer,
+        ..Default::default()
     };
 
     let message = types::MessageSendSchema {
@@ -81,19 +71,9 @@ async fn search_messages() {
     reader.read_to_end(&mut buffer).unwrap();
 
     let attachment = types::PartialDiscordFileAttachment {
-        id: None,
         filename: "README.md".to_string(),
-        description: None,
-        content_type: None,
-        size: None,
-        url: None,
-        proxy_url: None,
-        width: None,
-        height: None,
-        ephemeral: None,
-        duration_secs: None,
-        waveform: None,
         content: buffer,
+        ..Default::default()
     };
 
     let message = types::MessageSendSchema {
@@ -139,7 +119,8 @@ async fn test_stickies() {
     assert_eq!(
         Message::get_sticky(channel.id, &mut bundle.user)
             .await
-            .unwrap().first()
+            .unwrap()
+            .first()
             .unwrap()
             .id,
         message.id

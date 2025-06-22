@@ -175,7 +175,7 @@ impl PartialDiscordFileAttachment {
             uploaded_filename: self.uploaded_filename.clone(),
             description: self.description.clone(),
             content_type: self.content_type.clone(),
-            size: self.size.clone(),
+            size: self.size,
             ephemeral: self.ephemeral,
             duration_secs: self.duration_secs,
             waveform: self.waveform.clone(),

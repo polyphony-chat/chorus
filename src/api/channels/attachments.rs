@@ -26,10 +26,7 @@ impl CloudUploadAttachment {
         Self {
             id: attachment.id,
             filename: attachment.filename,
-            file_size: attachment
-                .size
-                .map(|x| x.into())
-                .unwrap_or(attachment.content.len() as u64),
+            file_size: attachment.size.unwrap_or(attachment.content.len() as u64),
             is_clip: attachment.is_clip,
             clip_created_at: attachment.clip_created_at,
             clip_participant_ids: attachment.clip_participant_ids,
