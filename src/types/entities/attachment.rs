@@ -110,7 +110,7 @@ pub struct PartialDiscordFileAttachment {
 
     /// The size of the file in bytes
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<UInt64>,
+    pub size: Option<u64>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ephemeral: Option<bool>,
@@ -175,7 +175,7 @@ impl PartialDiscordFileAttachment {
             uploaded_filename: self.uploaded_filename.clone(),
             description: self.description.clone(),
             content_type: self.content_type.clone(),
-            size: self.size,
+            size: self.size.clone(),
             ephemeral: self.ephemeral,
             duration_secs: self.duration_secs,
             waveform: self.waveform.clone(),
