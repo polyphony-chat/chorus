@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use http::header::CONTENT_DISPOSITION;
+use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
 use http::HeaderMap;
 use reqwest::{multipart, Client};
 use serde_json::{from_value, to_string, Value};
@@ -14,6 +14,62 @@ use crate::types::{
     Channel, CreateGreetMessage, LimitType, Message, MessageAck, MessageModifySchema,
     MessageSearchEndpoint, MessageSearchQuery, MessageSendSchema, Snowflake,
 };
+
+impl MessageSendSchema {
+    /// Makes attachment ids sequential
+    pub(crate) fn assign_sequential_attachment_ids(&mut self) {
+        for (index, attachment) in self.attachments.iter_mut().enumerate() {
+            attachment.get_mut(index).unwrap().id = Some((index as u64).into());
+        }
+    }
+
+    /// Converts the schema into a multipart attachment form (uploading via multipart/form-data=
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/reference#example-request-bodies-(multipart/form-data)>
+    pub(crate) fn into_multipart_attachment_form(self) -> reqwest::multipart::Form {
+        let mut form = reqwest::multipart::Form::new();
+        let payload_json = to_string(&self).unwrap();
+
+        let mut header_map = HeaderMap::new();
+        header_map.insert(
+            CONTENT_DISPOSITION,
+            "form-data; name=\"payload_json\"".parse().unwrap(),
+        );
+        header_map.insert(CONTENT_TYPE, "application/json".parse().unwrap());
+
+        let payload_field = reqwest::multipart::Part::text(payload_json).headers(header_map);
+        form = form.part("payload_json", payload_field);
+
+        for (index, attachment) in self.attachments.unwrap().into_iter().enumerate() {
+            let attachment_content = attachment.content;
+            let attachment_filename = attachment.filename;
+
+            let part_name = format!("files[{}]", index);
+            let content_disposition = format!(
+                "form-data; name=\"{}\"'; filename=\"{}\"",
+                part_name, &attachment_filename
+            );
+
+            let mut header_map = HeaderMap::new();
+            header_map.insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap());
+
+            if let Some(content_type) = attachment.content_type {
+                if let Ok(parsed_content_type) = content_type.parse() {
+                    header_map.insert(CONTENT_TYPE, parsed_content_type);
+                }
+            }
+
+            let part = multipart::Part::bytes(attachment_content)
+                .file_name(attachment_filename)
+                .headers(header_map);
+
+            form = form.part(part_name, part);
+        }
+
+        form
+    }
+}
 
 impl Message {
     #[allow(clippy::useless_conversion)]
@@ -42,32 +98,9 @@ impl Message {
                 .send_and_deserialize_response::<Message>(user)
                 .await
         } else {
-            for (index, attachment) in message.attachments.iter_mut().enumerate() {
-                attachment.get_mut(index).unwrap().id = Some((index as u64).into());
-            }
-            let mut form = reqwest::multipart::Form::new();
-            let payload_json = to_string(&message).unwrap();
-            let payload_field = reqwest::multipart::Part::text(payload_json);
+            message.assign_sequential_attachment_ids();
 
-            form = form.part("payload_json", payload_field);
-
-            for (index, attachment) in message.attachments.unwrap().into_iter().enumerate() {
-                let attachment_content = attachment.content;
-                let attachment_filename = attachment.filename;
-                let part_name = format!("files[{}]", index);
-                let content_disposition = format!(
-                    "form-data; name=\"{}\"'; filename=\"{}\"",
-                    part_name, &attachment_filename
-                );
-                let mut header_map = HeaderMap::new();
-                header_map.insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap());
-
-                let part = multipart::Part::bytes(attachment_content)
-                    .file_name(attachment_filename)
-                    .headers(header_map);
-
-                form = form.part(part_name, part);
-            }
+            let form = message.into_multipart_attachment_form();
 
             let chorus_request = ChorusRequest {
                 request: Client::new()

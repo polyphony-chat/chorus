@@ -86,6 +86,8 @@ pub struct PartialDiscordFileAttachment {
     pub uploaded_filename: Option<String>,
     /// Max 1024 characters
     pub description: Option<String>,
+    // Note: this field is marked as receive-only, we don't send it in json
+    #[serde(skip_serializing)]
     /// The file's [media type](https://en.wikipedia.org/wiki/Media_type)
     pub content_type: Option<String>,
     /// The size of the file in bytes
