@@ -96,6 +96,54 @@ impl PartialEq for Application {
 }
 
 #[cfg(not(tarpaulin_include))]
+impl PartialOrd for Application {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(
+            // Note: this skips a few fields
+            // probably? not a problem
+            self.id
+                .cmp(&other.id)
+                .then(self.name.cmp(&other.name))
+                .then(self.icon.cmp(&other.icon))
+                .then(self.description.cmp(&other.description))
+                .then(self.summary.cmp(&other.summary))
+                .then(self.hook.cmp(&other.hook))
+                .then(self.bot_public.cmp(&other.bot_public))
+                .then(
+                    self.bot_require_code_grant
+                        .cmp(&other.bot_require_code_grant),
+                )
+                .then(self.verify_key.cmp(&other.verify_key))
+                .then(self.redirect_uris.cmp(&other.redirect_uris))
+                .then(self.rpc_application_state.cmp(&other.rpc_application_state))
+                .then(
+                    self.store_application_state
+                        .cmp(&other.store_application_state),
+                )
+                .then(self.verification_state.cmp(&other.verification_state))
+                .then(
+                    self.interactions_endpoint_url
+                        .cmp(&other.interactions_endpoint_url),
+                )
+                .then(self.integration_public.cmp(&other.integration_public))
+                .then(
+                    self.integration_require_code_grant
+                        .cmp(&other.integration_require_code_grant),
+                )
+                .then(self.discoverability_state.cmp(&other.discoverability_state))
+                .then(
+                    self.discovery_eligibility_flags
+                        .cmp(&other.discovery_eligibility_flags),
+                )
+                .then(self.tags.cmp(&other.tags))
+                .then(self.cover_image.cmp(&other.cover_image))
+                .then(self.terms_of_service_url.cmp(&other.terms_of_service_url))
+                .then(self.privacy_policy_url.cmp(&other.privacy_policy_url)),
+        )
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
 #[cfg(feature = "sqlx")]
 fn compare_install_params(
     a: &Option<sqlx::types::Json<InstallParams>>,

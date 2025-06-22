@@ -2,10 +2,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+use bitflags::bitflags;
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 use crate::types::utils::Snowflake;
-use crate::UInt64;
+use crate::{UInt32, UInt64};
+
+use super::{Application, User};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, PartialOrd)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -16,12 +20,33 @@ pub struct Attachment {
     pub filename: String,
     /// Max 1024 characters
     pub description: Option<String>,
+    /// The file's [media type](https://en.wikipedia.org/wiki/Media_type)
     pub content_type: Option<String>,
+    /// The size of the file in bytes
     pub size: UInt64,
+    /// Source URL of the file
     pub url: String,
+    /// A proxied url of the file, only for attachments with a defined width and height
     pub proxy_url: String,
     pub height: Option<UInt64>,
     pub width: Option<UInt64>,
+    /// The version of the explicit content scan filter this attachment was scanned with
+    ///
+    /// This field is missing if the attachment has not yet been scanned.
+    ///
+    /// If it set to 0, the
+    /// attachment is not eligible for a scan.
+    // TODO: Do we have an endpoint for this?
+    pub content_scan_version: Option<UInt32>,
+    /// The attachment placeholder protocol version (currently 1)
+    pub placeholder_version: Option<UInt32>,
+    /// A low-resolution thumbhash of the attachment to display before it is loaded
+    ///
+    /// See <https://github.com/evanw/thumbhash>
+    pub placeholder: Option<String>,
+    /// If set to true, the attachment will be automatically removed after a set period of time.
+    ///
+    /// Ephemeral attachments on messages are guaranteed to be available as long as the message itself exists.
     pub ephemeral: Option<bool>,
     /// The duration of the audio file (only for voice messages)
     pub duration_secs: Option<f32>,
@@ -31,23 +56,40 @@ pub struct Attachment {
     /// Note that this is computed on the client side.
     /// This means it can be spoofed and isn't necessarily accurate.
     pub waveform: Option<String>,
+    /// See [AttachmentFlags]
+    pub flags: Option<AttachmentFlags>,
+
+    pub clip_created_at: Option<chrono::DateTime<Utc>>,
+
+    /// The participants in the clip (max 100)
+    pub clip_participants: Option<Vec<User>>,
+
+    /// The application the clip was taken in
+    #[serde(rename = "application")]
+    pub clip_application: Option<Application>,
+
+    // FIXME: huh??
     #[serde(skip_serializing)]
     #[cfg_attr(feature = "sqlx", sqlx(default))]
     pub content: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+/// Discord.com's send schema for file attachments
+///
+/// # Reference
+/// See <https://docs.discord.food/resources/message#attachment-structure>
 pub struct PartialDiscordFileAttachment {
-    pub id: Option<UInt64>,
+    pub id: Option<Snowflake>,
     pub filename: String,
+    /// The name of the file pre-uploaded to Discord's GCP bucket
+    pub uploaded_filename: Option<String>,
     /// Max 1024 characters
     pub description: Option<String>,
+    /// The file's [media type](https://en.wikipedia.org/wiki/Media_type)
     pub content_type: Option<String>,
+    /// The size of the file in bytes
     pub size: Option<UInt64>,
-    pub url: Option<String>,
-    pub proxy_url: Option<String>,
-    pub height: Option<i32>,
-    pub width: Option<i32>,
     pub ephemeral: Option<bool>,
     /// The duration of the audio file (only for voice messages)
     pub duration_secs: Option<f32>,
@@ -57,6 +99,65 @@ pub struct PartialDiscordFileAttachment {
     /// Note that this is computed on the client side.
     /// This means it can be spoofed and isn't necessarily accurate.
     pub waveform: Option<String>,
+
+    /// Whether the file being uploaded is a clipped recording of a stream.
+    ///
+    /// If true, `clip_created_at` and `clip_participant_ids` are required.
+    pub is_clip: Option<bool>,
+    /// Whether the file being uploaded is a thumbnail
+    pub is_thumbnail: Option<bool>,
+    /// Whether this attachment is a remixed version of another attachment
+    pub is_remix: Option<bool>,
+    /// Whether this attachment is a spoiler
+    pub is_spoiler: Option<bool>,
+
+    /// Required if `is_clip` is true
+    pub clip_created_at: Option<chrono::DateTime<Utc>>,
+
+    /// The IDs of the participants in the clip (max 100)
+    ///
+    /// Required if `is_clip` is true
+    pub clip_participant_ids: Option<Vec<Snowflake>>,
+
+    /// The ID of the application the clip was taken in
+    #[serde(rename = "application_id")]
+    pub clip_application_id: Option<Snowflake>,
+
+    // HUH???
     #[serde(skip_serializing)]
     pub content: Vec<u8>,
+}
+
+bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags, PartialOrd)]
+    #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
+    /// # Reference
+    /// See <https://docs.discord.food/resources/message#attachment-flags>
+    pub struct AttachmentFlags: u64 {
+        /// Attachment is a clipped recording of a stream
+        ///
+        /// Set on the client side with `is_clip`
+        const IS_CLIP = 1 << 0;
+
+        /// Attachment is a thumbnail
+        ///
+        /// Set on the client side with `is_thumbnail`
+        const IS_THUMBNAIL = 1 << 1;
+
+        /// Attachment is a remix of another attachment
+        ///
+        /// Set on the client side with `is_remix`
+        const IS_REMIX = 1 << 2;
+
+        /// Attachment is a spoiler
+        ///
+        /// Set on the client side with `is_spoiler`
+        const IS_SPOILER = 1 << 3;
+
+        /// Attachment was flagged as sensitive content
+        const CONTAINS_EXPLICIT_MEDIA = 1 << 4;
+
+        /// Attachment is an animated image
+        const IS_ANIMATED = 1 << 5;
+    }
 }
