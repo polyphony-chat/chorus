@@ -26,7 +26,7 @@ impl MessageSendSchema {
     pub(crate) fn preprocess_attachments(&mut self) {
         if let Some(attachments) = self.attachments.as_mut() {
             for (index, attachment) in attachments.iter_mut().enumerate() {
-                attachment.id = Some((index as u64).into());
+                attachment.id = Some(index as u64);
                 attachment.size = Some(attachment.content.len() as u64);
             }
         }

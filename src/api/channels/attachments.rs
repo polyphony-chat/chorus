@@ -26,7 +26,10 @@ impl CloudUploadAttachment {
         Self {
             id: attachment.id,
             filename: attachment.filename,
-            file_size: attachment.size.unwrap_or(attachment.content.len() as u64),
+            file_size: attachment
+                .size
+                .map(|x| x.into())
+                .unwrap_or(attachment.content.len() as u64),
             is_clip: attachment.is_clip,
             clip_created_at: attachment.clip_created_at,
             clip_participant_ids: attachment.clip_participant_ids,
@@ -107,9 +110,7 @@ impl CloudUploadAttachment {
             });
         }
 
-        // Note: we want to keep track of the index and also move attachments
-        let mut i = 0;
-        for attachment in attachments {
+        for (i, attachment) in attachments.into_iter().enumerate() {
             let url = urls.get(i).unwrap();
 
             if url.id != attachment.id {
@@ -158,8 +159,6 @@ impl CloudUploadAttachment {
                     })
                 }
             }
-
-            i += 1;
         }
 
         Ok(urls)
@@ -190,12 +189,9 @@ impl PartialDiscordFileAttachment {
                 .await?;
 
         // Note: we already checked they fit 1 to 1 one level lower
-        let mut i = 0;
-        for uploaded_url in uploaded_urls {
+        for (i, uploaded_url) in uploaded_urls.into_iter().enumerate() {
             let attachment_meta = attachments_metadata.get_mut(i).unwrap();
             attachment_meta.uploaded_filename = Some(uploaded_url.upload_filename);
-
-            i += 1;
         }
 
         Ok(attachments_metadata)
