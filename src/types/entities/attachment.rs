@@ -68,7 +68,7 @@ pub struct Attachment {
     #[serde(rename = "application")]
     pub clip_application: Option<Application>,
 
-    // FIXME: huh??
+    // FIXME: why is this here? this is not received in any API (Spacebar / Discord)
     #[serde(skip_serializing)]
     #[cfg_attr(feature = "sqlx", sqlx(default))]
     pub content: Option<Vec<u8>>,
@@ -123,7 +123,7 @@ pub struct PartialDiscordFileAttachment {
     #[serde(rename = "application_id")]
     pub clip_application_id: Option<Snowflake>,
 
-    // HUH???
+    /// Note: this field is added as part of chorus' API, not mapped from a remote interface
     #[serde(skip_serializing)]
     pub content: Vec<u8>,
 }
