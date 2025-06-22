@@ -34,7 +34,7 @@ jobs:
         with:
           cache-all-crates: "true"
           prefix-key: "linux"
-      - uses: taiki-e/install-action@7cb2cdb5024b2b45585f150af1ee02e24b87edd7
+      - uses: taiki-e/install-action@d12e869b89167df346dd0ff65da342d1fb1202fb
         with:
           tool: cargo-nextest,cargo-binstall
       - name: Install dependencies
@@ -44,13 +44,13 @@ jobs:
         run: |
           if [ -n "${{ secrets.COVERALLS_REPO_TOKEN }}" ]; then
             mkdir -p coverage
-            cargo +nightly llvm-cov nextest --lcov --output-path coverage/lcov.info --branch --mcdc --all-targets --all-features --workspace
+            cargo +nightly llvm-cov nextest --lcov --output-path coverage/lcov.info --branch --all-targets --all-features --workspace
           else
             echo "Code Coverage step is skipped on PRs from forks."
             cargo nextest run --verbose --all-features
           fi
       - name: Publish coverage to Coveralls.io
-        if: github.repository == 'polyphony-chat/sonata'
+        if: github.repository == 'polyphony-chat/chorus'
         uses: coverallsapp/github-action@v2
         with:
           file: "coverage/lcov.info"
