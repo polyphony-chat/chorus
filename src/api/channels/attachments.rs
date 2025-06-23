@@ -2,17 +2,89 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use reqwest::Client;
+use http::{
+    header::{CONTENT_DISPOSITION, CONTENT_TYPE},
+    HeaderMap,
+};
+use reqwest::{multipart, Client};
 
 use crate::{
     errors::{ChorusError, ChorusResult},
-    instance::ChorusUser,
+    instance::{ChorusUser, InstanceSoftware},
     ratelimiter::ChorusRequest,
     types::{
         CloudAttachment, CloudUploadAttachment, CreateCloudAttachmentURLsReturn, LimitType,
-        PartialDiscordFileAttachment, Snowflake,
+        MessageSendSchema, PartialDiscordFileAttachment, Snowflake,
     },
 };
+
+impl MessageSendSchema {
+    /// Performs a few needed operations on user-provided attachments before we're ready to
+    /// upload them
+    ///
+    /// Makes attachment ids sequential and sets or clears their size
+    pub(crate) fn preprocess_attachments_for(&mut self, software: InstanceSoftware) {
+        if let Some(attachments) = self.attachments.as_mut() {
+            for (index, attachment) in attachments.iter_mut().enumerate() {
+                attachment.id = Some(index as u64);
+
+                // SpacebarTS complains we're sending extra fields
+                if software == InstanceSoftware::SpacebarTypescript {
+                    attachment.size = None;
+                } else {
+                    attachment.size = Some(attachment.content.len() as u64);
+                }
+            }
+        }
+    }
+
+    /// Converts the schema into a multipart attachment form (uploading via multipart/form-data)
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/reference#example-request-bodies-(multipart/form-data)>
+    pub(crate) fn into_multipart_attachment_form(self) -> reqwest::multipart::Form {
+        let mut form = reqwest::multipart::Form::new();
+        let payload_json = serde_json::to_string(&self).unwrap();
+
+        let mut header_map = HeaderMap::new();
+        header_map.insert(
+            CONTENT_DISPOSITION,
+            "form-data; name=\"payload_json\"".parse().unwrap(),
+        );
+        header_map.insert(CONTENT_TYPE, "application/json".parse().unwrap());
+
+        let payload_field = reqwest::multipart::Part::text(payload_json).headers(header_map);
+        form = form.part("payload_json", payload_field);
+
+        for (index, attachment) in self.attachments.unwrap().into_iter().enumerate() {
+            let attachment_content = attachment.content;
+            let attachment_filename = attachment.filename;
+
+            let part_name = format!("files[{}]", index);
+            let content_disposition = format!(
+                "form-data; name=\"{}\"'; filename=\"{}\"",
+                part_name, &attachment_filename
+            );
+
+            let mut header_map = HeaderMap::new();
+            header_map.insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap());
+
+            if let Some(content_type) = attachment.content_type {
+                if let Ok(parsed_content_type) = content_type.parse() {
+                    header_map.insert(CONTENT_TYPE, parsed_content_type);
+                }
+            }
+
+            let part = multipart::Part::bytes(attachment_content)
+                .file_name(attachment_filename)
+                .headers(header_map);
+
+            form = form.part(part_name, part);
+        }
+
+        form
+    }
+}
 
 impl From<PartialDiscordFileAttachment> for CloudUploadAttachment {
     fn from(value: PartialDiscordFileAttachment) -> Self {
