@@ -22,11 +22,18 @@ impl MessageSendSchema {
     /// Performs a few needed operations on user-provided attachments before we're ready to
     /// upload them
     ///
-    /// Makes attachment ids sequential
-    pub(crate) fn preprocess_attachments(&mut self) {
+    /// Makes attachment ids sequential and sets or clears their size
+    pub(crate) fn preprocess_attachments_for(&mut self, software: InstanceSoftware) {
         if let Some(attachments) = self.attachments.as_mut() {
             for (index, attachment) in attachments.iter_mut().enumerate() {
                 attachment.id = Some(index as u64);
+
+                // SpacebarTS complains we're sending extra fields
+                if software == InstanceSoftware::SpacebarTypescript {
+                    attachment.size = None;
+                } else {
+                    attachment.size = Some(attachment.content.len() as u64);
+                }
             }
         }
     }
@@ -138,19 +145,19 @@ impl Message {
         mut message: MessageSendSchema,
     ) -> ChorusResult<Message> {
         if message.attachments.is_none() {
-            Message::send_without_attachments(user, channel_id, message).await
-        } else {
-            message.preprocess_attachments();
-
-            let form = message.into_multipart_attachment_form();
-
-            let mut chorus_request = Message::create_send_chorus_request(user, channel_id);
-            chorus_request.request = chorus_request.request.multipart(form);
-
-            chorus_request
-                .send_and_deserialize_response::<Message>(user)
-                .await
+            return Message::send_without_attachments(user, channel_id, message).await;
         }
+
+        message.preprocess_attachments_for(user.belongs_to.read().unwrap().software());
+
+        let form = message.into_multipart_attachment_form();
+
+        let mut chorus_request = Message::create_send_chorus_request(user, channel_id);
+        chorus_request.request = chorus_request.request.multipart(form);
+
+        chorus_request
+            .send_and_deserialize_response::<Message>(user)
+            .await
     }
 
     #[allow(clippy::useless_conversion)]
@@ -176,7 +183,7 @@ impl Message {
             return Message::send_without_attachments(user, channel_id, message).await;
         };
 
-        message.preprocess_attachments();
+        message.preprocess_attachments_for(user.belongs_to.read().unwrap().software());
 
         let attachments = message.attachments.unwrap();
 
