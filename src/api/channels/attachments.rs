@@ -13,8 +13,10 @@ use crate::{
     instance::{ChorusUser, InstanceSoftware},
     ratelimiter::ChorusRequest,
     types::{
-        CloudAttachment, CloudUploadAttachment, CreateCloudAttachmentURLsReturn, LimitType,
-        MessageSendSchema, PartialDiscordFileAttachment, Snowflake,
+        Attachment, CloudAttachment, CloudUploadAttachment, CreateCloudAttachmentURLsReturn,
+        LimitType, MessageSendSchema, PartialDiscordFileAttachment,
+        RefreshAttachmentURLsReturnSchema, RefreshAttachmentURLsSchema, RefreshedAttachmentURL,
+        Snowflake,
     },
 };
 
@@ -83,6 +85,58 @@ impl MessageSendSchema {
         }
 
         form
+    }
+}
+
+impl Attachment {
+    /// Refreshes up to 50 attachment URLs that were uploaded to the Instance's CDN.
+    ///
+    /// Existing query string parameters are preserved.
+    ///
+    /// # Notes
+    /// As of 2025/06/23, Spacebar does not yet implement this endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/resources/message#refresh-attachment-urls>
+    pub async fn refresh_urls(
+        user: &mut ChorusUser,
+        attachment_urls: Vec<String>,
+    ) -> ChorusResult<Vec<RefreshedAttachmentURL>> {
+        let request = ChorusRequest {
+            limit_type: LimitType::Global,
+            request: Client::new()
+                .post(format!(
+                    "{}/attachments/refresh-urls",
+                    &user.belongs_to.read().unwrap().urls.api,
+                ))
+                .json(&RefreshAttachmentURLsSchema { attachment_urls }),
+        }
+        .with_headers_for(user);
+
+        request
+            .send_and_deserialize_response::<RefreshAttachmentURLsReturnSchema>(user)
+            .await
+            .map(|x| x.refreshed_urls)
+    }
+}
+
+impl ChorusUser {
+    /// Refreshes up to 50 attachment URLs that were uploaded to the Instance's CDN.
+    ///
+    /// Existing query string parameters are preserved.
+    ///
+    /// # Notes
+    /// This method is an alias of [Attachment::refresh_urls].
+    ///
+    /// As of 2025/06/23, Spacebar does not yet implement this endpoint.
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/resources/message#refresh-attachment-urls>
+    pub async fn refresh_attachment_urls(
+        &mut self,
+        attachment_urls: Vec<String>,
+    ) -> ChorusResult<Vec<RefreshedAttachmentURL>> {
+        Attachment::refresh_urls(self, attachment_urls).await
     }
 }
 

@@ -286,3 +286,15 @@ pub struct CloudAttachment {
     /// The name of the uploaded file
     pub upload_filename: String,
 }
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
+/// An attachment URL that has been refreshed
+///
+/// # Reference
+/// See <https://discord-userdoccers.vercel.app/resources/message#refreshed-attachment-structure>
+pub struct RefreshedAttachmentURL {
+    /// The provided URL
+    pub original: String,
+    /// The new URL
+    pub refreshed: String,
+}

@@ -5,7 +5,9 @@
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 
-use crate::types::{entities::PermissionOverwrite, ChannelType, DefaultReaction, Snowflake};
+use crate::types::{
+    entities::PermissionOverwrite, ChannelType, DefaultReaction, RefreshedAttachmentURL, Snowflake,
+};
 
 // TODO: Needs updating
 #[derive(Debug, Deserialize, Serialize, Default, PartialEq, PartialOrd)]
@@ -194,4 +196,20 @@ pub struct AddFollowingChannelSchema {
 pub struct CreateWebhookSchema {
     pub name: String,
     pub avatar: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// Internal send schema for Attachment::refresh_urls
+///
+/// See src/api/channels/attachments.rs
+pub(crate) struct RefreshAttachmentURLsSchema {
+    pub attachment_urls: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+/// Internal return schema for Attachment::refresh_urls
+///
+/// See src/api/channels/attachments.rs
+pub(crate) struct RefreshAttachmentURLsReturnSchema {
+    pub refreshed_urls: Vec<RefreshedAttachmentURL>,
 }
