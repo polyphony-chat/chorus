@@ -38,7 +38,7 @@ impl User {
         PublicUser::from(self)
     }
 }
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash, PartialOrd)]
 #[cfg_attr(feature = "client", derive(Updateable, Composite))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 /// # Reference
@@ -77,7 +77,7 @@ pub struct User {
     pub disabled: Option<bool>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Copy)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Hash, Serialize, Deserialize, Copy)]
 /// A user's theme colors, as u32s representing hex color codes
 ///
 /// found in [UserProfileMetadata]
@@ -191,7 +191,7 @@ impl From<User> for PublicUser {
 const CUSTOM_USER_FLAG_OFFSET: u64 = 1 << 32;
 
 bitflags::bitflags! {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, chorus_macros::SerdeBitFlags, PartialOrd)]
     #[cfg_attr(feature = "sqlx", derive(chorus_macros::SqlxBitFlags))]
      /// # Reference
      /// See <https://docs.discord.food/resources/user#user-flags>

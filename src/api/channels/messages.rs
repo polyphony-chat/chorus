@@ -2,84 +2,172 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use http::header::CONTENT_DISPOSITION;
+use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
 use http::HeaderMap;
 use reqwest::{multipart, Client};
 use serde_json::{from_value, to_string, Value};
 
 use crate::errors::{ChorusError, ChorusResult};
-use crate::instance::ChorusUser;
+use crate::instance::{ChorusUser, InstanceSoftware};
 use crate::ratelimiter::ChorusRequest;
 use crate::types::{
     Channel, CreateGreetMessage, LimitType, Message, MessageAck, MessageModifySchema,
-    MessageSearchEndpoint, MessageSearchQuery, MessageSendSchema, Snowflake,
+    MessageSearchEndpoint, MessageSearchQuery, MessageSendSchema, PartialDiscordFileAttachment,
+    Snowflake,
 };
 
+use super::attachments;
+
 impl Message {
+    /// Creates the [ChorusRequest] for the message send (create message) endpoint, without any
+    /// body
+    ///
+    /// This is used so we don't duplicate this snippet of code for every different way to send
+    /// messages
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/resources/message#create-message>
+    pub(crate) fn create_send_chorus_request(
+        user: &mut ChorusUser,
+        channel_id: Snowflake,
+    ) -> ChorusRequest {
+        let url_api = user.belongs_to.read().unwrap().urls.api.clone();
+
+        ChorusRequest {
+            request: Client::new().post(format!("{}/channels/{}/messages", url_api, channel_id)),
+            limit_type: LimitType::Channel(channel_id),
+        }
+        .with_headers_for(user)
+    }
+
     #[allow(clippy::useless_conversion)]
     /// Sends a message in the channel with the provided channel_id.
     /// Returns the sent message.
+    ///
+    /// **Does not handle attachments at all. Called by other send methods when the user has provided no
+    /// attachments and assumes that has already been checked.**
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/resources/message#create-message>
+    pub(crate) async fn send_without_attachments(
+        user: &mut ChorusUser,
+        channel_id: Snowflake,
+        message: MessageSendSchema,
+    ) -> ChorusResult<Message> {
+        let mut chorus_request = Message::create_send_chorus_request(user, channel_id);
+        chorus_request.request = chorus_request.request.json(&message);
+
+        chorus_request
+            .send_and_deserialize_response::<Message>(user)
+            .await
+    }
+
+    #[allow(clippy::useless_conversion)]
+    /// Sends a message in the channel with the provided channel_id.
+    /// Returns the sent message.
+    ///
+    /// Attachments are handled as a multipart form. Currently this is the only way on Spacebar (as
+    /// of 2025/06/22) and the older (discouraged) way for later API versions (e.g. Discord.com)
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/resources/message#create-message>
+    pub async fn send_with_multipart_attachments(
+        user: &mut ChorusUser,
+        channel_id: Snowflake,
+        mut message: MessageSendSchema,
+    ) -> ChorusResult<Message> {
+        if message.attachments.is_none() {
+            return Message::send_without_attachments(user, channel_id, message).await;
+        }
+
+        message.preprocess_attachments_for(user.belongs_to.read().unwrap().software());
+
+        let form = message.into_multipart_attachment_form();
+
+        let mut chorus_request = Message::create_send_chorus_request(user, channel_id);
+        chorus_request.request = chorus_request.request.multipart(form);
+
+        chorus_request
+            .send_and_deserialize_response::<Message>(user)
+            .await
+    }
+
+    #[allow(clippy::useless_conversion)]
+    /// Sends a message in the channel with the provided channel_id.
+    /// Returns the sent message.
+    ///
+    /// Attachments are uploaded seperately to a cloud storage bucket and later referenced by ID.
+    ///
+    /// Currently this is the recommended way on later API versions (e.g. Discord.com), but is not
+    /// yet available on Symfonia or Spacebar (as of 2025/06/22).
+    ///
+    /// For a lower level cloud attachment API, see
+    /// [PartialDiscordFileAttachment::bulk_upload_to_storage_bucket].
+    ///
+    /// # Reference
+    /// See <https://docs.discord.food/resources/message#create-message>
+    pub async fn send_with_cloud_attachments(
+        user: &mut ChorusUser,
+        channel_id: Snowflake,
+        mut message: MessageSendSchema,
+    ) -> ChorusResult<Message> {
+        if message.attachments.is_none() {
+            return Message::send_without_attachments(user, channel_id, message).await;
+        };
+
+        message.preprocess_attachments_for(user.belongs_to.read().unwrap().software());
+
+        let attachments = message.attachments.unwrap();
+
+        let attachments_as_metadata = PartialDiscordFileAttachment::bulk_upload_to_storage_bucket(
+            user,
+            channel_id,
+            attachments,
+        )
+        .await?;
+
+        message.attachments = Some(attachments_as_metadata);
+
+        let mut chorus_request = Message::create_send_chorus_request(user, channel_id);
+        chorus_request.request = chorus_request.request.json(&message);
+
+        chorus_request
+            .send_and_deserialize_response::<Message>(user)
+            .await
+    }
+
+    #[allow(clippy::useless_conversion)]
+    /// Sends a message in the channel with the provided channel_id.
+    /// Returns the sent message.
+    ///
+    /// Attachments are handled based on the [Instance](crate::instance::Instance)'s detected
+    /// [server software](crate::instance::InstanceSoftware).
+    ///
+    /// For Spacebar (and Symfonia for now), [Message::send_with_multipart_attachments] is used.
+    /// For Other, [Message::send_with_cloud_attachments] is used.
     ///
     /// # Reference
     /// See <https://docs.discord.food/resources/message#create-message>
     pub async fn send(
         user: &mut ChorusUser,
         channel_id: Snowflake,
-        mut message: MessageSendSchema,
+        message: MessageSendSchema,
     ) -> ChorusResult<Message> {
-        let url_api = user.belongs_to.read().unwrap().urls.api.clone();
-
         if message.attachments.is_none() {
-            let chorus_request = ChorusRequest {
-                request: Client::new()
-                    .post(format!("{}/channels/{}/messages", url_api, channel_id))
-                    .json(&message),
-                limit_type: LimitType::Channel(channel_id),
+            return Message::send_without_attachments(user, channel_id, message).await;
+        }
+
+        let software = user.belongs_to.read().unwrap().software();
+
+        match software {
+            // FIXME: using this for Symfonia for now as well, not sure what they'll end up
+            // implementing
+            InstanceSoftware::SpacebarTypescript | InstanceSoftware::Symfonia => {
+                Message::send_with_multipart_attachments(user, channel_id, message).await
             }
-            .with_headers_for(user);
-
-            chorus_request
-                .send_and_deserialize_response::<Message>(user)
-                .await
-        } else {
-            for (index, attachment) in message.attachments.iter_mut().enumerate() {
-                attachment.get_mut(index).unwrap().id = Some((index as u64).into());
+            InstanceSoftware::Other => {
+                Message::send_with_cloud_attachments(user, channel_id, message).await
             }
-            let mut form = reqwest::multipart::Form::new();
-            let payload_json = to_string(&message).unwrap();
-            let payload_field = reqwest::multipart::Part::text(payload_json);
-
-            form = form.part("payload_json", payload_field);
-
-            for (index, attachment) in message.attachments.unwrap().into_iter().enumerate() {
-                let attachment_content = attachment.content;
-                let attachment_filename = attachment.filename;
-                let part_name = format!("files[{}]", index);
-                let content_disposition = format!(
-                    "form-data; name=\"{}\"'; filename=\"{}\"",
-                    part_name, &attachment_filename
-                );
-                let mut header_map = HeaderMap::new();
-                header_map.insert(CONTENT_DISPOSITION, content_disposition.parse().unwrap());
-
-                let part = multipart::Part::bytes(attachment_content)
-                    .file_name(attachment_filename)
-                    .headers(header_map);
-
-                form = form.part(part_name, part);
-            }
-
-            let chorus_request = ChorusRequest {
-                request: Client::new()
-                    .post(format!("{}/channels/{}/messages", url_api, channel_id))
-                    .multipart(form),
-                limit_type: LimitType::Channel(channel_id),
-            }
-            .with_headers_for(user);
-
-            chorus_request
-                .send_and_deserialize_response::<Message>(user)
-                .await
         }
     }
 
