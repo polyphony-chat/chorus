@@ -7,7 +7,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use chrono::{DateTime, TimeZone, Utc};
 
@@ -86,7 +86,7 @@ impl<'de> serde::Deserialize<'de> for Snowflake {
             type Value = Snowflake;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                formatter.write_str("snowflake string")
+                formatter.write_str("snowflake string or integer")
             }
 
             fn visit_str<E>(self, value: &str) -> Result<Snowflake, E>
@@ -95,11 +95,19 @@ impl<'de> serde::Deserialize<'de> for Snowflake {
             {
                 match value.parse() {
                     Ok(value) => Ok(Snowflake(value)),
-                    Err(_) => Err(serde::de::Error::custom("")),
+                    Err(_) => Err(serde::de::Error::custom("failed to parse string as u64")),
                 }
             }
+
+            fn visit_u64<E>(self, value: u64) -> Result<Snowflake, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(Snowflake(value))
+            }
         }
-        deserializer.deserialize_str(SnowflakeVisitor)
+
+        deserializer.deserialize_any(SnowflakeVisitor)
     }
 }
 
@@ -149,8 +157,8 @@ impl<'d> sqlx::Decode<'d, sqlx::Postgres> for Snowflake {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[serde(untagged)]
 pub enum OneOrMoreSnowflakes {
-	One(Snowflake),
-	More(Vec<Snowflake>)
+    One(Snowflake),
+    More(Vec<Snowflake>),
 }
 
 // Note: allows us to have Default on the events
@@ -163,11 +171,13 @@ impl Default for OneOrMoreSnowflakes {
 
 impl Display for OneOrMoreSnowflakes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		  match self {
-			OneOrMoreSnowflakes::One(snowflake) => write!(f, "{}", snowflake.0),
-			// Display as you would debug a vec of u64s
-			OneOrMoreSnowflakes::More(snowflake_vec) => write!(f, "{:?}", snowflake_vec.iter().map(|x| x.0)),
-		  }
+        match self {
+            OneOrMoreSnowflakes::One(snowflake) => write!(f, "{}", snowflake.0),
+            // Display as you would debug a vec of u64s
+            OneOrMoreSnowflakes::More(snowflake_vec) => {
+                write!(f, "{:?}", snowflake_vec.iter().map(|x| x.0))
+            }
+        }
     }
 }
 
@@ -179,9 +189,9 @@ impl From<Snowflake> for OneOrMoreSnowflakes {
 
 impl From<Vec<Snowflake>> for OneOrMoreSnowflakes {
     fn from(item: Vec<Snowflake>) -> Self {
-		  if item.len() == 1 {
-			 return Self::One(item[0]);
-		  }
+        if item.len() == 1 {
+            return Self::One(item[0]);
+        }
 
         Self::More(item)
     }
@@ -195,9 +205,9 @@ impl From<u64> for OneOrMoreSnowflakes {
 
 impl From<Vec<u64>> for OneOrMoreSnowflakes {
     fn from(item: Vec<u64>) -> Self {
-		  if item.len() == 1 {
-			 return Self::One(item[0].into());
-		  }
+        if item.len() == 1 {
+            return Self::One(item[0].into());
+        }
 
         Self::More(item.into_iter().map(|x| x.into()).collect())
     }
@@ -225,28 +235,36 @@ mod test {
         assert_eq!(snow.timestamp(), timestamp);
     }
 
-	 #[test]
-	 fn serialize() {
-		  let snowflake = Snowflake(1303390110099968072_u64);
-		  let serialized = serde_json::to_string(&snowflake).unwrap();
+    #[test]
+    fn serialize() {
+        let snowflake = Snowflake(1303390110099968072_u64);
+        let serialized = serde_json::to_string(&snowflake).unwrap();
 
-		  assert_eq!(serialized, "\"1303390110099968072\"".to_string());
-	 }
+        assert_eq!(serialized, "\"1303390110099968072\"".to_string());
+    }
 
-	 #[test]
-	 fn serialize_one_or_more() {
-		  let snowflake = Snowflake(1303390110099968072_u64);
-		  let one_snowflake: OneOrMoreSnowflakes = snowflake.into();
+    #[test]
+    fn serialize_one_or_more() {
+        let snowflake = Snowflake(1303390110099968072_u64);
+        let one_snowflake: OneOrMoreSnowflakes = snowflake.into();
 
-		  let serialized = serde_json::to_string(&one_snowflake).unwrap();
+        let serialized = serde_json::to_string(&one_snowflake).unwrap();
 
-		  assert_eq!(serialized, "\"1303390110099968072\"".to_string());
+        assert_eq!(serialized, "\"1303390110099968072\"".to_string());
 
-		  let more_snowflakes: OneOrMoreSnowflakes = vec![snowflake, snowflake, snowflake].into();
+        let more_snowflakes: OneOrMoreSnowflakes = vec![snowflake, snowflake, snowflake].into();
 
-		  let serialized = serde_json::to_string(&more_snowflakes).unwrap();
+        let serialized = serde_json::to_string(&more_snowflakes).unwrap();
 
-		  assert_eq!(serialized, "[\"1303390110099968072\",\"1303390110099968072\",\"1303390110099968072\"]".to_string());
+        assert_eq!(
+            serialized,
+            "[\"1303390110099968072\",\"1303390110099968072\",\"1303390110099968072\"]".to_string()
+        );
+    }
 
-	 }
+    #[test]
+    fn deserialize() {
+        serde_json::from_str::<Snowflake>("0").unwrap();
+        serde_json::from_str::<Snowflake>("\"0\"").unwrap();
+    }
 }
