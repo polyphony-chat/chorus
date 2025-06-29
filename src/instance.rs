@@ -215,7 +215,7 @@ impl InstanceBuilder {
             log::trace!("Discovering instance URLs from root URL..");
             urls = UrlBundle::from_root_url(&root_url).await?;
         } else {
-            return ChorusResult::Err(ChorusError::InvalidArguments { error: format!("One of root_url or urls is required. See InstanceBuilder::new or InstanceBuilder::from_urls") });
+            return ChorusResult::Err(ChorusError::InvalidArguments { error: "One of root_url or urls is required. See InstanceBuilder::new or InstanceBuilder::from_urls".to_string() });
         }
 
         let limits_information;
@@ -257,7 +257,7 @@ impl InstanceBuilder {
             match instance.general_configuration_schema().await {
                 Ok(info) => instance.instance_info = info,
                 Err(e) => {
-                    log::warn!("Could not get instance configuration schema: {}", e);
+                    log::warn!("Could not get instance configuration schema: {e}");
                 }
             };
         }
