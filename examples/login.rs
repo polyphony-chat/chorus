@@ -7,7 +7,7 @@ use chorus::types::{IntoShared, LoginSchema};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let instance = Instance::new("https://example.com/", None)
+    let instance = Instance::new("https:/le.com/")
         .await
         .expect("Failed to connect to the Spacebar server")
         .into_shared();
