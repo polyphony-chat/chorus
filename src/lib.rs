@@ -239,6 +239,34 @@ impl UrlBundle {
         }
     }
 
+    /// Returns self with the root url set to a custom value
+    pub fn with_root_url(self, root: &str) -> UrlBundle {
+        let mut s = self;
+        s.root = UrlBundle::parse_url(root);
+        s
+    }
+
+    /// Returns self with the api url set to a custom value
+    pub fn with_api_url(self, api: &str) -> UrlBundle {
+        let mut s = self;
+        s.api = UrlBundle::parse_url(api);
+        s
+    }
+
+    /// Returns self with the gateway url set to a custom value
+    pub fn with_gateway_url(self, gateway: &str) -> UrlBundle {
+        let mut s = self;
+        s.wss = UrlBundle::parse_url(gateway);
+        s
+    }
+
+    /// Returns self with the cdn url set to a custom value
+    pub fn with_cdn_url(self, cdn: &str) -> UrlBundle {
+        let mut s = self;
+        s.wss = UrlBundle::parse_url(cdn);
+        s
+    }
+
     /// Parses a URL using the Url library and formats it in a standardized way.
     /// If no protocol is given, HTTP (not HTTPS) is assumed.
     ///
@@ -280,40 +308,55 @@ impl UrlBundle {
     /// stores the CDN and WSS URLs under the `$api/policies/instance/domains` endpoint. If all three
     /// of the above approaches fail, it is very likely that the instance is misconfigured, unreachable, or that
     /// a wrong URL was provided.
-    pub async fn from_root_url(url: &str) -> ChorusResult<UrlBundle> {
-        let parsed = UrlBundle::parse_url(url);
+    pub async fn from_root_url(root_url: &str) -> ChorusResult<UrlBundle> {
+        let parsed_root_url = UrlBundle::parse_url(root_url);
         let client = reqwest::Client::new();
         let request_wellknown = client
-            .get(format!("{}/.well-known/spacebar", &parsed))
+            .get(format!("{}/.well-known/spacebar", &parsed_root_url))
             .header(http::header::ACCEPT, "application/json")
             .build()?;
+
         let response_wellknown = client.execute(request_wellknown).await?;
         if response_wellknown.status().is_success() {
             let api_url = response_wellknown.json::<WellKnownResponse>().await?.api;
 
-            UrlBundle::from_api_url(&format!("{}/policies/instance/domains", api_url)).await
+            UrlBundle::from_domain_configuration_url(&format!(
+                "{}/policies/instance/domains",
+                api_url
+            ))
+            .await
+            .map(|x| x.with_root_url(&parsed_root_url))
         } else {
-            if let Ok(response_slash_api) =
-                UrlBundle::from_api_url(&format!("{}/api/policies/instance/domains", parsed)).await
+            if let Ok(response_slash_api) = UrlBundle::from_domain_configuration_url(&format!(
+                "{}/api/policies/instance/domains",
+                parsed_root_url
+            ))
+            .await
             {
-                return Ok(response_slash_api);
+                return Ok(response_slash_api.with_root_url(&parsed_root_url));
             }
-            if let Ok(response_api) =
-                UrlBundle::from_api_url(&format!("{}/policies/instance/domains", parsed)).await
+            if let Ok(response_api) = UrlBundle::from_domain_configuration_url(&format!(
+                "{}/policies/instance/domains",
+                parsed_root_url
+            ))
+            .await
             {
                 Ok(response_api)
             } else {
-                Err(ChorusError::RequestFailed { url: parsed.to_string(), error: "Could not retrieve UrlBundle from url after trying 3 different approaches. Check the provided Url and make sure the instance is reachable.".to_string() } )
+                Err(ChorusError::RequestFailed { url: parsed_root_url.to_string(), error: "Could not retrieve UrlBundle from url after trying 3 different approaches. Check the provided Url and make sure the instance is reachable.".to_string() } )
             }
         }
     }
 
-    async fn from_api_url(url: &str) -> ChorusResult<UrlBundle> {
+    /// Tries to retrieve a `UrlBundle` from the provided url, assuming it's the
+    /// instance's domain configuration endpoint (/api/policies/instance/domains)
+    async fn from_domain_configuration_url(url: &str) -> ChorusResult<UrlBundle> {
         let client = reqwest::Client::new();
         let request = client
             .get(url)
             .header(http::header::ACCEPT, "application/json")
             .build()?;
+
         let response = client.execute(request).await?;
         if let Ok(body) = response
             .json::<types::types::domains_configuration::Domains>()
