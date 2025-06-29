@@ -21,7 +21,11 @@ instead of worrying about the underlying implementation details.
 To connect to a Polyphony/Spacebar compatible server, you'll need to create an [`Instance`](https://docs.rs/chorus/latest/chorus/instance/struct.Instance.html) like this:
 
 ```rust
-use chorus::{instance::Instance, types::IntoShared};
+use chorus::{
+    gateway::{GatewayEncoding, GatewayOptions, GatewayTransportCompression},
+    instance::{Instance, InstanceBuilder, InstanceSoftware},
+    types::IntoShared,
+};
 
 #[tokio::main]
 async fn main() {
@@ -41,6 +45,31 @@ async fn main() {
     // its reference so other threads don't modify the data while we're reading or changing it
     let instance_lock = instance.read().unwrap();
 
+    dbg!(&instance_lock.instance_info);
+    dbg!(&instance_lock.limits_information);
+
+    // The above way is the easiest to create an instance, but you may want more options
+    //
+    // To do so, you can use InstanceBuilder:
+    let instance = InstanceBuilder::new("https://other-example.com".to_string())
+        // Customize how our gateway connections will be made
+        .with_gateway_options(GatewayOptions {
+            encoding: GatewayEncoding::Json,
+
+            // Explicitly disables Gateway compression, if we want to
+            transport_compression: GatewayTransportCompression::None,
+        })
+        // Skip fetching ratelimits and instance info, we know we our sever doesn't support that
+        .skip_optional_requests(true)
+        // Skip automatically detecting the software, we know which it is
+        .with_software(InstanceSoftware::Other)
+        // Once we're ready we call build
+        .build()
+        .await
+        .expect("Failed to connect to the Spacebar server")
+        .into_shared();
+
+    let instance_lock = instance.read().unwrap();
     dbg!(&instance_lock.instance_info);
     dbg!(&instance_lock.limits_information);
 }
