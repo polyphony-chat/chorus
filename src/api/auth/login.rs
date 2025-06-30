@@ -26,13 +26,17 @@ impl Instance {
         instance: Shared<Instance>,
         login_schema: LoginSchema,
     ) -> ChorusResult<ChorusUser> {
-        let endpoint_url = instance.read().unwrap().urls.api.clone() + "/auth/login";
+        let instance_read = instance.read().unwrap();
+
+        let endpoint_url = instance_read.urls.api.clone() + "/auth/login";
         let chorus_request = ChorusRequest {
             request: Client::new().post(endpoint_url).json(&login_schema),
             limit_type: LimitType::AuthLogin,
         }
         // Note: yes, this is still sent even for login and register
-        .with_client_properties(&ClientProperties::default());
+        .with_client_properties(&instance_read.default_client_properties);
+
+        drop(instance_read);
 
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since login is an instance wide limit), which is why we are just cloning the
@@ -58,15 +62,19 @@ impl Instance {
         authenticator: MfaAuthenticationType,
         schema: VerifyMFALoginSchema,
     ) -> ChorusResult<ChorusUser> {
+        let instance_read = instance.read().unwrap();
+
         let endpoint_url =
-            instance.read().unwrap().urls.api.clone() + "/auth/mfa/" + &authenticator.to_string();
+            instance_read.urls.api.clone() + "/auth/mfa/" + &authenticator.to_string();
 
         let chorus_request = ChorusRequest {
             request: Client::new().post(endpoint_url).json(&schema),
             limit_type: LimitType::AuthLogin,
         }
         // Note: yes, this is still sent even for login and register
-        .with_client_properties(&ClientProperties::default());
+        .with_client_properties(&instance_read.default_client_properties);
+
+        drop(instance_read);
 
         let mut user = ChorusUser::shell(instance, "None").await;
 
@@ -108,7 +116,8 @@ impl Instance {
                 .header("Content-Type", "application/json")
                 .json(&schema),
             limit_type: LimitType::Ip,
-        };
+        }
+        .with_client_properties(&self.default_client_properties);
 
         let send_mfa_sms_response = chorus_request
             .send_anonymous_and_deserialize_response::<SendMfaSmsResponse>(self)

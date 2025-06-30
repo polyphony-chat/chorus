@@ -26,13 +26,17 @@ impl Instance {
         instance: Shared<Instance>,
         register_schema: RegisterSchema,
     ) -> ChorusResult<ChorusUser> {
-        let endpoint_url = instance.read().unwrap().urls.api.clone() + "/auth/register";
+        let instance_read = instance.read().unwrap();
+
+        let endpoint_url = instance_read.urls.api.clone() + "/auth/register";
         let chorus_request = ChorusRequest {
             request: Client::new().post(endpoint_url).json(&register_schema),
             limit_type: LimitType::AuthRegister,
         }
         // Note: yes, this is still sent even for login and register
-        .with_client_properties(&ClientProperties::default());
+        .with_client_properties(&instance_read.default_client_properties);
+
+        drop(instance_read);
 
         // We do not have a user yet, and the UserRateLimits will not be affected by a login
         // request (since register is an instance wide limit), which is why we are just cloning

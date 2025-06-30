@@ -51,6 +51,13 @@ pub struct InstanceBuilder {
     /// See [InstanceBuilder::with_gateway_options]
     pub gateway_options: Option<GatewayOptions>,
 
+    /// Custom provided [ClientProperties] (telemetry data), if any
+    ///
+    /// These will be used in the instance's requests, and will be inherited by new [ChorusUser]s.
+    ///
+    /// See [InstanceBuilder::with_client_properties]
+    pub default_client_properties: Option<ClientProperties>,
+
     /// Whether or not to skip trying to fetch the instance's ratelimit configuration.
     ///
     /// `false` by default.
@@ -153,6 +160,17 @@ impl InstanceBuilder {
         s
     }
 
+    /// Manually sets the instance's [ClientProperties] (telemetry data)
+    ///
+    /// These will be used in the instance's requests, and will be inherited by new [ChorusUser]s.
+    ///
+    /// See [`ClientProperties`]
+    pub fn with_client_properties(self, properties: ClientProperties) -> InstanceBuilder {
+        let mut s = self;
+        s.default_client_properties = Some(properties);
+        s
+    }
+
     /// Sets whether or not to skip trying to fetch the instance's ratelimit configuration.
     ///
     /// `false` by default.
@@ -218,13 +236,24 @@ impl InstanceBuilder {
             return ChorusResult::Err(ChorusError::InvalidArguments { error: "One of root_url or urls is required. See InstanceBuilder::new or InstanceBuilder::from_urls".to_string() });
         }
 
-        let limits_information;
+        // Create the object, so we can send ChorusRequests
+        let mut instance = Instance {
+            client: Client::new(),
+            urls,
+            default_gateway_events: self.default_gateway_events,
+            default_client_properties: self.default_client_properties.unwrap_or_default(),
+
+            // Will all be overwritten soon
+            limits_information: None,
+            instance_info: GeneralConfiguration::default(),
+            gateway_options: GatewayOptions::default(),
+            software: InstanceSoftware::Other,
+        };
 
         if self.should_skip_fetching_ratelimits {
             log::trace!("Skipping instance ratelimit info fetch..");
-            limits_information = None;
         } else {
-            limits_information = match Instance::is_limited(&urls.api).await? {
+            instance.limits_information = match instance.is_limited().await? {
                 Some(limits_configuration) => {
                     let limits =
                         ChorusRequest::limits_config_to_hashmap(&limits_configuration.rate);
@@ -237,19 +266,6 @@ impl InstanceBuilder {
                 None => None,
             };
         }
-
-        // Create the object, so we can have potentially ratelimited requests
-        let mut instance = Instance {
-            client: Client::new(),
-            urls,
-            limits_information,
-            default_gateway_events: self.default_gateway_events,
-
-            // Will all be overwritten soon
-            instance_info: GeneralConfiguration::default(),
-            gateway_options: GatewayOptions::default(),
-            software: InstanceSoftware::Other,
-        };
 
         if self.should_skip_fetching_general_info {
             log::trace!("Skipping general instance info fetch..");
@@ -325,6 +341,13 @@ pub struct Instance {
     /// gateway handle object on new [ChorusUser]s created with [Instance::login_account],
     /// [Instance::login_with_token] and [Instance::register_account]
     pub default_gateway_events: Events,
+
+    #[serde(skip)]
+    /// The default [ClientProperties] (telemetry data) that the instance
+    /// uses for its requests and new [ChorusUser]s inherit.
+    ///
+    /// See [ClientProperties] for more info.
+    pub default_client_properties: ClientProperties,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Eq)]
@@ -394,20 +417,21 @@ impl Instance {
     /// Tries to fetch the instance's ratelimits information
     ///
     /// Only supported on [InstanceSoftware::Symfonia] and [InstanceSoftware::SpacebarTypescript]
-    pub async fn is_limited(api_url: &str) -> ChorusResult<Option<LimitsConfiguration>> {
-        let api_url = UrlBundle::parse_url(api_url);
-        let client = Client::new();
-        let request = client
-            .get(format!("{}/policies/instance/limits", &api_url))
-            .header(http::header::ACCEPT, "application/json")
-            .build()?;
-        let resp = match client.execute(request).await {
-            Ok(response) => response,
+    pub async fn is_limited(&mut self) -> ChorusResult<Option<LimitsConfiguration>> {
+        let request = ChorusRequest {
+            request: Client::new()
+                .get(format!("{}/policies/instance/limits", self.urls.api))
+                .header(http::header::ACCEPT, "application/json"),
+            limit_type: LimitType::Global,
+        }
+        .with_client_properties(&self.default_client_properties);
+
+        match request
+            .send_anonymous_and_deserialize_response::<LimitsConfiguration>(self)
+            .await
+        {
+            Ok(limits) => return Ok(Some(limits)),
             Err(_) => return Ok(None),
-        };
-        match resp.json::<LimitsConfiguration>().await {
-            Ok(limits) => Ok(Some(limits)),
-            Err(_) => Ok(None),
         }
     }
 
@@ -597,14 +621,12 @@ impl ChorusUser {
     ) -> ChorusResult<()> {
         self.token = token.clone();
 
-        let instance_default_events = self
-            .belongs_to
-            .read()
-            .unwrap()
-            .default_gateway_events
-            .clone();
+        let instance_read = self.belongs_to.read().unwrap();
 
-        *self.gateway.events.lock().await = instance_default_events;
+        *self.gateway.events.lock().await = instance_read.default_gateway_events.clone();
+        self.client_properties = instance_read.default_client_properties.clone();
+
+        drop(instance_read);
 
         let mut identify = GatewayIdentifyPayload::default_w_client_capabilities();
         identify.token = token;
@@ -660,7 +682,7 @@ impl ChorusUser {
     ///
     /// The JWT token expires after 5 minutes.
     ///
-    /// This route is usually used in response to [ChorusError::MfaRequired](crate::ChorusError::MfaRequired).
+    /// This route is usually used in response to [ChorusError::MfaRequired].
     ///
     /// # Reference
     /// See <https://docs.discord.food/authentication#verify-mfa>

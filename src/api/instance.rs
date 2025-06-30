@@ -27,7 +27,8 @@ impl Instance {
         let chorus_request = ChorusRequest {
             request: Client::new().get(url),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_client_properties(&self.default_client_properties);
 
         chorus_request
             .send_anonymous_and_deserialize_response(self)
@@ -46,7 +47,8 @@ impl Instance {
         let chorus_request = ChorusRequest {
             request: Client::new().get(url.clone()),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_client_properties(&self.default_client_properties);
 
         chorus_request
             .send_anonymous_and_deserialize_response(self)
