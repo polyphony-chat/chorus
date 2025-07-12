@@ -41,7 +41,7 @@ pub struct Emoji {
     pub available: Option<bool>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[allow(clippy::nonminimal_bool)]
 impl PartialEq for Emoji {
     fn eq(&self, other: &Self) -> bool {

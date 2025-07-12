@@ -128,7 +128,7 @@ pub struct Guild {
     pub widget_enabled: Option<bool>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for Guild {
     fn eq(&self, other: &Self) -> bool {
         self.afk_channel_id == other.afk_channel_id
@@ -218,7 +218,7 @@ pub struct GuildInvite {
     pub vanity_url: Option<bool>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for GuildInvite {
     fn eq(&self, other: &Self) -> bool {
         self.code == other.code
@@ -373,7 +373,7 @@ pub struct GuildScheduledEvent {
     pub image: Option<String>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for GuildScheduledEvent {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id

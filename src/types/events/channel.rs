@@ -56,7 +56,7 @@ pub struct ChannelCreate {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for ChannelCreate {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         self.channel.guild_id
     }
@@ -86,7 +86,7 @@ impl UpdateMessage<Channel> for ChannelUpdate {
         *write = self.channel.clone();
     }
 
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.channel.id)
     }
@@ -125,7 +125,7 @@ pub struct ChannelDelete {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for ChannelDelete {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         self.channel.guild_id
     }

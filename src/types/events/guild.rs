@@ -46,9 +46,9 @@ pub struct GuildCreate {
 }
 
 #[cfg(feature = "client")]
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl UpdateMessage<Guild> for GuildCreate {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         match &self.d {
             GuildCreateDataOption::UnavailableGuild(unavailable) => Some(unavailable.id),
@@ -136,7 +136,7 @@ pub struct GuildUpdate {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildUpdate {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild.id)
     }
@@ -166,7 +166,7 @@ pub struct GuildDelete {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildDelete {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild.id)
     }
@@ -197,7 +197,20 @@ pub struct GuildStickersUpdate {
     pub stickers: Vec<Sticker>,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, WebSocketEvent, PartialEq, Copy, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug,
+    Default,
+    Deserialize,
+    Serialize,
+    Clone,
+    WebSocketEvent,
+    PartialEq,
+    Copy,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-integrations-update>
 pub struct GuildIntegrationsUpdate {
     pub guild_id: Snowflake,
@@ -271,7 +284,7 @@ pub struct GuildRoleCreate {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Guild> for GuildRoleCreate {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.guild_id)
     }
@@ -304,7 +317,7 @@ pub struct GuildRoleUpdate {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<RoleObject> for GuildRoleUpdate {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.role.id)
     }
@@ -314,7 +327,20 @@ impl UpdateMessage<RoleObject> for GuildRoleUpdate {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, WebSocketEvent, PartialEq, Eq, PartialOrd, Ord, Hash, Copy)]
+#[derive(
+    Debug,
+    Default,
+    Deserialize,
+    Serialize,
+    Clone,
+    WebSocketEvent,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Copy,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-role-delete>
 pub struct GuildRoleDelete {
     pub guild_id: Snowflake,
@@ -342,7 +368,20 @@ pub struct GuildScheduledEventDelete {
     pub event: GuildScheduledEvent,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, WebSocketEvent, PartialEq, Copy, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug,
+    Default,
+    Deserialize,
+    Serialize,
+    Clone,
+    WebSocketEvent,
+    PartialEq,
+    Copy,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-user-add>
 pub struct GuildScheduledEventUserAdd {
     pub guild_scheduled_event_id: Snowflake,
@@ -350,7 +389,20 @@ pub struct GuildScheduledEventUserAdd {
     pub guild_id: Snowflake,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, WebSocketEvent, PartialEq, Copy, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug,
+    Default,
+    Deserialize,
+    Serialize,
+    Clone,
+    WebSocketEvent,
+    PartialEq,
+    Copy,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#guild-scheduled-event-user-remove>
 pub struct GuildScheduledEventUserRemove {
     pub guild_scheduled_event_id: Snowflake,

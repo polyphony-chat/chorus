@@ -51,7 +51,7 @@ pub struct Webhook {
     pub url: Option<String>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for Webhook {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id

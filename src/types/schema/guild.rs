@@ -93,7 +93,7 @@ pub struct GuildCreateSchema {
     pub guild_template_code: Option<String>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for GuildCreateSchema {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name

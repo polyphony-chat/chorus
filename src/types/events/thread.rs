@@ -19,7 +19,9 @@ pub struct ThreadCreate {
     pub thread: Channel,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent)]
+#[derive(
+    Debug, Default, Deserialize, Serialize, Clone, JsonField, SourceUrlField, WebSocketEvent,
+)]
 /// See <https://discord.com/developers/docs/topics/gateway-events#thread-update>
 pub struct ThreadUpdate {
     #[serde(flatten)]
@@ -32,7 +34,7 @@ pub struct ThreadUpdate {
 
 #[cfg(feature = "client")]
 impl UpdateMessage<Channel> for ThreadUpdate {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.thread.id)
     }
@@ -73,4 +75,3 @@ pub struct ThreadMembersUpdate {
     pub added_members: Option<Vec<ThreadMember>>,
     pub removed_members: Option<Vec<Snowflake>>,
 }
-

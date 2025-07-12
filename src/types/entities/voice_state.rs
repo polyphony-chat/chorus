@@ -56,7 +56,7 @@ pub struct VoiceState {
     pub id: Option<Snowflake>, // Only exists on Spacebar
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for VoiceState {
     fn eq(&self, other: &Self) -> bool {
         self.guild_id == other.guild_id
@@ -80,7 +80,7 @@ impl PartialEq for VoiceState {
 
 #[cfg(feature = "client")]
 impl Updateable for VoiceState {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Snowflake {
         if let Some(id) = self.id {
             id // ID exists: Only the case for Spacebar Server impls

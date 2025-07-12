@@ -34,9 +34,9 @@ pub struct AutoModerationRuleUpdate {
 }
 
 #[cfg(feature = "client")]
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl UpdateMessage<AutoModerationRule> for AutoModerationRuleUpdate {
-    #[cfg(not(tarpaulin_include))]
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn id(&self) -> Option<Snowflake> {
         Some(self.rule.id)
     }

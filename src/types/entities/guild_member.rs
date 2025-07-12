@@ -36,7 +36,7 @@ pub struct GuildMember {
     pub communication_disabled_until: Option<DateTime<Utc>>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for GuildMember {
     fn eq(&self, other: &Self) -> bool {
         self.nick == other.nick
