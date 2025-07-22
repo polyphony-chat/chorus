@@ -203,7 +203,7 @@ impl InstanceBuilder {
     /// accessible).
     ///
     /// Note that even if this is set to `true`, certain requests may be performed to determine the
-    /// instance's [software](InstanceSoftware). This can be skipped by setting in manually using
+    /// instance's [software](InstanceSoftware). This can be skipped by setting it manually using
     /// [Self::with_software].
     ///
     /// This method sets both [Self::skip_fetching_ratelimits] and [Self::skip_fetching_general_info].
