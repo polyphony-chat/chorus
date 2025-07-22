@@ -10,6 +10,7 @@ use crate::types::Snowflake;
 
 /// The different types of ratelimits that can be applied to a request. Includes "Baseline"-variants
 /// for when the Snowflake is not yet known.
+///
 /// See <https://discord.com/developers/docs/topics/rate-limits#rate-limits> for more information.
 #[derive(
     Clone, Copy, Eq, PartialEq, Debug, Default, Hash, Serialize, Deserialize, PartialOrd, Ord,

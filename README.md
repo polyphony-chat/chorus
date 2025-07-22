@@ -64,10 +64,10 @@ async fn main() {
 
     // This instance will later need to be shared across threads and users, so we'll
     // store it inside of the `Shared` type (note the `into_shared()` method call)
-    let instance = Instance::new("https://example.com", None)
+    let instance = Instance::new("https://example.com")
         .await
         .expect("Failed to connect to the Spacebar server")
-		  .into_shared();
+		.into_shared();
 
     // You can create as many instances of `Instance` as you want, but each `Instance` should likely be unique.
 

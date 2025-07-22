@@ -127,9 +127,12 @@ impl ChorusRequest {
             });
         }
 
-        let request = self.request;
+        let mut request = self.request;
 
-        // TODO: maybe have a default Instance user agent?
+        request = request.header(
+            "User-Agent",
+            instance.default_client_properties.user_agent.clone().0,
+        );
 
         let client = instance.client.clone();
         let result = match client.execute(request.build().unwrap()).await {

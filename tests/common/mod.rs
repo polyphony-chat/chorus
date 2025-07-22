@@ -79,7 +79,7 @@ pub(crate) async fn setup() -> TestBundle {
     )
     .init();
 
-    let instance = Instance::new("http://localhost:3001/api", None)
+    let instance = Instance::new("http://localhost:3001/api")
         .await
         .unwrap()
         .into_shared();
@@ -158,7 +158,7 @@ pub(crate) async fn setup_with_mock_server(server: &httptest::Server) -> TestBun
     )
     .init();
 
-    let instance = Instance::new(server.url_str("/api").as_str(), None)
+    let instance = Instance::new(server.url_str("/api").as_str())
         .await
         .unwrap()
         .into_shared();

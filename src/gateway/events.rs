@@ -7,6 +7,11 @@ use pubserve::Publisher;
 use super::*;
 use crate::types;
 
+/// Subscribable events the [Gateway] emits.
+///
+/// Most of these are received via a websocket connection.
+///
+/// Receiving a [GatewayError] from `error` means the connection was closed.
 #[derive(Default, Debug, Clone)]
 pub struct Events {
     pub application: Application,
@@ -29,6 +34,13 @@ pub struct Events {
     pub gateway_identify_payload: Publisher<types::GatewayIdentifyPayload>,
     pub gateway_resume: Publisher<types::GatewayResume>,
     pub error: Publisher<GatewayError>,
+}
+
+impl Events {
+	/// Returns a new [Events] struct with no subscribed observers
+	pub fn empty() -> Events {
+		Events::default()
+	}
 }
 
 #[derive(Default, Debug, Clone)]
