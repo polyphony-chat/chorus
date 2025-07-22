@@ -430,8 +430,8 @@ impl Instance {
             .send_anonymous_and_deserialize_response::<LimitsConfiguration>(self)
             .await
         {
-            Ok(limits) => return Ok(Some(limits)),
-            Err(_) => return Ok(None),
+            Ok(limits) => Ok(Some(limits)),
+            Err(_) => Ok(None),
         }
     }
 
@@ -622,11 +622,12 @@ impl ChorusUser {
         self.token = token.clone();
 
         let instance_read = self.belongs_to.read().unwrap();
-
-        *self.gateway.events.lock().await = instance_read.default_gateway_events.clone();
-        self.client_properties = instance_read.default_client_properties.clone();
-
+        let gateway_events = instance_read.default_gateway_events.clone();
+        let client_properties = instance_read.default_client_properties.clone();
         drop(instance_read);
+
+        *self.gateway.events.lock().await = gateway_events;
+        self.client_properties = client_properties;
 
         let mut identify = GatewayIdentifyPayload::default_w_client_capabilities();
         identify.token = token;
