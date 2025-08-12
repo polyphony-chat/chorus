@@ -23,7 +23,8 @@ impl Instance {
         let chorus_request = ChorusRequest {
             request: self.client.get(&url),
             limit_type: LimitType::Global,
-        };
+        }
+        .with_client_properties(&self.default_client_properties);
 
         chorus_request
             .send_anonymous_and_deserialize_response(self)
