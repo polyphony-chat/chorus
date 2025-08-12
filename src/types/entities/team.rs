@@ -22,7 +22,7 @@ pub struct Team {
     pub owner_user_id: Snowflake,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for Team {
     fn eq(&self, other: &Self) -> bool {
         self.icon == other.icon
@@ -41,7 +41,7 @@ pub struct TeamMember {
     pub user: Shared<User>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for TeamMember {
     fn eq(&self, other: &Self) -> bool {
         self.membership_state == other.membership_state

@@ -86,7 +86,7 @@ pub struct Message {
     pub role_subscription_data: Option<RoleSubscriptionData>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for Message {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
@@ -175,7 +175,7 @@ pub struct MessageInteraction {
     pub member: Option<Shared<GuildMember>>,
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for MessageInteraction {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id

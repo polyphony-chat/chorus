@@ -80,7 +80,7 @@ impl std::hash::Hash for LimitsInformation {
     }
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 impl PartialEq for LimitsInformation {
     fn eq(&self, other: &Self) -> bool {
         self.ratelimits.iter().eq(other.ratelimits.iter())

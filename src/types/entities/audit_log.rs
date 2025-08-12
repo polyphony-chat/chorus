@@ -45,7 +45,7 @@ impl PartialEq for AuditLogEntry {
     }
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[cfg(feature = "sqlx")]
 fn compare_options(
     a: &Option<sqlx::types::Json<AuditEntryInfo>>,
@@ -61,13 +61,13 @@ fn compare_options(
     }
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[cfg(not(feature = "sqlx"))]
 fn compare_options(a: &Option<AuditEntryInfo>, b: &Option<AuditEntryInfo>) -> bool {
     a == b
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[cfg(feature = "sqlx")]
 fn compare_changes(
     a: &sqlx::types::Json<Option<Vec<Shared<AuditLogChange>>>>,
@@ -79,7 +79,7 @@ fn compare_changes(
     }
 }
 
-#[cfg(not(tarpaulin_include))]
+#[cfg_attr(coverage_nightly, coverage(off))]
 #[cfg(not(feature = "sqlx"))]
 fn compare_changes(
     a: &Option<Vec<Shared<AuditLogChange>>>,
